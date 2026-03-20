@@ -28,7 +28,7 @@ function audioUrlFallback(verseKey, recitationId) {
 
 // ── SESSIONS ──────────────────────────────────────────────────────────────────
 const SESSIONS = [
-  { id:"fajr",    time:"Fajr",    arabic:"الفجر",  icon:"🌅", color:"#C9A84C",
+  { id:"fajr",    time:"Fajr",    arabic:"الفجر",  icon:"🌅", color:"#F0C040",
     title:"New Memorization",
     desc:"Your peak retention window. Memorize new ayahs right after salah while the mind is completely fresh.",
     steps:["Read with translation to understand the meaning","Recite aloud 10x looking at the text","Cover and recite from memory — fix mistakes immediately","Repeat until 3 times without looking","Write from memory once to cement them"] },
@@ -96,7 +96,7 @@ const JUZ_META = [
   {num:29,arabic:"تَبَارَكَ",roman:"Tabarakalladhi",order:2},{num:30,arabic:"عَمَّ",roman:"Amma",order:1},
 ];
 const STATUS_CFG = {
-  complete:       {label:"Memorized",    color:"#2ECC71"},
+  complete:       {label:"Memorized",    color:"#F0C040"},
   in_progress:    {label:"In Progress",  color:"#F6A623"},
   needs_revision: {label:"Needs Revision",color:"#E5534B"},
   not_started:    {label:"Not Started",  color:"#3A8A50"},
@@ -109,7 +109,7 @@ function calcTimeline(years,juzDone) {
            revDuhr:Math.max(1,Math.round(apd*0.3)), revAsr:Math.max(1,Math.round(apd*0.2)),
            activeDays:active, ayahsLeft, juzLeft };
 }
-const DARK  = {bg:"#060A07",surface:"#07090A",surface2:"#0A110C",border:"#0D1A0F",border2:"#0C1A0E",text:"#E0D8C8",sub:"#6A8A70",dim:"#2A4A38",vdim:"#1A3020",accent:"#C9A84C",accentDim:"#C9A84C18",input:"#050807",inputBorder:"#0D1A0F",inputText:"#5A8A68"};
+const DARK  = {bg:"#060A07",surface:"#0D1008",surface2:"#141A0F",border:"#1E2A18",border2:"#1A2814",text:"#EDE8DC",sub:"#A8B89A",dim:"#5A7050",vdim:"#2E4030",accent:"#F0C040",accentDim:"#F0C04018",input:"#0A0E07",inputBorder:"#1E2A18",inputText:"#8AAA78"};
 const LIGHT = {bg:"#F7F3EC",surface:"#FFFFFF",surface2:"#F0EBE0",border:"#DDD4C0",border2:"#D0C8B0",text:"#1A2A18",sub:"#4A6A40",dim:"#7A8A70",vdim:"#9A9A88",accent:"#8B6A10",accentDim:"#8B6A1012",input:"#F7F3EC",inputBorder:"#CCC4B0",inputText:"#3A6A40"};
 const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TODAY=()=>new Date().toDateString();
@@ -136,7 +136,7 @@ const LIVE_STREAMS = [
     id:"madinah",
     name:"Masjid An-Nabawi — Madinah",
     arabic:"قناة السنة النبوية",
-    color:"#2ECC71",
+    color:"#F0C040",
     icon:"🌙",
     label:"Madinah",
     aloula:"https://www.aloula.sa/live/sunnatvsa",
@@ -295,9 +295,10 @@ function HlsPlayer({ src, T }) {
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
-export default function QuranHifzTracker() {
+export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showDua,setShowDua]=useState(true);
+  const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("session");
   const [selectedJuz,setSelectedJuz]=useState(30);
   const [allVerses,setAllVerses]=useState([]);
@@ -608,19 +609,68 @@ export default function QuranHifzTracker() {
 
       {/* DUA MODAL */}
       {showDua&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.9)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          <div className="fi" style={{background:T.surface,border:`1px solid ${T.accent}40`,borderRadius:12,padding:"36px 40px",maxWidth:500,width:"100%",textAlign:"center"}}>
-            <div style={{fontSize:9,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Begin With Dua</div>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(26px,5vw,40px)",color:T.accent,direction:"rtl",lineHeight:1.9,marginBottom:10}}>
-              رَبِّ زِدْنِي عِلْمًا
-            </div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:T.sub,fontStyle:"italic",marginBottom:4}}>"Rabbi zidni ilma"</div>
-            <div style={{fontSize:13,color:T.text,marginBottom:4}}>"My Lord, increase me in knowledge."</div>
-            <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:T.dim,marginBottom:24}}>Surah Ta-Ha · 20:114</div>
-            <div className="sbtn" onClick={()=>setShowDua(false)} style={{display:"inline-block",padding:"12px 36px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:6,fontSize:13,fontWeight:600}}>
-              Begin — بِسْمِ اللَّهِ
-            </div>
-          </div>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          {(()=>{
+            const DUAS = [
+              {
+                arabic:"رَبِّ زِدْنِي عِلْمًا",
+                transliteration:"Rabbi zidni ilma",
+                translation:"My Lord, increase me in knowledge.",
+                source:"Surah Ta-Ha · 20:114"
+              },
+              {
+                arabic:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+                transliteration:"Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina adhaban-nar",
+                translation:"Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",
+                source:"Surah Al-Baqarah · 2:201"
+              },
+              {
+                arabic:"رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً إِنَّكَ أَنتَ الْوَهَّابُ",
+                transliteration:"Rabbana la tuzigh qulubana ba'da idh hadaytana wa hab lana min ladunka rahmah innaka antal-Wahhab",
+                translation:"Our Lord, do not let our hearts deviate after You have guided us, and grant us mercy from Yourself. Indeed, You are the Bestower.",
+                source:"Surah Aal-Imran · 3:8"
+              },
+              {
+                arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا",
+                transliteration:"Allahumma inni as'aluka ilman nafi'an wa rizqan tayyiban wa amalan mutaqabbala",
+                translation:"O Allah, I ask You for beneficial knowledge, pure provision, and accepted deeds.",
+                source:"Morning Dua · Ibn Majah"
+              },
+              {
+                arabic:"رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",
+                transliteration:"Rabbi ishrah li sadri wa yassir li amri",
+                translation:"My Lord, expand my chest and ease my affairs.",
+                source:"Surah Ta-Ha · 20:25-26"
+              },
+              {
+                arabic:"اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+                transliteration:"Allahumma a'inni ala dhikrika wa shukrika wa husni ibadatik",
+                translation:"O Allah, help me to remember You, to be grateful to You, and to worship You in an excellent manner.",
+                source:"Abu Dawud · After every Salah"
+              },
+            ];
+            const d = DUAS[duaIdx % DUAS.length];
+            return (
+              <div className="fi" style={{background:T.surface,border:`1px solid ${T.accent}40`,borderRadius:12,padding:"32px 28px",maxWidth:500,width:"100%",textAlign:"center"}}>
+                <div style={{fontSize:9,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Begin With Dua</div>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,34px)",color:T.accent,direction:"rtl",lineHeight:2,marginBottom:12}}>
+                  {d.arabic}
+                </div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,color:T.sub,fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
+                <div style={{fontSize:12,color:T.text,marginBottom:4,lineHeight:1.6}}>{d.translation}</div>
+                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:T.dim,marginBottom:24}}>{d.source}</div>
+                <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+                  <div className="sbtn" onClick={()=>setDuaIdx(i=>(i+1)%DUAS.length)} style={{padding:"10px 20px",background:T.surface2,border:`1px solid ${T.border}`,color:T.sub,borderRadius:6,fontSize:12,fontWeight:500}}>
+                    Next Dua ↻
+                  </div>
+                  <div className="sbtn" onClick={()=>setShowDua(false)} style={{padding:"10px 28px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:6,fontSize:13,fontWeight:600}}>
+                    Begin — بِسْمِ اللَّهِ
+                  </div>
+                </div>
+                <div style={{fontSize:9,color:T.vdim,marginTop:14}}>{(duaIdx%DUAS.length)+1} of {DUAS.length}</div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -629,14 +679,14 @@ export default function QuranHifzTracker() {
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div>
             <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>Abdul Jalil · Hifz Journey</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Quran Memorization Tracker</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Rihlat Al-Hifz · رحلة الحفظ</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
             {nextJuz&&<div style={{textAlign:"right"}}><div style={{fontSize:8,color:T.accent,letterSpacing:".12em",textTransform:"uppercase",marginBottom:1}}>Next</div><div style={{fontSize:11,color:T.sub}}>Juz {nextJuz.num}</div></div>}
             <div style={{textAlign:"right"}}>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:18,color:T.accent,lineHeight:1}}>{pct}%</div>
               <div style={{fontSize:8,color:T.dim,letterSpacing:".1em"}}>{completedCount}/30 Juz</div>
-              <div style={{height:3,width:60,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:2}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#2ECC71)",borderRadius:2}}/></div>
+              <div style={{height:3,width:60,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:2}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
             </div>
             <div className="sbtn" onClick={()=>setDark(d=>!d)} style={{padding:"5px 10px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,display:"flex",alignItems:"center",gap:5,fontSize:11,color:T.dim}}>
               <span>{dark?"🌙":"☀️"}</span><span>{dark?"Dark":"Light"}</span>
@@ -665,7 +715,7 @@ export default function QuranHifzTracker() {
                 <div key={r.id} className="sbtn" onClick={()=>setReciter(r.id)} style={{padding:"7px 11px",borderRadius:6,background:reciter===r.id?T.accent+"18":T.surface2,border:`1px solid ${reciter===r.id?T.accent+"60":T.border}`,minWidth:100}}>
                   <div style={{fontSize:11,fontWeight:reciter===r.id?600:400,color:reciter===r.id?T.accent:T.text}}>{r.name}</div>
                   <div style={{fontSize:10,color:reciter===r.id?T.accent+"80":T.dim,direction:"rtl",marginTop:1}}>{r.arabic}</div>
-                  {r.tag&&<div style={{fontSize:8,color:reciter===r.id?"#2ECC71":T.vdim,marginTop:1}}>{r.tag}</div>}
+                  {r.tag&&<div style={{fontSize:8,color:reciter===r.id?"#F0C040":T.vdim,marginTop:1}}>{r.tag}</div>}
                 </div>
               ))}
             </div>
@@ -696,7 +746,7 @@ export default function QuranHifzTracker() {
             <div style={{fontSize:9,color:T.dim,marginTop:4}}>{dailyNew} ayahs/session · {Math.ceil((totalSV-sessionIdx)/Math.max(1,dailyNew))} sessions remaining</div>
           </div>
 
-          {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#2ECC71",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
+          {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
           {!sessLoading&&sessionVerses.length===0&&(
             <div style={{textAlign:"center",padding:"30px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
               <div style={{fontSize:20,marginBottom:8}}>⚠️</div>
@@ -733,7 +783,7 @@ export default function QuranHifzTracker() {
                   const isLoading=audioLoading===vKey;
                   const trans=translations[vKey];
                   return (
-                    <div key={vKey} style={{background:T.surface,border:`1px solid ${bDone?"#2ECC7130":T.border}`,borderLeft:`4px solid ${bDone?"#2ECC71":T.accent}`,borderRadius:"0 8px 8px 0",padding:"14px 18px",opacity:bDone?0.6:1}}>
+                    <div key={vKey} style={{background:T.surface,border:`1px solid ${bDone?"#F0C04030":T.border}`,borderLeft:`4px solid ${bDone?"#F0C040":T.accent}`,borderRadius:"0 8px 8px 0",padding:"14px 18px",opacity:bDone?0.6:1}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                         <div style={{fontSize:9,color:T.dim,fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</div>
                         <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -758,9 +808,9 @@ export default function QuranHifzTracker() {
               </div>
 
               {bDone?(
-                <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #2ECC7130",borderRadius:8}}>
+                <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
                   <div style={{fontSize:22,marginBottom:8}}>✅</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#2ECC71",marginBottom:4}}>Batch Complete — MashaAllah!</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
                   <div style={{fontSize:12,color:T.sub,marginBottom:14}}>Head to the Calendar tab to check off Fajr for today.</div>
                   <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));}}} style={{display:"inline-block",padding:"7px 18px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:6,fontSize:11,color:T.sub}}>Continue now anyway →</div>
                 </div>
@@ -819,8 +869,8 @@ export default function QuranHifzTracker() {
                   <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:17,color:streak>0?"#F6A623":T.dim}}>🔥 {streak}</div>
                   <div style={{fontSize:8,color:T.dim,textTransform:"uppercase"}}>Streak</div>
                 </div>
-                <div style={{textAlign:"center",padding:"5px 11px",background:T.surface,border:`1px solid ${allChecked?"#2ECC7140":T.border}`,borderRadius:7}}>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:17,color:allChecked?"#2ECC71":T.dim}}>{checkedCount}/5</div>
+                <div style={{textAlign:"center",padding:"5px 11px",background:T.surface,border:`1px solid ${allChecked?"#F0C04040":T.border}`,borderRadius:7}}>
+                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:17,color:allChecked?"#F0C040":T.dim}}>{checkedCount}/5</div>
                   <div style={{fontSize:8,color:T.dim,textTransform:"uppercase"}}>Today</div>
                 </div>
                 <div className="sbtn" onClick={prevMon} style={{width:30,height:30,borderRadius:5,background:T.surface,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:T.sub,fontSize:16}}>‹</div>
@@ -836,8 +886,8 @@ export default function QuranHifzTracker() {
                 </div>
               ))}
               <div style={{display:"flex",alignItems:"center",gap:4,marginLeft:4}}>
-                <div style={{width:8,height:8,borderRadius:2,background:"#2ECC71"}}/>
-                <span style={{fontSize:9,color:"#2ECC71"}}>All 5 done</span>
+                <div style={{width:8,height:8,borderRadius:2,background:"#F0C040"}}/>
+                <span style={{fontSize:9,color:"#F0C040"}}>All 5 done</span>
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3,marginBottom:3}}>
@@ -855,8 +905,8 @@ export default function QuranHifzTracker() {
                 const allDone=SESSIONS.every(s=>liveData[s.id]);
                 const isFuture=new Date(calYear,calMonth,day)>today;
                 return (
-                  <div key={day} style={{minHeight:60,borderRadius:6,padding:"5px 6px",background:allDone?"#2ECC7110":isToday?T.accentDim:T.surface,border:`1px solid ${allDone?"#2ECC7135":isToday?T.accent+"50":T.border}`,opacity:isFuture?0.35:1}}>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:allDone?"#2ECC71":isToday?T.accent:T.sub,fontWeight:isToday?700:400,marginBottom:4,display:"flex",justifyContent:"space-between"}}>
+                  <div key={day} style={{minHeight:60,borderRadius:6,padding:"5px 6px",background:allDone?"#F0C04010":isToday?T.accentDim:T.surface,border:`1px solid ${allDone?"#F0C04035":isToday?T.accent+"50":T.border}`,opacity:isFuture?0.35:1}}>
+                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:allDone?"#F0C040":isToday?T.accent:T.sub,fontWeight:isToday?700:400,marginBottom:4,display:"flex",justifyContent:"space-between"}}>
                       <span>{day}</span>{allDone&&<span style={{fontSize:9}}>✓</span>}
                     </div>
                     {!isFuture&&<div style={{display:"flex",flexWrap:"wrap",gap:2}}>
@@ -869,7 +919,7 @@ export default function QuranHifzTracker() {
             <div style={{marginBottom:16,background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,overflow:"hidden"}}>
               <div style={{padding:"10px 16px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>Today's Checklist — {FMTDATE()}</div>
-                {allChecked&&<div style={{fontSize:11,color:"#2ECC71",fontWeight:600}}>✓ All done — MashaAllah!</div>}
+                {allChecked&&<div style={{fontSize:11,color:"#F0C040",fontWeight:600}}>✓ All done — MashaAllah!</div>}
               </div>
               {SESSIONS.map((s,i)=>{
                 const done=!!dailyChecks[s.id];
@@ -895,9 +945,9 @@ export default function QuranHifzTracker() {
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8}}>
               {[
-                {label:"Perfect Days",  val:fullDays,         color:"#2ECC71",sub:"all 5 sessions"},
+                {label:"Perfect Days",  val:fullDays,         color:"#F0C040",sub:"all 5 sessions"},
                 {label:"Total Sessions",val:totalChecksMonth, color:"#4ECDC4",sub:"this month"},
-                {label:"Consistency",   val:`${consistency}%`,color:"#C9A84C",sub:"of days active"},
+                {label:"Consistency",   val:`${consistency}%`,color:"#F0C040",sub:"of days active"},
                 {label:"Day Streak",    val:streak,           color:"#F6A623",sub:"consecutive days"},
               ].map(s=>(
                 <div key={s.label} style={{padding:"11px 13px",background:T.surface,border:`1px solid ${s.color}20`,borderTop:`3px solid ${s.color}`,borderRadius:7,textAlign:"center"}}>
@@ -917,8 +967,8 @@ export default function QuranHifzTracker() {
           <div style={{marginBottom:10,padding:"9px 13px",background:T.surface,border:`1px solid ${T.accent}18`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 6px 6px 0",fontSize:12,color:T.sub,lineHeight:1.7}}>
             🕌 <strong style={{color:T.accent}}>Priority:</strong> Find a Sheikh — even monthly check-ins protect your tajweed.
           </div>
-          <div style={{marginBottom:14,padding:"9px 13px",background:T.surface,border:"1px solid #2ECC7115",borderLeft:"3px solid #2ECC71",borderRadius:"0 6px 6px 0",fontSize:12,color:T.sub,lineHeight:1.7}}>
-            📖 <strong style={{color:"#2ECC71"}}>Order:</strong> Juz 29 → 28 → 27 → ... → 1. Click any tile to update and add notes.
+          <div style={{marginBottom:14,padding:"9px 13px",background:T.surface,border:"1px solid #F0C04015",borderLeft:"3px solid #F0C040",borderRadius:"0 6px 6px 0",fontSize:12,color:T.sub,lineHeight:1.7}}>
+            📖 <strong style={{color:"#F0C040"}}>Order:</strong> Juz 29 → 28 → 27 → ... → 1. Click any tile to update and add notes.
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(145px,1fr))",gap:7}}>
             {JUZ_META.map(j=>{
@@ -976,7 +1026,7 @@ export default function QuranHifzTracker() {
           </div>
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",minWidth:0,minHeight:0}}>
             <div style={{flex:1,overflowY:"auto",padding:"14px 18px 40px"}}>
-              {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:60,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#2ECC71",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>{loadMsg}</div></div>}
+              {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:60,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>{loadMsg}</div></div>}
               {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:T.dim}}>Check your internet connection.</div></div>}
               {!loading&&!fetchError&&surahGroups.length>0&&(
                 <div className="fi">
@@ -1052,8 +1102,8 @@ export default function QuranHifzTracker() {
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(148px,1fr))",gap:8,marginBottom:14}}>
             {[
-              {label:"Juz Remaining", val:`${timeline.juzLeft}`,     color:"#C9A84C",sub:"to memorize"},
-              {label:"Ayahs Per Day", val:timeline.ayahsPerDay,       color:"#2ECC71",sub:"daily minimum"},
+              {label:"Juz Remaining", val:`${timeline.juzLeft}`,     color:"#F0C040",sub:"to memorize"},
+              {label:"Ayahs Per Day", val:timeline.ayahsPerDay,       color:"#F0C040",sub:"daily minimum"},
               {label:"Days Per Juz",  val:`~${timeline.daysPerJuz}d`, color:"#F6A623",sub:"per juz"},
               {label:"Juz Per Month", val:timeline.juzPerMonth,       color:"#B794F4",sub:"monthly pace"},
             ].map(s=>(
@@ -1100,7 +1150,7 @@ export default function QuranHifzTracker() {
         const streams = [
           { id:"makkah",  icon:"🕋", label:"Makkah",  name:"Masjid Al-Haram",     arabic:"قناة القرآن الكريم",  color:"#E5534B",
             channelId:"UCos52azQNBgW63_9uDJoPDA",  handle:"@saudiqurantv" },
-          { id:"madinah", icon:"🌙", label:"Madinah", name:"Masjid An-Nabawi",    arabic:"قناة السنة النبوية",  color:"#2ECC71",
+          { id:"madinah", icon:"🌙", label:"Madinah", name:"Masjid An-Nabawi",    arabic:"قناة السنة النبوية",  color:"#F0C040",
             channelId:"UCROKYPep-UuODNwyipe6JMw",  handle:"@saudisunnahtv" },
         ];
         const s = streams[activeStream];
@@ -1207,7 +1257,7 @@ export default function QuranHifzTracker() {
               <div style={{fontSize:9,color:"#E5534B",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Ramadan 1447 · 2026 · Masjid Al-Haram</div>
               <div style={{fontSize:15,fontWeight:600,color:T.text,marginBottom:1}}>Sheikh Badr Al-Turki — بدر التركي</div>
               <div style={{fontSize:10,color:T.dim}}>
-                <span style={{color:"#2ECC71"}}>▶</span> Taraweeh  ·  <span style={{color:"#B794F4"}}>▶</span> Tahajjud + Witr  ·  <span style={{color:T.vdim}}>·</span> coming soon
+                <span style={{color:"#F0C040"}}>▶</span> Taraweeh  ·  <span style={{color:"#B794F4"}}>▶</span> Tahajjud + Witr  ·  <span style={{color:T.vdim}}>·</span> coming soon
               </div>
             </div>
 
@@ -1328,7 +1378,7 @@ export default function QuranHifzTracker() {
       {/* ═══ HARAMAIN TAB — FIXED (correct position, accurate notes) ═══ */}
       {activeTab==="haramain"&&(()=>{
         const imams = haramainMosque==="makkah" ? MAKKAH_IMAMS : MADINAH_IMAMS;
-        const mosqueColor = haramainMosque==="makkah" ? "#E5534B" : "#2ECC71";
+        const mosqueColor = haramainMosque==="makkah" ? "#E5534B" : "#F0C040";
 
         return (
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
@@ -1339,7 +1389,7 @@ export default function QuranHifzTracker() {
               <div style={{display:"flex",gap:8}}>
                 {[
                   {id:"makkah", label:"🕋 Masjid Al-Haram", arabic:"مكة المكرمة", color:"#E5534B"},
-                  {id:"madinah",label:"🌙 Masjid An-Nabawi",arabic:"المدينة المنورة",color:"#2ECC71"},
+                  {id:"madinah",label:"🌙 Masjid An-Nabawi",arabic:"المدينة المنورة",color:"#F0C040"},
                 ].map(m=>(
                   <div key={m.id} className="sbtn" onClick={()=>{setHaramainMosque(m.id);setOpenImam(null);}} style={{flex:1,padding:"9px 12px",borderRadius:7,background:haramainMosque===m.id?`${m.color}18`:T.surface2,border:`1px solid ${haramainMosque===m.id?m.color+"60":T.border}`,textAlign:"center"}}>
                     <div style={{fontSize:12,fontWeight:haramainMosque===m.id?600:400,color:haramainMosque===m.id?T.text:T.sub,marginBottom:2}}>{m.label}</div>
@@ -1352,8 +1402,8 @@ export default function QuranHifzTracker() {
             {/* Legend */}
             <div style={{padding:"8px 14px",borderBottom:`1px solid ${T.border}`,flexShrink:0,display:"flex",gap:14,flexWrap:"wrap"}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:"#2ECC71"}}/>
-                <span style={{fontSize:9,color:"#2ECC71"}}>Full Quran (114 surahs)</span>
+                <div style={{width:8,height:8,borderRadius:"50%",background:"#F0C040"}}/>
+                <span style={{fontSize:9,color:"#F0C040"}}>Full Quran (114 surahs)</span>
               </div>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 <div style={{width:8,height:8,borderRadius:"50%",background:"#F6A623"}}/>
@@ -1374,7 +1424,7 @@ export default function QuranHifzTracker() {
                 const isOpen = openImam===imam.id;
                 const isFull = imam.surahCount===114;
                 const hasArchive = !!imam.archive;
-                const badgeColor = isFull ? "#2ECC71" : hasArchive ? "#F6A623" : "#E5534B";
+                const badgeColor = isFull ? "#F0C040" : hasArchive ? "#F6A623" : "#E5534B";
                 const badgeLabel = isFull ? "✓ Full Quran (114 surahs)" : hasArchive ? "◦ Partial collection" : "✕ Prayer recordings only";
                 return (
                   <div key={imam.id} style={{marginBottom:6,border:`1px solid ${isOpen?mosqueColor+"40":T.border}`,borderLeft:`3px solid ${isOpen?mosqueColor:T.border2}`,borderRadius:isOpen?"6px 6px 0 0":"6px",overflow:"hidden"}}>

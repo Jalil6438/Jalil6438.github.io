@@ -1,0 +1,16 @@
+{
+  "name": "Rihlat Al-Hifz",
+  "short_name": "Rihlat Al-Hifz",
+  "description": "رحلة الحفظ — Your Quran memorization journey",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060A07",
+  "theme_color": "#060A07",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
