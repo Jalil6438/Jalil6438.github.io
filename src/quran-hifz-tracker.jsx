@@ -632,7 +632,7 @@ export default function RihlatAlHifz() {
 
       {/* DUA MODAL */}
       {showDua&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.92)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           {(()=>{
             const DUAS = [
               {
@@ -674,7 +674,7 @@ export default function RihlatAlHifz() {
             ];
             const d = DUAS[duaIdx % DUAS.length];
             return (
-              <div className="fi" style={{background:T.surface,border:`1px solid ${T.accent}40`,borderRadius:12,padding:"32px 28px",maxWidth:500,width:"100%",textAlign:"center"}}>
+              <div className="fi" style={{background:"#060A07",border:`1px solid #F0C04060`,borderRadius:12,padding:"32px 28px",maxWidth:500,width:"100%",textAlign:"center"}}>
                 <div style={{fontSize:9,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Begin With Dua</div>
                 <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,34px)",color:T.accent,direction:"rtl",lineHeight:2,marginBottom:12}}>
                   {d.arabic}
