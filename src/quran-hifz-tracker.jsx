@@ -707,19 +707,21 @@ export default function RihlatAlHifz() {
         <div style={{flex:1,overflowY:"auto",padding:"16px 18px 48px"}} className="fi">
           <div style={{marginBottom:14,padding:"12px 16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
             <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Select Reciter</div>
-            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            <select
+              value={reciter}
+              onChange={e=>setReciter(e.target.value)}
+              style={{width:"100%",padding:"10px 12px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:6,color:T.text,fontSize:12,outline:"none",cursor:"pointer"}}
+            >
               {RECITERS.map(r=>(
-                <div key={r.id} className="sbtn" onClick={()=>setReciter(r.id)} style={{padding:"7px 11px",borderRadius:6,background:reciter===r.id?T.accent+"18":T.surface2,border:`1px solid ${reciter===r.id?T.accent+"60":T.border}`,minWidth:100}}>
-                  <div style={{fontSize:11,fontWeight:reciter===r.id?600:400,color:reciter===r.id?T.accent:T.text}}>{r.name}</div>
-                  <div style={{fontSize:10,color:reciter===r.id?T.accent+"80":T.dim,direction:"rtl",marginTop:1}}>{r.arabic}</div>
-                  {r.tag&&<div style={{fontSize:8,color:reciter===r.id?"#F0C040":T.vdim,marginTop:1}}>{r.tag}</div>}
-                </div>
-              ))}
-            </div>
-            <div style={{marginTop:8,fontSize:10,color:T.vdim,fontStyle:"italic"}}>
-              ⓘ Baleela, Badr Al-Turki & Qarafi: full surah audio only (Quran tab) — per-ayah not available. Others support per-ayah playback in sessions.
-            </div>
+                <option key={r.id} value={r.id}>
+                  {r.name} — {r.arabic} {r.tag?`· ${r.tag}`:""}
+                </option>
+             ))}
+          </select>
+           <div style={{marginTop:8,fontSize:10,color:T.vdim,fontStyle:"italic"}}>
+            ⓘ Baleela, Badr Al-Turki & Qarafi: full surah audio only (Quran tab) — per-ayah not available.
           </div>
+        </div>
 
           <div style={{marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
             <div>
@@ -808,8 +810,10 @@ export default function RihlatAlHifz() {
                 <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
                   <div style={{fontSize:22,marginBottom:8}}>✅</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
-                  <div style={{fontSize:12,color:T.sub,marginBottom:14}}>Head to the Calendar tab to check off Fajr for today.</div>
-                  <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));}}} style={{display:"inline-block",padding:"7px 18px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:6,fontSize:11,color:T.sub}}>Continue now anyway →</div>
+                  <div style={{fontSize:12,color:T.sub,marginBottom:14}}>Head to the My Rihlah to check off Fajr for today.</div>
+                  <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));}}} style={{display:"inline-block",padding:"12px 28px",background:T.accent,border:`1px solid ${T.accent}`,borderRadius:8,fontSize:13,fontWeight:700,color:dark?"#060A07":"#fff",marginTop:8}}>
+                   ✓ Done — Next Batch →
+                </div>
                 </div>
               ):(
                 <div style={{background:T.surface,border:`1px solid ${T.accent}25`,borderRadius:8,padding:"14px 18px"}}>
