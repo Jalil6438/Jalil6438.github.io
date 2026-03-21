@@ -299,7 +299,7 @@ export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showDua,setShowDua]=useState(true);
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
-  const [activeTab,setActiveTab]=useState("session");
+  const [activeTab,setActiveTab]=useState("myhifz");
   const [selectedJuz,setSelectedJuz]=useState(30);
   const [allVerses,setAllVerses]=useState([]);
   const [loading,setLoading]=useState(false);
@@ -324,6 +324,7 @@ export default function RihlatAlHifz() {
   const [calYear,setCalYear]=useState(new Date().getFullYear());
   const [reciter,setReciter]=useState("dosari");
   const [activeStream,setActiveStream]=useState(0);
+  const [masjidaynTab, setMasjidaynTab]=useState("live");
   const [haramainMosque,setHaramainMosque]=useState("makkah");
   const [openImam,setOpenImam]=useState(null);
   const [haramainPlaying,setHaramainPlaying]=useState(null);
@@ -577,14 +578,10 @@ export default function RihlatAlHifz() {
   }
 
   const TABS=[
-    {id:"session",   label:"Today"},
-    {id:"calendar",  label:"Calendar"},
-    {id:"tracker",   label:"Tracker"},
-    {id:"quran",     label:"Quran"},
-    {id:"plan",      label:"Timeline"},
-    {id:"live",      label:"🕌 Live"},
-    {id:"ramadan",   label:"🌙 Ramadan"},
-    {id:"haramain",  label:"📚 Haramain"},
+    {id:"myhifz",     label:"My Hifz"},
+    {id:"rihlah",     label:"My Rihlah"},
+    {id:"quran",      label:"Al-Quran Al-Karim"},
+    {id:"masjidayn",  label:"🕋 Al-Masjidayn"},
   ];
 
   return (
@@ -706,7 +703,7 @@ export default function RihlatAlHifz() {
       </div>
 
       {/* ═══ TODAY SESSION ═══ */}
-      {activeTab==="session"&&(
+      {activeTab==="myhifz"&&(
         <div style={{flex:1,overflowY:"auto",padding:"16px 18px 48px"}} className="fi">
           <div style={{marginBottom:14,padding:"12px 16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
             <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Select Reciter</div>
@@ -838,7 +835,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ CALENDAR TAB ═══ */}
-      {activeTab==="calendar"&&(()=>{
+      {activeTab==="rihlah"&&(()=>{
         const today=new Date();
         const firstDay=new Date(calYear,calMonth,1).getDay();
         const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
@@ -962,7 +959,7 @@ export default function RihlatAlHifz() {
       })()}
 
       {/* ═══ TRACKER ═══ */}
-      {activeTab==="tracker"&&(
+      {activeTab==="rihlah"&&(
         <div style={{flex:1,overflowY:"auto",padding:"14px 18px 40px"}} className="fi">
           <div style={{marginBottom:10,padding:"9px 13px",background:T.surface,border:`1px solid ${T.accent}18`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 6px 6px 0",fontSize:12,color:T.sub,lineHeight:1.7}}>
             🕌 <strong style={{color:T.accent}}>Priority:</strong> Find a Sheikh — even monthly check-ins protect your tajweed.
@@ -1087,7 +1084,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ TIMELINE ═══ */}
-      {activeTab==="plan"&&(
+      {activeTab==="rihlah"&&(
         <div style={{flex:1,overflowY:"auto",padding:"16px 20px 48px"}} className="fi">
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:T.text,marginBottom:14}}>Memorization Timeline Calculator</div>
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"14px 18px",marginBottom:14}}>
@@ -1170,9 +1167,23 @@ export default function RihlatAlHifz() {
           </div>
         </div>
       )}
-
+      {activeTab==="masjidayn"&&(
+        <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          {/* Sub-tab navigation */}
+          <div style={{display:"flex",background:T.surface,borderBottom:`1px solid ${T.border}` }}>
+            {[
+              {id:"live",     label:"📡 Now Live"},
+              {id:"ramadan",  label:"🌙 Ramadan"},
+              {id:"haramain", label:"🎙️ Imams"},
+            ].map(t=>(
+              <div key={t.id} onClick={()=>setMasjidaynTab(t.id)} style={{flex:1,padding:"10px 6px", textAlign:"center",fontSize:11,fontWeight:masjidaynTab===t.id?700:400,color:masjidaynTab===t.id?T.accent:T.dim,borderBottom:`2px solid ${masjidaynTab===t.id?T.accent:"transparent"}`,cursor:"pointer"}}>
+                {t.label}
+                </div>
+            ))}
+          </div>
+    
       {/* ═══ LIVE TAB — embedded in-app ═══ */}
-      {activeTab==="live"&&(()=>{
+      {activeTab==="masjidayn"&&masjidaynTab==="live"&&(()=>{
         // Official channel IDs from Wikidata (verified)
         // saudiqurantv  → UCos52azQNBgW63_9uDJoPDA (Makkah)
         // saudisunnahtv → UCROKYPep-UuODNwyipe6JMw (Madinah)
@@ -1236,7 +1247,7 @@ export default function RihlatAlHifz() {
       })()}
 
       {/* ═══ RAMADAN 1447 — Sheikh Badr Al-Turki all 30 nights ═══ */}
-      {activeTab==="ramadan"&&(()=>{
+      {activeTab==="masjidayn"&&masjidaynTab==="ramadan"&&(()=>{
         // Ramadan 1447/2026 — Full night videos by Sheikh Badr Al-Turki
         // ▶ = plays in app | null = opens his YouTube channel
         // Add more IDs here as you get them — just share a link!
@@ -1405,7 +1416,7 @@ export default function RihlatAlHifz() {
       })()}
 
       {/* ═══ HARAMAIN TAB — FIXED (correct position, accurate notes) ═══ */}
-      {activeTab==="haramain"&&(()=>{
+      {activeTab==="masjidayn"&&masjidaynTab==="haramain"&&(()=>{
         const imams = haramainMosque==="makkah" ? MAKKAH_IMAMS : MADINAH_IMAMS;
         const mosqueColor = haramainMosque==="makkah" ? "#E5534B" : "#F0C040";
 
@@ -1521,6 +1532,9 @@ export default function RihlatAlHifz() {
           </div>
         );
       })()}
+
+    </div>
+  )}
 
     </div>
   );
