@@ -1134,6 +1134,35 @@ export default function RihlatAlHifz() {
               {[1,2,3,5,7,10].map(y=>{const t=calcTimeline(y,completedCount),isA=y===goalYears;return <div key={y} className="sbtn" onClick={()=>setGoalYears(y)} style={{flex:1,minWidth:75,padding:"9px",background:isA?T.surface2:T.surface,border:`1px solid ${isA?T.accent+"40":T.border}`,borderRadius:5,textAlign:"center"}}><div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:isA?T.accent:T.dim,fontWeight:isA?600:400,marginBottom:2}}>{y}{y===1?"yr":"yrs"}</div><div style={{fontSize:10,color:isA?T.sub:T.vdim}}>{t.ayahsPerDay}/day</div></div>;})}
             </div>
           </div>
+          {/* Method steps */}
+          <div style={{marginBottom:14}}>
+            <div style={{fontSize:9,color:T.dim,letterSpacing:".15em",textTransform:"uppercase",marginBottom:8}}>How To Memorize — Step By Step</div>
+            {SESSIONS.map(s=>(
+              <div key={s.id} style={{marginBottom:6,background:T.surface,border:`1px solid ${openMethod===s.id?s.color+"50":T.border}`,borderLeft:`3px solid ${s.color}`,borderRadius:"0 7px 7px 0",overflow:"hidden"}}>
+                <div className="sbtn" onClick={()=>setOpenMethod(openMethod===s.id?null:s.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px"}}>
+                  <span style={{fontSize:16}}>{s.icon}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,fontWeight:600,color:openMethod===s.id?s.color:T.text}}>{s.time} — {s.title}</div>
+                    <div style={{fontSize:10,color:T.dim,marginTop:1}}>{s.desc}</div>
+                  </div>
+                  <span style={{fontSize:12,color:T.dim,transform:openMethod===s.id?"rotate(90deg)":"none",transition:"transform .2s"}}>›</span>
+                </div>
+                {openMethod===s.id&&(
+                  <div style={{padding:"0 14px 12px 14px",borderTop:`1px solid ${T.border}`}}>
+                    {s.steps.map((step,i)=>(
+                      <div key={i} style={{display:"flex",gap:10,padding:"7px 0",borderBottom:i<s.steps.length-1?`1px solid ${T.border}`:"none"}}>
+                        <div style={{width:20,height:20,borderRadius:"50%",background:s.color+"20",border:`1px solid ${s.color}40`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                          <span style={{fontSize:9,color:s.color,fontWeight:700}}>{i+1}</span>
+                        </div>
+                        <span style={{fontSize:11,color:T.sub,lineHeight:1.5}}>{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
           <div style={{padding:"14px 18px",background:T.surface,border:`1px solid ${T.accent}20`,borderRadius:8,textAlign:"center"}}>
             <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:T.accent,direction:"rtl",marginBottom:6}}>وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ</div>
             <div style={{fontSize:12,color:T.sub,fontStyle:"italic",marginBottom:3}}>"And We have certainly made the Quran easy for remembrance"</div>
