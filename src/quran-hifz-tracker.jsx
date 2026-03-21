@@ -348,6 +348,14 @@ export default function RihlatAlHifz() {
   },[]);
 
   useEffect(()=>{
+  if(!showDua) return;
+  const timer = setInterval(()=>{
+    setDuaIdx(i=>(i+1)%6);
+  }, 4000);
+  return ()=>clearInterval(timer);
+},[showDua]);
+
+  useEffect(()=>{
     try {
       const d=localStorage.getItem("jalil-quran-v8");
       if(d){
@@ -682,17 +690,14 @@ export default function RihlatAlHifz() {
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,color:T.sub,fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
                 <div style={{fontSize:12,color:T.text,marginBottom:4,lineHeight:1.6}}>{d.translation}</div>
                 <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:T.dim,marginBottom:24}}>{d.source}</div>
-                <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-                  <div className="sbtn" onClick={()=>setDuaIdx(i=>(i+1)%DUAS.length)} style={{padding:"10px 20px",background:T.surface2,border:`1px solid ${T.border}`,color:T.sub,borderRadius:6,fontSize:12,fontWeight:500}}>
-                    Next Dua ↻
-                  </div>
+                <div style={{display:"flex",justifyContent:"center"}}>
                   <div className="sbtn" onClick={()=>setShowDua(false)} style={{padding:"10px 28px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:6,fontSize:13,fontWeight:600}}>
                     Begin — بِسْمِ اللَّهِ
                   </div>
                 </div>
                 <div style={{fontSize:9,color:T.vdim,marginTop:14}}>{(duaIdx%DUAS.length)+1} of {DUAS.length}</div>
-              </div>
-            );
+            </div>
+          );
           })()}
         </div>
       )}
