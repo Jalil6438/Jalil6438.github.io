@@ -298,6 +298,7 @@ function HlsPlayer({ src, T }) {
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showDua,setShowDua]=useState(true);
+  const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("myhifz");
   const [selectedJuz,setSelectedJuz]=useState(30);
@@ -603,6 +604,31 @@ export default function RihlatAlHifz() {
         input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:${T.accent};cursor:pointer;}
         textarea:focus{outline:none;} select{cursor:pointer;}
       `}</style>
+      
+      {/* ONBOARDING */}
+      {showOnboarding&&(
+        <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,flexDirection:"column",gap:16,textAlign:"center"}}>
+          <div style={{fontFamily:"'Amiri',serif",fontSize:42,color:"#F0C040",direction:"rtl",lineHeight:1.6}}>
+           بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+          </div>
+          <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#F0C040",direction:"rtl",marginTop:8}}>
+           وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
+          </div>
+          <div style={{fontSize:12,color:"#A8B89A",fontStyle:"italic",marginBottom:8}}>
+            "And We have certainly made the Quran easy for remembrance" · Al-Qamar 54:17
+          </div>
+          <div style={{fontFamily:"'Amiri',serif",fontSize:24,color:"#F0C040",direction:"rtl",marginBottom:4}}>
+             رحلة الحفظ
+          </div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#EDE8DC",marginBottom:16}}>
+            Rihlat Al-Hifz
+          </div>
+          <div className="sbtn" onClick={()=>{setShowOnboarding(false);localStorage.setItem("rihlat-onboarded","1");}} style={{padding:"14px 40px",background:"#F0C040",borderRadius:8,fontSize:14,fontWeight:700,color:"#060A07"}}>
+            Begin Your Journey →
+          </div>
+          <div style={{fontSize:10,color:"#5A7050",marginTop:8}}>© 2026 NoorTech Academy</div>
+        </div>
+      )}
 
       {/* DUA MODAL */}
       {showDua&&(
