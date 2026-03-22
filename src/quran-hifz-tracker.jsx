@@ -882,37 +882,13 @@ export default function RihlatAlHifz() {
         const consistency=pastDays>0?Math.round((fullDays/pastDays)*100):0;
         return (
           <div style={{flex:1,overflowY:"auto",padding:"16px 18px 48px"}} className="fi">
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:10}}>
-              <div>
-                <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Hifz Calendar</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:T.text}}>{MONTH_NAMES[calMonth]} {calYear}</div>
-              </div>
-              <div style={{display:"flex",gap:7,alignItems:"center"}}>
-                <div style={{textAlign:"center",padding:"5px 11px",background:T.surface,border:`1px solid ${streak>0?"#F6A62340":T.border}`,borderRadius:7}}>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:17,color:streak>0?"#F6A623":T.dim}}>🔥 {streak}</div>
-                  <div style={{fontSize:8,color:T.dim,textTransform:"uppercase"}}>Streak</div>
-                </div>
-                <div style={{textAlign:"center",padding:"5px 11px",background:T.surface,border:`1px solid ${allChecked?"#F0C04040":T.border}`,borderRadius:7}}>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:17,color:allChecked?"#F0C040":T.dim}}>{checkedCount}/5</div>
-                  <div style={{fontSize:8,color:T.dim,textTransform:"uppercase"}}>Today</div>
-                </div>
-                <div className="sbtn" onClick={prevMon} style={{width:30,height:30,borderRadius:5,background:T.surface,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:T.sub,fontSize:16}}>‹</div>
-                <div className="sbtn" onClick={()=>{setCalMonth(today.getMonth());setCalYear(today.getFullYear());}} style={{padding:"5px 10px",borderRadius:5,background:T.surface,border:`1px solid ${T.border}`,fontSize:10,color:T.accent}}>Today</div>
-                <div className="sbtn" onClick={nextMon} style={{width:30,height:30,borderRadius:5,background:T.surface,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:T.sub,fontSize:16}}>›</div>
-              </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>My Rihlah</div>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:streak>0?"#F6A623":T.dim}}>🔥 {streak}</div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:allChecked?"#F0C040":T.dim}}>{checkedCount}/5 today</div>
             </div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10,padding:"8px 12px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:7}}>
-              {SESSIONS.map(s=>(
-                <div key={s.id} style={{display:"flex",alignItems:"center",gap:4}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:s.color}}/>
-                  <span style={{fontSize:9,color:s.color}}>{s.time}</span>
-                </div>
-              ))}
-              <div style={{display:"flex",alignItems:"center",gap:4,marginLeft:4}}>
-                <div style={{width:8,height:8,borderRadius:2,background:"#F0C040"}}/>
-                <span style={{fontSize:9,color:"#F0C040"}}>All 5 done</span>
-              </div>
-            </div>
+          </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:14}}>
               {Array.from({length:7},(_,i)=>{
                 const d=new Date();
