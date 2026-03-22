@@ -913,28 +913,25 @@ export default function RihlatAlHifz() {
                 <span style={{fontSize:9,color:"#F0C040"}}>All 5 done</span>
               </div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3,marginBottom:3}}>
-              {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=>(
-                <div key={d} style={{textAlign:"center",fontSize:9,color:T.dim,letterSpacing:".08em",padding:"3px 0",textTransform:"uppercase"}}>{d}</div>
-              ))}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3,marginBottom:16}}>
-              {cells.map((day,i)=>{
-                if(!day) return <div key={`e${i}`}/>;
-                const dk=`${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:14}}>
+              {Array.from({length:7},(_,i)=>{
+                const d=new Date();
+                d.setDate(d.getDate()-6+i);
+                const dk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
                 const dayData=checkHistory[dk]||{};
-                const isToday=today.getDate()===day&&today.getMonth()===calMonth&&today.getFullYear()===calYear;
+                const isToday=i===6;
                 const liveData=isToday?{...dayData,...Object.fromEntries(SESSIONS.map(s=>[s.id,!!dailyChecks[s.id]]))}:dayData;
-                const allDone=SESSIONS.every(s=>liveData[s.id]);
-                const isFuture=new Date(calYear,calMonth,day)>today;
+                const allDone=SESSIONS.filter(s=>liveData[s.id]).length===5;
+                const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
                 return (
-                  <div key={day} style={{minHeight:60,borderRadius:6,padding:"5px 6px",background:allDone?"#F0C04010":isToday?T.accentDim:T.surface,border:`1px solid ${allDone?"#F0C04035":isToday?T.accent+"50":T.border}`,opacity:isFuture?0.35:1}}>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:allDone?"#F0C040":isToday?T.accent:T.sub,fontWeight:isToday?700:400,marginBottom:4,display:"flex",justifyContent:"space-between"}}>
-                      <span>{day}</span>{allDone&&<span style={{fontSize:9}}>✓</span>}
+                  <div key={dk} style={{textAlign:"center",padding:"8px 4px",background:allDone?"#F0C04015":isToday?T.accentDim:T.surface,border:`1px solid ${allDone?"#F0C04040":isToday?T.accent+"60":T.border}`,borderRadius:8}}>
+                    <div style={{fontSize:9,color:isToday?T.accent:T.dim,textTransform:"uppercase",marginBottom:4}}>{dayNames[d.getDay()]}</div>
+                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:isToday?T.accent:T.text,fontWeight:isToday?700:400,marginBottom:6}}>{d.getDate()}</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:2,alignItems:"center"}}>
+                      {SESSIONS.map(s=>(
+                        <div key={s.id} style={{width:6,height:6,borderRadius:"50%",background:liveData[s.id]?s.color:T.surface2,border:`1px solid ${liveData[s.id]?s.color:T.border}`}}/>
+                      ))}
                     </div>
-                    {!isFuture&&<div style={{display:"flex",flexWrap:"wrap",gap:2}}>
-                      {SESSIONS.map(s=><div key={s.id} style={{width:8,height:8,borderRadius:"50%",background:liveData[s.id]?s.color:T.border,opacity:liveData[s.id]?1:0.3}}/>)}
-                    </div>}
                   </div>
                 );
               })}
@@ -1278,7 +1275,7 @@ export default function RihlatAlHifz() {
         // ▶ = plays in app | null = opens his YouTube channel
         // Add more IDs here as you get them — just share a link!
         const NIGHTS = [
-          {n:1,  taraweeh:"oVrXxzwRzNg", tahajjud:null},
+          {n:1, taraweeh:"lRwXLCF8Udk", tahajjud:null},
           {n:2,  taraweeh:"aBzvj0UHXsQ", tahajjud:null},
           {n:3,  taraweeh:"Vkd3P7PlsLQ", tahajjud:null},
           {n:4,  taraweeh:"_q0DAbkKDEY", tahajjud:null},
@@ -1332,7 +1329,7 @@ export default function RihlatAlHifz() {
               {hasVideo ? (
                 <iframe
                   key={`r${sel}-${ramadanVideoType}`}
-                  src={`https://www.youtube.com/embed/${activeId}?autoplay=1&rel=0`}
+                  src={`https://www.youtube.com/embed/${activeId}?autoplay=1&rel=0&start=${activeId==="lRwXLCF8Udk"?2090:0}`}
                   style={{width:"100%",height:220,border:"none",display:"block"}}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
