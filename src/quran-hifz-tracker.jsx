@@ -1237,7 +1237,7 @@ export default function RihlatAlHifz() {
           <div style={{display:"flex",background:T.surface,borderBottom:`1px solid ${T.border}` }}>
             {[
               {id:"live",     label:"📡 Now Live"},
-              {id:"ramadan",  label:"🌙 Ramadan"},
+              {id:"ramadan",  label:"🌙 Ramadan 1447 · 2026"},
               {id:"haramain", label:"🎙️ Imams"},
             ].map(t=>(
               <div key={t.id} onClick={()=>setMasjidaynTab(t.id)} style={{flex:1,padding:"10px 6px", textAlign:"center",fontSize:11,fontWeight:masjidaynTab===t.id?700:400,color:masjidaynTab===t.id?T.accent:T.dim,borderBottom:`2px solid ${masjidaynTab===t.id?T.accent:"transparent"}`,cursor:"pointer"}}>
