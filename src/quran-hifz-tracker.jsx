@@ -326,6 +326,7 @@ export default function RihlatAlHifz() {
   const [reciter,setReciter]=useState("dosari");
   const [activeStream,setActiveStream]=useState(0);
   const [masjidaynTab, setMasjidaynTab]=useState("live");
+  const [rihlahTab, setRihlahTab]=useState("juz");
   const [haramainMosque,setHaramainMosque]=useState("makkah");
   const [openImam,setOpenImam]=useState(null);
   const [haramainPlaying,setHaramainPlaying]=useState(null);
@@ -718,7 +719,7 @@ export default function RihlatAlHifz() {
       {/* TABS */}
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,display:"flex",flexShrink:0,overflowX:"auto"}}>
         {TABS.map(t=>(
-          <div key={t.id} className="ttab" onClick={()=>setActiveTab(t.id)} style={{padding:"9px 16px",fontSize:12,fontWeight:activeTab===t.id?600:400,color:activeTab===t.id?T.accent:T.dim,borderBottom:`2px solid ${activeTab===t.id?T.accent:"transparent"}`,whiteSpace:"nowrap"}}>
+          <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{padding:"9px 16px",fontSize:12,fontWeight:activeTab===t.id?600:400,color:activeTab===t.id?T.accent:T.dim,borderBottom:`2px solid ${activeTab===t.id?T.accent:"transparent"}`,whiteSpace:"nowrap"}}>
             {t.label}
           </div>
         ))}
@@ -861,7 +862,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ CALENDAR TAB ═══ */}
-      {activeTab==="rihlah"&&(()=>{
+      {activeTab==="rihlah"&&rihlahTab==="home"&&(()=>{
         const today=new Date();
         const firstDay=new Date(calYear,calMonth,1).getDay();
         const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
@@ -955,12 +956,12 @@ export default function RihlatAlHifz() {
               })}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:16}}>
-              <div className="sbtn" style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
                 <div style={{fontSize:20,marginBottom:4}}>📖</div>
                 <div style={{fontSize:12,fontWeight:600,color:T.text}}>My Juz</div>
                 <div style={{fontSize:10,color:T.dim}}>Track memorization</div>
               </div>
-              <div className="sbtn" style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
                 <div style={{fontSize:20,marginBottom:4}}>⏱️</div>
                 <div style={{fontSize:12,fontWeight:600,color:T.text}}>Timeline</div>
                 <div style={{fontSize:10,color:T.dim}}>Goal calculator</div>
@@ -971,8 +972,12 @@ export default function RihlatAlHifz() {
       })()}
 
       {/* ═══ TRACKER ═══ */}
-      {activeTab==="rihlah"&&(
+      {activeTab==="rihlah"&&rihlahTab==="juz"&&(
         <div style={{flex:1,overflowY:"auto",padding:"14px 18px 40px"}} className="fi">
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{padding:"6px 12px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,fontSize:11,color:T.sub,cursor:"pointer"}}>← Back</div>
+              <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>My Juz</div>
+            </div>
           <div style={{marginBottom:10,padding:"9px 13px",background:T.surface,border:`1px solid ${T.accent}18`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 6px 6px 0",fontSize:12,color:T.sub,lineHeight:1.7}}>
             🕌 <strong style={{color:T.accent}}>Priority:</strong> Find a Sheikh — even monthly check-ins protect your tajweed.
           </div>
@@ -1096,8 +1101,12 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ TIMELINE ═══ */}
-      {activeTab==="rihlah"&&(
+      {activeTab==="rihlah"&&rihlahTab==="timeline"&&(
         <div style={{flex:1,overflowY:"auto",padding:"16px 20px 48px"}} className="fi">
+         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{padding:"6px 12px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,fontSize:11,color:T.sub,cursor:"pointer"}}>← Back</div>
+              <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>Timeline</div>
+            </div> 
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:T.text,marginBottom:14}}>Memorization Timeline Calculator</div>
           <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"14px 18px",marginBottom:14}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:8}}>
