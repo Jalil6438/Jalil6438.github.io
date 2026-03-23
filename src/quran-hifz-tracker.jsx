@@ -1,31 +1,40 @@
 import { useState, useEffect, useRef } from "react";
 
-// ── RECITERS ──────────────────────────────────────────────────────────────────
+// ── QURAN RECITERS (Al-Quran Al-Karim tab) ────────────────────────────────────
+const QURAN_RECITERS = [
+  { id:"dosari",    name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary",             tag:"Masjid Al-Haram"  },
+  { id:"juhany",    name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee", tag:"Masjid Al-Haram"  },
+  { id:"sudais",    name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  quranicaudio:"abdurrahmaan_as-sudays",        tag:"Masjid Al-Haram"  },
+  { id:"shuraim",   name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       quranicaudio:"sa3ood_al-shuraym",             tag:"Masjid Al-Haram"  },
+  { id:"muaiqly",   name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     quranicaudio:"maher_almuaiqly",               tag:"Masjid Al-Haram"  },
+  { id:"baleela",   name:"Bandar Baleela",          arabic:"بندر بليلة",        quranicaudio:"bandar_baleela/complete",       tag:"Masjid Al-Haram"  },
+  { id:"turki",     name:"Badr Al-Turki",           arabic:"بدر التركي",        quranicaudio:"badr_al_turki/mp3",             tag:"Masjid Al-Haram"  },
+  { id:"kalbani",   name:"Adel Kalbani",            arabic:"عادل الكلباني",     quranicaudio:"adel_kalbani",                  tag:"Masjid Al-Haram"  },
+  { id:"khayat",    name:"Abdullah Khayat",         arabic:"عبدالله خياط",      quranicaudio:"khayat",                        tag:"Masjid Al-Haram"  },
+  { id:"ghamdi",    name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      quranicaudio:"khalid_alghamdi",               tag:"Masjid Al-Haram"  },
+  { id:"salehtaleb",name:"Saleh Al-Taleb",          arabic:"صالح آل طالب",      quranicaudio:"saleh_al_taleb",                tag:"Masjid Al-Haram"  },
+  { id:"hudhaify",  name:"Ali Al-Hudhaify",         arabic:"علي الحذيفي",       quranicaudio:"huthayfi",                      tag:"Masjid An-Nabawi" },
+  { id:"qasim",     name:"Abdul Muhsin Al-Qasim",   arabic:"عبدالمحسن القاسم",  quranicaudio:"abdul_muhsin_alqasim",          tag:"Masjid An-Nabawi" },
+  { id:"thubaity",  name:"Abdul Bari Ath-Thubaity", arabic:"عبدالباري الثبيتي", quranicaudio:"thubaity",                      tag:"Masjid An-Nabawi" },
+  { id:"ayyoub",    name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         quranicaudio:"muhammad_ayyoub",               tag:"Masjid An-Nabawi" },
+  { id:"budair",    name:"Salah Al-Budair",         arabic:"صلاح البدير",       quranicaudio:"salahbudair",                   tag:"Masjid An-Nabawi" },
+  { id:"imadhafez", name:"Imad Zuhair Hafez",       arabic:"عماد زهير حافظ",    quranicaudio:"imad_zuhair_hafez",             tag:"Masjid An-Nabawi" },
+  { id:"alakhdar",  name:"Ibrahim Al-Akhdar",       arabic:"إبراهيم الأخضر",    quranicaudio:"ibrahim_al_akhdar",             tag:"Masjid An-Nabawi" },
+  { id:"alijaber",  name:"Ali Jaber",               arabic:"علي جابر",          quranicaudio:"ali_jaber",                     tag:"Masjid An-Nabawi" },
+];
+
+// ── RECITERS (My Hifz tab — ayah by ayah confirmed) ──────────────────────────
 const RECITERS = [
   // ── Masjid Al-Haram ──
-  { id:"dosari",   name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",      recitationId:137, everyayah:"Yasser_Ad-Dussary_128kbps",            quranicaudioId:97,  tag:"Masjid Al-Haram"  },
-  { id:"juhany",   name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",    recitationId:140, everyayah:"Abdullaah_3awwaad_Al-Juhaynee_128kbps", quranicaudioId:1,   tag:"Masjid Al-Haram"  },
-  { id:"sudais",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  recitationId:2,   everyayah:"Abdurrahmaan_As-Sudais_192kbps",        quranicaudioId:7,   tag:"Masjid Al-Haram"  },
-  { id:"shuraim",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       recitationId:4,   everyayah:"Saood_ash-Shuraym_128kbps",             quranicaudioId:4,   tag:"Masjid Al-Haram"  },
-  { id:"muaiqly",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     recitationId:128, everyayah:"MaherAlMuaiqly128kbps",                 quranicaudioId:159, tag:"Masjid Al-Haram"  },
-  { id:"baleela",  name:"Bandar Baleela",          arabic:"بندر بليلة",        recitationId:null, archive:"HaramainBaleelah",                       quranicaudioId:160, tag:"Masjid Al-Haram"  },
-  { id:"turki",    name:"Badr Al-Turki",           arabic:"بدر التركي",        recitationId:null, archive:"HaramainTurki",                          quranicaudioId:167, tag:"Masjid Al-Haram"  },
-  { id:"kalbani",  name:"Adel Kalbani",            arabic:"عادل الكلباني",     recitationId:null, quranicaudioId:81,                                tag:"Masjid Al-Haram"  },
-  { id:"khayat",   name:"Abdullah Khayat",         arabic:"عبدالله خياط",      recitationId:null, quranicaudioId:72,                                tag:"Masjid Al-Haram"  },
-  { id:"ghamdi",   name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      recitationId:null, quranicaudioId:105,                               tag:"Masjid Al-Haram"  },
-  { id:"salehtaleb",name:"Saleh Al-Taleb",         arabic:"صالح آل طالب",      recitationId:null, quranicaudioId:35,                                tag:"Masjid Al-Haram"  },
+  { id:"dosari",  name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",     recitationId:137, everyayah:"Yasser_Ad-Dussary_128kbps",            quranicaudioId:97,  tag:"Masjid Al-Haram"  },
+  { id:"juhany",  name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",   recitationId:140, everyayah:"Abdullaah_3awwaad_Al-Juhaynee_128kbps", quranicaudioId:1,   tag:"Masjid Al-Haram"  },
+  { id:"sudais",  name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس", recitationId:2,   everyayah:"Abdurrahmaan_As-Sudais_192kbps",        quranicaudioId:7,   tag:"Masjid Al-Haram"  },
+  { id:"shuraim", name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",      recitationId:4,   everyayah:"Saood_ash-Shuraym_128kbps",             quranicaudioId:4,   tag:"Masjid Al-Haram"  },
+  { id:"muaiqly", name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",    recitationId:128, everyayah:"MaherAlMuaiqly128kbps",                 quranicaudioId:159, tag:"Masjid Al-Haram"  },
   // ── Masjid An-Nabawi ──
-  { id:"hudhaify", name:"Ali Al-Hudhaify",         arabic:"علي الحذيفي",       recitationId:10,  everyayah:"Hudhaify_128kbps",                      quranicaudioId:8,   tag:"Masjid An-Nabawi" },
-  { id:"qasim",    name:"Abdul Muhsin Al-Qasim",   arabic:"عبدالمحسن القاسم",  recitationId:null, quranicaudioId:11,                                tag:"Masjid An-Nabawi" },
-  { id:"thubaity", name:"Abdul Bari Ath-Thubaity", arabic:"عبدالباري الثبيتي", recitationId:null, quranicaudioId:15,                                tag:"Masjid An-Nabawi" },
-  { id:"ayyoub",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         recitationId:99,  everyayah:"Muhammad_Ayyoub_128kbps",               quranicaudioId:107, tag:"Masjid An-Nabawi" },
-  { id:"budair",   name:"Salah Al-Budair",         arabic:"صلاح البدير",       recitationId:135, everyayah:"Salah_Al_Budair_128kbps",               quranicaudioId:43,  tag:"Masjid An-Nabawi" },
-  { id:"ahmadhudhayfi", name:"Ahmad Al-Hudhaify",  arabic:"أحمد الحذيفي",      recitationId:null, quranicaudioId:113,                               tag:"Masjid An-Nabawi" },
-  { id:"imadhafez", name:"Imad Zuhair Hafez",      arabic:"عماد زهير حافظ",    recitationId:null, quranicaudioId:93,                                tag:"Masjid An-Nabawi" },
-  { id:"alakhdar",  name:"Ibrahim Al-Akhdar",      arabic:"إبراهيم الأخضر",    recitationId:null, quranicaudioId:103,                               tag:"Masjid An-Nabawi" },
-  { id:"qarafi",    name:"Abdullah Al-Qarafi",     arabic:"عبدالله القرافي",   recitationId:null, archive:"HaramainQuraafi",                         tag:"Masjid An-Nabawi" },
-  // ── Other ──
-  { id:"alijaber",  name:"Ali Jaber",              arabic:"علي جابر",          recitationId:null, quranicaudioId:158,                               tag:"Masjid Al-Haram"  },
+  { id:"hudhaify",name:"Ali Al-Hudhaify",        arabic:"علي الحذيفي",      recitationId:10,  everyayah:"Hudhaify_128kbps",                      quranicaudioId:8,   tag:"Masjid An-Nabawi" },
+  { id:"ayyoub",  name:"Muhammad Ayyoub",        arabic:"محمد أيوب",        recitationId:99,  everyayah:"Muhammad_Ayyoub_128kbps",               quranicaudioId:107, tag:"Masjid An-Nabawi" },
+  { id:"budair",  name:"Salah Al-Budair",        arabic:"صلاح البدير",      recitationId:135, everyayah:"Salah_Al_Budair_128kbps",               quranicaudioId:43,  tag:"Masjid An-Nabawi" },
 ];
 
 function audioUrl(recitationId, verseKey) {
@@ -1388,6 +1397,25 @@ export default function RihlatAlHifz() {
             {/* Night list */}
             <div style={{flex:1,overflowY:"auto",padding:"12px 14px 40px"}}>
 
+              {/* Nights 1–20 */}
+              <div style={{fontSize:9,color:T.dim,letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",alignItems:"center",gap:7}}>
+                <span>Nights 1–20</span><div style={{flex:1,height:1,background:T.border}}/>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5,marginBottom:16}}>
+                {NIGHTS.filter(x=>x.n<=20).map(x=>(
+                  <div key={x.n} className="sbtn" onClick={()=>{setSelectedRamadanNight(x.n);setRamadanVideoType("taraweeh");}} style={{
+                    display:"flex",alignItems:"center",gap:8,padding:"7px 10px",
+                    background:sel===x.n?"#E5534B12":T.surface,
+                    border:`1px solid ${sel===x.n?"#E5534B":T.border}`,borderRadius:7,
+                  }}>
+                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:sel===x.n?"#E5534B":T.dim,width:22,flexShrink:0}}>{x.n}</div>
+                    <span style={{fontSize:10,fontWeight:600,color:sel===x.n?"#E5534B":T.sub}}>
+                      Night {x.n} ▶
+                    </span>
+                  </div>
+                ))}
+              </div>
+
               {/* Last 10 */}
               <div style={{fontSize:9,color:"#E5534B",letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",alignItems:"center",gap:7}}>
                 <span>Last 10 Nights 🌙</span><div style={{flex:1,height:1,background:"#E5534B30"}}/>
@@ -1425,41 +1453,22 @@ export default function RihlatAlHifz() {
                 })}
               </div>
 
-              {/* Nights 1–20 */}
-              <div style={{fontSize:9,color:T.dim,letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",alignItems:"center",gap:7}}>
-                <span>Nights 1–20</span><div style={{flex:1,height:1,background:T.border}}/>
-              </div>
-              <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:16}}>
-                {NIGHTS.filter(x=>x.n<=20).map(x=>(
-                  <div key={x.n} className="sbtn" onClick={()=>{setSelectedRamadanNight(x.n);setRamadanVideoType("taraweeh");}} style={{
-                    display:"flex",alignItems:"center",gap:10,padding:"7px 10px",
-                    background:sel===x.n?"#E5534B12":T.surface,
-                    border:`1px solid ${sel===x.n?"#E5534B":T.border}`,borderRadius:7,
-                  }}>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:sel===x.n?"#E5534B":T.dim,width:28,flexShrink:0}}>{x.n}</div>
-                    <span style={{fontSize:10,fontWeight:600,color:sel===x.n?"#E5534B":T.sub}}>
-                      Night {x.n} Taraweeh {x.taraweeh?"▶":"↗"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
               {/* Channel link */}
               <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
                  style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 14px",
                    background:T.surface,border:"1px solid #E5534B30",borderRadius:7,textDecoration:"none",marginBottom:16}}>
                 <div>
-                  <div style={{fontSize:12,color:"#E5534B",fontWeight:600,marginBottom:1}}>@sheikh_badr_al_turki</div>
+                  <div style={{fontSize:12,color:T.accent,fontWeight:600,marginBottom:1}}>@sheikh_badr_al_turki</div>
                   <div style={{fontSize:10,color:T.dim}}>All 30 nights · Full playlist on YouTube</div>
                 </div>
-                <div style={{padding:"7px 14px",background:"#E5534B",color:dark?"#060A07":"#fff",borderRadius:5,fontSize:11,fontWeight:700}}>
+                <div style={{padding:"7px 14px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:5,fontSize:11,fontWeight:700}}>
                   View All
                 </div>
               </a>
 
               {/* Dua */}
               <div style={{padding:"14px 18px",background:T.surface,border:"1px solid #E5534B20",borderRadius:8,textAlign:"center"}}>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"#E5534B",direction:"rtl",marginBottom:6}}>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:T.accent,direction:"rtl",marginBottom:6}}>
                   اللَّهُمَّ بَلِّغْنَا رَمَضَانَ وَتَقَبَّلْ مِنَّا
                 </div>
                 <div style={{fontSize:11,color:T.sub,fontStyle:"italic",marginBottom:2}}>"O Allah, allow us to reach Ramadan and accept it from us"</div>
