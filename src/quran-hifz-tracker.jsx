@@ -354,6 +354,8 @@ export default function RihlatAlHifz() {
   const [calMonth,setCalMonth]=useState(new Date().getMonth());
   const [calYear,setCalYear]=useState(new Date().getFullYear());
   const [reciter,setReciter]=useState("dosari");
+  const [quranReciter,setQuranReciter]=useState("dosari");
+  const [showReciterModal,setShowReciterModal]=useState(false);
   const [activeStream,setActiveStream]=useState(0);
   const [masjidaynTab, setMasjidaynTab]=useState("live");
   const [rihlahTab, setRihlahTab]=useState("juz");
@@ -1061,6 +1063,9 @@ export default function RihlatAlHifz() {
                 </select>
                 <span style={{fontSize:10,color:curCfg.color,background:curCfg.color+"18",padding:"3px 9px",borderRadius:10}}>{curCfg.label}</span>
               </div>
+              <div className="sbtn" onClick={()=>setShowReciterModal(true)} style={{padding:"5px 10px",background:T.surface2,border:`1px solid ${T.accent}40`,borderRadius:6,fontSize:10,color:T.accent,display:"flex",alignItems:"center",gap:5}}>
+                  🎙️ {QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Select Reciter"} ▼
+              </div>
               <div style={{display:"flex",gap:4,alignItems:"center"}}>
                 <div className="sbtn" onClick={()=>setFontSize(f=>Math.max(14,f-2))} style={{width:28,height:28,borderRadius:5,background:T.surface2,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:T.sub,fontSize:15}}>−</div>
                 <span style={{fontSize:10,color:T.dim,width:26,textAlign:"center"}}>{fontSize}</span>
@@ -1231,6 +1236,39 @@ export default function RihlatAlHifz() {
           </div>
         </div>
       )}
+
+      {/* Quran Reciter Modal */}
+{showReciterModal&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
+    <div style={{background:T.surface,borderRadius:"16px 16px 0 0",padding:"20px 16px 32px",width:"100%",maxWidth:500}} onClick={e=>e.stopPropagation()}>
+      <div style={{textAlign:"center",marginBottom:16}}>
+        <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:4}}>Select Reciter</div>
+        <div style={{width:40,height:3,background:T.border,borderRadius:2,margin:"0 auto"}}/>
+      </div>
+      {/* Masjid Al-Haram */}
+      <div style={{fontSize:9,color:"#E5534B",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🕋 Masjid Al-Haram</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:16}}>
+        {QURAN_RECITERS.filter(r=>r.tag==="Masjid Al-Haram").map(r=>(
+          <div key={r.id} className="sbtn" onClick={()=>{setQuranReciter(r.id);setShowReciterModal(false);}} style={{padding:"8px 6px",background:quranReciter===r.id?T.accent+"20":T.surface2,border:`1px solid ${quranReciter===r.id?T.accent:T.border}`,borderRadius:7,textAlign:"center"}}>
+            <div style={{fontSize:10,fontWeight:quranReciter===r.id?700:400,color:quranReciter===r.id?T.accent:T.text}}>{r.name}</div>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:quranReciter===r.id?T.accent:T.dim,marginTop:2}}>{r.arabic}</div>
+          </div>
+        ))}
+      </div>
+      {/* Masjid An-Nabawi */}
+      <div style={{fontSize:9,color:"#2ECC71",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🕌 Masjid An-Nabawi</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+        {QURAN_RECITERS.filter(r=>r.tag==="Masjid An-Nabawi").map(r=>(
+          <div key={r.id} className="sbtn" onClick={()=>{setQuranReciter(r.id);setShowReciterModal(false);}} style={{padding:"8px 6px",background:quranReciter===r.id?T.accent+"20":T.surface2,border:`1px solid ${quranReciter===r.id?T.accent:T.border}`,borderRadius:7,textAlign:"center"}}>
+            <div style={{fontSize:10,fontWeight:quranReciter===r.id?700:400,color:quranReciter===r.id?T.accent:T.text}}>{r.name}</div>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:quranReciter===r.id?T.accent:T.dim,marginTop:2}}>{r.arabic}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+
       {activeTab==="masjidayn"&&(
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
           {/* Sub-tab navigation */}
@@ -1316,7 +1354,7 @@ export default function RihlatAlHifz() {
         // ▶ = plays in app | null = opens his YouTube channel
         // Add more IDs here as you get them — just share a link!
         const NIGHTS = [
-          {n:1, taraweeh:"lRwXLCF8Udk", tahajjud:null},
+          {n:1,  taraweeh:"lRwXLCF8Udk", tahajjud:null},
           {n:2,  taraweeh:"aBzvj0UHXsQ", tahajjud:null},
           {n:3,  taraweeh:"Vkd3P7PlsLQ", tahajjud:null},
           {n:4,  taraweeh:"_q0DAbkKDEY", tahajjud:null},
