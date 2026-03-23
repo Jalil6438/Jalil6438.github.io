@@ -888,7 +888,22 @@ export default function RihlatAlHifz() {
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:streak>0?"#F6A623":T.dim}}>🔥 {streak}</div>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:allChecked?"#F0C040":T.dim}}>{checkedCount}/5 today</div>
             </div>
-          </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
+              {[
+                {label:"Perfect Days",  val:fullDays,         color:"#F0C040",sub:"all 5 sessions"},
+                {label:"Total Sessions",val:totalChecksMonth, color:"#4ECDC4",sub:"this month"},
+                {label:"Consistency",   val:`${consistency}%`,color:"#F0C040",sub:"of days active"},
+                {label:"Day Streak",    val:streak,           color:"#F6A623",sub:"consecutive days"},
+              ].map(s=>(
+                <div key={s.label} style={{padding:"11px 13px",background:T.surface,border:`1px solid ${s.color}20`,borderTop:`3px solid ${s.color}`,borderRadius:7,textAlign:"center"}}>
+                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:s.color,marginBottom:3}}>{s.val}</div>
+                  <div style={{fontSize:11,color:T.sub}}>{s.label}</div>
+                  <div style={{fontSize:9,color:T.dim,marginTop:1}}>{s.sub}</div>
+                </div>
+              ))}
+            </div>
+
             <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:14}}>
               {Array.from({length:7},(_,i)=>{
                 const d=new Date();
@@ -939,19 +954,17 @@ export default function RihlatAlHifz() {
                 );
               })}
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8}}>
-              {[
-                {label:"Perfect Days",  val:fullDays,         color:"#F0C040",sub:"all 5 sessions"},
-                {label:"Total Sessions",val:totalChecksMonth, color:"#4ECDC4",sub:"this month"},
-                {label:"Consistency",   val:`${consistency}%`,color:"#F0C040",sub:"of days active"},
-                {label:"Day Streak",    val:streak,           color:"#F6A623",sub:"consecutive days"},
-              ].map(s=>(
-                <div key={s.label} style={{padding:"11px 13px",background:T.surface,border:`1px solid ${s.color}20`,borderTop:`3px solid ${s.color}`,borderRadius:7,textAlign:"center"}}>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:s.color,marginBottom:3}}>{s.val}</div>
-                  <div style={{fontSize:11,color:T.sub}}>{s.label}</div>
-                  <div style={{fontSize:9,color:T.dim,marginTop:1}}>{s.sub}</div>
-                </div>
-              ))}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:16}}>
+              <div className="sbtn" style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
+                <div style={{fontSize:20,marginBottom:4}}>📖</div>
+                <div style={{fontSize:12,fontWeight:600,color:T.text}}>My Juz</div>
+                <div style={{fontSize:10,color:T.dim}}>Track memorization</div>
+              </div>
+              <div className="sbtn" style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
+                <div style={{fontSize:20,marginBottom:4}}>⏱️</div>
+                <div style={{fontSize:12,fontWeight:600,color:T.text}}>Timeline</div>
+                <div style={{fontSize:10,color:T.dim}}>Goal calculator</div>
+              </div>
             </div>
           </div>
         );
