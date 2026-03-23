@@ -2,17 +2,30 @@ import { useState, useEffect, useRef } from "react";
 
 // ── RECITERS ──────────────────────────────────────────────────────────────────
 const RECITERS = [
-  { id:"dosari",   name:"Yasser Al-Dosari",          arabic:"ياسر الدوسري",      recitationId:137, everyayah:"Yasser_Ad-Dussary_128kbps",            tag:""                 },
-  { id:"juhany",   name:"Abdullah Al-Juhany",         arabic:"عبدالله الجهني",    recitationId:140, everyayah:"Abdullaah_3awwaad_Al-Juhaynee_128kbps", tag:"Masjid Al-Haram"  },
-  { id:"sudais",   name:"Abdul Rahman As-Sudais",     arabic:"عبدالرحمن السديس",  recitationId:2,   everyayah:"Abdurrahmaan_As-Sudais_192kbps",        tag:"Masjid Al-Haram"  },
-  { id:"shuraim",  name:"Saud Ash-Shuraim",           arabic:"سعود الشريم",       recitationId:4,   everyayah:"Saood_ash-Shuraym_128kbps",             tag:"Masjid Al-Haram"  },
-  { id:"muaiqly",  name:"Maher Al-Muaiqly",           arabic:"ماهر المعيقلي",     recitationId:128, everyayah:"MaherAlMuaiqly128kbps",                tag:"Masjid Al-Haram"  },
-  { id:"hudhaify", name:"Ali Al-Hudhaify",            arabic:"علي الحذيفي",       recitationId:10,  everyayah:"Hudhaify_128kbps",                     tag:"Masjid An-Nabawi" },
-  { id:"ayyoub",   name:"Muhammad Ayyoub",            arabic:"محمد أيوب",         recitationId:99,  everyayah:"Muhammad_Ayyoub_128kbps",              tag:"Masjid An-Nabawi" },
-  { id:"budair",   name:"Salah Al-Budair",            arabic:"صلاح البدير",       recitationId:135, everyayah:"Salah_Al_Budair_128kbps",              tag:"Masjid An-Nabawi" },
-  { id:"baleela",  name:"Bandar Baleela",             arabic:"بندر بليلة",        recitationId:null, archive:"HaramainBaleelah",                      tag:"Masjid Al-Haram"  },
-  { id:"turki",    name:"Badr Al-Turki",              arabic:"بدر التركي",        recitationId:null, archive:"HaramainTurki",                         tag:"Masjid Al-Haram"  },
-  { id:"qarafi",   name:"Abdullah Al-Qarafi",         arabic:"عبدالله القرافي",   recitationId:null, archive:"HaramainQuraafi",                       tag:"Masjid An-Nabawi" },
+  // ── Masjid Al-Haram ──
+  { id:"dosari",   name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",      recitationId:137, everyayah:"Yasser_Ad-Dussary_128kbps",            quranicaudioId:97,  tag:"Masjid Al-Haram"  },
+  { id:"juhany",   name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",    recitationId:140, everyayah:"Abdullaah_3awwaad_Al-Juhaynee_128kbps", quranicaudioId:1,   tag:"Masjid Al-Haram"  },
+  { id:"sudais",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  recitationId:2,   everyayah:"Abdurrahmaan_As-Sudais_192kbps",        quranicaudioId:7,   tag:"Masjid Al-Haram"  },
+  { id:"shuraim",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       recitationId:4,   everyayah:"Saood_ash-Shuraym_128kbps",             quranicaudioId:4,   tag:"Masjid Al-Haram"  },
+  { id:"muaiqly",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     recitationId:128, everyayah:"MaherAlMuaiqly128kbps",                 quranicaudioId:159, tag:"Masjid Al-Haram"  },
+  { id:"baleela",  name:"Bandar Baleela",          arabic:"بندر بليلة",        recitationId:null, archive:"HaramainBaleelah",                       quranicaudioId:160, tag:"Masjid Al-Haram"  },
+  { id:"turki",    name:"Badr Al-Turki",           arabic:"بدر التركي",        recitationId:null, archive:"HaramainTurki",                          quranicaudioId:167, tag:"Masjid Al-Haram"  },
+  { id:"kalbani",  name:"Adel Kalbani",            arabic:"عادل الكلباني",     recitationId:null, quranicaudioId:81,                                tag:"Masjid Al-Haram"  },
+  { id:"khayat",   name:"Abdullah Khayat",         arabic:"عبدالله خياط",      recitationId:null, quranicaudioId:72,                                tag:"Masjid Al-Haram"  },
+  { id:"ghamdi",   name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      recitationId:null, quranicaudioId:105,                               tag:"Masjid Al-Haram"  },
+  { id:"salehtaleb",name:"Saleh Al-Taleb",         arabic:"صالح آل طالب",      recitationId:null, quranicaudioId:35,                                tag:"Masjid Al-Haram"  },
+  // ── Masjid An-Nabawi ──
+  { id:"hudhaify", name:"Ali Al-Hudhaify",         arabic:"علي الحذيفي",       recitationId:10,  everyayah:"Hudhaify_128kbps",                      quranicaudioId:8,   tag:"Masjid An-Nabawi" },
+  { id:"qasim",    name:"Abdul Muhsin Al-Qasim",   arabic:"عبدالمحسن القاسم",  recitationId:null, quranicaudioId:11,                                tag:"Masjid An-Nabawi" },
+  { id:"thubaity", name:"Abdul Bari Ath-Thubaity", arabic:"عبدالباري الثبيتي", recitationId:null, quranicaudioId:15,                                tag:"Masjid An-Nabawi" },
+  { id:"ayyoub",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         recitationId:99,  everyayah:"Muhammad_Ayyoub_128kbps",               quranicaudioId:107, tag:"Masjid An-Nabawi" },
+  { id:"budair",   name:"Salah Al-Budair",         arabic:"صلاح البدير",       recitationId:135, everyayah:"Salah_Al_Budair_128kbps",               quranicaudioId:43,  tag:"Masjid An-Nabawi" },
+  { id:"ahmadhudhayfi", name:"Ahmad Al-Hudhaify",  arabic:"أحمد الحذيفي",      recitationId:null, quranicaudioId:113,                               tag:"Masjid An-Nabawi" },
+  { id:"imadhafez", name:"Imad Zuhair Hafez",      arabic:"عماد زهير حافظ",    recitationId:null, quranicaudioId:93,                                tag:"Masjid An-Nabawi" },
+  { id:"alakhdar",  name:"Ibrahim Al-Akhdar",      arabic:"إبراهيم الأخضر",    recitationId:null, quranicaudioId:103,                               tag:"Masjid An-Nabawi" },
+  { id:"qarafi",    name:"Abdullah Al-Qarafi",     arabic:"عبدالله القرافي",   recitationId:null, archive:"HaramainQuraafi",                         tag:"Masjid An-Nabawi" },
+  // ── Other ──
+  { id:"alijaber",  name:"Ali Jaber",              arabic:"علي جابر",          recitationId:null, quranicaudioId:158,                               tag:"Masjid Al-Haram"  },
 ];
 
 function audioUrl(recitationId, verseKey) {
@@ -738,7 +751,7 @@ export default function RihlatAlHifz() {
             >
               {RECITERS.map(r=>(
                 <option key={r.id} value={r.id}>
-                  {r.name} — {r.arabic} {r.tag?`· ${r.tag}`:""}
+                  {r.name} — {r.arabic}
                 </option>
              ))}
           </select>
