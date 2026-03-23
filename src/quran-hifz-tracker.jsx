@@ -100,8 +100,7 @@ const STATUS_CFG = {
   in_progress:    {label:"In Progress",  color:"#F6A623"},
   needs_revision: {label:"Needs Revision",color:"#E5534B"},
   not_started:    {label:"Not Started",  color:"#3A8A50"},
-};
-function calcTimeline(years,juzDone) {
+};function calcTimeline(years,juzDone) {
   const juzLeft=Math.max(1,30-juzDone), ayahsLeft=juzLeft*208;
   const active=Math.round(years*365*0.85), apd=Math.max(1,ayahsLeft/active);
   return { ayahsPerDay:apd.toFixed(1), daysPerJuz:Math.round(active/juzLeft),
@@ -110,6 +109,7 @@ function calcTimeline(years,juzDone) {
            activeDays:active, ayahsLeft, juzLeft };
 }
 const DARK  = {bg:"#060A07",surface:"#0D1008",surface2:"#141A0F",border:"#1E2A18",border2:"#1A2814",text:"#EDE8DC",sub:"#A8B89A",dim:"#5A7050",vdim:"#2E4030",accent:"#F0C040",accentDim:"#F0C04018",input:"#0A0E07",inputBorder:"#1E2A18",inputText:"#8AAA78"};
+
 const LIGHT = {bg:"#F7F3EC",surface:"#FFFFFF",surface2:"#F0EBE0",border:"#DDD4C0",border2:"#D0C8B0",text:"#1A2A18",sub:"#4A6A40",dim:"#7A8A70",vdim:"#9A9A88",accent:"#8B6A10",accentDim:"#8B6A1012",input:"#F7F3EC",inputBorder:"#CCC4B0",inputText:"#3A6A40"};
 const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TODAY=()=>new Date().toDateString();
@@ -312,6 +312,7 @@ export default function RihlatAlHifz() {
   const [fontSize,setFontSize]=useState(24);
   const [openSurah,setOpenSurah]=useState(null);
   const [goalYears,setGoalYears]=useState(3);
+  const [goalMonths,setGoalMonths]=useState(1);
   const [openMethod,setOpenMethod]=useState(null);
   const [sessionJuz,setSessionJuz]=useState(29);
   const [sessionIdx,setSessionIdx]=useState(0);
@@ -452,7 +453,7 @@ export default function RihlatAlHifz() {
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
   const curCfg=STATUS_CFG[curStatus];
-  const timeline=calcTimeline(goalYears,completedCount);
+  const timeline=calcTimeline(goalYears,completedCount,5);
   const dailyNew=Math.ceil(parseFloat(timeline.ayahsPerDay));
   const totalSV=sessionVerses.length;
   const bStart=sessionIdx;
@@ -1114,7 +1115,15 @@ export default function RihlatAlHifz() {
               <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:T.accent,fontWeight:600}}>{goalYears} {goalYears===1?"year":"years"}</span>
             </div>
             <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:7}}/>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:T.vdim}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10,marginBottom:4}}>
+              <span style={{fontSize:12,color:T.sub}}>Additional months:</span>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:T.accent,fontWeight:600}}>{goalMonths} {goalMonths===1?"month":"months"}</span>
+            </div>
+            <input type="range" min={1} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%",marginBottom:7}}/>
+            <div style={{display:"none",justifyContent:"space-between",fontSize:9,color:T.vdim}}>
+              {[0,1,2,3,4,5,6,7,8,9,10,11].map(m=><span key={m} style={{color:m===goalMonths?T.accent:T.vdim,fontWeight:m===goalMonths?600:400}}>{m}m</span>)}
+            </div>
+            <div style={{display:"none",justifyContent:"space-between",fontSize:9,color:T.vdim}}>
               {[1,2,3,4,5,6,7,8,9,10].map(y=><span key={y} style={{color:y===goalYears?T.accent:T.vdim,fontWeight:y===goalYears?600:400}}>{y}y</span>)}
             </div>
           </div>
