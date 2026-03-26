@@ -105,8 +105,8 @@ function calcTimeline(years, juzDone) {
            activeDays:active, ayahsLeft, juzLeft };
 }
 
-const DARK  = {bg:"#060A07",surface:"#0D1008",surface2:"#141A0F",border:"#1E2A18",border2:"#1A2814",text:"#EDE8DC",sub:"#A8B89A",dim:"#5A7050",vdim:"#2E4030",accent:"#F0C040",accentDim:"#F0C04018",input:"#0A0E07",inputBorder:"#1E2A18",inputText:"#8AAA78"};
-const LIGHT = {bg:"#F7F3EC",surface:"#FFFFFF",surface2:"#F0EBE0",border:"#DDD4C0",border2:"#D0C8B0",text:"#1A2A18",sub:"#4A6A40",dim:"#7A8A70",vdim:"#9A9A88",accent:"#8B6A10",accentDim:"#8B6A1012",input:"#F7F3EC",inputBorder:"#CCC4B0",inputText:"#3A6A40"};
+const DARK  = {bg:"#0D1F17",surface:"#132A1E",surface2:"#1A3528",border:"#2A5C3A",border2:"#234D30",text:"#EDE8DC",sub:"#C8D8B8",dim:"#8AAA80",vdim:"#4A7058",accent:"#C9A84C",accentDim:"#C9A84C18",input:"#0A1810",inputBorder:"#2A5C3A",inputText:"#A8C890"};
+const LIGHT = {bg:"#F7F3EC",surface:"#FFFFFF",surface2:"#F0EBE0",border:"#DDD4C0",border2:"#D0C8B0",text:"#1A2A18",sub:"#4A6A40",dim:"#7A8A70",vdim:"#9A9A88",accent:"#C9A84C",accentDim:"#C9A84C15",input:"#F7F3EC",inputBorder:"#CCC4B0",inputText:"#3A6A40"};
 const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TODAY=()=>new Date().toDateString();
 const DATEKEY=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
@@ -168,6 +168,9 @@ export default function RihlatAlHifz() {
   const [showOnboarding,setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [onboardStep,setOnboardStep]=useState(0);
   const [onboardCardIdx,setOnboardCardIdx]=useState(0);
+  const [userName,setUserName]=useState("");
+  const [onboardMarkMode,setOnboardMarkMode]=useState("juz");
+  const [surahStatus,setSurahStatus]=useState({});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("myhifz");
   const [selectedJuz,setSelectedJuz]=useState(30);
@@ -257,6 +260,8 @@ export default function RihlatAlHifz() {
         if(p.streak!==undefined) setStreak(p.streak);
         if(p.checkHistory) setCheckHistory(p.checkHistory);
         if(p.reciter) setReciter(p.reciter);
+        if(p.userName) setUserName(p.userName);
+        if(p.surahStatus) setSurahStatus(p.surahStatus);
         if(p.showTrans!==undefined) setShowTrans(p.showTrans);
         const today=TODAY();
         if(p.dailyChecks?.date===today) setDailyChecks(p.dailyChecks);
@@ -273,7 +278,7 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans})); } catch {}
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans,userName,surahStatus})); } catch {}
   },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded]);
 
   useEffect(()=>{
@@ -457,178 +462,195 @@ export default function RihlatAlHifz() {
         textarea:focus{outline:none;} select{cursor:pointer;}
       `}</style>
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          ONBOARDING — 5 SCREENS — shows once on first launch
-      ══════════════════════════════════════════════════════════════════════ */}
+      {/* ONBOARDING — 5 SCREENS */}
       {showOnboarding&&(
-        <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div style={{position:"fixed",inset:0,background:"#0D1F17",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
 
           {/* ── Screen 1: Bismillah ── */}
           {onboardStep===0&&(
-            <div className="fi" style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"32px 28px",flexDirection:"column",gap:16,textAlign:"center"}}>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(30px,7vw,50px)",color:"#F0C040",direction:"rtl",lineHeight:1.9}}>
+            <div className="fi" style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"32px 28px",flexDirection:"column",gap:14,textAlign:"center"}}>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(32px,8vw,52px)",color:"#C9A84C",direction:"rtl",lineHeight:1.9}}>
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </div>
-              <div style={{width:50,height:1,background:"#F0C04030",margin:"4px 0"}}/>
+              <div style={{width:50,height:1,background:"#C9A84C50",margin:"2px 0"}}/>
               <div>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(15px,3.5vw,20px)",color:"#A8C8A0",direction:"rtl",lineHeight:2,marginBottom:6}}>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,26px)",color:"#EDE8DC",direction:"rtl",lineHeight:1.9,marginBottom:6}}>
                   وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
                 </div>
-                <div style={{fontSize:11,color:"#5A7050",fontStyle:"italic",lineHeight:1.7}}>
-                  "And We have certainly made the Quran easy for remembrance"<br/>Al-Qamar 54:17
+                <div style={{fontSize:11,color:"#C8D8B8",fontStyle:"italic",lineHeight:1.7}}>
+                  "And We have certainly made the Quran easy for remembrance"
                 </div>
+                <div style={{fontSize:10,color:"#C9A84C",marginTop:3,fontFamily:"'IBM Plex Mono',monospace"}}>Al-Qamar 54:17</div>
               </div>
-              <div style={{marginTop:8}}>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(22px,5vw,32px)",color:"#F0C040",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(17px,4vw,22px)",color:"#EDE8DC",letterSpacing:".04em"}}>Rihlat Al-Hifz</div>
-                <div style={{fontSize:9,color:"#2E4030",marginTop:5,letterSpacing:".15em",textTransform:"uppercase"}}>The Journey of Memorization</div>
+              <div style={{marginTop:6}}>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(24px,6vw,34px)",color:"#C9A84C",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(18px,5vw,24px)",color:"#EDE8DC",letterSpacing:".04em",fontWeight:600}}>Rihlat Al-Hifz</div>
+                <div style={{fontSize:10,color:"#C8D8B8",marginTop:5,letterSpacing:".15em",textTransform:"uppercase"}}>The Journey of Memorization</div>
               </div>
-              <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{marginTop:14,padding:"14px 52px",background:"#F0C040",borderRadius:8,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".03em"}}>
+              <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{marginTop:14,padding:"14px 52px",background:"#C9A84C",borderRadius:8,fontSize:14,fontWeight:700,color:"#0D1F17",letterSpacing:".03em"}}>
                 Begin Your Journey →
               </div>
-              <div style={{fontSize:9,color:"#1E2A18",letterSpacing:".1em",marginTop:4}}>© 2026 NOORTECH ACADEMY</div>
+              <div style={{fontSize:9,color:"#4A7058",letterSpacing:".12em",marginTop:4}}>© 2026 NOORTECH ACADEMY</div>
             </div>
           )}
 
-          {/* ── Screen 2: Scholarly Guidance Cards ── */}
+          {/* ── Screen 2: Name + Goal ── */}
           {onboardStep===1&&(()=>{
-            const card=SCHOLAR_CARDS[onboardCardIdx];
-            return (
-              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 20px 28px"}}>
-                <div style={{fontSize:9,color:"#F0C040",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16,textAlign:"center"}}>
-                  Guidance From The Scholars
-                </div>
-                <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <div className="fi" key={onboardCardIdx} style={{background:"#0D1008",border:`1px solid ${card.color}25`,borderTop:`3px solid ${card.color}`,borderRadius:10,padding:"28px 22px",textAlign:"center",maxWidth:440,width:"100%"}}>
-                    <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(16px,3.8vw,22px)",color:card.color,direction:"rtl",lineHeight:2.1,marginBottom:14}}>
-                      {card.arabic}
-                    </div>
-                    <div style={{width:32,height:1,background:`${card.color}20`,margin:"0 auto 14px"}}/>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,color:"#EDE8DC",lineHeight:1.9,marginBottom:10,fontStyle:"italic"}}>
-                      "{card.quote}"
-                    </div>
-                    <div style={{fontSize:12,color:card.color,fontWeight:600,marginBottom:card.subtitle?3:0}}>{card.scholar}</div>
-                    {card.subtitle&&<div style={{fontSize:9,color:"#3A5A38",marginBottom:5,lineHeight:1.5}}>{card.subtitle}</div>}
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"#2E4030",marginTop:4}}>{card.source}</div>
-                  </div>
-                </div>
-                {/* Dots */}
-                <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:16,marginBottom:14}}>
-                  {SCHOLAR_CARDS.map((_,i)=>(
-                    <div key={i} className="sbtn" onClick={()=>setOnboardCardIdx(i)} style={{width:i===onboardCardIdx?22:7,height:7,borderRadius:4,background:i===onboardCardIdx?"#F0C040":"#1E2A18",transition:"width .25s"}}/>
-                  ))}
-                </div>
-                <div style={{display:"flex",gap:8}}>
-                  {onboardCardIdx<SCHOLAR_CARDS.length-1?(
-                    <>
-                      <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{padding:"11px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:7,fontSize:11,color:"#3A5A38"}}>Skip</div>
-                      <div className="sbtn" onClick={()=>setOnboardCardIdx(i=>i+1)} style={{flex:1,padding:"12px",background:"#F0C040",borderRadius:7,fontSize:13,fontWeight:700,color:"#060A07",textAlign:"center"}}>Next →</div>
-                    </>
-                  ):(
-                    <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{flex:1,padding:"13px",background:"#F0C040",borderRadius:7,fontSize:13,fontWeight:700,color:"#060A07",textAlign:"center"}}>Continue →</div>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* ── Screen 3: Goal Setting ── */}
-          {onboardStep===2&&(()=>{
             const totalYrs=goalYears+goalMonths/12;
             const t=calcTimeline(totalYrs,completedCount);
             return (
               <div className="fi" style={{flex:1,overflowY:"auto",padding:"24px 20px 32px"}}>
-                <div style={{fontSize:9,color:"#F0C040",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6,textAlign:"center"}}>Set Your Goal</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#EDE8DC",textAlign:"center",marginBottom:4}}>How long do you want to take?</div>
-                <div style={{fontSize:11,color:"#3A5A38",textAlign:"center",marginBottom:20,fontStyle:"italic"}}>Sheikh Abdul Muhsin recommends 1 year — 1 page/day after Fajr</div>
+                <div style={{fontSize:9,color:"#C9A84C",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6,textAlign:"center"}}>Your Profile & Goal</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#EDE8DC",textAlign:"center",marginBottom:16}}>Let's personalize your journey</div>
 
-                <div style={{background:"#0D1008",border:"1px solid #1E2A18",borderRadius:8,padding:"16px 18px",marginBottom:10}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                    <span style={{fontSize:12,color:"#A8B89A"}}>Years</span>
-                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:"#F0C040",fontWeight:600}}>{goalYears} {goalYears===1?"year":"years"}</span>
+                <div style={{background:"#132A1E",border:"1.5px solid #C9A84C40",borderRadius:8,padding:"14px 16px",marginBottom:10}}>
+                  <div style={{fontSize:9,color:"#C9A84C",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>Your Name</div>
+                  <input
+                    type="text"
+                    placeholder="Enter your name..."
+                    value={userName||""}
+                    onChange={e=>setUserName(e.target.value)}
+                    style={{width:"100%",background:"#0D1F17",border:"1.5px solid #2A5C3A",borderRadius:6,padding:"10px 12px",fontSize:13,color:"#EDE8DC",outline:"none",fontFamily:"'DM Sans',sans-serif"}}
+                  />
+                </div>
+
+                <div style={{background:"#132A1E",border:"1.5px solid #C9A84C40",borderRadius:8,padding:"14px 16px",marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <span style={{fontSize:11,color:"#C8D8B8"}}>Years</span>
+                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:"#C9A84C",fontWeight:700}}>{goalYears} {goalYears===1?"year":"years"}</span>
                   </div>
                   <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:6}}/>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"#2E4030"}}>
-                    {[1,2,3,4,5,6,7,8,9,10].map(y=><span key={y} style={{color:y===goalYears?"#F0C040":"#2E4030",fontWeight:y===goalYears?700:400}}>{y}</span>)}
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"#4A7058",marginBottom:12}}>
+                    {[1,2,3,4,5,6,7,8,9,10].map(y=><span key={y} style={{color:y===goalYears?"#C9A84C":"#4A7058",fontWeight:y===goalYears?700:400}}>{y}</span>)}
                   </div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <span style={{fontSize:11,color:"#C8D8B8"}}>Additional months</span>
+                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:"#C9A84C",fontWeight:700}}>{goalMonths}m</span>
+                  </div>
+                  <input type="range" min={0} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
                 </div>
 
-                <div style={{background:"#0D1008",border:"1px solid #1E2A18",borderRadius:8,padding:"16px 18px",marginBottom:14}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                    <span style={{fontSize:12,color:"#A8B89A"}}>Additional months</span>
-                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:"#F0C040",fontWeight:600}}>{goalMonths} {goalMonths===1?"month":"months"}</span>
-                  </div>
-                  <input type="range" min={0} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%",marginBottom:6}}/>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"#2E4030"}}>
-                    {[0,1,2,3,4,5,6,7,8,9,10,11].map(m=><span key={m} style={{color:m===goalMonths?"#F0C040":"#2E4030",fontWeight:m===goalMonths?700:400}}>{m}</span>)}
-                  </div>
-                </div>
-
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:7,marginBottom:14}}>
                   {[
-                    {label:"Ayahs Per Day",val:t.ayahsPerDay,color:"#F0C040"},
-                    {label:"Days Per Juz",val:`~${t.daysPerJuz}d`,color:"#F6A623"},
-                    {label:"Juz Per Month",val:t.juzPerMonth,color:"#B794F4"},
-                    {label:"Juz Remaining",val:`${t.juzLeft}`,color:"#4ECDC4"},
+                    {label:"Ayahs/day",val:t.ayahsPerDay,color:"#C9A84C"},
+                    {label:"Days/Juz",val:`~${t.daysPerJuz}d`,color:"#F6A623"},
+                    {label:"Juz/month",val:t.juzPerMonth,color:"#B794F4"},
                   ].map(s=>(
-                    <div key={s.label} style={{padding:"12px 14px",background:"#0D1008",border:`1px solid ${s.color}20`,borderTop:`3px solid ${s.color}`,borderRadius:7,textAlign:"center"}}>
-                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,color:s.color,marginBottom:3}}>{s.val}</div>
-                      <div style={{fontSize:10,color:"#3A5A38"}}>{s.label}</div>
+                    <div key={s.label} style={{padding:"11px 8px",background:"#132A1E",border:`1.5px solid ${s.color}30`,borderTop:`3px solid ${s.color}`,borderRadius:7,textAlign:"center"}}>
+                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:18,color:s.color,marginBottom:3}}>{s.val}</div>
+                      <div style={{fontSize:9,color:"#8AAA80"}}>{s.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {goalYears===1&&goalMonths===0&&(
-                  <div style={{padding:"10px 14px",background:"#F0C04010",border:"1px solid #F0C04030",borderLeft:"3px solid #F0C040",borderRadius:"0 6px 6px 0",marginBottom:14,fontSize:11,color:"#A8B89A",lineHeight:1.7}}>
-                    ⭐ <strong style={{color:"#F0C040"}}>Sheikh Abdul Muhsin's recommended pace</strong> — 1 page/day with solid, lasting memorization.
+                  <div style={{padding:"10px 14px",background:"#C9A84C10",border:"1.5px solid #C9A84C30",borderLeft:"3px solid #C9A84C",borderRadius:"0 6px 6px 0",marginBottom:12,fontSize:11,color:"#C8D8B8",lineHeight:1.7}}>
+                    ⭐ <strong style={{color:"#C9A84C"}}>Sheikh Abdul Muhsin's recommended pace</strong> — 1 page/day after Fajr.
                   </div>
                 )}
 
-                <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{display:"block",width:"100%",padding:"14px",background:"#F0C040",color:"#060A07",borderRadius:8,fontSize:14,fontWeight:700,textAlign:"center"}}>
+                <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{display:"block",width:"100%",padding:"14px",background:"#C9A84C",color:"#0D1F17",borderRadius:8,fontSize:14,fontWeight:700,textAlign:"center"}}>
                   Continue →
                 </div>
               </div>
             );
           })()}
 
-          {/* ── Screen 4: Mark Your Memorization ── */}
-          {onboardStep===3&&(
+          {/* ── Screen 3: Mark Your Memorization ── */}
+          {onboardStep===2&&(
             <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 20px 28px",overflow:"hidden"}}>
-              <div style={{fontSize:9,color:"#F0C040",letterSpacing:".22em",textTransform:"uppercase",marginBottom:4,textAlign:"center"}}>Your Progress So Far</div>
+              <div style={{fontSize:9,color:"#C9A84C",letterSpacing:".22em",textTransform:"uppercase",marginBottom:4,textAlign:"center"}}>Your Progress So Far</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#EDE8DC",textAlign:"center",marginBottom:4}}>Mark what you've memorized</div>
-              <div style={{fontSize:10,color:"#3A5A38",textAlign:"center",marginBottom:10,fontStyle:"italic"}}>Tap a tile to cycle: Not Started → Memorized → In Progress → Needs Revision</div>
+              <div style={{fontSize:10,color:"#8AAA80",textAlign:"center",marginBottom:10,fontStyle:"italic"}}>Tap a tile to mark · tap again to cycle statuses</div>
 
-              <div style={{display:"flex",gap:12,justifyContent:"center",marginBottom:10,flexWrap:"wrap"}}>
-                {[{s:"complete",c:"#F0C040",l:"✓ Memorized"},{s:"in_progress",c:"#F6A623",l:"~ In Progress"},{s:"needs_revision",c:"#E5534B",l:"! Needs Revision"}].map(x=>(
-                  <div key={x.s} style={{display:"flex",alignItems:"center",gap:4,fontSize:9,color:x.c}}>
-                    <div style={{width:7,height:7,borderRadius:"50%",background:x.c}}/>{x.l}
+              {/* Juz / Surah toggle */}
+              <div style={{display:"flex",background:"#0D1F17",border:"1.5px solid #C9A84C40",borderRadius:7,overflow:"hidden",marginBottom:10}}>
+                <div className="sbtn" onClick={()=>setOnboardMarkMode("juz")} style={{flex:1,padding:"8px",textAlign:"center",fontSize:11,fontWeight:700,background:onboardMarkMode==="juz"?"#C9A84C":"transparent",color:onboardMarkMode==="juz"?"#0D1F17":"#8AAA80"}}>By Juz</div>
+                <div className="sbtn" onClick={()=>setOnboardMarkMode("surah")} style={{flex:1,padding:"8px",textAlign:"center",fontSize:11,fontWeight:700,background:onboardMarkMode==="surah"?"#C9A84C":"transparent",color:onboardMarkMode==="surah"?"#0D1F17":"#8AAA80"}}>By Surah</div>
+              </div>
+
+              <div style={{flex:1,overflowY:"auto",marginBottom:10}}>
+                {onboardMarkMode==="juz"?(
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
+                    {JUZ_META.map(j=>{
+                      const st=juzStatus[j.num]||"not_started";
+                      const cols={complete:"#C9A84C",in_progress:"#F6A623",needs_revision:"#E5534B",not_started:"#2A5C3A"};
+                      const lbls={complete:"✓",in_progress:"~",needs_revision:"!",not_started:""};
+                      const cyc={not_started:"complete",complete:"in_progress",in_progress:"needs_revision",needs_revision:"not_started"};
+                      const c=cols[st]; const isSet=st!=="not_started";
+                      return (
+                        <div key={j.num} className="sbtn" onClick={()=>setJuzStatus(p=>({...p,[j.num]:cyc[st]}))} style={{padding:"9px 4px",background:isSet?`${c}20`:"#132A1E",border:`2px solid ${isSet?c:"#2A5C3A"}`,borderRadius:8,textAlign:"center"}}>
+                          <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:isSet?c:"#4A7058",marginBottom:1}}>{j.num}</div>
+                          <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:isSet?c:"#4A7058",direction:"rtl",lineHeight:1.4}}>{j.arabic}</div>
+                          {isSet&&<div style={{fontSize:9,color:c,fontWeight:700,marginTop:1}}>{lbls[st]}</div>}
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                ):(
+                  <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                    {Object.entries(
+                      Object.fromEntries(
+                        Array.from({length:114},(_,i)=>{
+                          const sNum=i+1;
+                          const st=surahStatus?.[sNum]||"not_started";
+                          return [sNum,st];
+                        })
+                      )
+                    ).map(([sNum,st])=>{
+                      const n=Number(sNum);
+                      const cols={complete:"#C9A84C",in_progress:"#F6A623",needs_revision:"#E5534B",not_started:"#2A5C3A"};
+                      const cyc={not_started:"complete",complete:"in_progress",in_progress:"needs_revision",needs_revision:"not_started"};
+                      const c=cols[st]; const isSet=st!=="not_started";
+                      return (
+                        <div key={n} className="sbtn" onClick={()=>setSurahStatus(p=>({...p,[n]:cyc[st]}))} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:isSet?`${c}15`:"#132A1E",border:`1.5px solid ${isSet?c:"#2A5C3A"}`,borderRadius:7}}>
+                          <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:isSet?c:"#4A7058",width:28,flexShrink:0}}>{String(n).padStart(3,"0")}</div>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:11,color:isSet?c:"#C8D8B8"}}>{SURAH_EN[n]}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:isSet?c:"#4A7058",direction:"rtl"}}>{SURAH_AR[n]}</div>
+                          </div>
+                          {isSet&&<div style={{fontSize:10,color:c,fontWeight:700}}>{st==="complete"?"✓":st==="in_progress"?"~":"!"}</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
-              <div style={{flex:1,overflowY:"auto",marginBottom:12}}>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:5}}>
-                  {JUZ_META.map(j=>{
-                    const st=juzStatus[j.num]||"not_started";
-                    const cols={complete:"#F0C040",in_progress:"#F6A623",needs_revision:"#E5534B",not_started:"#2E4030"};
-                    const lbls={complete:"✓",in_progress:"~",needs_revision:"!",not_started:""};
-                    const cyc={not_started:"complete",complete:"in_progress",in_progress:"needs_revision",needs_revision:"not_started"};
-                    const c=cols[st]; const isSet=st!=="not_started";
-                    return (
-                      <div key={j.num} className="sbtn" onClick={()=>setJuzStatus(p=>({...p,[j.num]:cyc[st]}))} style={{padding:"8px 4px",background:isSet?`${c}18`:"#0D1008",border:`1px solid ${isSet?c+"50":"#1E2A18"}`,borderRadius:6,textAlign:"center"}}>
-                        <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:isSet?c:"#2E4030",marginBottom:1}}>{j.num}</div>
-                        <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:isSet?c:"#2E4030",direction:"rtl",lineHeight:1.4}}>{j.arabic}</div>
-                        {isSet&&<div style={{fontSize:8,color:c,fontWeight:700,marginTop:1}}>{lbls[st]}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{fontSize:10,color:"#3A5A38",textAlign:"center",marginBottom:10}}>
+              <div style={{fontSize:10,color:"#8AAA80",textAlign:"center",marginBottom:10}}>
                 {completedCount>0?`${completedCount} Juz marked · الحمد لله 🤲`:"Tap tiles to mark your progress — or skip if just starting"}
               </div>
-              <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{display:"block",width:"100%",padding:"14px",background:"#F0C040",color:"#060A07",borderRadius:8,fontSize:14,fontWeight:700,textAlign:"center"}}>
+              <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{display:"block",width:"100%",padding:"14px",background:"#C9A84C",color:"#0D1F17",borderRadius:8,fontSize:14,fontWeight:700,textAlign:"center"}}>
+                Continue →
+              </div>
+            </div>
+          )}
+
+          {/* ── Screen 4: Introduction — Virtue of Hifz ── */}
+          {onboardStep===3&&(
+            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 20px 28px"}}>
+              <div style={{fontSize:9,color:"#C9A84C",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6,textAlign:"center"}}>Before You Begin</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#EDE8DC",textAlign:"center",marginBottom:16}}>The Virtue of Hifz</div>
+              <div style={{flex:1,display:"flex",flexDirection:"column",gap:10}}>
+                <div style={{background:"#132A1E",border:"1.5px solid #C9A84C35",borderLeft:"3px solid #C9A84C",borderRadius:"0 8px 8px 0",padding:"14px 16px"}}>
+                  <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#C9A84C",direction:"rtl",lineHeight:1.9,marginBottom:8}}>خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ</div>
+                  <div style={{fontSize:12,color:"#C8D8B8",lineHeight:1.7,fontStyle:"italic",marginBottom:4}}>"The best of you are those who learn the Quran and teach it."</div>
+                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#C9A84C"}}>Prophet Muhammad ﷺ · Sahih Al-Bukhari 5027</div>
+                </div>
+                <div style={{background:"#132A1E",border:"1.5px solid #4ECDC435",borderLeft:"3px solid #4ECDC4",borderRadius:"0 8px 8px 0",padding:"14px 16px"}}>
+                  <div style={{fontSize:12,color:"#C8D8B8",lineHeight:1.7,marginBottom:4}}>"The one who memorizes the Quran is with the honorable and obedient Angels."</div>
+                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#4ECDC4"}}>Sahih Al-Bukhari & Muslim</div>
+                </div>
+                <div style={{background:"#132A1E",border:"1.5px solid #B794F435",borderLeft:"3px solid #B794F4",borderRadius:"0 8px 8px 0",padding:"14px 16px"}}>
+                  <div style={{fontSize:12,color:"#C8D8B8",lineHeight:1.7,marginBottom:4}}>"It is best to prioritize the memorization of the Quran. The best thing a person can busy himself with is the memorization of the Quran."</div>
+                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#B794F4"}}>Ibn Al-Jawzi · رحمه الله</div>
+                </div>
+                <div style={{background:"#132A1E",border:"1.5px solid #68D39135",borderLeft:"3px solid #68D391",borderRadius:"0 8px 8px 0",padding:"14px 16px"}}>
+                  <div style={{fontSize:12,color:"#C8D8B8",lineHeight:1.7,marginBottom:4}}>"It is a treasure not given to just anyone — remember this when the journey becomes difficult."</div>
+                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#68D391"}}>Ibn Al-Jawzi · رحمه الله</div>
+                </div>
+              </div>
+              <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{display:"block",width:"100%",padding:"14px",background:"#C9A84C",color:"#0D1F17",borderRadius:8,fontSize:14,fontWeight:700,textAlign:"center",marginTop:14}}>
                 Continue →
               </div>
             </div>
@@ -640,30 +662,31 @@ export default function RihlatAlHifz() {
             return (
               <div className="fi" style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"32px 24px",flexDirection:"column",gap:14,textAlign:"center"}}>
                 <div style={{fontSize:40,marginBottom:2}}>🤲</div>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(26px,6vw,40px)",color:"#F0C040",direction:"rtl",lineHeight:1.9}}>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(26px,6vw,38px)",color:"#C9A84C",direction:"rtl",lineHeight:1.9}}>
                   بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
                 </div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#EDE8DC"}}>Your journey begins now</div>
-                <div style={{fontSize:11,color:"#3A5A38",maxWidth:300,lineHeight:1.9,fontStyle:"italic"}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#EDE8DC",fontWeight:600}}>Your journey begins now</div>
+                <div style={{fontSize:11,color:"#C8D8B8",maxWidth:300,lineHeight:1.9,fontStyle:"italic"}}>
                   May Allah make the Quran the light of your heart, the joy of your chest, and the companion of your grave.
                 </div>
-                <div style={{background:"#0D1008",border:"1px solid #1E2A18",borderRadius:8,padding:"14px 20px",maxWidth:300,width:"100%",textAlign:"left",marginTop:2}}>
-                  <div style={{fontSize:9,color:"#2E4030",marginBottom:10,letterSpacing:".12em",textTransform:"uppercase"}}>Your Hifz Plan</div>
+                <div style={{background:"#132A1E",border:"1.5px solid #C9A84C35",borderRadius:8,padding:"14px 20px",maxWidth:300,width:"100%",textAlign:"left",marginTop:2}}>
+                  <div style={{fontSize:9,color:"#4A7058",marginBottom:10,letterSpacing:".12em",textTransform:"uppercase"}}>Your Hifz Plan</div>
                   {[
+                    {l:"Name",       v:userName||"Student"},
                     {l:"Goal",       v:`${goalYears}y${goalMonths>0?` ${goalMonths}m`:""}`},
                     {l:"Ayahs/day",  v:`${t.ayahsPerDay}`},
                     {l:"Juz marked", v:`${completedCount}/30`},
                   ].map(row=>(
-                    <div key={row.l} style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                      <span style={{fontSize:11,color:"#5A7050"}}>{row.l}</span>
-                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"#F0C040",fontWeight:600}}>{row.v}</span>
+                    <div key={row.l} style={{display:"flex",justifyContent:"space-between",marginBottom:6,paddingBottom:6,borderBottom:"1px solid #2A5C3A"}}>
+                      <span style={{fontSize:11,color:"#8AAA80"}}>{row.l}</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"#C9A84C",fontWeight:600}}>{row.v}</span>
                     </div>
                   ))}
                 </div>
-                <div className="sbtn" onClick={()=>{setShowOnboarding(false);localStorage.setItem("rihlat-onboarded","1");}} style={{marginTop:6,padding:"15px 52px",background:"#F0C040",borderRadius:8,fontSize:15,fontWeight:700,color:"#060A07",letterSpacing:".03em"}}>
-                  بِسْمِ اللَّهِ — Begin
+                <div className="sbtn" onClick={()=>{setShowOnboarding(false);localStorage.setItem("rihlat-onboarded","1");}} style={{marginTop:6,padding:"15px 52px",background:"#C9A84C",borderRadius:8,fontSize:15,fontWeight:700,color:"#0D1F17",letterSpacing:".03em"}}>
+                  Let's Begin!
                 </div>
-                <div style={{fontSize:9,color:"#1E2A18",letterSpacing:".1em"}}>© 2026 NOORTECH ACADEMY</div>
+                <div style={{fontSize:9,color:"#2A5C3A",letterSpacing:".1em"}}>© 2026 NOORTECH ACADEMY</div>
               </div>
             );
           })()}
@@ -671,7 +694,7 @@ export default function RihlatAlHifz() {
         </div>
       )}
 
-      {/* DUA MODAL */}
+            {/* DUA MODAL */}
       {!showOnboarding&&showDua&&(
         <div style={{position:"fixed",inset:0,background:"#060A07EE",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
           {(()=>{
@@ -704,7 +727,7 @@ export default function RihlatAlHifz() {
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 16px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div>
-            <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>Abdul Jalil · Hifz Journey</div>
+            <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>{userName||"Abdul Jalil"} · Hifz Journey</div>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Rihlat Al-Hifz · رحلة الحفظ</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
@@ -725,7 +748,7 @@ export default function RihlatAlHifz() {
       {/* TABS */}
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,display:"flex",flexShrink:0,overflowX:"auto"}}>
         {TABS.map(t=>(
-          <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{padding:"10px 14px",fontSize:12,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?T.accent:T.dim,borderBottom:`2px solid ${activeTab===t.id?T.accent:"transparent"}`,whiteSpace:"nowrap",background:activeTab===t.id?T.accentDim:"transparent"}}>
+          <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{padding:"12px 16px",fontSize:13,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?T.accent:T.sub,borderBottom:`3px solid ${activeTab===t.id?T.accent:"transparent"}`,whiteSpace:"nowrap",background:activeTab===t.id?T.accentDim:"transparent",letterSpacing:activeTab===t.id?".01em":"normal"}}>
             {t.label}
           </div>
         ))}
