@@ -117,6 +117,74 @@ const JUZ_META = [
   {num:27,arabic:"قَالَ فَمَا",roman:"Qala Fama Khatbukum",order:4},{num:28,arabic:"قَدْ سَمِعَ",roman:"Qad Sami'Allah",order:3},
   {num:29,arabic:"تَبَارَكَ",roman:"Tabarakalladhi",order:2},{num:30,arabic:"عَمَّ",roman:"Amma",order:1},
 ];
+
+// ── JUZ → SURAH MAPPING ──────────────────────────────────────────────────────
+const JUZ_SURAHS = {
+  1:[{s:1,name:"Al-Fatiha",a:7},{s:2,name:"Al-Baqarah",a:141}],
+  2:[{s:2,name:"Al-Baqarah",a:92}],
+  3:[{s:2,name:"Al-Baqarah",a:37},{s:3,name:"Aal Imran",a:92}],
+  4:[{s:3,name:"Aal Imran",a:88},{s:4,name:"An-Nisa",a:23}],
+  5:[{s:4,name:"An-Nisa",a:147}],
+  6:[{s:4,name:"An-Nisa",a:57},{s:5,name:"Al-Maidah",a:82}],
+  7:[{s:5,name:"Al-Maidah",a:38},{s:6,name:"Al-Anam",a:110}],
+  8:[{s:6,name:"Al-Anam",a:51},{s:7,name:"Al-Araf",a:87}],
+  9:[{s:7,name:"Al-Araf",a:87},{s:8,name:"Al-Anfal",a:40}],
+  10:[{s:8,name:"Al-Anfal",a:40},{s:9,name:"At-Tawbah",a:92}],
+  11:[{s:9,name:"At-Tawbah",a:40},{s:10,name:"Yunus",a:109},{s:11,name:"Hud",a:5}],
+  12:[{s:11,name:"Hud",a:78},{s:12,name:"Yusuf",a:52}],
+  13:[{s:12,name:"Yusuf",a:52},{s:13,name:"Ar-Rad",a:43},{s:14,name:"Ibrahim",a:52}],
+  14:[{s:15,name:"Al-Hijr",a:99},{s:16,name:"An-Nahl",a:128}],
+  15:[{s:17,name:"Al-Isra",a:111},{s:18,name:"Al-Kahf",a:74}],
+  16:[{s:18,name:"Al-Kahf",a:36},{s:19,name:"Maryam",a:98},{s:20,name:"Ta-Ha",a:135}],
+  17:[{s:21,name:"Al-Anbiya",a:112},{s:22,name:"Al-Hajj",a:78}],
+  18:[{s:23,name:"Al-Muminun",a:118},{s:24,name:"An-Nur",a:64},{s:25,name:"Al-Furqan",a:20}],
+  19:[{s:25,name:"Al-Furqan",a:57},{s:26,name:"Ash-Shuara",a:227},{s:27,name:"An-Naml",a:55}],
+  20:[{s:27,name:"An-Naml",a:26},{s:28,name:"Al-Qasas",a:88},{s:29,name:"Al-Ankabut",a:45}],
+  21:[{s:29,name:"Al-Ankabut",a:24},{s:30,name:"Ar-Rum",a:60},{s:31,name:"Luqman",a:34},{s:32,name:"As-Sajda",a:30},{s:33,name:"Al-Ahzab",a:30}],
+  22:[{s:33,name:"Al-Ahzab",a:43},{s:34,name:"Saba",a:54},{s:35,name:"Fatir",a:45},{s:36,name:"Ya-Sin",a:27}],
+  23:[{s:36,name:"Ya-Sin",a:56},{s:37,name:"As-Saffat",a:182},{s:38,name:"Sad",a:88},{s:39,name:"Az-Zumar",a:31}],
+  24:[{s:39,name:"Az-Zumar",a:44},{s:40,name:"Ghafir",a:85},{s:41,name:"Fussilat",a:46}],
+  25:[{s:41,name:"Fussilat",a:8},{s:42,name:"Ash-Shura",a:53},{s:43,name:"Az-Zukhruf",a:89},{s:44,name:"Ad-Dukhan",a:59},{s:45,name:"Al-Jathiya",a:37}],
+  26:[{s:46,name:"Al-Ahqaf",a:35},{s:47,name:"Muhammad",a:38},{s:48,name:"Al-Fath",a:29},{s:49,name:"Al-Hujurat",a:18},{s:50,name:"Qaf",a:45},{s:51,name:"Adh-Dhariyat",a:30}],
+  27:[{s:51,name:"Adh-Dhariyat",a:30},{s:52,name:"At-Tur",a:49},{s:53,name:"An-Najm",a:62},{s:54,name:"Al-Qamar",a:55},{s:55,name:"Ar-Rahman",a:78},{s:56,name:"Al-Waqiah",a:96},{s:57,name:"Al-Hadid",a:29}],
+  28:[{s:58,name:"Al-Mujadila",a:22},{s:59,name:"Al-Hashr",a:24},{s:60,name:"Al-Mumtahina",a:13},{s:61,name:"As-Saf",a:14},{s:62,name:"Al-Jumuah",a:11},{s:63,name:"Al-Munafiqun",a:11},{s:64,name:"At-Taghabun",a:18},{s:65,name:"At-Talaq",a:12},{s:66,name:"At-Tahrim",a:12}],
+  29:[{s:67,name:"Al-Mulk",a:30},{s:68,name:"Al-Qalam",a:52},{s:69,name:"Al-Haqqa",a:52},{s:70,name:"Al-Maarij",a:44},{s:71,name:"Nuh",a:28},{s:72,name:"Al-Jinn",a:28},{s:73,name:"Al-Muzzammil",a:20},{s:74,name:"Al-Muddathir",a:56},{s:75,name:"Al-Qiyama",a:40},{s:76,name:"Al-Insan",a:31},{s:77,name:"Al-Mursalat",a:50}],
+  30:[{s:78,name:"An-Naba",a:40},{s:79,name:"An-Naziat",a:46},{s:80,name:"Abasa",a:42},{s:81,name:"At-Takwir",a:29},{s:82,name:"Al-Infitar",a:19},{s:83,name:"Al-Mutaffifin",a:36},{s:84,name:"Al-Inshiqaq",a:25},{s:85,name:"Al-Buruj",a:22},{s:86,name:"At-Tariq",a:17},{s:87,name:"Al-Ala",a:19},{s:88,name:"Al-Ghashiya",a:26},{s:89,name:"Al-Fajr",a:30},{s:90,name:"Al-Balad",a:20},{s:91,name:"Ash-Shams",a:15},{s:92,name:"Al-Layl",a:21},{s:93,name:"Ad-Duha",a:11},{s:94,name:"Ash-Sharh",a:8},{s:95,name:"At-Tin",a:8},{s:96,name:"Al-Alaq",a:19},{s:97,name:"Al-Qadr",a:5},{s:98,name:"Al-Bayyina",a:8},{s:99,name:"Az-Zalzala",a:8},{s:100,name:"Al-Adiyat",a:11},{s:101,name:"Al-Qaria",a:11},{s:102,name:"At-Takathur",a:8},{s:103,name:"Al-Asr",a:3},{s:104,name:"Al-Humaza",a:9},{s:105,name:"Al-Fil",a:5},{s:106,name:"Quraysh",a:4},{s:107,name:"Al-Maun",a:7},{s:108,name:"Al-Kawthar",a:3},{s:109,name:"Al-Kafirun",a:6},{s:110,name:"An-Nasr",a:3},{s:111,name:"Al-Masad",a:5},{s:112,name:"Al-Ikhlas",a:4},{s:113,name:"Al-Falaq",a:5},{s:114,name:"An-Nas",a:6}],
+};
+// ── JUZ → SURAH MAPPING ──────────────────────────────────────────────────────
+const JUZ_SURAHS = {
+  1:[{s:1,name:"Al-Fatiha",ayahs:7},{s:2,name:"Al-Baqarah",ayahs:141}],
+  2:[{s:2,name:"Al-Baqarah",ayahs:92}],
+  3:[{s:2,name:"Al-Baqarah",ayahs:37},{s:3,name:"Aal Imran",ayahs:92}],
+  4:[{s:3,name:"Aal Imran",ayahs:88},{s:4,name:"An-Nisa",ayahs:23}],
+  5:[{s:4,name:"An-Nisa",ayahs:147}],
+  6:[{s:4,name:"An-Nisa",ayahs:57},{s:5,name:"Al-Maidah",ayahs:82}],
+  7:[{s:5,name:"Al-Maidah",ayahs:38},{s:6,name:"Al-Anam",ayahs:110}],
+  8:[{s:6,name:"Al-Anam",ayahs:51},{s:7,name:"Al-Araf",ayahs:87}],
+  9:[{s:7,name:"Al-Araf",ayahs:87},{s:8,name:"Al-Anfal",ayahs:40}],
+  10:[{s:8,name:"Al-Anfal",ayahs:40},{s:9,name:"At-Tawbah",ayahs:92}],
+  11:[{s:9,name:"At-Tawbah",ayahs:40},{s:10,name:"Yunus",ayahs:109},{s:11,name:"Hud",ayahs:5}],
+  12:[{s:11,name:"Hud",ayahs:78},{s:12,name:"Yusuf",ayahs:52}],
+  13:[{s:12,name:"Yusuf",ayahs:52},{s:13,name:"Ar-Rad",ayahs:43},{s:14,name:"Ibrahim",ayahs:52}],
+  14:[{s:15,name:"Al-Hijr",ayahs:99},{s:16,name:"An-Nahl",ayahs:128}],
+  15:[{s:17,name:"Al-Isra",ayahs:111},{s:18,name:"Al-Kahf",ayahs:74}],
+  16:[{s:18,name:"Al-Kahf",ayahs:36},{s:19,name:"Maryam",ayahs:98},{s:20,name:"Ta-Ha",ayahs:135}],
+  17:[{s:21,name:"Al-Anbiya",ayahs:112},{s:22,name:"Al-Hajj",ayahs:78}],
+  18:[{s:23,name:"Al-Muminun",ayahs:118},{s:24,name:"An-Nur",ayahs:64},{s:25,name:"Al-Furqan",ayahs:20}],
+  19:[{s:25,name:"Al-Furqan",ayahs:57},{s:26,name:"Ash-Shuara",ayahs:227},{s:27,name:"An-Naml",ayahs:55}],
+  20:[{s:27,name:"An-Naml",ayahs:26},{s:28,name:"Al-Qasas",ayahs:88},{s:29,name:"Al-Ankabut",ayahs:45}],
+  21:[{s:29,name:"Al-Ankabut",ayahs:24},{s:30,name:"Ar-Rum",ayahs:60},{s:31,name:"Luqman",ayahs:34},{s:32,name:"As-Sajda",ayahs:30},{s:33,name:"Al-Ahzab",ayahs:30}],
+  22:[{s:33,name:"Al-Ahzab",ayahs:43},{s:34,name:"Saba",ayahs:54},{s:35,name:"Fatir",ayahs:45},{s:36,name:"Ya-Sin",ayahs:27}],
+  23:[{s:36,name:"Ya-Sin",ayahs:56},{s:37,name:"As-Saffat",ayahs:182},{s:38,name:"Sad",ayahs:88},{s:39,name:"Az-Zumar",ayahs:31}],
+  24:[{s:39,name:"Az-Zumar",ayahs:44},{s:40,name:"Ghafir",ayahs:85},{s:41,name:"Fussilat",ayahs:46}],
+  25:[{s:41,name:"Fussilat",ayahs:8},{s:42,name:"Ash-Shura",ayahs:53},{s:43,name:"Az-Zukhruf",ayahs:89},{s:44,name:"Ad-Dukhan",ayahs:59},{s:45,name:"Al-Jathiya",ayahs:37}],
+  26:[{s:46,name:"Al-Ahqaf",ayahs:35},{s:47,name:"Muhammad",ayahs:38},{s:48,name:"Al-Fath",ayahs:29},{s:49,name:"Al-Hujurat",ayahs:18},{s:50,name:"Qaf",ayahs:45},{s:51,name:"Adh-Dhariyat",ayahs:30}],
+  27:[{s:51,name:"Adh-Dhariyat",ayahs:30},{s:52,name:"At-Tur",ayahs:49},{s:53,name:"An-Najm",ayahs:62},{s:54,name:"Al-Qamar",ayahs:55},{s:55,name:"Ar-Rahman",ayahs:78},{s:56,name:"Al-Waqiah",ayahs:96},{s:57,name:"Al-Hadid",ayahs:29}],
+  28:[{s:58,name:"Al-Mujadila",ayahs:22},{s:59,name:"Al-Hashr",ayahs:24},{s:60,name:"Al-Mumtahina",ayahs:13},{s:61,name:"As-Saf",ayahs:14},{s:62,name:"Al-Jumuah",ayahs:11},{s:63,name:"Al-Munafiqun",ayahs:11},{s:64,name:"At-Taghabun",ayahs:18},{s:65,name:"At-Talaq",ayahs:12},{s:66,name:"At-Tahrim",ayahs:12}],
+  29:[{s:67,name:"Al-Mulk",ayahs:30},{s:68,name:"Al-Qalam",ayahs:52},{s:69,name:"Al-Haqqa",ayahs:52},{s:70,name:"Al-Maarij",ayahs:44},{s:71,name:"Nuh",ayahs:28},{s:72,name:"Al-Jinn",ayahs:28},{s:73,name:"Al-Muzzammil",ayahs:20},{s:74,name:"Al-Muddathir",ayahs:56},{s:75,name:"Al-Qiyama",ayahs:40},{s:76,name:"Al-Insan",ayahs:31},{s:77,name:"Al-Mursalat",ayahs:50}],
+  30:[{s:78,name:"An-Naba",ayahs:40},{s:79,name:"An-Naziat",ayahs:46},{s:80,name:"Abasa",ayahs:42},{s:81,name:"At-Takwir",ayahs:29},{s:82,name:"Al-Infitar",ayahs:19},{s:83,name:"Al-Mutaffifin",ayahs:36},{s:84,name:"Al-Inshiqaq",ayahs:25},{s:85,name:"Al-Buruj",ayahs:22},{s:86,name:"At-Tariq",ayahs:17},{s:87,name:"Al-Ala",ayahs:19},{s:88,name:"Al-Ghashiya",ayahs:26},{s:89,name:"Al-Fajr",ayahs:30},{s:90,name:"Al-Balad",ayahs:20},{s:91,name:"Ash-Shams",ayahs:15},{s:92,name:"Al-Layl",ayahs:21},{s:93,name:"Ad-Duha",ayahs:11},{s:94,name:"Ash-Sharh",ayahs:8},{s:95,name:"At-Tin",ayahs:8},{s:96,name:"Al-Alaq",ayahs:19},{s:97,name:"Al-Qadr",ayahs:5},{s:98,name:"Al-Bayyina",ayahs:8},{s:99,name:"Az-Zalzala",ayahs:8},{s:100,name:"Al-Adiyat",ayahs:11},{s:101,name:"Al-Qaria",ayahs:11},{s:102,name:"At-Takathur",ayahs:8},{s:103,name:"Al-Asr",ayahs:3},{s:104,name:"Al-Humaza",ayahs:9},{s:105,name:"Al-Fil",ayahs:5},{s:106,name:"Quraysh",ayahs:4},{s:107,name:"Al-Maun",ayahs:7},{s:108,name:"Al-Kawthar",ayahs:3},{s:109,name:"Al-Kafirun",ayahs:6},{s:110,name:"An-Nasr",ayahs:3},{s:111,name:"Al-Masad",ayahs:5},{s:112,name:"Al-Ikhlas",ayahs:4},{s:113,name:"Al-Falaq",ayahs:5},{s:114,name:"An-Nas",ayahs:6}],
+};
+
 const STATUS_CFG = {
   complete:       {label:"Memorized",    color:"#F0C040"},
   in_progress:    {label:"In Progress",  color:"#F6A623"},
@@ -131,7 +199,7 @@ const STATUS_CFG = {
            activeDays:active, ayahsLeft, juzLeft };
 }
 
-const DARK  = {bg:"#060A07",surface:"#0D1008",surface2:"#141A0F",border:"#1E2A18",border2:"#1A2814",text:"#EDE8DC",sub:"#A8B89A",dim:"#5A7050",vdim:"#2E4030",accent:"#F0C040",accentDim:"#F0C04018",input:"#0A0E07",inputBorder:"#1E2A18",inputText:"#8AAA78"};
+const DARK  = {bg:"#060A07",surface:"#121722",surface2:"#1A2130",border:"#263042",border2:"#1C2533",text:"#EDE8DC",sub:"#B8C0CC",dim:"#5A7050",vdim:"#2E4030",accent:"#F0C040",accentDim:"#F0C04018",input:"#0A0E07",inputBorder:"#263042",inputText:"#D7DCE4"};
 const LIGHT = {bg:"#F7F3EC",surface:"#FFFFFF",surface2:"#F0EBE0",border:"#DDD4C0",border2:"#D0C8B0",text:"#1A2A18",sub:"#4A6A40",dim:"#7A8A70",vdim:"#9A9A88",accent:"#8B6A10",accentDim:"#8B6A1012",input:"#F7F3EC",inputBorder:"#CCC4B0",inputText:"#3A6A40"};
 const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TODAY=()=>new Date().toDateString();
@@ -328,6 +396,9 @@ export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
+  const [onboardStep,setOnboardStep]=useState(1);
+  const [userName,setUserName]=useState("");
+  const [openJuzPanel,setOpenJuzPanel]=useState(null);
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("myhifz");
   const [selectedJuz,setSelectedJuz]=useState(30);
@@ -643,99 +714,322 @@ export default function RihlatAlHifz() {
         textarea:focus{outline:none;} select{cursor:pointer;}
       `}</style>
       
-      {/* ONBOARDING */}
+      {/* ── ONBOARDING FLOW ── */}
       {showOnboarding&&(
-        <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,flexDirection:"column",gap:16,textAlign:"center"}}>
-          <div style={{fontFamily:"'Amiri',serif",fontSize:42,color:"#F0C040",direction:"rtl",lineHeight:1.6}}>
-           بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-          </div>
-          <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#F0C040",direction:"rtl",marginTop:8}}>
-           وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
-          </div>
-          <div style={{fontSize:12,color:"#A8B89A",fontStyle:"italic",marginBottom:8}}>
-            "And We have certainly made the Quran easy for remembrance" · Al-Qamar 54:17
-          </div>
-          <div style={{fontFamily:"'Amiri',serif",fontSize:24,color:"#F0C040",direction:"rtl",marginBottom:4}}>
-             رحلة الحفظ
-          </div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#EDE8DC",marginBottom:16}}>
-            Rihlat Al-Hifz
-          </div>
-          <div className="sbtn" onClick={()=>{setShowOnboarding(false);localStorage.setItem("rihlat-onboarded","1");}} style={{padding:"14px 40px",background:"#F0C040",borderRadius:8,fontSize:14,fontWeight:700,color:"#060A07"}}>
-            Begin Your Journey →
-          </div>
-          <div style={{fontSize:10,color:"#5A7050",marginTop:8}}>© 2026 NoorTech Academy</div>
+        <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+
+          {/* ── STEP 1 — BISMILLAH ── */}
+          {onboardStep===1&&(
+            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+              {/* Star field */}
+              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 15% 20%,#F0C04030 0%,transparent 100%),radial-gradient(1px 1px at 75% 15%,#ffffff18 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 8%,#F0C04038 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,#ffffff14 0%,transparent 100%),radial-gradient(1px 1px at 25% 65%,#F0C04018 0%,transparent 100%),radial-gradient(1px 1px at 60% 80%,#ffffff10 0%,transparent 100%)",pointerEvents:"none"}}/>
+              {/* Glow */}
+              <div style={{position:"absolute",width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,#F0C04006 0%,transparent 70%)",top:"50%",left:"50%",transform:"translate(-50%,-60%)",pointerEvents:"none"}}/>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(28px,6vw,44px)",color:"#F0C040",direction:"rtl",lineHeight:1.7,marginBottom:24,position:"relative",zIndex:1}}>
+                بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+              </div>
+              <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,#F0C04060,transparent)",margin:"0 auto 24px"}}/>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#F0C040",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85}}>
+                وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
+              </div>
+              <div style={{fontSize:11,color:"#5A7050",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
+              <div style={{fontSize:9,color:"#2E4030",marginBottom:40}}>Al-Qamar · 54:17</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#F0C040",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#EDE8DC",marginBottom:44}}>Rihlat Al-Hifz</div>
+              <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{width:"100%",maxWidth:360,padding:"15px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em"}}>
+                Begin Your Journey →
+              </div>
+              <div style={{fontSize:9,color:"#2E4030",marginTop:16}}>© 2026 NoorTech Studio</div>
+            </div>
+          )}
+
+          {/* ── STEP 2 — DUA MODAL ── */}
+          {onboardStep===2&&(()=>{
+            const DUAS=[
+              {arabic:"رَبِّ زِدْنِي عِلْمًا",transliteration:"Rabbi zidni ilma",translation:"My Lord, increase me in knowledge.",source:"Surah Ta-Ha · 20:114"},
+              {arabic:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",transliteration:"Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina adhaban-nar",translation:"Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",source:"Surah Al-Baqarah · 2:201"},
+              {arabic:"رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً",transliteration:"Rabbana la tuzigh qulubana ba'da idh hadaytana wa hab lana min ladunka rahmah",translation:"Our Lord, do not let our hearts deviate after You have guided us, and grant us mercy from Yourself.",source:"Surah Aal-Imran · 3:8"},
+              {arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا",transliteration:"Allahumma inni as'aluka ilman nafi'an wa rizqan tayyiban wa amalan mutaqabbala",translation:"O Allah, I ask You for beneficial knowledge, pure provision, and accepted deeds.",source:"Morning Dua · Ibn Majah"},
+              {arabic:"رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",transliteration:"Rabbi ishrah li sadri wa yassir li amri",translation:"My Lord, expand my chest and ease my affairs.",source:"Surah Ta-Ha · 20:25-26"},
+              {arabic:"اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",transliteration:"Allahumma a'inni ala dhikrika wa shukrika wa husni ibadatik",translation:"O Allah, help me to remember You, to be grateful to You, and to worship You in an excellent manner.",source:"Abu Dawud · After every Salah"},
+            ];
+            const d=DUAS[duaIdx%DUAS.length];
+            return (
+              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 24px",textAlign:"center"}}>
+                {/* Dua card */}
+                <div style={{width:"100%",maxWidth:420,background:"#0D1008",border:"1px solid #F0C04030",borderRadius:14,padding:"24px 20px",marginBottom:22}}>
+                  <div style={{fontSize:8,color:"#F0C040",letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
+                  <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:"#F0C040",direction:"rtl",lineHeight:2,marginBottom:10}}>{d.arabic}</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:"#A8B89A",fontStyle:"italic",marginBottom:6}}>"{d.transliteration}"</div>
+                  <div style={{fontSize:11,color:"#EDE8DC",lineHeight:1.6,marginBottom:6}}>{d.translation}</div>
+                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#5A7050"}}>{d.source}</div>
+                </div>
+                {/* Progress dots */}
+                <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:22}}>
+                  {[0,1,2,3,4,5].map(i=>(
+                    <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"#F0C040":"#2E4030",transition:"all .3s"}}/>
+                  ))}
+                </div>
+                <div style={{display:"flex",gap:8,width:"100%",maxWidth:360}}>
+                  <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
+                  <div className="sbtn" onClick={()=>{setDuaIdx(i=>(i+1)%6);setOnboardStep(3);}} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
+                    Let's Begin →
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── STEP 3 — NAME INPUT ── */}
+          {onboardStep===3&&(
+            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto"}}>
+              {/* Progress bar */}
+              <div style={{display:"flex",gap:5,marginBottom:28}}>
+                {[1,2,3,4].map(i=>(
+                  <div key={i} style={{flex:1,height:3,borderRadius:2,background:i<=3?"#F0C040":i===3?"#F0C04070":"#1E2A18",transition:"background .3s"}}/>
+                ))}
+              </div>
+              <div style={{fontSize:8,color:"#F0C040",letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>Welcome</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#EDE8DC",marginBottom:6}}>What should we call you?</div>
+              <div style={{fontSize:12,color:"#5A7050",lineHeight:1.6,marginBottom:28}}>Your name will appear throughout the app to personalize your Hifz journey.</div>
+              <div style={{fontSize:9,color:"#A8B89A",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Your Name</div>
+              <input
+                type="text"
+                value={userName}
+                onChange={e=>setUserName(e.target.value)}
+                placeholder="Enter your name"
+                style={{width:"100%",background:"#0D1008",border:`1px solid ${userName?"#F0C04060":"#1E2A18"}`,borderRadius:10,padding:"14px 16px",fontSize:18,color:"#EDE8DC",fontFamily:"'DM Sans',sans-serif",outline:"none",marginBottom:20,transition:"border .2s"}}
+              />
+              {userName&&(
+                <div className="fi" style={{padding:"16px 18px",background:"#0D1008",border:"1px solid #F0C04025",borderRadius:12,textAlign:"center",marginBottom:24}}>
+                  <div style={{fontSize:9,color:"#5A7050",marginBottom:6}}>Your journey will begin as</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#F0C040",marginBottom:4}}>{userName} · رحلة الحفظ</div>
+                  <div style={{fontSize:10,color:"#5A7050",fontStyle:"italic"}}>May Allah make it easy for you 🤲</div>
+                </div>
+              )}
+              <div style={{flex:1}}/>
+              <div style={{display:"flex",gap:8}}>
+                <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
+                <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
+                  Continue →
+                </div>
+              </div>
+              <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{textAlign:"center",fontSize:11,color:"#2E4030",marginTop:10}}>Skip for now</div>
+            </div>
+          )}
+
+          {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
+          {onboardStep===4&&(()=>{
+            const totalAyahs=6236;
+            const memorizedSurahs=Object.entries(juzStatus).filter(([,v])=>v==="complete").length;
+            const juzDone=Object.values(juzStatus).filter(v=>v==="complete").length;
+            const remainingJuz=30-juzDone;
+            const totalMonths=(goalYears*12)+goalMonths;
+            const remainingAyahs=Math.round(totalAyahs*(remainingJuz/30));
+            const apd=totalMonths>0?Math.max(1,Math.round(remainingAyahs/(totalMonths*30))):0;
+            const daysPerJuz=apd>0?Math.round(6236/30/apd):0;
+            return (
+              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto"}}>
+                {/* Progress bar */}
+                <div style={{display:"flex",gap:5,marginBottom:20}}>
+                  {[1,2,3,4].map(i=>(
+                    <div key={i} style={{flex:1,height:3,borderRadius:2,background:"#F0C040"}}/>
+                  ))}
+                </div>
+                <div style={{fontSize:8,color:"#F0C040",letterSpacing:".2em",textTransform:"uppercase",marginBottom:4}}>Your Goal</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:19,color:"#EDE8DC",marginBottom:14}}>Set your timeline & mark memorization</div>
+
+                {/* Sliders */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                  <div style={{background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,padding:"10px 12px"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                      <span style={{fontSize:8,color:"#5A7050",textTransform:"uppercase",letterSpacing:".1em"}}>Years</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#F0C040",fontWeight:600}}>{goalYears}yr</span>
+                    </div>
+                    <input type="range" min="1" max="10" value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%"}}/>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:7,color:"#2E4030",marginTop:2}}><span>1yr</span><span>5yr</span><span>10yr</span></div>
+                  </div>
+                  <div style={{background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,padding:"10px 12px"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                      <span style={{fontSize:8,color:"#5A7050",textTransform:"uppercase",letterSpacing:".1em"}}>Months</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#F0C040",fontWeight:600}}>{goalMonths}mo</span>
+                    </div>
+                    <input type="range" min="0" max="11" value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:7,color:"#2E4030",marginTop:2}}><span>0mo</span><span>6mo</span><span>11mo</span></div>
+                  </div>
+                </div>
+
+                {/* Live stats */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:12}}>
+                  {[
+                    {val:apd,lbl:"Ayahs/day"},
+                    {val:remainingJuz,lbl:"Juz left"},
+                    {val:`~${daysPerJuz}d`,lbl:"Days/Juz"},
+                  ].map(s=>(
+                    <div key={s.lbl} style={{background:"#0D1008",border:"1px solid #F0C04020",borderTop:"2px solid #F0C040",borderRadius:8,padding:"8px 6px",textAlign:"center"}}>
+                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:"#F0C040",fontWeight:600,marginBottom:2}}>{s.val}</div>
+                      <div style={{fontSize:8,color:"#5A7050"}}>{s.lbl}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Juz grid */}
+                <div style={{fontSize:8,color:"#A8B89A",letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",justifyContent:"space-between"}}>
+                  <span>Mark your memorization</span>
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",color:"#F0C040"}}>{juzDone} Juz ✓</span>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:5,marginBottom:6}}>
+                  {Array.from({length:30},(_,i)=>{
+                    const juz=i+1;
+                    const status=juzStatus[juz];
+                    const isFull=status==="complete";
+                    const isOpen=openJuzPanel===juz;
+                    const hasPartial=!isFull&&Object.keys(juzStatus).some(k=>k.startsWith("s")&&JUZ_SURAHS[juz]?.some(s=>`s${s.s}`===k&&juzStatus[k]==="complete"));
+                    return (
+                      <div key={juz} className="sbtn"
+                        onClick={()=>setOpenJuzPanel(isOpen?null:juz)}
+                        style={{
+                          aspectRatio:"1",borderRadius:8,
+                          background:isOpen?"#20b2aa":isFull?"linear-gradient(135deg,#0d8a84,#20b2aa)":hasPartial?"#20b2aa18":"#141A0F",
+                          border:`2px solid ${isOpen?"#20b2aa":isFull?"#20b2aa":hasPartial?"#20b2aa60":"#1E2A18"}`,
+                          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+                          fontFamily:"'IBM Plex Mono',monospace",
+                          fontSize:isFull||isOpen?10:9,
+                          color:isOpen?"#060A07":isFull?"#fff":hasPartial?"#20b2aa":"#2E4030",
+                          fontWeight:isFull||isOpen?700:400,
+                          transition:"all .18s",
+                          boxShadow:isFull?"0 3px 10px rgba(32,178,170,.4)":isOpen?"0 3px 12px rgba(32,178,170,.5)":"none",
+                          transform:isFull||isOpen?"scale(1.04)":"scale(1)",
+                        }}
+                      >
+                        {isFull&&<div style={{fontSize:8,marginBottom:1}}>✓</div>}
+                        {juz===30?"30★":juz}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Surah panel — shows when a Juz is tapped */}
+                {openJuzPanel&&(()=>{
+                  const surahs=JUZ_SURAHS[openJuzPanel]||[];
+                  const allChecked=surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
+                  const totalAyahsInJuz=surahs.reduce((a,s)=>a+s.a,0);
+                  return (
+                    <div className="fi" style={{background:"#0D1008",border:"1px solid #F0C04040",borderRadius:10,padding:"12px",marginBottom:8}}>
+                      {/* Panel header */}
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                        <div style={{fontSize:11,fontWeight:700,color:"#F0C040"}}>Juz {openJuzPanel} — {JUZ_META.find(j=>j.num===openJuzPanel)?.roman}</div>
+                        <div className="sbtn" onClick={()=>setOpenJuzPanel(null)} style={{fontSize:11,color:"#5A7050"}}>✕</div>
+                      </div>
+                      {/* Select All */}
+                      <div className="sbtn" onClick={()=>{
+                        const allKey=`j${openJuzPanel}`;
+                        if(allChecked){
+                          setJuzStatus(prev=>{
+                            const n={...prev};
+                            surahs.forEach(s=>delete n[`s${s.s}`]);
+                            delete n[openJuzPanel];
+                            return n;
+                          });
+                        } else {
+                          setJuzStatus(prev=>{
+                            const n={...prev};
+                            surahs.forEach(s=>n[`s${s.s}`]="complete");
+                            n[openJuzPanel]="complete";
+                            return n;
+                          });
+                        }
+                      }} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:"1px solid #1E2A18",marginBottom:7,cursor:"pointer"}}>
+                        <div style={{width:15,height:15,borderRadius:3,background:allChecked?"#20b2aa":"transparent",border:`1.5px solid ${allChecked?"#20b2aa":"#2E4030"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#060A07",fontWeight:700,flexShrink:0}}>{allChecked?"✓":""}</div>
+                        <div style={{fontSize:11,color:"#A8B89A",fontWeight:500,flex:1}}>Select All Surahs</div>
+                        <div style={{fontSize:8,color:"#5A7050"}}>{surahs.length} surahs · {totalAyahsInJuz} ayahs</div>
+                      </div>
+                      {/* Surah list — 2 per row */}
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+                        {surahs.map(s=>{
+                          const checked=juzStatus[`s${s.s}`]==="complete";
+                          return (
+                            <div key={s.s} className="sbtn" onClick={()=>{
+                              setJuzStatus(prev=>{
+                                const n={...prev,[`s${s.s}`]:checked?undefined:"complete"};
+                                const allNowChecked=surahs.every(sr=>n[`s${sr.s}`]==="complete");
+                                if(allNowChecked) n[openJuzPanel]="complete";
+                                else delete n[openJuzPanel];
+                                return n;
+                              });
+                            }} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 7px",borderRadius:6,background:checked?"#20b2aa15":"#141A0F",border:`1px solid ${checked?"#20b2aa40":"#1E2A18"}`,cursor:"pointer"}}>
+                              <div style={{width:13,height:13,borderRadius:3,background:checked?"#20b2aa":"transparent",border:`1.5px solid ${checked?"#20b2aa":"#2E4030"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:700,flexShrink:0}}>{checked?"✓":""}</div>
+                              <div style={{fontSize:9,color:checked?"#20b2aa":"#A8B89A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
+                              <div style={{fontSize:7,color:"#2E4030",fontFamily:"'IBM Plex Mono',monospace",flexShrink:0}}>{s.a}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div style={{marginBottom:6,fontSize:8,color:"#2E4030",fontStyle:"italic",textAlign:"center"}}>Tap a Juz to select surahs · Gold = memorized</div>
+                <div style={{display:"flex",gap:8}}>
+                  <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
+                  <div className="sbtn" onClick={()=>{
+                    if(userName) localStorage.setItem("rihlat-username",userName);
+                    localStorage.setItem("rihlat-onboarded","1");
+                    setShowOnboarding(false);
+                  }} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
+                    Continue →
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
         </div>
       )}
 
-      {/* DUA MODAL */}
-      {showDua&&(
-        <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-          {(()=>{
-            const DUAS = [
-              {
-                arabic:"رَبِّ زِدْنِي عِلْمًا",
-                transliteration:"Rabbi zidni ilma",
-                translation:"My Lord, increase me in knowledge.",
-                source:"Surah Ta-Ha · 20:114"
-              },
-              {
-                arabic:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
-                transliteration:"Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina adhaban-nar",
-                translation:"Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",
-                source:"Surah Al-Baqarah · 2:201"
-              },
-              {
-                arabic:"رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً إِنَّكَ أَنتَ الْوَهَّابُ",
-                transliteration:"Rabbana la tuzigh qulubana ba'da idh hadaytana wa hab lana min ladunka rahmah innaka antal-Wahhab",
-                translation:"Our Lord, do not let our hearts deviate after You have guided us, and grant us mercy from Yourself. Indeed, You are the Bestower.",
-                source:"Surah Aal-Imran · 3:8"
-              },
-              {
-                arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا",
-                transliteration:"Allahumma inni as'aluka ilman nafi'an wa rizqan tayyiban wa amalan mutaqabbala",
-                translation:"O Allah, I ask You for beneficial knowledge, pure provision, and accepted deeds.",
-                source:"Morning Dua · Ibn Majah"
-              },
-              {
-                arabic:"رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",
-                transliteration:"Rabbi ishrah li sadri wa yassir li amri",
-                translation:"My Lord, expand my chest and ease my affairs.",
-                source:"Surah Ta-Ha · 20:25-26"
-              },
-              {
-                arabic:"اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
-                transliteration:"Allahumma a'inni ala dhikrika wa shukrika wa husni ibadatik",
-                translation:"O Allah, help me to remember You, to be grateful to You, and to worship You in an excellent manner.",
-                source:"Abu Dawud · After every Salah"
-              },
-            ];
-            const d = DUAS[duaIdx % DUAS.length];
-            return (
-              <div className="fi" style={{background:"#060A07",border:`1px solid #F0C04060`,borderRadius:12,padding:"32px 28px",maxWidth:500,width:"100%",textAlign:"center"}}>
-                <div style={{fontSize:9,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Begin With Dua</div>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,34px)",color:T.accent,direction:"rtl",lineHeight:2,marginBottom:12}}>
-                  {d.arabic}
-                </div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,color:T.sub,fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
-                <div style={{fontSize:12,color:T.text,marginBottom:4,lineHeight:1.6}}>{d.translation}</div>
-                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:T.dim,marginBottom:24}}>{d.source}</div>
-                <div style={{display:"flex",justifyContent:"center"}}>
-                  <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"10px 28px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:6,fontSize:13,fontWeight:600}}>
-                    بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-                  </div>
-                </div>
+
+
+      {/* ── DAILY DUA MODAL (every launch, after onboarding) ── */}
+      {!showOnboarding&&showDua&&(()=>{
+        const DUAS=[
+          {arabic:"رَبِّ زِدْنِي عِلْمًا",transliteration:"Rabbi zidni ilma",translation:"My Lord, increase me in knowledge.",source:"Surah Ta-Ha · 20:114"},
+          {arabic:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",transliteration:"Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina adhaban-nar",translation:"Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",source:"Surah Al-Baqarah · 2:201"},
+          {arabic:"رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً",transliteration:"Rabbana la tuzigh qulubana ba'da idh hadaytana wa hab lana min ladunka rahmah",translation:"Our Lord, do not let our hearts deviate after You have guided us, and grant us mercy from Yourself.",source:"Surah Aal-Imran · 3:8"},
+          {arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا",transliteration:"Allahumma inni as'aluka ilman nafi'an wa rizqan tayyiban wa amalan mutaqabbala",translation:"O Allah, I ask You for beneficial knowledge, pure provision, and accepted deeds.",source:"Morning Dua · Ibn Majah"},
+          {arabic:"رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",transliteration:"Rabbi ishrah li sadri wa yassir li amri",translation:"My Lord, expand my chest and ease my affairs.",source:"Surah Ta-Ha · 20:25-26"},
+          {arabic:"اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",transliteration:"Allahumma a'inni ala dhikrika wa shukrika wa husni ibadatik",translation:"O Allah, help me to remember You, to be grateful to You, and to worship You in an excellent manner.",source:"Abu Dawud · After every Salah"},
+        ];
+        const d=DUAS[duaIdx%DUAS.length];
+        return (
+          <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+            <div className="fi" style={{background:"#060A07",border:"1px solid #F0C04060",borderRadius:14,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center"}}>
+              {/* Bismillah at top */}
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F0C040",direction:"rtl",lineHeight:1.8,marginBottom:20}}>
+                بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+              </div>
+              <div style={{fontSize:8,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:T.accent,direction:"rtl",lineHeight:2,marginBottom:10}}>{d.arabic}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:T.sub,fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
+              <div style={{fontSize:11,color:T.text,lineHeight:1.6,marginBottom:4}}>{d.translation}</div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:T.dim,marginBottom:20}}>{d.source}</div>
+              <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:20}}>
+                {[0,1,2,3,4,5].map(i=>(
+                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"#F0C040":"#2E4030",transition:"all .3s"}}/>
+                ))}
+              </div>
+              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:8,fontSize:13,fontWeight:600,display:"inline-block"}}>
+                Let's Begin →
+              </div>
             </div>
-          );
-          })()}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* TOP BAR */}
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 16px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div>
-            <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>Abdul Jalil · Hifz Journey</div>
+            <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>{localStorage.getItem("rihlat-username")||"Abdul Jalil"} · Hifz Journey</div>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Rihlat Al-Hifz · رحلة الحفظ</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
@@ -766,22 +1060,63 @@ export default function RihlatAlHifz() {
       {activeTab==="myhifz"&&(
         <div style={{flex:1,overflowY:"auto",padding:"16px 18px 48px"}} className="fi">
           <div style={{marginBottom:14,padding:"12px 16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
-            <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Select Reciter</div>
-            <select
-              value={reciter}
-              onChange={e=>setReciter(e.target.value)}
-              style={{width:"100%",padding:"10px 12px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:6,color:T.text,fontSize:12,outline:"none",cursor:"pointer"}}
-            >
-              {RECITERS.map(r=>(
-                <option key={r.id} value={r.id}>
-                  {r.name} — {r.arabic}
-                </option>
-             ))}
-          </select>
-           <div style={{marginTop:8,fontSize:10,color:T.vdim,fontStyle:"italic"}}>
-            ⓘ Baleela, Badr Al-Turki & Qarafi: full surah audio only (Quran tab) — per-ayah not available.
+  <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:10}}>
+    Select Reciter
+  </div>
+
+  <div style={{display:"grid",gap:14}}>
+    {["Masjid Al-Haram","Masjid An-Nabawi"].map(group=>(
+      <div key={group}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+          <div style={{fontSize:10,color:T.sub,letterSpacing:".12em",textTransform:"uppercase"}}>
+            {group==="Masjid Al-Haram" ? "🕋 Masjid Al-Haram" : "🕌 Masjid An-Nabawi"}
           </div>
+          <div style={{flex:1,height:1,background:T.border}}/>
         </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8}}>
+          {RECITERS.filter(r=>r.tag===group).map(r=>{
+            const isSelected = reciter===r.id;
+
+            return (
+              <div
+                key={r.id}
+                className="sbtn"
+                onClick={()=>setReciter(r.id)}
+                style={{
+                  background:isSelected ? T.accentDim : T.surface2,
+                  border:`${isSelected ? "2px" : "1px"} solid ${isSelected ? T.accent : T.border}`,
+                  borderRadius:10,
+                  padding:"12px 10px",
+                  position:"relative",
+                  minHeight:82
+                }}
+              >
+                {isSelected && (
+                  <div style={{position:"absolute",top:8,right:8,fontSize:11,color:T.accent,fontWeight:700}}>
+                    ✓
+                  </div>
+                )}
+
+                <div style={{fontSize:12,fontWeight:700,color:T.text,marginBottom:4,paddingRight:16,lineHeight:1.3}}>
+                  {r.name}
+                </div>
+
+                <div style={{fontFamily:"'Amiri',serif",fontSize:14,color:T.accent,marginBottom:2,direction:"rtl",lineHeight:1.4}}>
+                  {r.arabic}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div style={{marginTop:8,fontSize:10,color:T.vdim,fontStyle:"italic"}}>
+    ⓘ Baleela, Badr Al-Turki & Qarafi: full surah audio only (Quran tab) — per-ayah not available.
+  </div>
+  </div>
 
           <div style={{marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
             <div>
