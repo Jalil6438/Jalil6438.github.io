@@ -846,35 +846,137 @@ export default function RihlatAlHifz() {
                   <span style={{fontFamily:"'IBM Plex Mono',monospace",color:"#F0C040"}}>{juzDone} Juz ✓</span>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:5,marginBottom:6}}>
-                  {Array.from({length:30},(_,i)=>{
-                    const juz=i+1;
-                    const status=juzStatus[juz];
-                    const isFull=status==="complete";
-                    const isOpen=openJuzPanel===juz;
-                    const hasPartial=!isFull&&Object.keys(juzStatus).some(k=>k.startsWith("s")&&JUZ_SURAHS[juz]?.some(s=>`s${s.s}`===k&&juzStatus[k]==="complete"));
-                    return (
-                      <div key={juz} className="sbtn"
-                        onClick={()=>setOpenJuzPanel(isOpen?null:juz)}
+                  {JUZ_META.map((j)=>{
+                    const status = juzStatus[j.num];
+                    const isFull = status === "complete";
+                    const isOpen = openJuzPanel === j.num;
+                    const hasPartial =
+                      !isFull &&
+                      Object.keys(juzStatus).some(k =>
+                        k.startsWith("s") &&
+                        JUZ_SURAHS[j.num]?.some(s => `s${s.s}` === k && juzStatus[k] === "complete")
+                      );
+
+                    const borderColor = isOpen
+                      ? "#20b2aa"
+                      : isFull
+                      ? "#F0C040"
+                      : hasPartial
+                      ? "#D9A93A"
+                      : "#24311F";
+
+                    const bg = isOpen
+                      ? "linear-gradient(180deg, #27cfc6 0%, #14958e 100%)"
+                      : isFull
+                      ? "linear-gradient(180deg, #1A1608 0%, #121007 100%)"
+                      : hasPartial
+                      ? "linear-gradient(180deg, #15180D 0%, #0F130A 100%)"
+                      : "linear-gradient(180deg, #101508 0%, #0B0F07 100%)";
+
+                  return (
+                  <div
+                    key={j.num}
+                    className="sbtn"
+                    onClick={() => setOpenJuzPanel(isOpen ? null : j.num)}
+                    style={{
+                      minHeight: 78,
+                      borderRadius: 12,
+                      padding: "10px 8px",
+                      cursor: "pointer",
+                      background: bg,
+                      border: `1.5px solid ${borderColor}`,
+                      outline: isFull ? "1px solid rgba(240,192,64,.25)" : "none",
+                      boxShadow: isOpen
+                        ? "0 10px 22px rgba(32,178,170,.35), 0 0 0 1px rgba(32,178,170,.25), inset 0 1px 0 rgba(255,255,255,.08)"
+                        : isFull
+                        ? "0 0 0 1px rgba(240,192,64,.25), 0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06)"
+                        : hasPartial
+                        ? "0 0 0 1px rgba(217,169,58,.18), 0 6px 16px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04)"
+                        : "0 6px 14px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03)",
+                      transform: isOpen ? "translateY(-2px) scale(1.02)" : isFull ? "scale(1.01)" : "scale(1)",
+                      transition: "all .18s ease",
+                      position: "relative",
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textAlign: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <div
+                      style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 10,
+                      right: 10,
+                      height: 1,
+                      background: isOpen
+                        ? "rgba(255,255,255,.35)"
+                        : isFull
+                        ? "rgba(240,192,64,.55)"
+                        : "rgba(255,255,255,.06)",
+                    }}
+                  />
+
+                  <div style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:4}}>
+                    <div
+                      style={{
+                        fontFamily:"'IBM Plex Mono', monospace",
+                        fontSize:9,
+                        color:isOpen ? "#06211E" : isFull ? "#F0C040" : hasPartial ? "#D9A93A" : "#6C7A61",
+                        fontWeight:700,
+                        opacity:.7
+                      }}
+                    >
+                      {j.num}
+                    </div>
+
+                    {(isFull || hasPartial) && (
+                      <div
                         style={{
-                          aspectRatio:"1",borderRadius:8,
-                          background:isOpen?"#20b2aa":isFull?"linear-gradient(135deg,#0d8a84,#20b2aa)":hasPartial?"#20b2aa18":"#141A0F",
-                          border:`2px solid ${isOpen?"#20b2aa":isFull?"#20b2aa":hasPartial?"#20b2aa60":"#1E2A18"}`,
-                          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                          fontFamily:"'IBM Plex Mono',monospace",
-                          fontSize:isFull||isOpen?10:9,
-                          color:isOpen?"#060A07":isFull?"#fff":hasPartial?"#20b2aa":"#2E4030",
-                          fontWeight:isFull||isOpen?700:400,
-                          transition:"all .18s",
-                          boxShadow:isFull?"0 3px 10px rgba(32,178,170,.4)":isOpen?"0 3px 12px rgba(32,178,170,.5)":"none",
-                          transform:isFull||isOpen?"scale(1.04)":"scale(1)",
+                          width:8,
+                          height:8,
+                          borderRadius:"50%",
+                          background:isFull ? "#F0C040" : "#D9A93A",
+                          boxShadow:isFull
+                            ? "0 0 10px rgba(240,192,64,.45)"
+                            : "0 0 8px rgba(217,169,58,.30)"
                         }}
-                      >
-                        {isFull&&<div style={{fontSize:8,marginBottom:1}}>✓</div>}
-                        {juz===30?"30★":juz}
-                      </div>
-                    );
-                  })}
+                      />
+                   )}
                 </div>
+
+                <div
+                  style={{
+                    fontSize:14,
+                    fontWeight:700,
+                    color:isOpen ? "#041210" : isFull ? "#F6D36A" : "#EAE4D3",
+                    lineHeight:1.2,
+                    textAlign:"center"
+                  }}
+                >
+                  {j.num === 30 ? "Juz Amma" : j.num === 29 ? "Juz Tabarak" : `Juz ${j.roman}`}
+                </div>
+
+                <div
+                  style={{
+                  fontSize:16,
+                  fontWeight:600,
+                  color:isOpen ? "#08312D" : "#7E8C74",
+                  direction:"rtl",
+                  textAlign:"center",
+                  lineHeight:1.4,
+                  letterSpacing:"0.5px"
+                }}
+              >
+                {j.arabic}
+              </div>
+            </div>
+          );
+        })}
+    </div>
 
                 {/* Surah panel — shows when a Juz is tapped */}
                 {openJuzPanel&&(()=>{
