@@ -1249,112 +1249,181 @@ export default function RihlatAlHifz() {
         </div>
       )}
 
-      {/* ═══ CALENDAR TAB ═══ */}
+      {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="home"&&(()=>{
-        const today=new Date();
-        const firstDay=new Date(calYear,calMonth,1).getDay();
-        const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-        const cells=[];
-        for(let i=0;i<firstDay;i++) cells.push(null);
-        for(let d=1;d<=daysInMonth;d++) cells.push(d);
-        const prevMon=()=>{if(calMonth===0){setCalMonth(11);setCalYear(y=>y-1);}else setCalMonth(m=>m-1);};
-        const nextMon=()=>{if(calMonth===11){setCalMonth(0);setCalYear(y=>y+1);}else setCalMonth(m=>m+1);};
-        let fullDays=0,totalChecksMonth=0;
-        for(let d=1;d<=daysInMonth;d++){
-          const dk=`${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-          const dd=checkHistory[dk]||{};
-          const cnt=SESSIONS.filter(s=>dd[s.id]).length;
-          if(cnt===5)fullDays++;
-          totalChecksMonth+=cnt;
-        }
-        const pastDays=(calMonth===today.getMonth()&&calYear===today.getFullYear())?today.getDate():daysInMonth;
-        const consistency=pastDays>0?Math.round((fullDays/pastDays)*100):0;
+        const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
+        const joinYear=2025;
+        const goalLabel=goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
+        // Circular progress ring
+        const radius=48, circ=2*Math.PI*radius;
+        const filled=circ*(pct/100);
+        // Journey timeline dots — Juz milestones
+        const milestones=[{juz:1,label:"Juz 1"},{juz:10,label:"Juz 10"},{juz:20,label:"Juz 20"},{juz:30,label:"Juz 30"},{juz:31,label:"Hafiz",icon:"📖"}];
+        // Fajr session
+        const fajrSess=SESSIONS.find(s=>s.id==="fajr");
+        const fajrDone=!!dailyChecks["fajr"];
+        const fajrSteps=fajrSess?.steps||[];
+        // Badges
+        const badges=[
+          {icon:"📗",label:`${completedCount} Juz`,sub:"Juz",earned:completedCount>0,color:"#3ECC71"},
+          {icon:"🔮",label:"Habituated",sub:"",earned:streak>=7,color:"#C9A84C"},
+          {icon:"🔥",label:"7 Day Streak",sub:"",earned:streak>=7,color:"#E5534B"},
+          {icon:"📖",label:"Hifz Goal",sub:"",earned:goalYears>0,color:"#C9A84C"},
+        ];
         return (
-          <div style={{flex:1,overflowY:"auto",padding:"16px 18px 48px"}} className="fi">
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>My Rihlah</div>
-            <div style={{display:"flex",gap:6,alignItems:"center"}}>
-              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:streak>0?"#F6A623":T.dim}}>🔥 {streak}</div>
-              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:allChecked?"#F0C040":T.dim}}>{checkedCount}/5 today</div>
-            </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
-              {[
-                {label:"Perfect Days",  val:fullDays,         color:"#F0C040",sub:"all 5 sessions"},
-                {label:"Total Sessions",val:totalChecksMonth, color:"#4ECDC4",sub:"this month"},
-                {label:"Consistency",   val:`${consistency}%`,color:"#F0C040",sub:"of days active"},
-                {label:"Day Streak",    val:streak,           color:"#F6A623",sub:"consecutive days"},
-              ].map(s=>(
-                <div key={s.label} style={{padding:"11px 13px",background:T.surface,border:`1px solid ${s.color}20`,borderTop:`3px solid ${s.color}`,borderRadius:7,textAlign:"center"}}>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:s.color,marginBottom:3}}>{s.val}</div>
-                  <div style={{fontSize:11,color:T.sub}}>{s.label}</div>
-                  <div style={{fontSize:9,color:T.dim,marginTop:1}}>{s.sub}</div>
+          <div style={{flex:1,overflowY:"auto",padding:"14px 14px 48px"}} className="fi">
+
+            {/* ── PROFILE CARD ── */}
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:12}}>
+              <div style={{display:"flex",alignItems:"center",gap:14}}>
+                {/* Avatar */}
+                <div style={{width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,#1A4A28,#F0C040)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0,border:`2px solid ${T.accent}40`}}>
+                  🧕
                 </div>
-              ))}
+                <div style={{flex:1}}>
+                  <div style={{fontSize:17,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{username}</div>
+                  <div style={{fontSize:11,color:T.accent,marginBottom:6}}>Memorizer</div>
+                  <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                    <div style={{fontSize:10,color:T.dim}}>📅 Joined {joinYear}</div>
+                    <div style={{fontSize:10,color:T.dim}}>🎯 Goal: {goalLabel}</div>
+                    <div style={{fontSize:10,color:"#F6A623"}}>🔥 Streak: {streak} days</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:14}}>
-              {Array.from({length:7},(_,i)=>{
-                const d=new Date();
-                d.setDate(d.getDate()-6+i);
-                const dk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-                const dayData=checkHistory[dk]||{};
-                const isToday=i===6;
-                const liveData=isToday?{...dayData,...Object.fromEntries(SESSIONS.map(s=>[s.id,!!dailyChecks[s.id]]))}:dayData;
-                const allDone=SESSIONS.filter(s=>liveData[s.id]).length===5;
-                const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-                return (
-                  <div key={dk} style={{textAlign:"center",padding:"8px 4px",background:allDone?"#F0C04015":isToday?T.accentDim:T.surface,border:`1px solid ${allDone?"#F0C04040":isToday?T.accent+"60":T.border}`,borderRadius:8}}>
-                    <div style={{fontSize:9,color:isToday?T.accent:T.dim,textTransform:"uppercase",marginBottom:4}}>{dayNames[d.getDay()]}</div>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:isToday?T.accent:T.text,fontWeight:isToday?700:400,marginBottom:6}}>{d.getDate()}</div>
-                    <div style={{display:"flex",flexDirection:"column",gap:2,alignItems:"center"}}>
-                      {SESSIONS.map(s=>(
-                        <div key={s.id} style={{width:6,height:6,borderRadius:"50%",background:liveData[s.id]?s.color:T.surface2,border:`1px solid ${liveData[s.id]?s.color:T.border}`}}/>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{marginBottom:16,background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,overflow:"hidden"}}>
-              <div style={{padding:"10px 16px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>Today's Checklist — {FMTDATE()}</div>
-                {allChecked&&<div style={{fontSize:11,color:"#F0C040",fontWeight:600}}>✓ All done — MashaAllah!</div>}
+            {/* ── PROGRESS + DAILY GOALS ROW ── */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+              {/* Circular progress */}
+              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+                <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:".1em"}}>Overall Progress</div>
+                <svg width={120} height={120} style={{overflow:"visible"}}>
+                  <circle cx={60} cy={60} r={radius} fill="none" stroke={T.surface2} strokeWidth={10}/>
+                  <circle cx={60} cy={60} r={radius} fill="none" stroke="url(#ring)" strokeWidth={10}
+                    strokeDasharray={`${filled} ${circ}`} strokeLinecap="round"
+                    transform="rotate(-90 60 60)" style={{transition:"stroke-dasharray .8s ease"}}/>
+                  <defs>
+                    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#156A30"/>
+                      <stop offset="100%" stopColor="#F0C040"/>
+                    </linearGradient>
+                  </defs>
+                  <text x={60} y={56} textAnchor="middle" fill={T.accent} fontSize={20} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
+                  <text x={60} y={72} textAnchor="middle" fill={T.dim} fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount} / 30 Juz</text>
+                </svg>
               </div>
-              {SESSIONS.map((s,i)=>{
-                const done=!!dailyChecks[s.id];
-                return (
-                  <div key={s.id} className="chkrow" onClick={()=>toggleCheck(s.id)} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 16px",background:done?`${s.color}0A`:T.surface,borderBottom:i<SESSIONS.length-1?`1px solid ${T.border}`:"none",borderLeft:`3px solid ${done?s.color:T.border2}`}}>
-                    <div style={{width:21,height:21,borderRadius:5,flexShrink:0,background:done?s.color:T.surface2,border:`2px solid ${done?s.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      {done&&<span style={{fontSize:11,color:dark?"#060A07":"#fff",fontWeight:700}}>✓</span>}
-                    </div>
-                    <span style={{fontSize:16,flexShrink:0}}>{s.icon}</span>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}>
-                        <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:done?s.color:T.sub}}>{s.time}</span>
-                        <span style={{fontSize:11,color:done?s.color:T.text,fontWeight:500,textDecoration:done?"line-through":"none",opacity:done?0.7:1}}>{s.title}</span>
+
+              {/* Daily goals */}
+              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:".1em"}}>Daily Goals</div>
+                <div style={{fontFamily:"'IBM Plex Mono',monospace",marginBottom:4}}>
+                  <span style={{fontSize:28,color:T.accent,fontWeight:700}}>{checkedCount}</span>
+                  <span style={{fontSize:16,color:T.dim}}> / {SESSIONS.length}</span>
+                </div>
+                <div style={{fontSize:11,color:T.sub,marginBottom:12}}>Sessions Today</div>
+                {SESSIONS.map(s=>{
+                  const done=!!dailyChecks[s.id];
+                  return (
+                    <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
+                      <div style={{width:16,height:16,borderRadius:4,background:done?s.color:T.surface2,border:`1.5px solid ${done?s.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                        {done&&<span style={{fontSize:9,color:"#fff",fontWeight:700}}>✓</span>}
                       </div>
-                      <div style={{fontSize:10,color:T.vdim,marginTop:1}}>{s.desc.substring(0,72)}...</div>
+                      <span style={{fontSize:11,color:done?T.text:T.dim,textDecoration:done?"line-through":"none",opacity:done?0.6:1}}>{s.time} — {s.title}</span>
                     </div>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:s.color,flexShrink:0,background:`${s.color}15`,padding:"2px 7px",borderRadius:10}}>
-                      {s.id==="fajr"&&`${dailyNew} ayahs`}{s.id==="dhuhr"&&`${timeline.revDuhr} ayahs`}{s.id==="asr"&&`${timeline.revAsr} ayahs`}{s.id==="maghrib"&&"15-20 min"}{s.id==="isha"&&"All today"}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── JOURNEY TIMELINE ── */}
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px 14px",marginBottom:12}}>
+              <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:16,textTransform:"uppercase",letterSpacing:".1em"}}>Hifz Journey</div>
+              <div style={{position:"relative",height:56}}>
+                {/* Track line */}
+                <div style={{position:"absolute",top:18,left:"5%",right:"5%",height:3,background:`linear-gradient(90deg,#F0C040,#F0C04040)`,borderRadius:2}}/>
+                {/* Current progress fill */}
+                <div style={{position:"absolute",top:18,left:"5%",width:`${Math.min(90,(pct/100)*90)}%`,height:3,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2,transition:"width .8s ease"}}/>
+                {/* Milestone dots */}
+                {milestones.map((m,i)=>{
+                  const pos=i===milestones.length-1?95:(5+(i/3)*30);
+                  const reached=completedCount>=(m.juz-1);
+                  const isCurrent=completedCount===m.juz-1||(i===milestones.length-2&&completedCount>=30);
+                  return (
+                    <div key={m.juz} style={{position:"absolute",top:0,left:`${pos}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                      <div style={{width:isCurrent?18:12,height:isCurrent?18:12,borderRadius:"50%",background:reached?"#F0C040":T.surface2,border:`2px solid ${reached?"#F0C040":T.border}`,display:"flex",alignItems:"center",justifyContent:"center",transition:"all .3s",boxShadow:isCurrent?"0 0 8px #F0C04060":"none"}}>
+                        {m.icon&&<span style={{fontSize:9}}>{m.icon}</span>}
+                      </div>
+                      <div style={{fontSize:8,color:reached?T.accent:T.vdim,whiteSpace:"nowrap",fontWeight:isCurrent?700:400}}>{m.label}</div>
                     </div>
+                  );
+                })}
+                {/* Current position marker */}
+                <div style={{position:"absolute",top:10,left:`${5+Math.min(85,(completedCount/30)*85)}%`,transform:"translateX(-50%)",fontSize:11,color:"#F0C040",fontWeight:700,fontFamily:"'IBM Plex Mono',monospace",background:T.surface,padding:"1px 5px",borderRadius:4,border:"1px solid #F0C04060",whiteSpace:"nowrap"}}>{completedCount}</div>
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:8}}>
+                <div style={{fontSize:9,color:T.dim}}>Goal: {goalYears}-Year Plan</div>
+                <div style={{fontSize:9,color:T.dim}}>Joined {joinYear}</div>
+              </div>
+            </div>
+
+            {/* ── FAJR SESSION CHECKLIST ── */}
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",marginBottom:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{fontSize:13,fontWeight:700,color:T.text}}>🌅 Fajr — New Memorization</div>
+                <div className="sbtn" onClick={()=>toggleCheck("fajr")} style={{fontSize:9,padding:"3px 9px",background:fajrDone?T.accent:T.surface2,border:`1px solid ${fajrDone?T.accent:T.border}`,borderRadius:10,color:fajrDone?dark?"#060A07":"#fff":T.dim,fontWeight:600}}>
+                  {fajrDone?"✓ Done":"Mark Done"}
+                </div>
+              </div>
+              {/* Progress bar */}
+              <div style={{marginBottom:10}}>
+                <div style={{height:8,background:T.surface2,borderRadius:4,overflow:"hidden",marginBottom:4}}>
+                  <div style={{height:"100%",width:fajrDone?"100%":`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:4,transition:"width .5s"}}/>
+                </div>
+                <div style={{fontSize:10,color:T.dim}}>Progress: {checkedCount} / {SESSIONS.length} sessions</div>
+              </div>
+              {/* Steps */}
+              {fajrSteps.map((step,i)=>{
+                const stepDone=fajrDone||(i<2&&checkedCount>0);
+                return (
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:i<fajrSteps.length-1?`1px solid ${T.border}`:"none"}}>
+                    <div style={{width:18,height:18,borderRadius:3,background:stepDone?"#3ECC71":T.surface2,border:`1.5px solid ${stepDone?"#3ECC71":T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                      {stepDone&&<span style={{fontSize:9,color:"#fff",fontWeight:700}}>✓</span>}
+                    </div>
+                    <span style={{fontSize:11,color:stepDone?T.sub:T.text,textDecoration:stepDone?"line-through":"none",opacity:stepDone?0.6:1}}>{step}</span>
                   </div>
                 );
               })}
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:16}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
+
+            {/* ── BADGES ── */}
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",marginBottom:12}}>
+              <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:12,textTransform:"uppercase",letterSpacing:".1em"}}>Badges Earned</div>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                {badges.map((b,i)=>(
+                  <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,opacity:b.earned?1:0.35,minWidth:60}}>
+                    <div style={{width:52,height:52,borderRadius:10,background:b.earned?`${b.color}20`:T.surface2,border:`2px solid ${b.earned?b.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,boxShadow:b.earned?`0 2px 10px ${b.color}30`:"none"}}>
+                      {b.icon}
+                    </div>
+                    <div style={{fontSize:9,color:b.earned?T.text:T.vdim,textAlign:"center",fontWeight:600,lineHeight:1.3}}>{b.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── NAV BUTTONS ── */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,textAlign:"center"}}>
                 <div style={{fontSize:20,marginBottom:4}}>📖</div>
                 <div style={{fontSize:12,fontWeight:600,color:T.text}}>My Juz</div>
                 <div style={{fontSize:10,color:T.dim}}>Track memorization</div>
               </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,textAlign:"center",cursor:"pointer"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,textAlign:"center"}}>
                 <div style={{fontSize:20,marginBottom:4}}>⏱️</div>
                 <div style={{fontSize:12,fontWeight:600,color:T.text}}>Timeline</div>
                 <div style={{fontSize:10,color:T.dim}}>Goal calculator</div>
               </div>
             </div>
+
           </div>
         );
       })()}
