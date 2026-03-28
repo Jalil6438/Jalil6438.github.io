@@ -1382,11 +1382,13 @@ export default function RihlatAlHifz() {
 
             <div style={{padding:"12px 14px 48px",position:"relative",zIndex:1}}>
 
+            {/* ── 2 & 3. OVERALL PROGRESS + DAILY GOALS side by side ── */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
             {/* ── 2. OVERALL PROGRESS ── */}
-            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px",marginBottom:10}}>
+            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px"}}>
               <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:12}}>Overall Progress</div>
-              <div style={{display:"flex",alignItems:"center",gap:16}}>
-                <svg width={110} height={110} style={{flexShrink:0,overflow:"visible"}}>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+                <svg width={90} height={90} style={{overflow:"visible"}}>
                   <defs>
                     <linearGradient id="ringgrad" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#4ADE80"/>
@@ -1394,18 +1396,18 @@ export default function RihlatAlHifz() {
                     </linearGradient>
                     <filter id="glow2"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
-                  <circle cx={55} cy={55} r={44} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={10}/>
-                  <circle cx={55} cy={55} r={44} fill="none" stroke="url(#ringgrad)" strokeWidth={10}
-                    strokeDasharray={`${2*Math.PI*44*(pct/100)} ${2*Math.PI*44}`} strokeLinecap="round"
-                    transform="rotate(-90 55 55)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease"}}/>
-                  <text x={55} y={50} textAnchor="middle" fill="#4ADE80" fontSize={20} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={55} y={66} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount}/30 Juz</text>
+                  <circle cx={45} cy={45} r={36} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={8}/>
+                  <circle cx={45} cy={45} r={36} fill="none" stroke="url(#ringgrad)" strokeWidth={8}
+                    strokeDasharray={`${2*Math.PI*36*(pct/100)} ${2*Math.PI*36}`} strokeLinecap="round"
+                    transform="rotate(-90 45 45)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease"}}/>
+                  <text x={45} y={41} textAnchor="middle" fill="#4ADE80" fontSize={16} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
+                  <text x={45} y={55} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={9} fontFamily="'DM Sans',sans-serif">{completedCount}/30 Juz</text>
                 </svg>
-                <div style={{flex:1}}>
-                  {[{label:"Memorized",val:completedCount,color:"#4ADE80"},{label:"In Progress",val:Object.values(juzStatus).filter(s=>s==="in_progress").length,color:"#F6A623"},{label:"Remaining",val:30-completedCount,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.06)":"none"}}>
-                      <span style={{fontSize:11,color:"rgba(255,255,255,0.55)"}}>{s.label}</span>
-                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:s.color,fontWeight:700}}>{s.val}</span>
+                <div style={{width:"100%"}}>
+                  {[{label:"Memorized",val:completedCount,color:"#4ADE80"},{label:"In Progress",val:Object.values(juzStatus).filter(s=>s==="in_progress").length,color:"#F6A623"},{label:"Left",val:30-completedCount,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.06)":"none"}}>
+                      <span style={{fontSize:10,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:s.color,fontWeight:700}}>{s.val}</span>
                     </div>
                   ))}
                 </div>
@@ -1413,7 +1415,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 3. DAILY GOALS ── */}
-            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px",marginBottom:10}}>
+            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
                 <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700}}>Daily Goals</div>
                 <div style={{display:"flex",alignItems:"baseline",gap:4}}>
@@ -1438,6 +1440,8 @@ export default function RihlatAlHifz() {
                   );
                 })}
               </div>
+            </div>
+
             </div>
 
             {/* ── 4. HIFZ JOURNEY ── */}
