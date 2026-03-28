@@ -566,6 +566,7 @@ export default function RihlatAlHifz() {
 
     function playDirect(url){
       const audio=new Audio(url);
+      audio.loop = looping;
       audioRef.current=audio;
       audio.oncanplay=()=>{setAudioLoading(null);setPlayingKey(key);};
       audio.onended=()=>setPlayingKey(null);
