@@ -1252,180 +1252,215 @@ export default function RihlatAlHifz() {
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="home"&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
+        const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
         const joinYear=2025;
         const goalLabel=goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
-        // Circular progress ring
-        const radius=48, circ=2*Math.PI*radius;
+        const radius=52, circ=2*Math.PI*radius;
         const filled=circ*(pct/100);
-        // Journey timeline dots — Juz milestones
-        const milestones=[{juz:1,label:"Juz 1"},{juz:10,label:"Juz 10"},{juz:20,label:"Juz 20"},{juz:30,label:"Juz 30"},{juz:31,label:"Hafiz",icon:"📖"}];
-        // Fajr session
+        const milestones=[{juz:0,label:"Juz 1",pct:0},{juz:10,label:"Juz 10",pct:33},{juz:20,label:"Juz 20",pct:67},{juz:30,label:"Juz 30",pct:100},{juz:31,label:"Hafiz 📖",pct:100}];
         const fajrSess=SESSIONS.find(s=>s.id==="fajr");
         const fajrDone=!!dailyChecks["fajr"];
         const fajrSteps=fajrSess?.steps||[];
-        // Badges
-        const badges=[
-          {icon:"📗",label:`${completedCount} Juz`,sub:"Juz",earned:completedCount>0,color:"#3ECC71"},
-          {icon:"🔮",label:"Habituated",sub:"",earned:streak>=7,color:"#C9A84C"},
-          {icon:"🔥",label:"7 Day Streak",sub:"",earned:streak>=7,color:"#E5534B"},
-          {icon:"📖",label:"Hifz Goal",sub:"",earned:goalYears>0,color:"#C9A84C"},
-        ];
-        return (
-          <div style={{flex:1,overflowY:"auto",padding:"14px 14px 48px"}} className="fi">
 
-            {/* ── PROFILE CARD ── */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:12}}>
-              <div style={{display:"flex",alignItems:"center",gap:14}}>
-                {/* Avatar — initials */}
-                <div style={{width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,#1A4A28,#2A6A40)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:`2px solid ${T.accent}40`}}>
-                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#F0C040",letterSpacing:1}}>
-                    {username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
-                  </span>
+        // ── Shield badge SVG component ──
+        const ShieldBadge=({icon,label,earned,c1,c2,glow})=>(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,opacity:earned?1:0.28,flex:1}}>
+            <svg width={64} height={72} viewBox="0 0 64 72" style={{filter:earned?`drop-shadow(0 4px 12px ${glow}60)`:"none",transition:"filter .3s"}}>
+              <defs>
+                <linearGradient id={`sg${label.replace(/\s/g,"")}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor={c1}/>
+                  <stop offset="100%" stopColor={c2}/>
+                </linearGradient>
+                <linearGradient id={`sh${label.replace(/\s/g,"")}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor={c1} stopOpacity="0.35"/>
+                  <stop offset="100%" stopColor={c2} stopOpacity="0.08"/>
+                </linearGradient>
+              </defs>
+              {/* Shield outer */}
+              <path d="M32 2 L60 14 L60 36 Q60 56 32 70 Q4 56 4 36 L4 14 Z"
+                fill={`url(#sg${label.replace(/\s/g,"")})`}/>
+              {/* Shield inner highlight */}
+              <path d="M32 8 L54 18 L54 36 Q54 52 32 64 Q10 52 10 36 L10 18 Z"
+                fill={`url(#sh${label.replace(/\s/g,"")})`}/>
+              {/* Top shine */}
+              <path d="M32 8 L54 18 L54 26 Q43 22 32 20 Q21 22 10 26 L10 18 Z"
+                fill="white" fillOpacity="0.12"/>
+              {/* Icon */}
+              <text x="32" y="42" textAnchor="middle" fontSize="22" dominantBaseline="middle">{icon}</text>
+            </svg>
+            <div style={{fontSize:10,fontWeight:700,color:earned?"#EDE8DC":"#5A6A70",textAlign:"center",letterSpacing:".02em",lineHeight:1.3}}>{label}</div>
+          </div>
+        );
+
+        const badges=[
+          {icon:"📗",label:`${completedCount || 0} Juz`,earned:completedCount>0,c1:"#4ADE80",c2:"#166534",glow:"#22C55E"},
+          {icon:"🌙",label:"Habituated",earned:streak>=14,c1:"#C9A84C",c2:"#7C5C10",glow:"#C9A84C"},
+          {icon:"🔥",label:"7 Day Streak",earned:streak>=7,c1:"#F97316",c2:"#7C2D12",glow:"#F97316"},
+          {icon:"📖",label:"Hifz Goal",earned:goalYears>0,c1:"#C9A84C",c2:"#4A3000",glow:"#C9A84C"},
+        ];
+
+        return (
+          <div style={{flex:1,overflowY:"auto",background:dark?"#060A07":T.bg}} className="fi">
+
+            {/* ── HERO BANNER ── */}
+            <div style={{background:"linear-gradient(160deg,#0D2E18 0%,#1A4A28 50%,#0A1F10 100%)",padding:"20px 16px 24px",position:"relative",overflow:"hidden"}}>
+              {/* Subtle star dots */}
+              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 20% 30%,#F0C04030,transparent),radial-gradient(1px 1px at 80% 20%,#F0C04020,transparent),radial-gradient(1.5px 1.5px at 50% 70%,#F0C04018,transparent),radial-gradient(1px 1px at 70% 60%,#ffffff10,transparent)",pointerEvents:"none"}}/>
+              <div style={{display:"flex",alignItems:"center",gap:14,position:"relative",zIndex:1}}>
+                {/* Avatar */}
+                <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#1A4A28,#2E7D46)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid #F0C04060",boxShadow:"0 0 20px #F0C04025"}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#F0C040"}}>{initials}</span>
                 </div>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:17,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{username}</div>
-                  <div style={{fontSize:11,color:T.accent,marginBottom:6}}>Memorizer</div>
-                  <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-                    <div style={{fontSize:10,color:T.dim}}>📅 Joined {joinYear}</div>
-                    <div style={{fontSize:10,color:T.dim}}>🎯 Goal: {goalLabel}</div>
-                    <div style={{fontSize:10,color:"#F6A623"}}>🔥 Streak: {streak} days</div>
+                  <div style={{fontSize:19,fontWeight:700,color:"#EDE8DC",fontFamily:"'Playfair Display',serif",marginBottom:2}}>{username}</div>
+                  <div style={{fontSize:11,color:"#F0C040",marginBottom:8,letterSpacing:".06em"}}>Memorizer · طالب الحفظ</div>
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    <div style={{fontSize:10,color:"#8AAA90",background:"#ffffff0A",padding:"3px 8px",borderRadius:20,border:"1px solid #ffffff15"}}>📅 Joined {joinYear}</div>
+                    <div style={{fontSize:10,color:"#8AAA90",background:"#ffffff0A",padding:"3px 8px",borderRadius:20,border:"1px solid #ffffff15"}}>🎯 {goalLabel}</div>
+                    <div style={{fontSize:10,color:"#F6A623",background:"#F6A62315",padding:"3px 8px",borderRadius:20,border:"1px solid #F6A62330"}}>🔥 {streak} day streak</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── PROGRESS + DAILY GOALS ROW ── */}
+            <div style={{padding:"12px 14px 48px"}}>
+
+            {/* ── PROGRESS + DAILY GOALS ── */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-              {/* Circular progress */}
-              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-                <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:".1em"}}>Overall Progress</div>
-                <svg width={120} height={120} style={{overflow:"visible"}}>
-                  <circle cx={60} cy={60} r={radius} fill="none" stroke={T.surface2} strokeWidth={10}/>
-                  <circle cx={60} cy={60} r={radius} fill="none" stroke="url(#ring)" strokeWidth={10}
-                    strokeDasharray={`${filled} ${circ}`} strokeLinecap="round"
-                    transform="rotate(-90 60 60)" style={{transition:"stroke-dasharray .8s ease"}}/>
+              {/* Ring */}
+              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 10px",display:"flex",flexDirection:"column",alignItems:"center",boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
+                <div style={{fontSize:9,color:T.accent,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:".14em"}}>Overall Progress</div>
+                <svg width={130} height={130} style={{overflow:"visible"}}>
                   <defs>
-                    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <linearGradient id="ringgrad" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#156A30"/>
                       <stop offset="100%" stopColor="#F0C040"/>
                     </linearGradient>
+                    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
-                  <text x={60} y={56} textAnchor="middle" fill={T.accent} fontSize={20} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={60} y={72} textAnchor="middle" fill={T.dim} fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount} / 30 Juz</text>
+                  {/* Track */}
+                  <circle cx={65} cy={65} r={radius} fill="none" stroke={T.surface2} strokeWidth={12}/>
+                  {/* Fill */}
+                  <circle cx={65} cy={65} r={radius} fill="none" stroke="url(#ringgrad)" strokeWidth={12}
+                    strokeDasharray={`${filled} ${circ}`} strokeLinecap="round"
+                    transform="rotate(-90 65 65)" filter="url(#glow)" style={{transition:"stroke-dasharray 1s ease"}}/>
+                  {/* Center text */}
+                  <text x={65} y={60} textAnchor="middle" fill={T.accent} fontSize={22} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
+                  <text x={65} y={78} textAnchor="middle" fill={T.dim} fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount} / 30 Juz</text>
                 </svg>
               </div>
 
               {/* Daily goals */}
-              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:".1em"}}>Daily Goals</div>
-                <div style={{fontFamily:"'IBM Plex Mono',monospace",marginBottom:4}}>
-                  <span style={{fontSize:28,color:T.accent,fontWeight:700}}>{checkedCount}</span>
-                  <span style={{fontSize:16,color:T.dim}}> / {SESSIONS.length}</span>
+              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",display:"flex",flexDirection:"column",boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
+                <div style={{fontSize:9,color:T.accent,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:".14em"}}>Daily Goals</div>
+                <div style={{marginBottom:10}}>
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:30,color:T.accent,fontWeight:700,lineHeight:1}}>{checkedCount}</span>
+                  <span style={{fontSize:14,color:T.dim}}> / {SESSIONS.length}</span>
+                  <div style={{fontSize:10,color:T.sub,marginTop:2}}>Sessions Today</div>
                 </div>
-                <div style={{fontSize:11,color:T.sub,marginBottom:12}}>Sessions Today</div>
-                {SESSIONS.map(s=>{
-                  const done=!!dailyChecks[s.id];
-                  return (
-                    <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
-                      <div style={{width:16,height:16,borderRadius:4,background:done?s.color:T.surface2,border:`1.5px solid ${done?s.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                        {done&&<span style={{fontSize:9,color:"#fff",fontWeight:700}}>✓</span>}
+                {/* Session dots */}
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {SESSIONS.map(s=>{
+                    const done=!!dailyChecks[s.id];
+                    return (
+                      <div key={s.id} className="sbtn" onClick={()=>toggleCheck(s.id)} style={{display:"flex",alignItems:"center",gap:7}}>
+                        <div style={{width:15,height:15,borderRadius:"50%",background:done?s.color:T.surface2,border:`2px solid ${done?s.color:T.border}`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:done?`0 0 6px ${s.color}60`:"none",transition:"all .2s"}}>
+                          {done&&<span style={{fontSize:8,color:"#fff",fontWeight:700}}>✓</span>}
+                        </div>
+                        <span style={{fontSize:10,color:done?s.color:T.dim,fontWeight:done?600:400,transition:"color .2s"}}>{s.icon} {s.time}</span>
                       </div>
-                      <span style={{fontSize:11,color:done?T.text:T.dim,textDecoration:done?"line-through":"none",opacity:done?0.6:1}}>{s.time} — {s.title}</span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
             {/* ── JOURNEY TIMELINE ── */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px 14px",marginBottom:12}}>
-              <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:16,textTransform:"uppercase",letterSpacing:".1em"}}>Hifz Journey</div>
-              <div style={{position:"relative",height:56}}>
-                {/* Track line */}
-                <div style={{position:"absolute",top:18,left:"5%",right:"5%",height:3,background:`linear-gradient(90deg,#F0C040,#F0C04040)`,borderRadius:2}}/>
-                {/* Current progress fill */}
-                <div style={{position:"absolute",top:18,left:"5%",width:`${Math.min(90,(pct/100)*90)}%`,height:3,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2,transition:"width .8s ease"}}/>
-                {/* Milestone dots */}
-                {milestones.map((m,i)=>{
-                  const pos=i===milestones.length-1?95:(5+(i/3)*30);
-                  const reached=completedCount>=(m.juz-1);
-                  const isCurrent=completedCount===m.juz-1||(i===milestones.length-2&&completedCount>=30);
+            <div style={{background:"linear-gradient(135deg,#0D2E18,#1A4A28)",border:"1px solid #2A6A3880",borderRadius:14,padding:"16px 14px 20px",marginBottom:12,boxShadow:"0 4px 20px #00000030",position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 30% 50%,#F0C04015,transparent),radial-gradient(1px 1px at 70% 30%,#F0C04010,transparent)",pointerEvents:"none"}}/>
+              <div style={{fontSize:9,color:"#F0C040",fontWeight:700,marginBottom:16,textTransform:"uppercase",letterSpacing:".14em",position:"relative",zIndex:1}}>Hifz Journey</div>
+              <div style={{position:"relative",height:60,zIndex:1}}>
+                {/* Track */}
+                <div style={{position:"absolute",top:20,left:"4%",right:"4%",height:4,background:"#F0C04025",borderRadius:2}}/>
+                {/* Progress fill */}
+                <div style={{position:"absolute",top:20,left:"4%",width:`${4+Math.min(88,(completedCount/30)*88)}%`,height:4,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2,boxShadow:"0 0 8px #F0C04050",transition:"width 1s ease"}}/>
+                {/* Milestones */}
+                {[{juz:0,label:"Juz 1",pos:4},{juz:10,label:"Juz 10",pos:33},{juz:20,label:"Juz 20",pos:63},{juz:30,label:"Juz 30",pos:93}].map((m,i)=>{
+                  const reached=completedCount>=m.juz;
                   return (
-                    <div key={m.juz} style={{position:"absolute",top:0,left:`${pos}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-                      <div style={{width:isCurrent?18:12,height:isCurrent?18:12,borderRadius:"50%",background:reached?"#F0C040":T.surface2,border:`2px solid ${reached?"#F0C040":T.border}`,display:"flex",alignItems:"center",justifyContent:"center",transition:"all .3s",boxShadow:isCurrent?"0 0 8px #F0C04060":"none"}}>
-                        {m.icon&&<span style={{fontSize:9}}>{m.icon}</span>}
-                      </div>
-                      <div style={{fontSize:8,color:reached?T.accent:T.vdim,whiteSpace:"nowrap",fontWeight:isCurrent?700:400}}>{m.label}</div>
+                    <div key={i} style={{position:"absolute",top:8,left:`${m.pos}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                      <div style={{width:reached?16:10,height:reached?16:10,borderRadius:"50%",background:reached?"#F0C040":"#2A4A30",border:`2px solid ${reached?"#F0C040":"#3A6A40"}`,boxShadow:reached?"0 0 10px #F0C04070":"none",transition:"all .4s"}}/>
+                      <div style={{fontSize:8,color:reached?"#F0C040":"#4A7A50",whiteSpace:"nowrap",fontWeight:reached?700:400,marginTop:2}}>{m.label}</div>
                     </div>
                   );
                 })}
-                {/* Current position marker */}
-                <div style={{position:"absolute",top:10,left:`${5+Math.min(85,(completedCount/30)*85)}%`,transform:"translateX(-50%)",fontSize:11,color:"#F0C040",fontWeight:700,fontFamily:"'IBM Plex Mono',monospace",background:T.surface,padding:"1px 5px",borderRadius:4,border:"1px solid #F0C04060",whiteSpace:"nowrap"}}>{completedCount}</div>
+                {/* Hafiz endpoint */}
+                <div style={{position:"absolute",top:6,right:"0%",transform:"translateX(50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <div style={{fontSize:20}}>📖</div>
+                  <div style={{fontSize:8,color:"#F0C040",fontWeight:700}}>Hafiz</div>
+                </div>
+                {/* Current juz marker */}
+                {completedCount>0&&<div style={{position:"absolute",top:0,left:`${4+Math.min(88,(completedCount/30)*88)}%`,transform:"translateX(-50%)",background:"#F0C040",color:"#0D2E18",fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4,fontFamily:"'IBM Plex Mono',monospace",whiteSpace:"nowrap",boxShadow:"0 2px 8px #F0C04060"}}>{completedCount}</div>}
               </div>
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:8}}>
-                <div style={{fontSize:9,color:T.dim}}>Goal: {goalYears}-Year Plan</div>
-                <div style={{fontSize:9,color:T.dim}}>Joined {joinYear}</div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:4,position:"relative",zIndex:1}}>
+                <div style={{fontSize:9,color:"#6A9A70"}}>Goal: {goalYears}-Year Plan</div>
+                <div style={{fontSize:9,color:"#6A9A70"}}>{timeline.juzLeft} Juz remaining</div>
               </div>
             </div>
 
-            {/* ── FAJR SESSION CHECKLIST ── */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",marginBottom:12}}>
+            {/* ── FAJR CHECKLIST ── */}
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",marginBottom:12,boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div style={{fontSize:13,fontWeight:700,color:T.text}}>🌅 Fajr — New Memorization</div>
-                <div className="sbtn" onClick={()=>toggleCheck("fajr")} style={{fontSize:9,padding:"3px 9px",background:fajrDone?T.accent:T.surface2,border:`1px solid ${fajrDone?T.accent:T.border}`,borderRadius:10,color:fajrDone?dark?"#060A07":"#fff":T.dim,fontWeight:600}}>
+                <div className="sbtn" onClick={()=>toggleCheck("fajr")} style={{fontSize:9,padding:"4px 10px",background:fajrDone?"#F0C040":T.surface2,border:`1px solid ${fajrDone?"#F0C040":T.border}`,borderRadius:20,color:fajrDone?dark?"#060A07":"#fff":T.dim,fontWeight:700,boxShadow:fajrDone?"0 0 8px #F0C04050":"none",transition:"all .2s"}}>
                   {fajrDone?"✓ Done":"Mark Done"}
                 </div>
               </div>
-              {/* Progress bar */}
               <div style={{marginBottom:10}}>
-                <div style={{height:8,background:T.surface2,borderRadius:4,overflow:"hidden",marginBottom:4}}>
-                  <div style={{height:"100%",width:fajrDone?"100%":`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:4,transition:"width .5s"}}/>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.dim,marginBottom:4}}>
+                  <span>Progress: {checkedCount} / {SESSIONS.length}</span>
+                  <span style={{color:T.accent,fontWeight:600}}>{dailyNew} ayahs today</span>
                 </div>
-                <div style={{fontSize:10,color:T.dim}}>Progress: {checkedCount} / {SESSIONS.length} sessions</div>
+                <div style={{height:7,background:T.surface2,borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:4,boxShadow:"0 0 6px #F0C04040",transition:"width .5s"}}/>
+                </div>
               </div>
-              {/* Steps */}
               {fajrSteps.map((step,i)=>{
-                const stepDone=fajrDone||(i<2&&checkedCount>0);
+                const stepDone=fajrDone||(i===0&&checkedCount>0);
                 return (
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:i<fajrSteps.length-1?`1px solid ${T.border}`:"none"}}>
-                    <div style={{width:18,height:18,borderRadius:3,background:stepDone?"#3ECC71":T.surface2,border:`1.5px solid ${stepDone?"#3ECC71":T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                      {stepDone&&<span style={{fontSize:9,color:"#fff",fontWeight:700}}>✓</span>}
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<fajrSteps.length-1?`1px solid ${T.border}`:"none"}}>
+                    <div style={{width:20,height:20,borderRadius:4,background:stepDone?"#3ECC71":T.surface2,border:`2px solid ${stepDone?"#3ECC71":T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:stepDone?"0 0 6px #3ECC7150":"none",transition:"all .2s"}}>
+                      {stepDone&&<span style={{fontSize:10,color:"#fff",fontWeight:700}}>✓</span>}
                     </div>
-                    <span style={{fontSize:11,color:stepDone?T.sub:T.text,textDecoration:stepDone?"line-through":"none",opacity:stepDone?0.6:1}}>{step}</span>
+                    <span style={{fontSize:11,color:stepDone?T.dim:T.text,textDecoration:stepDone?"line-through":"none",opacity:stepDone?.65:1,transition:"all .2s"}}>{step}</span>
                   </div>
                 );
               })}
             </div>
 
             {/* ── BADGES ── */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",marginBottom:12}}>
-              <div style={{fontSize:10,color:T.sub,fontWeight:600,marginBottom:12,textTransform:"uppercase",letterSpacing:".1em"}}>Badges Earned</div>
-              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-                {badges.map((b,i)=>(
-                  <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,opacity:b.earned?1:0.35,minWidth:60}}>
-                    <div style={{width:52,height:52,borderRadius:10,background:b.earned?`${b.color}20`:T.surface2,border:`2px solid ${b.earned?b.color:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,boxShadow:b.earned?`0 2px 10px ${b.color}30`:"none"}}>
-                      {b.icon}
-                    </div>
-                    <div style={{fontSize:9,color:b.earned?T.text:T.vdim,textAlign:"center",fontWeight:600,lineHeight:1.3}}>{b.label}</div>
-                  </div>
-                ))}
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px 12px",marginBottom:12,boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
+              <div style={{fontSize:9,color:T.accent,fontWeight:700,marginBottom:16,textTransform:"uppercase",letterSpacing:".14em"}}>Badges Earned</div>
+              <div style={{display:"flex",justifyContent:"space-around",gap:4}}>
+                {badges.map((b,i)=><ShieldBadge key={i} {...b}/>)}
               </div>
             </div>
 
             {/* ── NAV BUTTONS ── */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,textAlign:"center"}}>
-                <div style={{fontSize:20,marginBottom:4}}>📖</div>
-                <div style={{fontSize:12,fontWeight:600,color:T.text}}>My Juz</div>
-                <div style={{fontSize:10,color:T.dim}}>Track memorization</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:"linear-gradient(135deg,#0D2E18,#1A4A28)",border:"1px solid #2A6A3860",borderRadius:14,textAlign:"center",boxShadow:"0 4px 16px #00000030"}}>
+                <div style={{fontSize:24,marginBottom:4}}>📖</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Juz</div>
+                <div style={{fontSize:10,color:"#6A9A70",marginTop:2}}>Track memorization</div>
               </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,textAlign:"center"}}>
-                <div style={{fontSize:20,marginBottom:4}}>⏱️</div>
-                <div style={{fontSize:12,fontWeight:600,color:T.text}}>Timeline</div>
-                <div style={{fontSize:10,color:T.dim}}>Goal calculator</div>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:"linear-gradient(135deg,#1A1A0A,#2A2A10)",border:"1px solid #F0C04030",borderRadius:14,textAlign:"center",boxShadow:"0 4px 16px #00000030"}}>
+                <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>Timeline</div>
+                <div style={{fontSize:10,color:"#8A8A50",marginTop:2}}>Goal calculator</div>
               </div>
             </div>
 
+            </div>
           </div>
         );
       })()}
