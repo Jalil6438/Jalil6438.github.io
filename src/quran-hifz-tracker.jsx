@@ -1263,35 +1263,30 @@ export default function RihlatAlHifz() {
         const activeDone=!!dailyChecks[activeSess.id];
         const activeSteps=activeSess?.steps||[];
 
-        // ── Shield badge SVG component ──
-        const ShieldBadge=({icon,label,earned,c1,c2,glow})=>(
+        // ── Shield badge SVG component — idx makes gradient IDs unique ──
+        const ShieldBadge=({icon,label,earned,c1,c2,glow,idx})=>{
+          const gid=`sgb${idx}`, hid=`shb${idx}`;
+          return (
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,opacity:earned?1:0.28,flex:1}}>
             <svg width={64} height={72} viewBox="0 0 64 72" style={{filter:earned?`drop-shadow(0 4px 12px ${glow}60)`:"none",transition:"filter .3s"}}>
               <defs>
-                <linearGradient id={`sg${label.replace(/\s/g,"")}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <linearGradient id={gid} x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor={c1}/>
                   <stop offset="100%" stopColor={c2}/>
                 </linearGradient>
-                <linearGradient id={`sh${label.replace(/\s/g,"")}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <linearGradient id={hid} x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor={c1} stopOpacity="0.35"/>
                   <stop offset="100%" stopColor={c2} stopOpacity="0.08"/>
                 </linearGradient>
               </defs>
-              {/* Shield outer */}
-              <path d="M32 2 L60 14 L60 36 Q60 56 32 70 Q4 56 4 36 L4 14 Z"
-                fill={`url(#sg${label.replace(/\s/g,"")})`}/>
-              {/* Shield inner highlight */}
-              <path d="M32 8 L54 18 L54 36 Q54 52 32 64 Q10 52 10 36 L10 18 Z"
-                fill={`url(#sh${label.replace(/\s/g,"")})`}/>
-              {/* Top shine */}
-              <path d="M32 8 L54 18 L54 26 Q43 22 32 20 Q21 22 10 26 L10 18 Z"
-                fill="white" fillOpacity="0.12"/>
-              {/* Icon */}
+              <path d="M32 2 L60 14 L60 36 Q60 56 32 70 Q4 56 4 36 L4 14 Z" fill={`url(#${gid})`}/>
+              <path d="M32 8 L54 18 L54 36 Q54 52 32 64 Q10 52 10 36 L10 18 Z" fill={`url(#${hid})`}/>
+              <path d="M32 8 L54 18 L54 26 Q43 22 32 20 Q21 22 10 26 L10 18 Z" fill="white" fillOpacity="0.12"/>
               <text x="32" y="42" textAnchor="middle" fontSize="22" dominantBaseline="middle">{icon}</text>
             </svg>
             <div style={{fontSize:10,fontWeight:700,color:earned?"#EDE8DC":"#5A6A70",textAlign:"center",letterSpacing:".02em",lineHeight:1.3}}>{label}</div>
           </div>
-        );
+        );};
 
         const badges=[
           {icon:"📗",label:`${completedCount||0} Juz`, earned:completedCount>0, c1:"#4ADE80",c2:"#14532D",glow:"#22C55E"},
@@ -1492,9 +1487,9 @@ export default function RihlatAlHifz() {
               <div style={{display:"flex",justifyContent:"space-around",gap:4,position:"relative",zIndex:1}}>
                 {badges.map((b,i)=>(
                   <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flex:1}}>
-                    {/* 6) Badge card */}
-                    <div style={b.earned?{background:"linear-gradient(180deg,#17131F 0%, #0E0C14 100%)",border:"2px solid rgba(240,192,64,0.75)",borderRadius:18,boxShadow:"0 0 20px rgba(240,192,64,0.28), inset 0 0 18px rgba(240,192,64,0.05)",width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}:{background:"#10182C",border:"1px solid rgba(255,255,255,0.06)",borderRadius:18,opacity:0.55,width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <ShieldBadge icon={b.icon} label="" earned={b.earned} c1={b.c1} c2={b.c2} glow={b.glow}/>
+                    {/* 6) Badge card — border color matches badge glow */}
+                    <div style={b.earned?{background:"linear-gradient(180deg,#17131F 0%, #0E0C14 100%)",border:`2px solid ${b.glow}BB`,borderRadius:18,boxShadow:`0 0 20px ${b.glow}45, inset 0 0 18px ${b.glow}08`,width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}:{background:"#10182C",border:"1px solid rgba(255,255,255,0.06)",borderRadius:18,opacity:0.55,width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <ShieldBadge icon={b.icon} label="" earned={b.earned} c1={b.c1} c2={b.c2} glow={b.glow} idx={i}/>
                     </div>
                     <div style={{fontSize:9,fontWeight:700,color:b.earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.28)",textAlign:"center",letterSpacing:".02em",lineHeight:1.3}}>{b.label}</div>
                   </div>
