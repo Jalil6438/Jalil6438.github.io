@@ -703,7 +703,7 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:9,color:"#2E4030",marginBottom:40}}>Al-Qamar · 54:17</div>
               <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#F0C040",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#EDE8DC",marginBottom:44}}>Rihlat Al-Hifz</div>
-              <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{width:"100%",maxWidth:360,padding:"15px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em"}}>
+              <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em"}}>
                 Begin Your Journey →
               </div>
               <div style={{fontSize:9,color:"#2E4030",marginTop:16}}>© 2026 NoorTech Studio</div>
@@ -752,8 +752,8 @@ export default function RihlatAlHifz() {
             <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto"}}>
               {/* Progress bar */}
               <div style={{display:"flex",gap:5,marginBottom:28}}>
-                {[1,2,3,4].map(i=>(
-                  <div key={i} style={{flex:1,height:3,borderRadius:2,background:i<=3?"#F0C040":i===3?"#F0C04070":"#1E2A18",transition:"background .3s"}}/>
+                {[1,2,3].map(i=>(
+                  <div key={i} style={{flex:1,height:3,borderRadius:2,background:"#F0C040",transition:"background .3s"}}/>
                 ))}
               </div>
               <div style={{fontSize:8,color:"#F0C040",letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>Welcome</div>
@@ -799,7 +799,7 @@ export default function RihlatAlHifz() {
               <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto"}}>
                 {/* Progress bar */}
                 <div style={{display:"flex",gap:5,marginBottom:20}}>
-                  {[1,2,3,4].map(i=>(
+                  {[1,2,3].map(i=>(
                     <div key={i} style={{flex:1,height:3,borderRadius:2,background:"#F0C040"}}/>
                   ))}
                 </div>
@@ -845,32 +845,39 @@ export default function RihlatAlHifz() {
                   <span>Mark your memorization</span>
                   <span style={{fontFamily:"'IBM Plex Mono',monospace",color:"#F0C040"}}>{juzDone} Juz ✓</span>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:5,marginBottom:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:6}}>
                   {Array.from({length:30},(_,i)=>{
                     const juz=i+1;
                     const status=juzStatus[juz];
                     const isFull=status==="complete";
                     const isOpen=openJuzPanel===juz;
                     const hasPartial=!isFull&&Object.keys(juzStatus).some(k=>k.startsWith("s")&&JUZ_SURAHS[juz]?.some(s=>`s${s.s}`===k&&juzStatus[k]==="complete"));
+                    const juzName=JUZ_META.find(j=>j.num===juz)?.roman||`Juz ${juz}`;
                     return (
                       <div key={juz} className="sbtn"
                         onClick={()=>setOpenJuzPanel(isOpen?null:juz)}
                         style={{
-                          aspectRatio:"1",borderRadius:8,
-                          background:isOpen?"#20b2aa":isFull?"linear-gradient(135deg,#0d8a84,#20b2aa)":hasPartial?"#20b2aa18":"#141A0F",
-                          border:`2px solid ${isOpen?"#20b2aa":isFull?"#20b2aa":hasPartial?"#20b2aa60":"#1E2A18"}`,
-                          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                          fontFamily:"'IBM Plex Mono',monospace",
-                          fontSize:isFull||isOpen?10:9,
-                          color:isOpen?"#060A07":isFull?"#fff":hasPartial?"#20b2aa":"#2E4030",
-                          fontWeight:isFull||isOpen?700:400,
-                          transition:"all .18s",
-                          boxShadow:isFull?"0 3px 10px rgba(32,178,170,.4)":isOpen?"0 3px 12px rgba(32,178,170,.5)":"none",
-                          transform:isFull||isOpen?"scale(1.04)":"scale(1)",
+                          borderRadius:8,
+                          padding:"8px 14px",
+                          background:isOpen?"#F0C040":isFull?"#F0C04020":hasPartial?"#F0C04010":"#141A0F",
+                          border:`1px solid ${isOpen?"#F0C040":isFull?"#F0C040":hasPartial?"#F0C04050":"#1E2A18"}`,
+                          display:"flex",alignItems:"center",justifyContent:"space-between",
+                          transition:"all .15s",
                         }}
                       >
-                        {isFull&&<div style={{fontSize:8,marginBottom:1}}>✓</div>}
-                        {juz===30?"30★":juz}
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#F0C04080":"#2E4030",fontWeight:600,minWidth:20}}>
+                            {String(juz).padStart(2,"0")}
+                          </div>
+                          <div style={{fontSize:11,fontWeight:isFull||isOpen?600:400,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#A8B89A":"#5A7050"}}>
+                            {juzName}
+                          </div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          {hasPartial&&!isFull&&<div style={{fontSize:8,color:"#F0C04070"}}>partial</div>}
+                          {isFull&&<div style={{fontSize:10,color:"#F0C040"}}>✓</div>}
+                          <div style={{fontSize:10,color:isOpen?"#060A07":"#2E4030"}}>{isOpen?"▾":"›"}</div>
+                        </div>
                       </div>
                     );
                   })}
@@ -1494,27 +1501,31 @@ export default function RihlatAlHifz() {
 {showReciterModal&&(
   <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
     <div style={{background:T.surface,borderRadius:"16px 16px 0 0",padding:"20px 16px 32px",width:"100%",maxWidth:500}} onClick={e=>e.stopPropagation()}>
-      <div style={{textAlign:"center",marginBottom:16}}>
-        <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:4}}>Select Reciter</div>
-        <div style={{width:40,height:3,background:T.border,borderRadius:2,margin:"0 auto"}}/>
-      </div>
+      <div style={{width:40,height:4,background:T.border,borderRadius:2,margin:"0 auto 16px"}}/>
+      <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:16,textAlign:"center"}}>Select Reciter — My Hifz</div>
       {/* Masjid Al-Haram */}
       <div style={{fontSize:9,color:"#E5534B",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🕋 Masjid Al-Haram</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:16}}>
-        {QURAN_RECITERS.filter(r=>r.tag==="Masjid Al-Haram").map(r=>(
-          <div key={r.id} className="sbtn" onClick={()=>{setQuranReciter(r.id);setShowReciterModal(false);}} style={{padding:"8px 6px",background:quranReciter===r.id?T.accent+"20":T.surface2,border:`1px solid ${quranReciter===r.id?T.accent:T.border}`,borderRadius:7,textAlign:"center"}}>
-            <div style={{fontSize:10,fontWeight:quranReciter===r.id?700:400,color:quranReciter===r.id?T.accent:T.text}}>{r.name}</div>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:quranReciter===r.id?T.accent:T.dim,marginTop:2}}>{r.arabic}</div>
+      <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
+        {RECITERS.filter(r=>r.tag==="Masjid Al-Haram").map(r=>(
+          <div key={r.id} className="sbtn" onClick={()=>{setReciter(r.id);setShowReciterModal(false);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:reciter===r.id?T.accentDim:T.surface2,border:`1px solid ${reciter===r.id?T.accent:T.border}`,borderRadius:8}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:reciter===r.id?700:400,color:reciter===r.id?T.accent:T.text}}>{r.name}</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:T.dim}}>{r.arabic}</div>
+            </div>
+            {reciter===r.id&&<div style={{fontSize:13,color:T.accent,fontWeight:700}}>✓</div>}
           </div>
         ))}
       </div>
       {/* Masjid An-Nabawi */}
       <div style={{fontSize:9,color:"#2ECC71",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🕌 Masjid An-Nabawi</div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
-        {QURAN_RECITERS.filter(r=>r.tag==="Masjid An-Nabawi").map(r=>(
-          <div key={r.id} className="sbtn" onClick={()=>{setQuranReciter(r.id);setShowReciterModal(false);}} style={{padding:"8px 6px",background:quranReciter===r.id?T.accent+"20":T.surface2,border:`1px solid ${quranReciter===r.id?T.accent:T.border}`,borderRadius:7,textAlign:"center"}}>
-            <div style={{fontSize:10,fontWeight:quranReciter===r.id?700:400,color:quranReciter===r.id?T.accent:T.text}}>{r.name}</div>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:quranReciter===r.id?T.accent:T.dim,marginTop:2}}>{r.arabic}</div>
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        {RECITERS.filter(r=>r.tag==="Masjid An-Nabawi").map(r=>(
+          <div key={r.id} className="sbtn" onClick={()=>{setReciter(r.id);setShowReciterModal(false);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:reciter===r.id?T.accentDim:T.surface2,border:`1px solid ${reciter===r.id?T.accent:T.border}`,borderRadius:8}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:12,fontWeight:reciter===r.id?700:400,color:reciter===r.id?T.accent:T.text}}>{r.name}</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:T.dim}}>{r.arabic}</div>
+            </div>
+            {reciter===r.id&&<div style={{fontSize:13,color:T.accent,fontWeight:700}}>✓</div>}
           </div>
         ))}
       </div>
