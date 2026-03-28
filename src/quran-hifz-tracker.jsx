@@ -366,6 +366,9 @@ export default function RihlatAlHifz() {
   const [onboardStep,setOnboardStep]=useState(1);
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
+  const [repCounts,setRepCounts]=useState({});
+  const [openAyah,setOpenAyah]=useState(null);
+  const [activeSession,setActiveSession]=useState("fajr");
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("myhifz");
   const [selectedJuz,setSelectedJuz]=useState(30);
@@ -998,129 +1001,249 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&(
-        <div style={{flex:1,overflowY:"auto",padding:"16px 18px 48px"}} className="fi">
-          <div className="sbtn" onClick={()=>setShowReciterModal(true)} style={{marginBottom:14,display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10}}>
-            <div style={{fontSize:16}}>🎙️</div>
-            <div style={{flex:1,textAlign:"center"}}>
-              <div style={{fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{currentReciter.name}</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:T.dim,textAlign:"center"}}>{currentReciter.arabic}</div>
-            </div>
-            <div style={{fontSize:9,color:T.accent,background:T.accentDim,border:`1px solid ${T.accent}30`,padding:"3px 8px",borderRadius:8}}>Selected ✓</div>
-            <div style={{fontSize:12,color:T.dim}}>▼</div>
-          </div>
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column"}} className="fi">
 
-          <div style={{marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-            <div>
-              <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Active Memorization</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:T.text}}>Juz {sessionJuz} — <span style={{color:T.accent}}>{sessM?.arabic}</span></div>
-              <div style={{fontSize:11,color:T.sub}}>{sessM?.roman}</div>
-            </div>
-            <select value={sessionJuz} onChange={e=>{setSessionJuz(Number(e.target.value));setSessionIdx(0);}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontSize:11,padding:"5px 9px",borderRadius:5,outline:"none"}}>
-              {JUZ_META.map(j=><option key={j.num} value={j.num}>Juz {j.num} — {j.roman}{j.num===30?" ✓ (Amma — Revision)":""}</option>)}
-            </select>
-          </div>
-
-          <div style={{marginBottom:14,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-              <span style={{fontSize:11,color:T.sub}}>Progress in Juz {sessionJuz}</span>
-              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:T.accent}}>{sessionIdx}/{totalSV} ayahs</span>
-            </div>
-            <div style={{height:5,background:T.surface2,borderRadius:3,overflow:"hidden"}}>
-              <div className="pbfill" style={{height:"100%",width:`${sessPct}%`,background:`linear-gradient(90deg,${T.accent}70,${T.accent})`,borderRadius:3}}/>
-            </div>
-            <div style={{fontSize:9,color:T.dim,marginTop:4}}>{dailyNew} ayahs/session · {Math.ceil((totalSV-sessionIdx)/Math.max(1,dailyNew))} sessions remaining</div>
-          </div>
-
-          {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
-          {!sessLoading&&sessionVerses.length===0&&(
-            <div style={{textAlign:"center",padding:"30px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
-              <div style={{fontSize:20,marginBottom:8}}>⚠️</div>
-              <div style={{fontSize:13,color:T.sub,marginBottom:14}}>Ayahs did not load. Check your internet connection.</div>
-              <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{display:"inline-block",padding:"8px 20px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:6,fontSize:12,fontWeight:600}}>Retry</div>
-            </div>
-          )}
-
-          {!sessLoading&&batch.length>0&&(
-            <div>
-              {!hasPerAyah(reciter)&&(
-                <div style={{marginBottom:10,padding:"9px 13px",background:T.surface,border:`1px solid ${T.accent}30`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 6px 6px 0",fontSize:11,color:T.sub,lineHeight:1.6}}>
-                  🎵 <strong style={{color:T.accent}}>{currentReciter.name}</strong> plays full surahs only. Switch to Dosari, Juhany, Sudais, Shuraim, Muaiqly, Hudhaify, Ayyoub or Budair above for per-ayah audio here.
-                </div>
-              )}
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:8}}>
-                <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{sessionJuz===30?"Revision Batch":"Fajr Batch"} — Ayahs {bStart+1}–{bEnd} of {totalSV}</div>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                  <div className="sbtn" onClick={()=>setShowTrans(s=>!s)} style={{fontSize:10,padding:"4px 9px",background:showTrans?T.accent+"18":T.surface2,border:`1px solid ${showTrans?T.accent+"50":T.border}`,borderRadius:5,color:showTrans?T.accent:T.dim}}>
-                    {showTrans?"Hide Translation":"Show Translation"}
-                  </div>
-                  <div className="sbtn" onClick={()=>setFontSize(f=>Math.max(16,f-2))} style={{width:20,height:20,background:T.surface2,border:`1px solid ${T.border}`,borderRadius:3,display:"flex",alignItems:"center",justifyContent:"center",color:T.sub,fontSize:13}}>−</div>
-                  <span style={{fontSize:9,color:T.dim,width:22,textAlign:"center"}}>{fontSize}</span>
-                  <div className="sbtn" onClick={()=>setFontSize(f=>Math.min(40,f+2))} style={{width:20,height:20,background:T.surface2,border:`1px solid ${T.border}`,borderRadius:3,display:"flex",alignItems:"center",justifyContent:"center",color:T.sub,fontSize:13}}>+</div>
-                </div>
+          {/* ── STICKY RECITER BUTTON ── */}
+          <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,paddingBottom:2}}>
+            <div className="sbtn" onClick={()=>setShowReciterModal(true)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,margin:"0 0 0 0"}}>
+              <div style={{fontSize:16}}>🎙️</div>
+              <div style={{flex:1,textAlign:"center"}}>
+                <div style={{fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{currentReciter.name}</div>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:T.dim,textAlign:"center"}}>{currentReciter.arabic}</div>
               </div>
+              <div style={{fontSize:9,color:T.accent,background:T.accentDim,border:`1px solid ${T.accent}30`,padding:"3px 8px",borderRadius:8}}>Selected ✓</div>
+              <div style={{fontSize:12,color:T.dim}}>▼</div>
+            </div>
+          </div>
 
-              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
-                {batch.map((v,i)=>{
-                  const vNum=v.verse_key?.split(":")?.[1];
-                  const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
-                  const vKey=v.verse_key;
-                  const isPlaying=playingKey===vKey;
-                  const isLoading=audioLoading===vKey;
-                  const trans=translations[vKey];
+          <div style={{flex:1,padding:"10px 16px 48px"}}>
+
+            {/* ── SESSION SELECTOR ── */}
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:8,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:7}}>Today's Sessions</div>
+              <div style={{display:"flex",gap:5,overflowX:"auto",paddingBottom:2}}>
+                {SESSIONS.map(s=>{
+                  const done=dailyChecks[s.id];
+                  const isActive=activeSession===s.id;
                   return (
-                    <div key={vKey} style={{background:T.surface,border:`1px solid ${bDone?"#F0C04030":T.border}`,borderLeft:`4px solid ${bDone?"#F0C040":T.accent}`,borderRadius:"0 8px 8px 0",padding:"14px 18px",opacity:bDone?0.6:1}}>
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                        <div style={{fontSize:9,color:T.dim,fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</div>
-                        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                          <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(vKey,vKey):null} style={{width:32,height:32,borderRadius:"50%",background:isPlaying?T.accent+"25":T.surface2,border:`1px solid ${isPlaying?T.accent:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:isLoading?9:13,color:isPlaying?T.accent:hasPerAyah(reciter)?T.dim:T.vdim,opacity:hasPerAyah(reciter)?1:0.4,cursor:hasPerAyah(reciter)?"pointer":"default"}}>
-                            {isLoading?<div className="spin" style={{width:12,height:12,border:`2px solid ${T.border}`,borderTopColor:T.accent,borderRadius:"50%"}}/>:(isPlaying?"⏸":"▶")}
-                          </div>
-                          <div style={{fontSize:9,color:T.accent,background:T.accentDim,padding:"2px 7px",borderRadius:10,fontFamily:"'IBM Plex Mono',monospace"}}>{i+1}/{batch.length}</div>
-                        </div>
+                    <div key={s.id} className="sbtn" onClick={()=>setActiveSession(s.id)} style={{flexShrink:0,padding:"7px 12px",borderRadius:20,background:isActive?T.accent:done?T.accentDim:T.surface,border:`1px solid ${isActive?T.accent:done?T.accent+"40":T.border}`,display:"flex",alignItems:"center",gap:5,transition:"all .15s"}}>
+                      <span style={{fontSize:13}}>{s.icon}</span>
+                      <div>
+                        <div style={{fontSize:10,fontWeight:isActive?700:500,color:isActive?dark?"#060A07":"#fff":done?T.accent:T.dim,whiteSpace:"nowrap"}}>{s.time}</div>
+                        {done&&!isActive&&<div style={{fontSize:7,color:T.accent}}>✓ done</div>}
                       </div>
-                      <div style={{fontFamily:"'Amiri',serif",fontSize:`${fontSize}px`,color:T.text,direction:"rtl",textAlign:"right",lineHeight:2.2,marginBottom:showTrans?10:0}}>
-                        {v.text_uthmani}
-                        <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.2em",height:"1.2em",borderRadius:"50%",border:`1px solid ${T.accent}35`,color:`${T.accent}70`,fontSize:"0.4em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 5px",verticalAlign:"middle"}}>{vNum}</span>
-                      </div>
-                      {showTrans&&(
-                        <div style={{fontSize:13,color:T.sub,lineHeight:1.7,borderTop:`1px solid ${T.border}`,paddingTop:10,fontStyle:"italic"}}>
-                          {trans===undefined?<span style={{color:T.vdim}}>Loading...</span>:trans||<span style={{color:T.vdim}}>Translation unavailable</span>}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
               </div>
-
-              {bDone?(
-                <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
-                  <div style={{fontSize:22,marginBottom:8}}>✅</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
-                  <div style={{fontSize:12,color:T.sub,marginBottom:14}}>Head to the My Rihlah to check off Fajr for today.</div>
-                  <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));}}} style={{display:"inline-block",padding:"12px 28px",background:T.accent,border:`1px solid ${T.accent}`,borderRadius:8,fontSize:13,fontWeight:700,color:dark?"#060A07":"#fff",marginTop:8}}>
-                   ✓ Done — Next Batch →
-                </div>
-                </div>
-              ):(
-                <div style={{background:T.surface,border:`1px solid ${T.accent}25`,borderRadius:8,padding:"14px 18px"}}>
-                  <div style={{fontSize:11,color:T.sub,lineHeight:1.7,marginBottom:12}}>
-                    📋 Recite each ayah aloud until you can say it 3 times from memory without looking. Use ▶ to hear the correct pronunciation from {currentReciter.name}.
-                  </div>
-                  <div className="sbtn" onClick={markBatchDone} style={{display:"block",width:"100%",padding:"13px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:7,fontSize:14,fontWeight:600,textAlign:"center"}}>
-                    {sessionJuz===30?"✓ Reviewed These Ayahs — Continue":"✓ Memorized These Ayahs — Unlock Next Batch"}
-                  </div>
-                </div>
-              )}
             </div>
-          )}
 
-          {!sessLoading&&batch.length===0&&totalSV>0&&(
-            <div style={{textAlign:"center",paddingTop:40}}>
-              <div style={{fontSize:26,marginBottom:10}}>🎉</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:T.accent,marginBottom:6}}>Juz {sessionJuz} Complete — Alhamdulillah!</div>
-              <div style={{fontSize:13,color:T.sub}}>Select the next Juz above to continue.</div>
+            {/* ── SESSION INFO CARD ── */}
+            {(()=>{
+              const sess=SESSIONS.find(s=>s.id===activeSession);
+              if(!sess) return null;
+              return (
+                <div style={{marginBottom:12,padding:"11px 14px",background:T.surface,border:`1px solid ${T.accent}25`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 8px 8px 0"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                    <div style={{fontSize:12,fontWeight:700,color:T.text}}>{sess.icon} {sess.title}</div>
+                    <div className="sbtn" onClick={()=>toggleCheck(sess.id)} style={{fontSize:9,padding:"3px 9px",background:dailyChecks[sess.id]?T.accent:T.surface2,border:`1px solid ${dailyChecks[sess.id]?T.accent:T.border}`,borderRadius:10,color:dailyChecks[sess.id]?dark?"#060A07":"#fff":T.dim,fontWeight:600}}>
+                      {dailyChecks[sess.id]?"✓ Done":"Mark Done"}
+                    </div>
+                  </div>
+                  <div style={{fontSize:11,color:T.sub,lineHeight:1.6}}>{sess.desc}</div>
+                </div>
+              );
+            })()}
+
+            {/* ── JUZ SELECTOR (tiles, no dropdown) ── */}
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:8,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:7,display:"flex",justifyContent:"space-between"}}>
+                <span>Session Juz</span>
+                <span style={{fontFamily:"'IBM Plex Mono',monospace",color:T.accent}}>Juz {sessionJuz} — {sessM?.roman}</span>
+              </div>
+              <div style={{display:"flex",gap:5,overflowX:"auto",paddingBottom:4}}>
+                {JUZ_META.slice().reverse().map(j=>{
+                  const isSel=sessionJuz===j.num;
+                  const isDone=juzStatus[j.num]==="complete";
+                  return (
+                    <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);}} style={{flexShrink:0,padding:"6px 10px",borderRadius:8,background:isSel?T.accent:isDone?T.accentDim:T.surface,border:`1px solid ${isSel?T.accent:isDone?T.accent+"40":T.border}`,textAlign:"center",minWidth:52,transition:"all .15s"}}>
+                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,fontWeight:700,color:isSel?dark?"#060A07":"#fff":isDone?T.accent:T.dim}}>{j.num}</div>
+                      <div style={{fontSize:8,color:isSel?dark?"#060A07":"#fff":isDone?T.accent:T.vdim,whiteSpace:"nowrap"}}>{j.roman?.split(" ")[0]}</div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
+
+            {/* ── PROGRESS BAR ── */}
+            <div style={{marginBottom:14,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                <span style={{fontSize:11,color:T.sub}}>Juz {sessionJuz} Progress</span>
+                <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:T.accent}}>{sessionIdx}/{totalSV} ayahs</span>
+              </div>
+              <div style={{height:5,background:T.surface2,borderRadius:3,overflow:"hidden"}}>
+                <div className="pbfill" style={{height:"100%",width:`${sessPct}%`,background:`linear-gradient(90deg,${T.accent}70,${T.accent})`,borderRadius:3}}/>
+              </div>
+              <div style={{fontSize:9,color:T.dim,marginTop:4}}>{dailyNew} ayahs/session · {Math.ceil((totalSV-sessionIdx)/Math.max(1,dailyNew))} sessions remaining</div>
+            </div>
+
+            {/* ── LOADING / ERROR STATES ── */}
+            {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
+            {!sessLoading&&sessionVerses.length===0&&(
+              <div style={{textAlign:"center",padding:"30px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
+                <div style={{fontSize:20,marginBottom:8}}>⚠️</div>
+                <div style={{fontSize:13,color:T.sub,marginBottom:14}}>Ayahs did not load. Check your internet connection.</div>
+                <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{display:"inline-block",padding:"8px 20px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:6,fontSize:12,fontWeight:600}}>Retry</div>
+              </div>
+            )}
+
+            {/* ── AYAH BATCH ── */}
+            {!sessLoading&&batch.length>0&&(
+              <div>
+                {/* Batch header */}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{sessionJuz===30?"Revision":"Fajr"} — Ayahs {bStart+1}–{bEnd} of {totalSV}</div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    <div className="sbtn" onClick={()=>setShowTrans(s=>!s)} style={{fontSize:10,padding:"3px 8px",background:showTrans?T.accentDim:T.surface2,border:`1px solid ${showTrans?T.accent+"50":T.border}`,borderRadius:5,color:showTrans?T.accent:T.dim}}>
+                      {showTrans?"Hide Trans":"Translation"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* No per-ayah audio warning */}
+                {!hasPerAyah(reciter)&&(
+                  <div style={{marginBottom:10,padding:"8px 12px",background:T.surface,border:`1px solid ${T.accent}30`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 6px 6px 0",fontSize:11,color:T.sub}}>
+                    🎵 <strong style={{color:T.accent}}>{currentReciter.name}</strong> — full surah only. Switch reciter for per-ayah audio.
+                  </div>
+                )}
+
+                {/* ── COLLAPSIBLE AYAH ROWS ── */}
+                <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
+                  {batch.map((v,i)=>{
+                    const vNum=v.verse_key?.split(":")?.[1];
+                    const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
+                    const vKey=v.verse_key;
+                    const isPlaying=playingKey===vKey;
+                    const isLoading=audioLoading===vKey;
+                    const trans=translations[vKey];
+                    const reps=repCounts[vKey]||0;
+                    const repsDone=reps>=20;
+                    const isOpen=openAyah===vKey;
+
+                    return (
+                      <div key={vKey} style={{background:T.surface,border:`1px solid ${repsDone?"#F0C04050":isOpen?T.accent+"40":T.border}`,borderRadius:10,overflow:"hidden",transition:"all .15s"}}>
+
+                        {/* ── COLLAPSED ROW ── */}
+                        <div className="sbtn" onClick={()=>setOpenAyah(isOpen?null:vKey)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
+                          {/* Ayah number */}
+                          <div style={{width:28,height:28,borderRadius:"50%",background:repsDone?T.accent:T.surface2,border:`1px solid ${repsDone?T.accent:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:repsDone?dark?"#060A07":"#fff":T.dim,fontWeight:700,flexShrink:0}}>
+                            {repsDone?"✓":i+1}
+                          </div>
+                          {/* Ayah ref */}
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:10,color:T.sub,fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:15,color:T.text,direction:"rtl",lineHeight:1.8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:180}}>{v.text_uthmani}</div>
+                          </div>
+                          {/* Rep counter pill */}
+                          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                            <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:repsDone?"#2ECC71":reps>0?T.accent:T.vdim}}>{reps}/20</div>
+                            <div style={{display:"flex",gap:2}}>
+                              {Array.from({length:5},(_,d)=>(
+                                <div key={d} style={{width:6,height:4,borderRadius:1,background:reps>=((d+1)*4)?T.accent:T.border}}/>
+                              ))}
+                            </div>
+                          </div>
+                          {/* Chevron */}
+                          <div style={{fontSize:11,color:T.vdim}}>{isOpen?"▾":"›"}</div>
+                        </div>
+
+                        {/* ── EXPANDED ROW ── */}
+                        {isOpen&&(
+                          <div style={{borderTop:`1px solid ${T.border}`,padding:"12px 14px"}}>
+                            {/* Arabic text */}
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:`${fontSize}px`,color:T.text,direction:"rtl",textAlign:"right",lineHeight:2.2,marginBottom:10}}>
+                              {v.text_uthmani}
+                              <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.2em",height:"1.2em",borderRadius:"50%",border:`1px solid ${T.accent}35`,color:`${T.accent}70`,fontSize:"0.4em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 5px",verticalAlign:"middle"}}>{vNum}</span>
+                            </div>
+
+                            {/* Translation */}
+                            {showTrans&&(
+                              <div style={{fontSize:12,color:T.sub,lineHeight:1.7,fontStyle:"italic",marginBottom:12,paddingBottom:12,borderBottom:`1px solid ${T.border}`}}>
+                                {trans===undefined?<span style={{color:T.vdim}}>Loading...</span>:trans||<span style={{color:T.vdim}}>Translation unavailable</span>}
+                              </div>
+                            )}
+
+                            {/* Audio controls */}
+                            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                              {/* Play/Pause */}
+                              <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(vKey,vKey):null} style={{width:36,height:36,borderRadius:"50%",background:isPlaying?T.accent:T.accentDim,border:`1px solid ${T.accent}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:isPlaying?dark?"#060A07":"#fff":T.accent,opacity:hasPerAyah(reciter)?1:0.4}}>
+                                {isLoading?<div className="spin" style={{width:14,height:14,border:`2px solid ${T.accent}40`,borderTopColor:T.accent,borderRadius:"50%"}}/>:(isPlaying?"⏸":"▶")}
+                              </div>
+                              {/* Audio bar */}
+                              <div style={{flex:1,height:3,background:T.surface2,borderRadius:2}}>
+                                <div style={{height:"100%",width:isPlaying?"40%":"0%",background:T.accent,borderRadius:2,transition:"width .5s"}}/>
+                              </div>
+                              {/* Repeat */}
+                              <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.currentTime=0;audioRef.current.play().catch(()=>{});}}} style={{width:30,height:30,borderRadius:"50%",background:T.surface2,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:T.dim}}>🔁</div>
+                              {/* Restart */}
+                              <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:30,height:30,borderRadius:"50%",background:T.surface2,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:T.dim}}>↩</div>
+                            </div>
+
+                            {/* Rep counter tap button */}
+                            <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:Math.min(20,(prev[vKey]||0)+1)}))} style={{width:"100%",padding:"12px",background:repsDone?"#2ECC7120":T.accentDim,border:`1px solid ${repsDone?"#2ECC71":T.accent}`,borderRadius:8,textAlign:"center",transition:"all .15s"}}>
+                              {repsDone?(
+                                <div style={{fontSize:13,fontWeight:700,color:"#2ECC71"}}>✓ 20 Reps Complete — MashaAllah!</div>
+                              ):(
+                                <div>
+                                  <div style={{fontSize:13,fontWeight:700,color:T.accent,marginBottom:2}}>Tap after each recitation · {reps}/20</div>
+                                  <div style={{display:"flex",justifyContent:"center",gap:3}}>
+                                    {Array.from({length:20},(_,d)=>(
+                                      <div key={d} style={{width:8,height:8,borderRadius:2,background:d<reps?T.accent:T.border,transition:"background .1s"}}/>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Reset reps */}
+                            {reps>0&&(
+                              <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:0}))} style={{textAlign:"center",fontSize:10,color:T.vdim,marginTop:8}}>Reset reps</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* ── BATCH DONE ── */}
+                {bDone?(
+                  <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
+                    <div style={{fontSize:22,marginBottom:8}}>✅</div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
+                    <div style={{fontSize:12,color:T.sub,marginBottom:14}}>Check off Fajr in Today's Sessions above.</div>
+                    <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));setRepCounts({});setOpenAyah(null);}}} style={{display:"inline-block",padding:"12px 28px",background:T.accent,borderRadius:8,fontSize:13,fontWeight:700,color:dark?"#060A07":"#fff"}}>
+                      Next Batch →
+                    </div>
+                  </div>
+                ):(
+                  <div className="sbtn" onClick={()=>{setSessionDone(d=>[...d,bKey]);toggleCheck(activeSession);setRepCounts({});setOpenAyah(null);}} style={{width:"100%",padding:"14px",background:T.accent,borderRadius:10,fontSize:13,fontWeight:700,color:dark?"#060A07":"#fff",textAlign:"center"}}>
+                    ✓ Complete Batch — Begin Dhuhr Revision
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── JUZ COMPLETE ── */}
+            {!sessLoading&&batch.length===0&&totalSV>0&&(
+              <div style={{textAlign:"center",paddingTop:40}}>
+                <div style={{fontSize:26,marginBottom:10}}>🎉</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:T.accent,marginBottom:6}}>Juz {sessionJuz} Complete — Alhamdulillah!</div>
+                <div style={{fontSize:13,color:T.sub}}>Select the next Juz above to continue.</div>
+              </div>
+            )}
+
+          </div>
         </div>
       )}
 
