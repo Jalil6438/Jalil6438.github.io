@@ -1300,20 +1300,20 @@ export default function RihlatAlHifz() {
         ];
 
         return (
-          <div style={{flex:1,overflowY:"auto",background:dark?"#060A07":T.bg}} className="fi">
+          // 9) Premium background
+          <div style={{flex:1,overflowY:"auto",background:"radial-gradient(circle at top, rgba(32,44,90,0.35) 0%, rgba(8,12,24,1) 45%, rgba(4,7,15,1) 100%)"}} className="fi">
 
             {/* ── HERO BANNER ── */}
             <div style={{background:"linear-gradient(160deg,#0D2E18 0%,#1A4A28 50%,#0A1F10 100%)",padding:"20px 16px 24px",position:"relative",overflow:"hidden"}}>
-              {/* Subtle star dots */}
-              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 20% 30%,#F0C04030,transparent),radial-gradient(1px 1px at 80% 20%,#F0C04020,transparent),radial-gradient(1.5px 1.5px at 50% 70%,#F0C04018,transparent),radial-gradient(1px 1px at 70% 60%,#ffffff10,transparent)",pointerEvents:"none"}}/>
+              {/* 10) Sparkle overlay */}
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.10) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.06) 0, transparent 14%), radial-gradient(circle at 35% 72%, rgba(240,192,64,0.06) 0, transparent 16%)"}}/>
               <div style={{display:"flex",alignItems:"center",gap:14,position:"relative",zIndex:1}}>
-                {/* Avatar */}
                 <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#1A4A28,#2E7D46)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid #F0C04060",boxShadow:"0 0 20px #F0C04025"}}>
-                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#F0C040"}}>{initials}</span>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#F0C040",textShadow:"0 0 10px rgba(240,192,64,0.15)"}}>{initials}</span>
                 </div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:19,fontWeight:700,color:"#EDE8DC",fontFamily:"'Playfair Display',serif",marginBottom:2}}>{username}</div>
-                  <div style={{fontSize:11,color:"#F0C040",marginBottom:8,letterSpacing:".06em"}}>Memorizer · طالب الحفظ</div>
+                  <div style={{fontSize:11,color:"#F0C040",marginBottom:8,letterSpacing:".06em",textShadow:"0 0 10px rgba(240,192,64,0.15)"}}>Memorizer · طالب الحفظ</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     <div style={{fontSize:10,color:"#8AAA90",background:"#ffffff0A",padding:"3px 8px",borderRadius:20,border:"1px solid #ffffff15"}}>📅 Joined {joinYear}</div>
                     <div style={{fontSize:10,color:"#8AAA90",background:"#ffffff0A",padding:"3px 8px",borderRadius:20,border:"1px solid #ffffff15"}}>🎯 {goalLabel}</div>
@@ -1327,9 +1327,10 @@ export default function RihlatAlHifz() {
 
             {/* ── PROGRESS + DAILY GOALS ── */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-              {/* Ring */}
-              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px 10px",display:"flex",flexDirection:"column",alignItems:"center",boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
-                <div style={{fontSize:9,color:T.accent,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:".14em"}}>Overall Progress</div>
+              {/* 1) Ring card */}
+              <div style={{background:"#0B1020",border:"1px solid rgba(240,192,64,0.18)",borderRadius:22,boxShadow:"0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02) inset",padding:"14px 10px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+                {/* 7) Section title */}
+                <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700,marginBottom:8}}>Overall Progress</div>
                 <svg width={130} height={130} style={{overflow:"visible"}}>
                   <defs>
                     <linearGradient id="ringgrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1338,36 +1339,34 @@ export default function RihlatAlHifz() {
                     </linearGradient>
                     <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
-                  {/* Track */}
-                  <circle cx={65} cy={65} r={radius} fill="none" stroke={T.surface2} strokeWidth={12}/>
-                  {/* Fill */}
+                  <circle cx={65} cy={65} r={radius} fill="none" stroke="#1A2340" strokeWidth={12}/>
                   <circle cx={65} cy={65} r={radius} fill="none" stroke="url(#ringgrad)" strokeWidth={12}
                     strokeDasharray={`${filled} ${circ}`} strokeLinecap="round"
                     transform="rotate(-90 65 65)" filter="url(#glow)" style={{transition:"stroke-dasharray 1s ease"}}/>
-                  {/* Center text */}
-                  <text x={65} y={60} textAnchor="middle" fill={T.accent} fontSize={22} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={65} y={78} textAnchor="middle" fill={T.dim} fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount} / 30 Juz</text>
+                  {/* 8) Gold accent text */}
+                  <text x={65} y={60} textAnchor="middle" fill="#F0C040" fontSize={22} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
+                  <text x={65} y={78} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount} / 30 Juz</text>
                 </svg>
               </div>
 
-              {/* Daily goals */}
-              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",display:"flex",flexDirection:"column",boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
-                <div style={{fontSize:9,color:T.accent,fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:".14em"}}>Daily Goals</div>
+              {/* 1) Daily goals card */}
+              <div style={{background:"#0B1020",border:"1px solid rgba(240,192,64,0.18)",borderRadius:22,boxShadow:"0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02) inset",padding:"14px",display:"flex",flexDirection:"column"}}>
+                <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700,marginBottom:8}}>Daily Goals</div>
                 <div style={{marginBottom:10}}>
-                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:30,color:T.accent,fontWeight:700,lineHeight:1}}>{checkedCount}</span>
-                  <span style={{fontSize:14,color:T.dim}}> / {SESSIONS.length}</span>
-                  <div style={{fontSize:10,color:T.sub,marginTop:2}}>Sessions Today</div>
+                  {/* 8) Gold number */}
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:30,color:"#F0C040",fontWeight:700,lineHeight:1,textShadow:"0 0 10px rgba(240,192,64,0.15)"}}>{checkedCount}</span>
+                  <span style={{fontSize:14,color:"rgba(255,255,255,0.45)"}}> / {SESSIONS.length}</span>
+                  <div style={{fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:2}}>Sessions Today</div>
                 </div>
-                {/* Session dots */}
                 <div style={{display:"flex",flexDirection:"column",gap:6}}>
                   {SESSIONS.map(s=>{
                     const done=!!dailyChecks[s.id];
                     return (
                       <div key={s.id} className="sbtn" onClick={()=>toggleCheck(s.id)} style={{display:"flex",alignItems:"center",gap:7}}>
-                        <div style={{width:15,height:15,borderRadius:"50%",background:done?s.color:T.surface2,border:`2px solid ${done?s.color:T.border}`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:done?`0 0 6px ${s.color}60`:"none",transition:"all .2s"}}>
-                          {done&&<span style={{fontSize:8,color:"#fff",fontWeight:700}}>✓</span>}
+                        <div style={{width:13,height:13,borderRadius:"50%",background:done?s.color:"#131C34",border:done?`2px solid ${s.color}`:"1px solid rgba(255,255,255,0.08)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:done?`0 0 6px ${s.color}60`:"inset 0 0 0 1px rgba(255,255,255,0.02)",transition:"all .2s"}}>
+                          {done&&<span style={{fontSize:7,color:"#fff",fontWeight:700}}>✓</span>}
                         </div>
-                        <span style={{fontSize:10,color:done?s.color:T.dim,fontWeight:done?600:400,transition:"color .2s"}}>{s.icon} {s.time}</span>
+                        <span style={{fontSize:10,color:done?s.color:"rgba(255,255,255,0.55)",fontWeight:done?600:400,transition:"color .2s"}}>{s.icon} {s.time}</span>
                       </div>
                     );
                   })}
@@ -1376,87 +1375,119 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── JOURNEY TIMELINE ── */}
-            <div style={{background:"linear-gradient(135deg,#0D2E18,#1A4A28)",border:"1px solid #2A6A3880",borderRadius:14,padding:"16px 14px 20px",marginBottom:12,boxShadow:"0 4px 20px #00000030",position:"relative",overflow:"hidden"}}>
-              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 30% 50%,#F0C04015,transparent),radial-gradient(1px 1px at 70% 30%,#F0C04010,transparent)",pointerEvents:"none"}}/>
-              <div style={{fontSize:9,color:"#F0C040",fontWeight:700,marginBottom:16,textTransform:"uppercase",letterSpacing:".14em",position:"relative",zIndex:1}}>Hifz Journey</div>
-              <div style={{position:"relative",height:60,zIndex:1}}>
-                {/* Track */}
-                <div style={{position:"absolute",top:20,left:"4%",right:"4%",height:4,background:"#F0C04025",borderRadius:2}}/>
-                {/* Progress fill */}
-                <div style={{position:"absolute",top:20,left:"4%",width:`${4+Math.min(88,(completedCount/30)*88)}%`,height:4,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2,boxShadow:"0 0 8px #F0C04050",transition:"width 1s ease"}}/>
+            {/* 1) Card depth */}
+            <div style={{background:"#0B1020",border:"1px solid rgba(240,192,64,0.18)",borderRadius:22,boxShadow:"0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02) inset",padding:"18px 16px 22px",marginBottom:12,position:"relative",overflow:"hidden"}}>
+              {/* 10) Sparkle */}
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.10) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.06) 0, transparent 14%), radial-gradient(circle at 35% 72%, rgba(240,192,64,0.06) 0, transparent 16%)"}}/>
+              {/* 7) Section title */}
+              <div style={{fontSize:14,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700,marginBottom:20,position:"relative",zIndex:1}}>Hifz Journey</div>
+              <div style={{position:"relative",height:64,zIndex:1}}>
+                {/* 3) Unfilled rail */}
+                <div style={{position:"absolute",top:22,left:"4%",right:"10%",height:4,borderRadius:999,background:"#1A2340"}}/>
+                {/* 3) Progress line */}
+                <div style={{position:"absolute",top:22,left:"4%",width:`${Math.max(0,Math.min(86,(completedCount/30)*86))}%`,height:4,borderRadius:999,background:"linear-gradient(90deg, rgba(240,192,64,0.95) 0%, rgba(240,192,64,0.78) 100%)",boxShadow:"0 0 12px rgba(240,192,64,0.28)",transition:"width 1s ease"}}/>
                 {/* Milestones */}
-                {[{juz:0,label:"Juz 1",pos:4},{juz:10,label:"Juz 10",pos:33},{juz:20,label:"Juz 20",pos:63},{juz:30,label:"Juz 30",pos:93}].map((m,i)=>{
-                  const reached=completedCount>=m.juz;
+                {[{juz:0,label:"Juz 1",pos:4},{juz:10,label:"Juz 10",pos:32},{juz:20,label:"Juz 20",pos:60},{juz:30,label:"Juz 30",pos:90}].map((m,i)=>{
+                  const reached=completedCount>m.juz;
+                  const isCurrent=completedCount===m.juz&&m.juz>0;
                   return (
-                    <div key={i} style={{position:"absolute",top:8,left:`${m.pos}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-                      <div style={{width:reached?16:10,height:reached?16:10,borderRadius:"50%",background:reached?"#F0C040":"#2A4A30",border:`2px solid ${reached?"#F0C040":"#3A6A40"}`,boxShadow:reached?"0 0 10px #F0C04070":"none",transition:"all .4s"}}/>
-                      <div style={{fontSize:8,color:reached?"#F0C040":"#4A7A50",whiteSpace:"nowrap",fontWeight:reached?700:400,marginTop:2}}>{m.label}</div>
+                    <div key={i} style={{position:"absolute",top:9,left:`${m.pos}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+                      {/* 2) Active / inactive node */}
+                      {isCurrent ? (
+                        <div style={{width:26,height:26,borderRadius:"50%",background:"linear-gradient(180deg,#FFD76A 0%, #F0C040 100%)",boxShadow:"0 0 0 4px rgba(240,192,64,0.12), 0 0 18px rgba(240,192,64,0.45)",border:"1px solid rgba(255,231,160,0.75)"}}/>
+                      ) : reached ? (
+                        <div style={{width:18,height:18,borderRadius:"50%",background:"linear-gradient(180deg,#F0C040,#B8920A)",boxShadow:"0 0 8px rgba(240,192,64,0.35)",border:"1px solid rgba(255,231,160,0.5)"}}/>
+                      ) : (
+                        <div style={{width:18,height:18,borderRadius:"50%",background:"#131C34",border:"1px solid rgba(255,255,255,0.08)",boxShadow:"inset 0 0 0 1px rgba(255,255,255,0.02)"}}/>
+                      )}
+                      <div style={{fontSize:8,color:reached||isCurrent?"#F0C040":"rgba(255,255,255,0.28)",whiteSpace:"nowrap",fontWeight:reached||isCurrent?700:400}}>{m.label}</div>
                     </div>
                   );
                 })}
                 {/* Hafiz endpoint */}
-                <div style={{position:"absolute",top:6,right:"0%",transform:"translateX(50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-                  <div style={{fontSize:20}}>📖</div>
-                  <div style={{fontSize:8,color:"#F0C040",fontWeight:700}}>Hafiz</div>
+                <div style={{position:"absolute",top:4,right:"0%",transform:"translateX(40%)",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <div style={{fontSize:22}}>📖</div>
+                  <div style={{fontSize:8,color:"rgba(240,192,64,0.7)",fontWeight:700}}>Hafiz</div>
                 </div>
-                {/* Current juz marker */}
-                {completedCount>0&&<div style={{position:"absolute",top:0,left:`${4+Math.min(88,(completedCount/30)*88)}%`,transform:"translateX(-50%)",background:"#F0C040",color:"#0D2E18",fontSize:9,fontWeight:700,padding:"1px 6px",borderRadius:4,fontFamily:"'IBM Plex Mono',monospace",whiteSpace:"nowrap",boxShadow:"0 2px 8px #F0C04060"}}>{completedCount}</div>}
+                {/* Current position label */}
+                {completedCount>0&&<div style={{position:"absolute",top:0,left:`${4+Math.min(86,(completedCount/30)*86)}%`,transform:"translateX(-50%)",background:"#F0C040",color:"#080C18",fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:5,fontFamily:"'IBM Plex Mono',monospace",whiteSpace:"nowrap",boxShadow:"0 0 12px rgba(240,192,64,0.45)"}}>{completedCount}</div>}
               </div>
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:4,position:"relative",zIndex:1}}>
-                <div style={{fontSize:9,color:"#6A9A70"}}>Goal: {goalYears}-Year Plan</div>
-                <div style={{fontSize:9,color:"#6A9A70"}}>{timeline.juzLeft} Juz remaining</div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:6,position:"relative",zIndex:1}}>
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>Goal: {goalYears}-Year Plan</div>
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>{timeline.juzLeft} Juz remaining</div>
               </div>
             </div>
 
             {/* ── FAJR CHECKLIST ── */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"14px",marginBottom:12,boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <div style={{fontSize:13,fontWeight:700,color:T.text}}>🌅 Fajr — New Memorization</div>
-                <div className="sbtn" onClick={()=>toggleCheck("fajr")} style={{fontSize:9,padding:"4px 10px",background:fajrDone?"#F0C040":T.surface2,border:`1px solid ${fajrDone?"#F0C040":T.border}`,borderRadius:20,color:fajrDone?dark?"#060A07":"#fff":T.dim,fontWeight:700,boxShadow:fajrDone?"0 0 8px #F0C04050":"none",transition:"all .2s"}}>
+            {/* 1) Card depth */}
+            <div style={{background:"#0B1020",border:"1px solid rgba(240,192,64,0.18)",borderRadius:22,boxShadow:"0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02) inset",padding:"16px",marginBottom:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                {/* 7) Section title */}
+                <div style={{fontSize:14,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700}}>🌅 Fajr</div>
+                <div className="sbtn" onClick={()=>toggleCheck("fajr")} style={{fontSize:9,padding:"4px 12px",background:fajrDone?"#F0C040":"#11192F",border:fajrDone?"1px solid rgba(240,192,64,0.55)":"1px solid rgba(255,255,255,0.08)",borderRadius:20,color:fajrDone?"#080C18":"rgba(255,255,255,0.5)",fontWeight:700,boxShadow:fajrDone?"0 0 12px rgba(240,192,64,0.22)":"none",transition:"all .2s"}}>
                   {fajrDone?"✓ Done":"Mark Done"}
                 </div>
               </div>
-              <div style={{marginBottom:10}}>
-                <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.dim,marginBottom:4}}>
+              {/* Progress bar */}
+              <div style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:5}}>
                   <span>Progress: {checkedCount} / {SESSIONS.length}</span>
-                  <span style={{color:T.accent,fontWeight:600}}>{dailyNew} ayahs today</span>
+                  {/* 8) Gold accent */}
+                  <span style={{color:"#F0C040",fontWeight:600,textShadow:"0 0 10px rgba(240,192,64,0.15)"}}>{dailyNew} ayahs today</span>
                 </div>
-                <div style={{height:7,background:T.surface2,borderRadius:4,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:4,boxShadow:"0 0 6px #F0C04040",transition:"width .5s"}}/>
+                <div style={{height:7,background:"#1A2340",borderRadius:999,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg, rgba(240,192,64,0.95) 0%, rgba(240,192,64,0.78) 100%)",borderRadius:999,boxShadow:"0 0 12px rgba(240,192,64,0.28)",transition:"width .5s"}}/>
                 </div>
               </div>
+              {/* 4) Checklist rows */}
               {fajrSteps.map((step,i)=>{
                 const stepDone=fajrDone||(i===0&&checkedCount>0);
                 return (
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<fajrSteps.length-1?`1px solid ${T.border}`:"none"}}>
-                    <div style={{width:20,height:20,borderRadius:4,background:stepDone?"#3ECC71":T.surface2,border:`2px solid ${stepDone?"#3ECC71":T.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:stepDone?"0 0 6px #3ECC7150":"none",transition:"all .2s"}}>
-                      {stepDone&&<span style={{fontSize:10,color:"#fff",fontWeight:700}}>✓</span>}
-                    </div>
-                    <span style={{fontSize:11,color:stepDone?T.dim:T.text,textDecoration:stepDone?"line-through":"none",opacity:stepDone?.65:1,transition:"all .2s"}}>{step}</span>
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 0",borderBottom:i<fajrSteps.length-1?"1px solid rgba(255,255,255,0.07)":"none"}}>
+                    {/* 5) Checkbox */}
+                    {stepDone ? (
+                      <div style={{width:26,height:26,borderRadius:8,background:"linear-gradient(180deg,#2B2130 0%, #1A1620 100%)",border:"1px solid rgba(240,192,64,0.55)",boxShadow:"0 0 12px rgba(240,192,64,0.22), inset 0 0 0 1px rgba(255,255,255,0.03)",color:"#F0C040",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,flexShrink:0,fontSize:13}}>✓</div>
+                    ) : (
+                      <div style={{width:26,height:26,borderRadius:8,background:"#11192F",border:"1px solid rgba(255,255,255,0.08)",boxShadow:"inset 0 0 0 1px rgba(255,255,255,0.02)",flexShrink:0}}/>
+                    )}
+                    {/* 4) Text styles */}
+                    <span style={stepDone?{color:"#F5E7B8",fontWeight:500,fontSize:12,textDecoration:"line-through",opacity:.6}:{color:"rgba(255,255,255,0.92)",fontSize:12}}>{step}</span>
                   </div>
                 );
               })}
             </div>
 
             {/* ── BADGES ── */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px 12px",marginBottom:12,boxShadow:dark?"0 2px 16px #00000040":"0 2px 12px #00000010"}}>
-              <div style={{fontSize:9,color:T.accent,fontWeight:700,marginBottom:16,textTransform:"uppercase",letterSpacing:".14em"}}>Badges Earned</div>
-              <div style={{display:"flex",justifyContent:"space-around",gap:4}}>
-                {badges.map((b,i)=><ShieldBadge key={i} {...b}/>)}
+            {/* 1) Card depth */}
+            <div style={{background:"#0B1020",border:"1px solid rgba(240,192,64,0.18)",borderRadius:22,boxShadow:"0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02) inset",padding:"18px 14px",marginBottom:12,position:"relative",overflow:"hidden"}}>
+              {/* 10) Sparkle */}
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.10) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.06) 0, transparent 14%), radial-gradient(circle at 35% 72%, rgba(240,192,64,0.06) 0, transparent 16%)"}}/>
+              {/* 7) Section title */}
+              <div style={{fontSize:14,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
+              <div style={{display:"flex",justifyContent:"space-around",gap:4,position:"relative",zIndex:1}}>
+                {badges.map((b,i)=>(
+                  <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flex:1}}>
+                    {/* 6) Badge card */}
+                    <div style={b.earned?{background:"linear-gradient(180deg,#17131F 0%, #0E0C14 100%)",border:"2px solid rgba(240,192,64,0.75)",borderRadius:18,boxShadow:"0 0 20px rgba(240,192,64,0.28), inset 0 0 18px rgba(240,192,64,0.05)",width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}:{background:"#10182C",border:"1px solid rgba(255,255,255,0.06)",borderRadius:18,opacity:0.55,width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <ShieldBadge icon={b.icon} label="" earned={b.earned} c1={b.c1} c2={b.c2} glow={b.glow}/>
+                    </div>
+                    <div style={{fontSize:9,fontWeight:700,color:b.earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.28)",textAlign:"center",letterSpacing:".02em",lineHeight:1.3}}>{b.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* ── NAV BUTTONS ── */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:"linear-gradient(135deg,#0D2E18,#1A4A28)",border:"1px solid #2A6A3860",borderRadius:14,textAlign:"center",boxShadow:"0 4px 16px #00000030"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:"linear-gradient(135deg,#0D2E18,#1A4A28)",border:"1px solid rgba(240,192,64,0.18)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)"}}>
                 <div style={{fontSize:24,marginBottom:4}}>📖</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Juz</div>
-                <div style={{fontSize:10,color:"#6A9A70",marginTop:2}}>Track memorization</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Track memorization</div>
               </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:"linear-gradient(135deg,#1A1A0A,#2A2A10)",border:"1px solid #F0C04030",borderRadius:14,textAlign:"center",boxShadow:"0 4px 16px #00000030"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:"#0B1020",border:"1px solid rgba(240,192,64,0.18)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.35)"}}>
                 <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>Timeline</div>
-                <div style={{fontSize:10,color:"#8A8A50",marginTop:2}}>Goal calculator</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Goal calculator</div>
               </div>
             </div>
 
