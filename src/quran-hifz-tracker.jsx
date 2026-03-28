@@ -710,42 +710,6 @@ export default function RihlatAlHifz() {
             </div>
           )}
 
-          {/* ── STEP 2 — DUA MODAL ── */}
-          {onboardStep===2&&(()=>{
-            const DUAS=[
-              {arabic:"رَبِّ زِدْنِي عِلْمًا",transliteration:"Rabbi zidni ilma",translation:"My Lord, increase me in knowledge.",source:"Surah Ta-Ha · 20:114"},
-              {arabic:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",transliteration:"Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina adhaban-nar",translation:"Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",source:"Surah Al-Baqarah · 2:201"},
-              {arabic:"رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً",transliteration:"Rabbana la tuzigh qulubana ba'da idh hadaytana wa hab lana min ladunka rahmah",translation:"Our Lord, do not let our hearts deviate after You have guided us, and grant us mercy from Yourself.",source:"Surah Aal-Imran · 3:8"},
-              {arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا",transliteration:"Allahumma inni as'aluka ilman nafi'an wa rizqan tayyiban wa amalan mutaqabbala",translation:"O Allah, I ask You for beneficial knowledge, pure provision, and accepted deeds.",source:"Morning Dua · Ibn Majah"},
-              {arabic:"رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",transliteration:"Rabbi ishrah li sadri wa yassir li amri",translation:"My Lord, expand my chest and ease my affairs.",source:"Surah Ta-Ha · 20:25-26"},
-              {arabic:"اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",transliteration:"Allahumma a'inni ala dhikrika wa shukrika wa husni ibadatik",translation:"O Allah, help me to remember You, to be grateful to You, and to worship You in an excellent manner.",source:"Abu Dawud · After every Salah"},
-            ];
-            const d=DUAS[duaIdx%DUAS.length];
-            return (
-              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 24px",textAlign:"center"}}>
-                {/* Dua card */}
-                <div style={{width:"100%",maxWidth:420,background:"#0D1008",border:"1px solid #F0C04030",borderRadius:14,padding:"24px 20px",marginBottom:22}}>
-                  <div style={{fontSize:8,color:"#F0C040",letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
-                  <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:"#F0C040",direction:"rtl",lineHeight:2,marginBottom:10}}>{d.arabic}</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:"#A8B89A",fontStyle:"italic",marginBottom:6}}>"{d.transliteration}"</div>
-                  <div style={{fontSize:11,color:"#EDE8DC",lineHeight:1.6,marginBottom:6}}>{d.translation}</div>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"#5A7050"}}>{d.source}</div>
-                </div>
-                {/* Progress dots */}
-                <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:22}}>
-                  {[0,1,2,3,4,5].map(i=>(
-                    <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"#F0C040":"#2E4030",transition:"all .3s"}}/>
-                  ))}
-                </div>
-                <div style={{display:"flex",gap:8,width:"100%",maxWidth:360}}>
-                  <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
-                  <div className="sbtn" onClick={()=>{setDuaIdx(i=>(i+1)%6);setOnboardStep(3);}} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
-                    Let's Begin →
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
 
           {/* ── STEP 3 — NAME INPUT ── */}
           {onboardStep===3&&(
@@ -776,7 +740,7 @@ export default function RihlatAlHifz() {
               )}
               <div style={{flex:1}}/>
               <div style={{display:"flex",gap:8}}>
-                <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
+                <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
                 <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
                   Continue →
                 </div>
