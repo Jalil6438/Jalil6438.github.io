@@ -703,7 +703,7 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:9,color:"#2E4030",marginBottom:40}}>Al-Qamar · 54:17</div>
               <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#F0C040",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#EDE8DC",marginBottom:44}}>Rihlat Al-Hifz</div>
-              <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em"}}>
+              <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{width:"100%",maxWidth:360,padding:"15px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em"}}>
                 Begin Your Journey →
               </div>
               <div style={{fontSize:9,color:"#2E4030",marginTop:16}}>© 2026 NoorTech Studio</div>
@@ -776,7 +776,7 @@ export default function RihlatAlHifz() {
               )}
               <div style={{flex:1}}/>
               <div style={{display:"flex",gap:8}}>
-                <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
+                <div className="sbtn" onClick={()=>setOnboardStep(2)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
                 <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
                   Continue →
                 </div>
@@ -846,137 +846,35 @@ export default function RihlatAlHifz() {
                   <span style={{fontFamily:"'IBM Plex Mono',monospace",color:"#F0C040"}}>{juzDone} Juz ✓</span>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:5,marginBottom:6}}>
-                  {JUZ_META.map((j)=>{
-                    const status = juzStatus[j.num];
-                    const isFull = status === "complete";
-                    const isOpen = openJuzPanel === j.num;
-                    const hasPartial =
-                      !isFull &&
-                      Object.keys(juzStatus).some(k =>
-                        k.startsWith("s") &&
-                        JUZ_SURAHS[j.num]?.some(s => `s${s.s}` === k && juzStatus[k] === "complete")
-                      );
-
-                    const borderColor = isOpen
-                      ? "#20b2aa"
-                      : isFull
-                      ? "#F0C040"
-                      : hasPartial
-                      ? "#D9A93A"
-                      : "#24311F";
-
-                    const bg = isOpen
-                      ? "linear-gradient(180deg, #27cfc6 0%, #14958e 100%)"
-                      : isFull
-                      ? "linear-gradient(180deg, #1A1608 0%, #121007 100%)"
-                      : hasPartial
-                      ? "linear-gradient(180deg, #15180D 0%, #0F130A 100%)"
-                      : "linear-gradient(180deg, #101508 0%, #0B0F07 100%)";
-
-                  return (
-                  <div
-                    key={j.num}
-                    className="sbtn"
-                    onClick={() => setOpenJuzPanel(isOpen ? null : j.num)}
-                    style={{
-                      minHeight: 78,
-                      borderRadius: 12,
-                      padding: "10px 8px",
-                      cursor: "pointer",
-                      background: bg,
-                      border: `1.5px solid ${borderColor}`,
-                      outline: isFull ? "1px solid rgba(240,192,64,.25)" : "none",
-                      boxShadow: isOpen
-                        ? "0 10px 22px rgba(32,178,170,.35), 0 0 0 1px rgba(32,178,170,.25), inset 0 1px 0 rgba(255,255,255,.08)"
-                        : isFull
-                        ? "0 0 0 1px rgba(240,192,64,.25), 0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06)"
-                        : hasPartial
-                        ? "0 0 0 1px rgba(217,169,58,.18), 0 6px 16px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04)"
-                        : "0 6px 14px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03)",
-                      transform: isOpen ? "translateY(-2px) scale(1.02)" : isFull ? "scale(1.01)" : "scale(1)",
-                      transition: "all .18s ease",
-                      position: "relative",
-                      overflow: "hidden",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      textAlign: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <div
-                      style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 10,
-                      right: 10,
-                      height: 1,
-                      background: isOpen
-                        ? "rgba(255,255,255,.35)"
-                        : isFull
-                        ? "rgba(240,192,64,.55)"
-                        : "rgba(255,255,255,.06)",
-                    }}
-                  />
-
-                  <div style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:4}}>
-                    <div
-                      style={{
-                        fontFamily:"'IBM Plex Mono', monospace",
-                        fontSize:9,
-                        color:isOpen ? "#06211E" : isFull ? "#F0C040" : hasPartial ? "#D9A93A" : "#6C7A61",
-                        fontWeight:700,
-                        opacity:.7
-                      }}
-                    >
-                      {j.num}
-                    </div>
-
-                    {(isFull || hasPartial) && (
-                      <div
+                  {Array.from({length:30},(_,i)=>{
+                    const juz=i+1;
+                    const status=juzStatus[juz];
+                    const isFull=status==="complete";
+                    const isOpen=openJuzPanel===juz;
+                    const hasPartial=!isFull&&Object.keys(juzStatus).some(k=>k.startsWith("s")&&JUZ_SURAHS[juz]?.some(s=>`s${s.s}`===k&&juzStatus[k]==="complete"));
+                    return (
+                      <div key={juz} className="sbtn"
+                        onClick={()=>setOpenJuzPanel(isOpen?null:juz)}
                         style={{
-                          width:8,
-                          height:8,
-                          borderRadius:"50%",
-                          background:isFull ? "#F0C040" : "#D9A93A",
-                          boxShadow:isFull
-                            ? "0 0 10px rgba(240,192,64,.45)"
-                            : "0 0 8px rgba(217,169,58,.30)"
+                          aspectRatio:"1",borderRadius:8,
+                          background:isOpen?"#20b2aa":isFull?"linear-gradient(135deg,#0d8a84,#20b2aa)":hasPartial?"#20b2aa18":"#141A0F",
+                          border:`2px solid ${isOpen?"#20b2aa":isFull?"#20b2aa":hasPartial?"#20b2aa60":"#1E2A18"}`,
+                          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+                          fontFamily:"'IBM Plex Mono',monospace",
+                          fontSize:isFull||isOpen?10:9,
+                          color:isOpen?"#060A07":isFull?"#fff":hasPartial?"#20b2aa":"#2E4030",
+                          fontWeight:isFull||isOpen?700:400,
+                          transition:"all .18s",
+                          boxShadow:isFull?"0 3px 10px rgba(32,178,170,.4)":isOpen?"0 3px 12px rgba(32,178,170,.5)":"none",
+                          transform:isFull||isOpen?"scale(1.04)":"scale(1)",
                         }}
-                      />
-                   )}
+                      >
+                        {isFull&&<div style={{fontSize:8,marginBottom:1}}>✓</div>}
+                        {juz===30?"30★":juz}
+                      </div>
+                    );
+                  })}
                 </div>
-
-                <div
-                  style={{
-                    fontSize:14,
-                    fontWeight:700,
-                    color:isOpen ? "#041210" : isFull ? "#F6D36A" : "#EAE4D3",
-                    lineHeight:1.2,
-                    textAlign:"center"
-                  }}
-                >
-                  {j.num === 30 ? "Juz Amma" : j.num === 29 ? "Juz Tabarak" : `Juz ${j.roman}`}
-                </div>
-
-                <div
-                  style={{
-                  fontSize:16,
-                  fontWeight:600,
-                  color:isOpen ? "#08312D" : "#7E8C74",
-                  direction:"rtl",
-                  textAlign:"center",
-                  lineHeight:1.4,
-                  letterSpacing:"0.5px"
-                }}
-              >
-                {j.arabic}
-              </div>
-            </div>
-          );
-        })}
-    </div>
 
                 {/* Surah panel — shows when a Juz is tapped */}
                 {openJuzPanel&&(()=>{
@@ -1128,64 +1026,15 @@ export default function RihlatAlHifz() {
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&(
         <div style={{flex:1,overflowY:"auto",padding:"16px 18px 48px"}} className="fi">
-          <div style={{marginBottom:14,padding:"12px 16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
-  <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:10}}>
-    Select Reciter
-  </div>
-
-  <div style={{display:"grid",gap:14}}>
-    {["Masjid Al-Haram","Masjid An-Nabawi"].map(group=>(
-      <div key={group}>
-        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-          <div style={{fontSize:10,color:T.sub,letterSpacing:".12em",textTransform:"uppercase"}}>
-            {group==="Masjid Al-Haram" ? "🕋 Masjid Al-Haram" : "🕌 Masjid An-Nabawi"}
+          <div className="sbtn" onClick={()=>setShowReciterModal(true)} style={{marginBottom:14,display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10}}>
+            <div style={{fontSize:16}}>🎙️</div>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div style={{fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{currentReciter.name}</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:T.dim,textAlign:"center"}}>{currentReciter.arabic}</div>
+            </div>
+            <div style={{fontSize:9,color:T.accent,background:T.accentDim,border:`1px solid ${T.accent}30`,padding:"3px 8px",borderRadius:8}}>Selected ✓</div>
+            <div style={{fontSize:12,color:T.dim}}>▼</div>
           </div>
-          <div style={{flex:1,height:1,background:T.border}}/>
-        </div>
-
-        <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:8}}>
-          {RECITERS.filter(r=>r.tag===group).map(r=>{
-            const isSelected = reciter===r.id;
-
-            return (
-              <div
-                key={r.id}
-                className="sbtn"
-                onClick={()=>setReciter(r.id)}
-                style={{
-                  background:isSelected ? T.accentDim : T.surface2,
-                  border:`${isSelected ? "2px" : "1px"} solid ${isSelected ? T.accent : T.border}`,
-                  borderRadius:10,
-                  padding:"12px 10px",
-                  position:"relative",
-                  minHeight:82
-                }}
-              >
-                {isSelected && (
-                  <div style={{position:"absolute",top:8,right:8,fontSize:11,color:T.accent,fontWeight:700}}>
-                    ✓
-                  </div>
-                )}
-
-                <div style={{fontSize:12,fontWeight:700,color:T.text,marginBottom:4,paddingRight:16,lineHeight:1.3}}>
-                  {r.name}
-                </div>
-
-                <div style={{fontFamily:"'Amiri',serif",fontSize:14,color:T.accent,marginBottom:2,direction:"rtl",lineHeight:1.4}}>
-                  {r.arabic}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    ))}
-  </div>
-
-  <div style={{marginTop:8,fontSize:10,color:T.vdim,fontStyle:"italic"}}>
-    ⓘ Baleela, Badr Al-Turki & Qarafi: full surah audio only (Quran tab) — per-ayah not available.
-  </div>
-  </div>
 
           <div style={{marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
             <div>
