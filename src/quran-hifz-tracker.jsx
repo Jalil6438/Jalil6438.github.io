@@ -809,39 +809,41 @@ export default function RihlatAlHifz() {
                   <span>Mark your memorization</span>
                   <span style={{fontFamily:"'IBM Plex Mono',monospace",color:"#F0C040"}}>{juzDone} Juz ✓</span>
                 </div>
-                <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:6}}>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:6}}>
                   {Array.from({length:30},(_,i)=>{
                     const juz=i+1;
                     const status=juzStatus[juz];
                     const isFull=status==="complete";
                     const isOpen=openJuzPanel===juz;
                     const hasPartial=!isFull&&Object.keys(juzStatus).some(k=>k.startsWith("s")&&JUZ_SURAHS[juz]?.some(s=>`s${s.s}`===k&&juzStatus[k]==="complete"));
-                    const juzName=JUZ_META.find(j=>j.num===juz)?.roman||`Juz ${juz}`;
+                    const juzMeta=JUZ_META.find(j=>j.num===juz);
+                    const juzName=juzMeta?.roman||`Juz ${juz}`;
+                    const juzArabic=juzMeta?.arabic||"";
                     return (
                       <div key={juz} className="sbtn"
                         onClick={()=>setOpenJuzPanel(isOpen?null:juz)}
                         style={{
-                          borderRadius:8,
-                          padding:"8px 14px",
-                          background:isOpen?"#F0C040":isFull?"#F0C04020":hasPartial?"#F0C04010":"#141A0F",
-                          border:`1px solid ${isOpen?"#F0C040":isFull?"#F0C040":hasPartial?"#F0C04050":"#1E2A18"}`,
-                          display:"flex",alignItems:"center",justifyContent:"space-between",
+                          borderRadius:10,
+                          padding:"10px 6px",
+                          background:isOpen?"#F0C040":isFull?"#F0C04025":hasPartial?"#F0C04012":"#141A0F",
+                          border:`1px solid ${isOpen?"#F0C040":isFull?"#F0C040":hasPartial?"#F0C04055":"#1E2A18"}`,
+                          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+                          textAlign:"center",
                           transition:"all .15s",
+                          boxShadow:isFull?"0 2px 8px rgba(240,192,64,.2)":"none",
                         }}
                       >
-                        <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#F0C04080":"#2E4030",fontWeight:600,minWidth:20}}>
-                            {String(juz).padStart(2,"0")}
-                          </div>
-                          <div style={{fontSize:11,fontWeight:isFull||isOpen?600:400,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#A8B89A":"#5A7050"}}>
-                            {juzName}
-                          </div>
+                        <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:isOpen?"#060A07":isFull?"#F0C040":"#F0C04050",fontWeight:700,marginBottom:3}}>
+                          {String(juz).padStart(2,"0")}
                         </div>
-                        <div style={{display:"flex",alignItems:"center",gap:6}}>
-                          {hasPartial&&!isFull&&<div style={{fontSize:8,color:"#F0C04070"}}>partial</div>}
-                          {isFull&&<div style={{fontSize:10,color:"#F0C040"}}>✓</div>}
-                          <div style={{fontSize:10,color:isOpen?"#060A07":"#2E4030"}}>{isOpen?"▾":"›"}</div>
+                        <div style={{fontSize:10,fontWeight:600,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#F0C04080":"#A8B89A",marginBottom:2,lineHeight:1.2}}>
+                          {juzName}
                         </div>
+                        <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#F0C04070":"#5A7050",direction:"rtl",lineHeight:1.3}}>
+                          {juzArabic}
+                        </div>
+                        {isFull&&<div style={{fontSize:9,color:isOpen?"#060A07":"#F0C040",marginTop:3,fontWeight:700}}>✓</div>}
+                        {hasPartial&&!isFull&&<div style={{fontSize:7,color:"#F0C04070",marginTop:2}}>partial</div>}
                       </div>
                     );
                   })}
