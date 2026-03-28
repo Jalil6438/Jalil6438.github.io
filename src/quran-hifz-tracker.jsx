@@ -1258,9 +1258,10 @@ export default function RihlatAlHifz() {
         const radius=52, circ=2*Math.PI*radius;
         const filled=circ*(pct/100);
         const milestones=[{juz:0,label:"Juz 1",pct:0},{juz:10,label:"Juz 10",pct:33},{juz:20,label:"Juz 20",pct:67},{juz:30,label:"Juz 30",pct:100},{juz:31,label:"Hafiz 📖",pct:100}];
-        const fajrSess=SESSIONS.find(s=>s.id==="fajr");
-        const fajrDone=!!dailyChecks["fajr"];
-        const fajrSteps=fajrSess?.steps||[];
+        // Show the first uncompleted session, or the last one if all done
+        const activeSess=SESSIONS.find(s=>!dailyChecks[s.id])||SESSIONS[SESSIONS.length-1];
+        const activeDone=!!dailyChecks[activeSess.id];
+        const activeSteps=activeSess?.steps||[];
 
         // ── Shield badge SVG component ──
         const ShieldBadge=({icon,label,earned,c1,c2,glow})=>(
@@ -1293,10 +1294,10 @@ export default function RihlatAlHifz() {
         );
 
         const badges=[
-          {icon:"📗",label:`${completedCount || 0} Juz`,earned:completedCount>0,c1:"#4ADE80",c2:"#166534",glow:"#22C55E"},
-          {icon:"🌙",label:"Habituated",earned:streak>=14,c1:"#C9A84C",c2:"#7C5C10",glow:"#C9A84C"},
-          {icon:"🔥",label:"7 Day Streak",earned:streak>=7,c1:"#F97316",c2:"#7C2D12",glow:"#F97316"},
-          {icon:"📖",label:"Hifz Goal",earned:goalYears>0,c1:"#C9A84C",c2:"#4A3000",glow:"#C9A84C"},
+          {icon:"📗",label:`${completedCount||0} Juz`, earned:completedCount>0, c1:"#4ADE80",c2:"#14532D",glow:"#22C55E"},
+          {icon:"🌙",label:"Habituated",               earned:streak>=14,        c1:"#818CF8",c2:"#312E81",glow:"#6366F1"},
+          {icon:"🔥",label:"7 Day Streak",             earned:streak>=7,         c1:"#FB923C",c2:"#7C2D12",glow:"#F97316"},
+          {icon:"📖",label:"Hifz Goal",                earned:goalYears>0,       c1:"#F0C040",c2:"#78400A",glow:"#F0C040"},
         ];
 
         return (
@@ -1418,43 +1419,67 @@ export default function RihlatAlHifz() {
               </div>
             </div>
 
-            {/* ── FAJR CHECKLIST ── */}
+            {/* ── ACTIVE SESSION CHECKLIST ── */}
             {/* 1) Card depth */}
             <div style={{background:"#0B1020",border:"1px solid rgba(240,192,64,0.18)",borderRadius:22,boxShadow:"0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.02) inset",padding:"16px",marginBottom:12}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                {/* 7) Section title */}
-                <div style={{fontSize:14,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700}}>🌅 Fajr</div>
-                <div className="sbtn" onClick={()=>toggleCheck("fajr")} style={{fontSize:9,padding:"4px 12px",background:fajrDone?"#F0C040":"#11192F",border:fajrDone?"1px solid rgba(240,192,64,0.55)":"1px solid rgba(255,255,255,0.08)",borderRadius:20,color:fajrDone?"#080C18":"rgba(255,255,255,0.5)",fontWeight:700,boxShadow:fajrDone?"0 0 12px rgba(240,192,64,0.22)":"none",transition:"all .2s"}}>
-                  {fajrDone?"✓ Done":"Mark Done"}
+                {/* 7) Section title — dynamic session */}
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:18}}>{activeSess.icon}</span>
+                  <div>
+                    <div style={{fontSize:13,letterSpacing:"0.1em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700}}>{activeSess.time}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginTop:1}}>{activeSess.title}</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  {/* Session progress pills */}
+                  <div style={{display:"flex",gap:3}}>
+                    {SESSIONS.map(s=>(
+                      <div key={s.id} style={{width:6,height:6,borderRadius:"50%",background:dailyChecks[s.id]?s.color:"rgba(255,255,255,0.12)",transition:"background .3s"}}/>
+                    ))}
+                  </div>
+                  <div className="sbtn" onClick={()=>toggleCheck(activeSess.id)} style={{fontSize:9,padding:"4px 12px",background:activeDone?"#F0C040":"#11192F",border:activeDone?"1px solid rgba(240,192,64,0.55)":"1px solid rgba(255,255,255,0.08)",borderRadius:20,color:activeDone?"#080C18":"rgba(255,255,255,0.5)",fontWeight:700,boxShadow:activeDone?"0 0 12px rgba(240,192,64,0.22)":"none",transition:"all .2s"}}>
+                    {activeDone?"✓ Done":"Mark Done"}
+                  </div>
                 </div>
               </div>
               {/* Progress bar */}
               <div style={{marginBottom:12}}>
                 <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:5}}>
-                  <span>Progress: {checkedCount} / {SESSIONS.length}</span>
+                  <span>{checkedCount} / {SESSIONS.length} sessions complete</span>
                   {/* 8) Gold accent */}
-                  <span style={{color:"#F0C040",fontWeight:600,textShadow:"0 0 10px rgba(240,192,64,0.15)"}}>{dailyNew} ayahs today</span>
+                  {activeSess.id==="fajr"&&<span style={{color:"#F0C040",fontWeight:600,textShadow:"0 0 10px rgba(240,192,64,0.15)"}}>{dailyNew} ayahs today</span>}
                 </div>
                 <div style={{height:7,background:"#1A2340",borderRadius:999,overflow:"hidden"}}>
                   <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg, rgba(240,192,64,0.95) 0%, rgba(240,192,64,0.78) 100%)",borderRadius:999,boxShadow:"0 0 12px rgba(240,192,64,0.28)",transition:"width .5s"}}/>
                 </div>
               </div>
-              {/* 4) Checklist rows */}
-              {fajrSteps.map((step,i)=>{
-                const stepDone=fajrDone||(i===0&&checkedCount>0);
-                return (
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 0",borderBottom:i<fajrSteps.length-1?"1px solid rgba(255,255,255,0.07)":"none"}}>
-                    {/* 5) Checkbox */}
-                    {stepDone ? (
-                      <div style={{width:26,height:26,borderRadius:8,background:"linear-gradient(180deg,#2B2130 0%, #1A1620 100%)",border:"1px solid rgba(240,192,64,0.55)",boxShadow:"0 0 12px rgba(240,192,64,0.22), inset 0 0 0 1px rgba(255,255,255,0.03)",color:"#F0C040",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,flexShrink:0,fontSize:13}}>✓</div>
-                    ) : (
-                      <div style={{width:26,height:26,borderRadius:8,background:"#11192F",border:"1px solid rgba(255,255,255,0.08)",boxShadow:"inset 0 0 0 1px rgba(255,255,255,0.02)",flexShrink:0}}/>
-                    )}
-                    {/* 4) Text styles */}
-                    <span style={stepDone?{color:"#F5E7B8",fontWeight:500,fontSize:12,textDecoration:"line-through",opacity:.6}:{color:"rgba(255,255,255,0.92)",fontSize:12}}>{step}</span>
-                  </div>
-                );
-              })}
+
+              {/* All done state */}
+              {allChecked?(
+                <div style={{textAlign:"center",padding:"12px 0"}}>
+                  <div style={{fontSize:22,marginBottom:6}}>🌙</div>
+                  <div style={{fontSize:14,fontWeight:700,color:"#F0C040",textShadow:"0 0 10px rgba(240,192,64,0.15)",marginBottom:4}}>All Sessions Complete — MashaAllah!</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>May Allah accept your worship today.</div>
+                </div>
+              ):(
+                /* 4) Checklist rows */
+                activeSteps.map((step,i)=>{
+                  const stepDone=activeDone;
+                  return (
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 0",borderBottom:i<activeSteps.length-1?"1px solid rgba(255,255,255,0.07)":"none"}}>
+                      {/* 5) Checkbox */}
+                      {stepDone ? (
+                        <div style={{width:26,height:26,borderRadius:8,background:"linear-gradient(180deg,#2B2130 0%, #1A1620 100%)",border:"1px solid rgba(240,192,64,0.55)",boxShadow:"0 0 12px rgba(240,192,64,0.22), inset 0 0 0 1px rgba(255,255,255,0.03)",color:"#F0C040",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,flexShrink:0,fontSize:13}}>✓</div>
+                      ) : (
+                        <div style={{width:26,height:26,borderRadius:8,background:"#11192F",border:"1px solid rgba(255,255,255,0.08)",boxShadow:"inset 0 0 0 1px rgba(255,255,255,0.02)",flexShrink:0}}/>
+                      )}
+                      {/* 4) Text styles */}
+                      <span style={stepDone?{color:"#F5E7B8",fontWeight:500,fontSize:12,textDecoration:"line-through",opacity:.6}:{color:"rgba(255,255,255,0.92)",fontSize:12}}>{step}</span>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* ── BADGES ── */}
