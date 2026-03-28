@@ -26,15 +26,15 @@ const QURAN_RECITERS = [
 // ── RECITERS (My Hifz tab — ayah by ayah confirmed) ──────────────────────────
 const RECITERS = [
   // ── Masjid Al-Haram ──
-  { id:"dosari",  name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",     recitationId:137, everyayah:"Yasser_Ad-Dussary_128kbps",            quranicaudioId:97,  tag:"Masjid Al-Haram"  },
-  { id:"juhany",  name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",   recitationId:140, everyayah:"Abdullaah_3awwaad_Al-Juhaynee_128kbps", quranicaudioId:1,   tag:"Masjid Al-Haram"  },
-  { id:"sudais",  name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس", recitationId:2,   everyayah:"Abdurrahmaan_As-Sudais_192kbps",        quranicaudioId:7,   tag:"Masjid Al-Haram"  },
-  { id:"shuraim", name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",      recitationId:4,   everyayah:"Saood_ash-Shuraym_128kbps",             quranicaudioId:4,   tag:"Masjid Al-Haram"  },
-  { id:"muaiqly", name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",    recitationId:128, everyayah:"MaherAlMuaiqly128kbps",                 quranicaudioId:159, tag:"Masjid Al-Haram"  },
+  { id:"dosari",  name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",     recitationId:137, everyayah:"Yasser_Ad-Dussary_128kbps",            quranicaudioId:97,  tag:"Masjid Al-Haram",  style:"Emotional · Slow",         dot:"#F0C040" },
+  { id:"juhany",  name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",   recitationId:140, everyayah:"Abdullaah_3awwaad_Al-Juhaynee_128kbps", quranicaudioId:1,   tag:"Masjid Al-Haram",  style:"Clear · Balanced",         dot:"#4A9EFF" },
+  { id:"sudais",  name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس", recitationId:2,   everyayah:"Abdurrahmaan_As-Sudais_192kbps",        quranicaudioId:7,   tag:"Masjid Al-Haram",  style:"Powerful · Authoritative", dot:"#E5534B" },
+  { id:"shuraim", name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",      recitationId:4,   everyayah:"Saood_ash-Shuraym_128kbps",             quranicaudioId:4,   tag:"Masjid Al-Haram",  style:"Strong · Measured",        dot:"#8B9BAA" },
+  { id:"muaiqly", name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",    recitationId:128, everyayah:"MaherAlMuaiqly128kbps",                 quranicaudioId:159, tag:"Masjid Al-Haram",  style:"Warm · Melodic",           dot:"#F6A623" },
   // ── Masjid An-Nabawi ──
-  { id:"hudhaify",name:"Ali Al-Hudhaify",        arabic:"علي الحذيفي",      recitationId:10,  everyayah:"Hudhaify_128kbps",                      quranicaudioId:8,   tag:"Masjid An-Nabawi" },
-  { id:"ayyoub",  name:"Muhammad Ayyoub",        arabic:"محمد أيوب",        recitationId:99,  everyayah:"Muhammad_Ayyoub_128kbps",               quranicaudioId:107, tag:"Masjid An-Nabawi" },
-  { id:"budair",  name:"Salah Al-Budair",        arabic:"صلاح البدير",      recitationId:135, everyayah:"Salah_Al_Budair_128kbps",               quranicaudioId:43,  tag:"Masjid An-Nabawi" },
+  { id:"hudhaify",name:"Ali Al-Hudhaify",        arabic:"علي الحذيفي",      recitationId:10,  everyayah:"Hudhaify_128kbps",                      quranicaudioId:8,   tag:"Masjid An-Nabawi", style:"Gentle · Precise",         dot:"#3ECC71" },
+  { id:"ayyoub",  name:"Muhammad Ayyoub",        arabic:"محمد أيوب",        recitationId:99,  everyayah:"Muhammad_Ayyoub_128kbps",               quranicaudioId:107, tag:"Masjid An-Nabawi", style:"Deep · Meditative",        dot:"#4A9EFF" },
+  { id:"budair",  name:"Salah Al-Budair",        arabic:"صلاح البدير",      recitationId:135, everyayah:"Salah_Al_Budair_128kbps",               quranicaudioId:43,  tag:"Masjid An-Nabawi", style:"Smooth · Rhythmic",        dot:"#F0C040" },
 ];
 
 function audioUrl(recitationId, verseKey) {
@@ -1590,35 +1590,80 @@ export default function RihlatAlHifz() {
 
       {/* Quran Reciter Modal */}
 {showReciterModal&&(
-  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
-    <div style={{background:T.surface,borderRadius:"16px 16px 0 0",padding:"20px 16px 32px",width:"100%",maxWidth:500}} onClick={e=>e.stopPropagation()}>
-      <div style={{width:40,height:4,background:T.border,borderRadius:2,margin:"0 auto 16px"}}/>
-      <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:16,textAlign:"center"}}>Select Reciter — My Hifz</div>
-      {/* Masjid Al-Haram */}
-      <div style={{fontSize:9,color:"#E5534B",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🕋 Masjid Al-Haram</div>
-      <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
-        {RECITERS.filter(r=>r.tag==="Masjid Al-Haram").map(r=>(
-          <div key={r.id} className="sbtn" onClick={()=>{setReciter(r.id);setShowReciterModal(false);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:reciter===r.id?T.accentDim:T.surface2,border:`1px solid ${reciter===r.id?T.accent:T.border}`,borderRadius:8}}>
-            <div style={{flex:1}}>
-              <div style={{fontSize:12,fontWeight:reciter===r.id?700:400,color:reciter===r.id?T.accent:T.text}}>{r.name}</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:T.dim}}>{r.arabic}</div>
-            </div>
-            {reciter===r.id&&<div style={{fontSize:13,color:T.accent,fontWeight:700}}>✓</div>}
-          </div>
-        ))}
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
+    <div style={{background:"#F5F0E8",borderRadius:"16px 16px 0 0",width:"100%",maxWidth:500,maxHeight:"82vh",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
+
+      {/* ── Header ── */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 18px 0"}}>
+        <div className="sbtn" onClick={()=>setShowReciterModal(false)} style={{fontSize:14,color:"#5A6A7A",fontWeight:500,padding:"4px 0"}}>Cancel</div>
+        <div style={{fontSize:14,fontWeight:700,color:"#1A2A35"}}>Select Reciter</div>
+        <div className="sbtn" onClick={()=>setShowReciterModal(false)} style={{fontSize:14,color:"#C9A84C",fontWeight:700,padding:"4px 0"}}>Done</div>
       </div>
-      {/* Masjid An-Nabawi */}
-      <div style={{fontSize:9,color:"#2ECC71",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>🕌 Masjid An-Nabawi</div>
-      <div style={{display:"flex",flexDirection:"column",gap:6}}>
-        {RECITERS.filter(r=>r.tag==="Masjid An-Nabawi").map(r=>(
-          <div key={r.id} className="sbtn" onClick={()=>{setReciter(r.id);setShowReciterModal(false);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:reciter===r.id?T.accentDim:T.surface2,border:`1px solid ${reciter===r.id?T.accent:T.border}`,borderRadius:8}}>
-            <div style={{flex:1}}>
-              <div style={{fontSize:12,fontWeight:reciter===r.id?700:400,color:reciter===r.id?T.accent:T.text}}>{r.name}</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:T.dim}}>{r.arabic}</div>
-            </div>
-            {reciter===r.id&&<div style={{fontSize:13,color:T.accent,fontWeight:700}}>✓</div>}
-          </div>
-        ))}
+
+      {/* ── Currently playing ── */}
+      <div style={{fontSize:11,color:"#7A8A9A",textAlign:"center",padding:"6px 18px 12px"}}>
+        Currently playing: <span style={{color:"#1A2A35",fontWeight:600}}>{currentReciter.name}</span>
+      </div>
+
+      {/* ── Reciter list ── */}
+      <div style={{overflowY:"auto",padding:"0 14px 32px"}}>
+
+        {/* Masjid Al-Haram */}
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 4px 8px"}}>
+          <span style={{fontSize:13}}>🕋</span>
+          <span style={{fontSize:11,fontWeight:700,color:"#4A3A2A",letterSpacing:".06em"}}>Masjid Al-Haram</span>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:1,borderRadius:12,overflow:"hidden",border:"1px solid #DDD4C0",marginBottom:16}}>
+          {RECITERS.filter(r=>r.tag==="Masjid Al-Haram").map((r,i,arr)=>{
+            const isSelected=reciter===r.id;
+            return (
+              <div key={r.id} className="sbtn" onClick={()=>{setReciter(r.id);setShowReciterModal(false);}}
+                style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",background:isSelected?"#FFF8E8":"#FFFFFF",borderBottom:i<arr.length-1?"1px solid #EDE8DC":"none",transition:"background .1s"}}>
+                {/* Speaker icon */}
+                <div style={{width:32,height:32,borderRadius:"50%",background:"#EEE8D8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>🔊</div>
+                {/* Name + style */}
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:isSelected?700:500,color:"#1A2A35"}}>{r.name}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:5,marginTop:2}}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:r.dot,flexShrink:0}}/>
+                    <div style={{fontSize:11,color:"#7A8A9A"}}>{r.style}</div>
+                  </div>
+                </div>
+                {/* Checkmark */}
+                {isSelected&&<div style={{fontSize:16,color:"#C9A84C",fontWeight:700,flexShrink:0}}>✓</div>}
+                {/* Info button */}
+                <div style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #CCC4B0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#9A9A88",flexShrink:0,fontWeight:700}}>i</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Masjid An-Nabawi */}
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"4px 4px 8px"}}>
+          <span style={{fontSize:13}}>🕌</span>
+          <span style={{fontSize:11,fontWeight:700,color:"#4A3A2A",letterSpacing:".06em"}}>Masjid An-Nabawi</span>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:1,borderRadius:12,overflow:"hidden",border:"1px solid #DDD4C0"}}>
+          {RECITERS.filter(r=>r.tag==="Masjid An-Nabawi").map((r,i,arr)=>{
+            const isSelected=reciter===r.id;
+            return (
+              <div key={r.id} className="sbtn" onClick={()=>{setReciter(r.id);setShowReciterModal(false);}}
+                style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",background:isSelected?"#FFF8E8":"#FFFFFF",borderBottom:i<arr.length-1?"1px solid #EDE8DC":"none",transition:"background .1s"}}>
+                <div style={{width:32,height:32,borderRadius:"50%",background:"#EEE8D8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>🔊</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:isSelected?700:500,color:"#1A2A35"}}>{r.name}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:5,marginTop:2}}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:r.dot,flexShrink:0}}/>
+                    <div style={{fontSize:11,color:"#7A8A9A"}}>{r.style}</div>
+                  </div>
+                </div>
+                {isSelected&&<div style={{fontSize:16,color:"#C9A84C",fontWeight:700,flexShrink:0}}>✓</div>}
+                <div style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #CCC4B0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#9A9A88",flexShrink:0,fontWeight:700}}>i</div>
+              </div>
+            );
+          })}
+        </div>
+
       </div>
     </div>
   </div>
