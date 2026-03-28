@@ -367,6 +367,7 @@ export default function RihlatAlHifz() {
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
   const [repCounts,setRepCounts]=useState({});
+  const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSession,setActiveSession]=useState("fajr");
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
@@ -1184,7 +1185,7 @@ export default function RihlatAlHifz() {
                                 <div style={{height:"100%",width:isPlaying?"40%":"0%",background:T.accent,borderRadius:2,transition:"width .5s"}}/>
                               </div>
                               {/* Repeat */}
-                              <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.currentTime=0;audioRef.current.play().catch(()=>{});}}} style={{width:30,height:30,borderRadius:"50%",background:T.surface2,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:T.dim}}>🔁</div>
+                              <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:30,height:30,borderRadius:"50%",background:looping?T.accentDim:T.surface2,border:`1px solid ${looping?T.accent:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:T.dim}}>🔁</div>
                               {/* Restart */}
                               <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:30,height:30,borderRadius:"50%",background:T.surface2,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:T.dim}}>↩</div>
                             </div>
