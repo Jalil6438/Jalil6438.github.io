@@ -1276,9 +1276,11 @@ export default function RihlatAlHifz() {
             {/* ── PROFILE CARD ── */}
             <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:12}}>
               <div style={{display:"flex",alignItems:"center",gap:14}}>
-                {/* Avatar */}
-                <div style={{width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,#1A4A28,#F0C040)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0,border:`2px solid ${T.accent}40`}}>
-                  🧕
+                {/* Avatar — initials */}
+                <div style={{width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,#1A4A28,#2A6A40)`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:`2px solid ${T.accent}40`}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#F0C040",letterSpacing:1}}>
+                    {username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+                  </span>
                 </div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:17,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{username}</div>
