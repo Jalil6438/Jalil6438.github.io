@@ -1263,37 +1263,122 @@ export default function RihlatAlHifz() {
         const activeDone=!!dailyChecks[activeSess.id];
         const activeSteps=activeSess?.steps||[];
 
-        // ── Shield badge SVG component — idx makes gradient IDs unique ──
-        const ShieldBadge=({icon,label,earned,c1,c2,glow,idx})=>{
-          const gid=`sgb${idx}`, hid=`shb${idx}`;
-          return (
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5,opacity:earned?1:0.28,flex:1}}>
-            <svg width={64} height={72} viewBox="0 0 64 72" style={{filter:earned?`drop-shadow(0 4px 12px ${glow}60)`:"none",transition:"filter .3s"}}>
-              <defs>
-                <linearGradient id={gid} x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor={c1}/>
-                  <stop offset="100%" stopColor={c2}/>
-                </linearGradient>
-                <linearGradient id={hid} x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor={c1} stopOpacity="0.35"/>
-                  <stop offset="100%" stopColor={c2} stopOpacity="0.08"/>
-                </linearGradient>
-              </defs>
-              <path d="M32 2 L60 14 L60 36 Q60 56 32 70 Q4 56 4 36 L4 14 Z" fill={`url(#${gid})`}/>
-              <path d="M32 8 L54 18 L54 36 Q54 52 32 64 Q10 52 10 36 L10 18 Z" fill={`url(#${hid})`}/>
-              <path d="M32 8 L54 18 L54 26 Q43 22 32 20 Q21 22 10 26 L10 18 Z" fill="white" fillOpacity="0.12"/>
-              <text x="32" y="42" textAnchor="middle" fontSize="22" dominantBaseline="middle">{icon}</text>
-            </svg>
-            <div style={{fontSize:10,fontWeight:700,color:earned?"#EDE8DC":"#5A6A70",textAlign:"center",letterSpacing:".02em",lineHeight:1.3}}>{label}</div>
+        // ── Enhanced Badge Components ──
+        const JuzBadge=({count,earned})=>(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
+            <div style={{position:"relative",width:64,height:64,marginBottom:4}}>
+              {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(52,211,153,0.3)",filter:"blur(8px)"}}/>}
+              <div style={{position:"relative",width:64,height:64,borderRadius:"50%",background:"linear-gradient(180deg,#34D399 0%,#059669 50%,#064E3B 100%)",boxShadow:earned?"0 4px 16px rgba(52,211,153,0.4)":"none",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"2px solid rgba(110,231,183,0.5)"}}>
+                <div style={{position:"absolute",inset:4,borderRadius:"50%",background:"linear-gradient(180deg,rgba(255,255,255,0.25) 0%,transparent 50%)"}}/>
+                <span style={{fontSize:22,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 1px 4px rgba(0,0,0,0.4)",position:"relative",zIndex:1}}>{count}</span>
+                <span style={{fontSize:9,fontWeight:600,color:"rgba(167,243,208,0.9)",marginTop:-2,position:"relative",zIndex:1}}>Juz</span>
+                <div style={{position:"absolute",bottom:-5,width:12,height:12,background:"linear-gradient(180deg,#EF4444,#991B1B)",transform:"rotate(45deg)",boxShadow:"0 2px 4px rgba(0,0,0,0.3)",border:"1px solid rgba(252,165,165,0.5)"}}/>
+              </div>
+            </div>
+            <div style={{fontSize:9,fontWeight:700,color:earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.28)",textAlign:"center",marginTop:4}}>{count} Juz</div>
           </div>
-        );};
+        );
 
-        const badges=[
-          {icon:"📗",label:`${completedCount||0} Juz`, earned:completedCount>0, c1:"#4ADE80",c2:"#14532D",glow:"#22C55E"},
-          {icon:"🌙",label:"Habituated",               earned:streak>=14,        c1:"#818CF8",c2:"#312E81",glow:"#6366F1"},
-          {icon:"🔥",label:"7 Day Streak",             earned:streak>=7,         c1:"#FB923C",c2:"#7C2D12",glow:"#F97316"},
-          {icon:"📖",label:"Hifz Goal",                earned:goalYears>0,       c1:"#F0C040",c2:"#78400A",glow:"#F0C040"},
-        ];
+        const HabituatedBadge=({earned})=>(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
+            <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(245,158,11,0.2)",filter:"blur(8px)"}}/>}
+              <svg viewBox="0 0 64 64" style={{width:56,height:56,position:"relative",zIndex:1,filter:earned?"drop-shadow(0 2px 8px rgba(245,158,11,0.5))":"none"}}>
+                <defs>
+                  <linearGradient id="hg1" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#FCD34D"/>
+                    <stop offset="50%" stopColor="#F59E0B"/>
+                    <stop offset="100%" stopColor="#B45309"/>
+                  </linearGradient>
+                </defs>
+                <path d="M20 50 Q15 40 18 32 Q12 35 10 28 Q15 28 18 25 Q12 22 12 15 Q18 18 22 18 Q20 12 24 8 Q26 14 28 18 Q28 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
+                <path d="M44 50 Q49 40 46 32 Q52 35 54 28 Q49 28 46 25 Q52 22 52 15 Q46 18 42 18 Q44 12 40 8 Q38 14 36 18 Q36 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
+                <ellipse cx="14" cy="30" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-30 14 30)"/>
+                <ellipse cx="16" cy="22" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-45 16 22)"/>
+                <ellipse cx="22" cy="15" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-60 22 15)"/>
+                <ellipse cx="18" cy="38" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-15 18 38)"/>
+                <ellipse cx="50" cy="30" rx="4" ry="2" fill="url(#hg1)" transform="rotate(30 50 30)"/>
+                <ellipse cx="48" cy="22" rx="4" ry="2" fill="url(#hg1)" transform="rotate(45 48 22)"/>
+                <ellipse cx="42" cy="15" rx="4" ry="2" fill="url(#hg1)" transform="rotate(60 42 15)"/>
+                <ellipse cx="46" cy="38" rx="4" ry="2" fill="url(#hg1)" transform="rotate(15 46 38)"/>
+              </svg>
+            </div>
+            <div style={{background:"linear-gradient(180deg,#F59E0B,#B45309)",padding:"2px 8px",borderRadius:4,marginTop:-4,position:"relative",zIndex:2}}>
+              <span style={{fontSize:8,fontWeight:700,color:"#fff",letterSpacing:".05em"}}>Habituated</span>
+            </div>
+          </div>
+        );
+
+        const StreakBadge=({earned})=>(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
+            <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(249,115,22,0.3)",filter:"blur(10px)"}}/>}
+              <div style={{position:"relative",width:56,height:56,borderRadius:"50%",background:"linear-gradient(180deg,#3F3F46,#18181B)",boxShadow:earned?"0 4px 16px rgba(249,115,22,0.3)":"none",display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(82,82,91,0.5)"}}>
+                <svg viewBox="0 0 24 24" style={{width:36,height:36}}>
+                  <defs>
+                    <linearGradient id="fg1" x1="0%" y1="100%" x2="0%" y2="0%">
+                      <stop offset="0%" stopColor="#DC2626"/>
+                      <stop offset="40%" stopColor="#F97316"/>
+                      <stop offset="80%" stopColor="#FBBF24"/>
+                      <stop offset="100%" stopColor="#FEF08A"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M12 2C10 6 6 8 6 13C6 16.5 8.5 19 12 19C15.5 19 18 16.5 18 13C18 8 14 6 12 2ZM12 17C10.5 17 9 15.5 9 14C9 12 10 11 12 9C14 11 15 12 15 14C15 15.5 13.5 17 12 17Z" fill="url(#fg1)"/>
+                </svg>
+              </div>
+            </div>
+            <div style={{position:"relative",marginTop:-6,zIndex:2}}>
+              <svg viewBox="0 0 80 24" style={{width:64,height:20}}>
+                <defs>
+                  <linearGradient id="rb1" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#EF4444"/>
+                    <stop offset="100%" stopColor="#991B1B"/>
+                  </linearGradient>
+                </defs>
+                <path d="M5 4 L15 4 L15 20 L10 16 L5 20 Z" fill="url(#rb1)"/>
+                <path d="M75 4 L65 4 L65 20 L70 16 L75 20 Z" fill="url(#rb1)"/>
+                <rect x="12" y="4" width="56" height="14" rx="2" fill="url(#rb1)"/>
+                <rect x="12" y="4" width="56" height="4" rx="1" fill="white" fillOpacity="0.2"/>
+              </svg>
+              <span style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:7,fontWeight:700,color:"#fff",paddingTop:2}}>7 Day Streak</span>
+            </div>
+          </div>
+        );
+
+        const HifzGoalBadge=({earned})=>(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
+            <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {earned&&<div style={{position:"absolute",inset:0,background:"rgba(245,158,11,0.2)",filter:"blur(8px)"}}/>}
+              <svg viewBox="0 0 64 64" style={{width:56,height:56,position:"relative",zIndex:1,filter:earned?"drop-shadow(0 2px 10px rgba(245,158,11,0.5))":"none"}}>
+                <defs>
+                  <linearGradient id="sg1" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#FCD34D"/>
+                    <stop offset="50%" stopColor="#D97706"/>
+                    <stop offset="100%" stopColor="#92400E"/>
+                  </linearGradient>
+                  <linearGradient id="bg1" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#FEF3C7"/>
+                    <stop offset="100%" stopColor="#F59E0B"/>
+                  </linearGradient>
+                </defs>
+                <path d="M32 4 L54 12 L54 32 Q54 52 32 60 Q10 52 10 32 L10 12 Z" fill="url(#sg1)" stroke="#B45309" strokeWidth="1"/>
+                <path d="M32 6 L52 13 L52 20 Q40 18 32 20 Q24 18 12 20 L12 13 Z" fill="white" fillOpacity="0.25"/>
+                <g transform="translate(18,20)">
+                  <path d="M14 2 L2 6 L2 24 L14 20 Z" fill="url(#bg1)" stroke="#92400E" strokeWidth="0.5"/>
+                  <path d="M14 2 L26 6 L26 24 L14 20 Z" fill="url(#bg1)" stroke="#92400E" strokeWidth="0.5"/>
+                  <line x1="4" y1="10" x2="12" y2="8" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
+                  <line x1="4" y1="14" x2="12" y2="12" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
+                  <line x1="16" y1="8" x2="24" y2="10" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
+                  <line x1="16" y1="12" x2="24" y2="14" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
+                  <line x1="14" y1="2" x2="14" y2="20" stroke="#92400E" strokeWidth="1"/>
+                </g>
+              </svg>
+            </div>
+            <div style={{background:"linear-gradient(180deg,#F59E0B,#B45309)",padding:"2px 8px",borderRadius:4,border:"1px solid rgba(253,230,138,0.5)"}}>
+              <span style={{fontSize:8,fontWeight:700,color:"#fff",letterSpacing:".05em"}}>Hifz Goal</span>
+            </div>
+          </div>
+        );
 
         return (
           // 9) Premium background
@@ -1485,15 +1570,10 @@ export default function RihlatAlHifz() {
               {/* 7) Section title */}
               <div style={{fontSize:14,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.88)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
               <div style={{display:"flex",justifyContent:"space-around",gap:4,position:"relative",zIndex:1}}>
-                {badges.map((b,i)=>(
-                  <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flex:1}}>
-                    {/* 6) Badge card — border color matches badge glow */}
-                    <div style={b.earned?{background:"linear-gradient(180deg,#17131F 0%, #0E0C14 100%)",border:`2px solid ${b.glow}BB`,borderRadius:18,boxShadow:`0 0 20px ${b.glow}45, inset 0 0 18px ${b.glow}08`,width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}:{background:"#10182C",border:"1px solid rgba(255,255,255,0.06)",borderRadius:18,opacity:0.55,width:64,height:72,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <ShieldBadge icon={b.icon} label="" earned={b.earned} c1={b.c1} c2={b.c2} glow={b.glow} idx={i}/>
-                    </div>
-                    <div style={{fontSize:9,fontWeight:700,color:b.earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.28)",textAlign:"center",letterSpacing:".02em",lineHeight:1.3}}>{b.label}</div>
-                  </div>
-                ))}
+                <JuzBadge count={completedCount||0} earned={completedCount>0}/>
+                <HabituatedBadge earned={streak>=14}/>
+                <StreakBadge earned={streak>=7}/>
+                <HifzGoalBadge earned={goalYears>0}/>
               </div>
             </div>
 
