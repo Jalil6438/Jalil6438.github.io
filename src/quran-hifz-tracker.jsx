@@ -369,7 +369,8 @@ export default function RihlatAlHifz() {
   const [repCounts,setRepCounts]=useState({});
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
-  const [activeSession,setActiveSession]=useState("fajr");
+  const [activeSessionIndex,setActiveSessionIndex]=useState(0);
+  const SESSION_CTA=["Complete Fajr Memorization","Complete Dhuhr Revision","Complete Asr Revision","Complete Maghrib Listening","Complete Isha Review"];
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("myhifz");
   const [selectedJuz,setSelectedJuz]=useState(30);
@@ -1025,11 +1026,11 @@ export default function RihlatAlHifz() {
             <div style={{marginBottom:12}}>
               <div style={{fontSize:8,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:7}}>Today's Sessions</div>
               <div style={{display:"flex",gap:5,overflowX:"auto",paddingBottom:2}}>
-                {SESSIONS.map(s=>{
+                {SESSIONS.map((s,idx)=>{
                   const done=!!dailyChecks[s.id];
-                  const isActive=activeSession===s.id;
+                  const isActive=idx===activeSessionIndex;
                   return (
-                    <div key={s.id} className="sbtn" onClick={()=>setActiveSession(s.id)} style={{flexShrink:0,padding:"10px 16px",borderRadius:999,display:"flex",alignItems:"center",gap:8,fontWeight:600,fontSize:14,transition:"all .15s",...(isActive?{background:"linear-gradient(135deg,#F0C040,#EAB308)",color:"#1a1a1a",boxShadow:"0 6px 14px rgba(240,192,64,0.25)"}:done?{background:"linear-gradient(135deg,#064E3B,#065F46)",border:"1px solid rgba(16,185,129,0.3)",color:"#9AE6B4"}:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.6)"})}}>
+                    <div key={s.id} className="sbtn" onClick={()=>setActiveSessionIndex(idx)} style={{flexShrink:0,padding:"10px 16px",borderRadius:999,display:"flex",alignItems:"center",gap:8,fontWeight:600,fontSize:14,transition:"all .15s",...(isActive?{background:"linear-gradient(135deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 14px rgba(230,184,74,0.25)"}:done?{background:"rgba(46,204,113,0.15)",border:"1px solid rgba(46,204,113,0.3)",color:"#7EE2A8"}:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.6)"})}}>
                       <span style={{fontSize:14}}>{s.icon}</span>
                       <span style={{fontSize:13,whiteSpace:"nowrap"}}>{s.time}</span>
                     </div>
@@ -1040,14 +1041,14 @@ export default function RihlatAlHifz() {
 
             {/* ── SESSION INFO CARD ── */}
             {(()=>{
-              const sess=SESSIONS.find(s=>s.id===activeSession);
+              const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
               if(!sess) return null;
               return (
                 <div style={{marginBottom:12,padding:"11px 14px",background:T.surface,border:`1px solid ${T.accent}25`,borderLeft:"2px solid #F0C040",borderRadius:"0 8px 8px 0"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                     <div style={{fontSize:13,fontWeight:700,color:T.text,letterSpacing:"-0.01em"}}>{sess.icon} {sess.title}</div>
-                    <div className="sbtn" onClick={()=>toggleCheck(sess.id)} style={{fontSize:9,padding:"3px 9px",background:dailyChecks[sess.id]?T.accent:T.surface2,border:`1px solid ${dailyChecks[sess.id]?T.accent:T.border}`,borderRadius:10,color:dailyChecks[sess.id]?dark?"#060A07":"#fff":T.dim,fontWeight:600}}>
-                      {dailyChecks[sess.id]?"✓ Done":"Mark Done"}
+                    <div style={{fontSize:9,padding:"3px 9px",background:dailyChecks[sess.id]?"rgba(46,204,113,0.15)":"rgba(255,255,255,0.05)",border:dailyChecks[sess.id]?"1px solid rgba(46,204,113,0.3)":"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:dailyChecks[sess.id]?"#7EE2A8":"rgba(255,255,255,0.35)",fontWeight:600}}>
+                      {dailyChecks[sess.id]?"✓ Done":"Pending"}
                     </div>
                   </div>
                   <div style={{fontSize:11,color:T.sub,lineHeight:1.7}}>{sess.desc}</div>
@@ -1199,14 +1200,21 @@ export default function RihlatAlHifz() {
                   <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
                     <div style={{fontSize:22,marginBottom:8}}>✅</div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
-                    <div style={{fontSize:12,color:T.sub,marginBottom:14}}>Check off Fajr in Today's Sessions above.</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",marginBottom:14}}>Session complete — MashaAllah! 🤲</div>
                     <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));setRepCounts({});setOpenAyah(null);}}} style={{display:"inline-block",padding:"12px 32px",background:"linear-gradient(180deg,#F0C040,#D89A10)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",boxShadow:"0 6px 14px rgba(240,192,64,0.2)"}}>
                       Finish & Continue →
                     </div>
                   </div>
                 ):(
-                  <div className="sbtn" onClick={()=>{setSessionDone(d=>[...d,bKey]);toggleCheck(activeSession);setRepCounts({});setOpenAyah(null);}} style={{width:"100%",padding:"14px",background:T.accent,borderRadius:10,fontSize:13,fontWeight:700,color:dark?"#060A07":"#fff",textAlign:"center"}}>
-                    ✓ Complete Batch — Begin Dhuhr Revision
+                  <div className="sbtn" onClick={()=>{
+                    const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
+                    setSessionDone(d=>[...d,bKey]);
+                    toggleCheck(sess.id);
+                    setRepCounts({});
+                    setOpenAyah(null);
+                    if(activeSessionIndex<SESSIONS.length-1) setActiveSessionIndex(i=>i+1);
+                  }} style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
+                    {SESSION_CTA[activeSessionIndex]||"Finish & Continue →"}
                   </div>
                 )}
               </div>
@@ -1783,12 +1791,12 @@ export default function RihlatAlHifz() {
           <div style={{background:"#0F1115",borderRadius:"16px 16px 0 0",padding:"20px 16px 36px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:40,height:4,background:"rgba(255,255,255,0.1)",borderRadius:2,margin:"0 auto 16px"}}/>
             <div style={{fontSize:12,color:"#6B7280",letterSpacing:"1px",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>Select Juz</div>
-            <div style={{display:"flex",flexWrap:"wrap",paddingBottom:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,paddingBottom:8}}>
               {JUZ_META.slice().reverse().map(j=>{
                 const isSel=sessionJuz===j.num;
                 const isDone=juzStatus[j.num]==="complete";
                 return (
-                  <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);setShowJuzModal(false);}} style={{width:"30%",margin:"1.5%",paddingTop:14,paddingBottom:14,borderRadius:14,background:isDone?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:isSel?"1.5px solid #E6B84A":"1px solid rgba(255,255,255,0.06)",boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",textAlign:"center",transition:"all .15s"}}>
+                  <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);setShowJuzModal(false);}} style={{paddingTop:18,paddingBottom:18,borderRadius:16,background:isDone?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:isSel?"1.5px solid #E6B84A":"1px solid rgba(255,255,255,0.06)",boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",textAlign:"center",transition:"all .15s"}}>
                     <div style={{fontSize:12,color:isSel?"#E6B84A":isDone?"#E6B84A":"#888",fontWeight:isSel?700:400,marginBottom:4}}>{j.num}</div>
                     <div style={{fontSize:12,color:isSel?"#F8FAFC":isDone?"rgba(230,184,74,0.8)":"#ccc",fontWeight:isSel?600:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:4,paddingRight:4}}>{j.roman?.split(" ")[0]||""}</div>
                   </div>
