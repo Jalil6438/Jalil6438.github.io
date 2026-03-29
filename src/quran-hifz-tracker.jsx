@@ -765,14 +765,30 @@ export default function RihlatAlHifz() {
   function getArchiveUrl(id, surahNum){ const r=RECITERS.find(x=>x.id===id); if(!r?.archive) return null; return `https://archive.org/download/${r.archive}/${String(surahNum).padStart(3,"0")}.mp3`; }
   function hasPerAyah(id){ const r=RECITERS.find(x=>x.id===id); return !!r?.everyayah; }
 
-  async function loadAsrSurahReview(surahNum){
+  async function toggleAsrSurahReview(surahNum){
     try {
-      setSessLoading(true); setAsrSelectedJuz([]); setAsrSelectedSurahs([surahNum]);
+      setSessLoading(true);
+      setAsrSelectedJuz([]);
+      if(asrSelectedSurahs.includes(surahNum)){
+        const nextSelected=asrSelectedSurahs.filter(n=>n!==surahNum);
+        setAsrSelectedSurahs(nextSelected);
+        setAsrReviewBatch(prev=>prev.filter(v=>{
+          const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+          return sNum!==surahNum;
+        }));
+        return;
+      }
       const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
       if(!res.ok) throw new Error();
       const data=await res.json();
-      setAsrReviewBatch(data.verses||[]);
-    } catch { setAsrReviewBatch([]); }
+      const verses=data.verses||[];
+      setAsrSelectedSurahs(prev=>[...prev,surahNum]);
+      setAsrReviewBatch(prev=>{
+        const merged=[...prev,...verses];
+        const seen=new Set();
+        return merged.filter(v=>{ if(seen.has(v.verse_key)) return false; seen.add(v.verse_key); return true; });
+      });
+    } catch {}
     finally { setSessLoading(false); }
   }
 
@@ -1212,7 +1228,7 @@ export default function RihlatAlHifz() {
                   {completedSurahOptions.length===0&&<div style={{fontSize:11,color:T.dim}}>No completed surahs yet</div>}
                   {completedSurahOptions.map(s=>{
                     const selected=asrSelectedSurahs.includes(s.num);
-                    return (<div key={s.num} className="sbtn" onClick={()=>{ if(asrSelectedSurahs.includes(s.num)){setAsrSelectedSurahs([]);setAsrReviewBatch([]);}else{loadAsrSurahReview(s.num);} }} style={{padding:"6px 10px",borderRadius:20,background:selected?T.accentDim:T.surface2,border:`1px solid ${selected?T.accent+"50":T.border}`,color:selected?T.accent:T.sub,fontSize:11}}>{s.en}</div>);
+                    return (<div key={s.num} className="sbtn" onClick={()=>{ toggleAsrSurahReview(s.num); }} style={{padding:"6px 10px",borderRadius:20,background:selected?T.accentDim:T.surface2,border:`1px solid ${selected?T.accent+"50":T.border}`,color:selected?T.accent:T.sub,fontSize:11}}>{s.en}</div>);
                   })}
                 </div>
                 <div style={{fontSize:9,color:T.dim,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Completed Juz</div>
