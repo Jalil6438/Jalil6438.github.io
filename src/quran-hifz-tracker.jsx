@@ -371,6 +371,7 @@ export default function RihlatAlHifz() {
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSessionIndex,setActiveSessionIndex]=useState(0);
   const SESSION_CTA=["Complete Fajr Memorization","Complete Dhuhr Revision","Complete Asr Revision","Complete Maghrib Listening","Complete Isha Review"];
+  const [sessionsCompleted,setSessionsCompleted]=useState({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("myhifz");
   const [selectedJuz,setSelectedJuz]=useState(30);
@@ -440,6 +441,8 @@ export default function RihlatAlHifz() {
         if(p.checkHistory) setCheckHistory(p.checkHistory);
         if(p.reciter) setReciter(p.reciter);
         if(p.showTrans!==undefined) setShowTrans(p.showTrans);
+        if(p.activeSessionIndex!==undefined) setActiveSessionIndex(p.activeSessionIndex);
+        if(p.sessionsCompleted) setSessionsCompleted(p.sessionsCompleted);
         const today=TODAY();
         if(p.dailyChecks?.date===today) setDailyChecks(p.dailyChecks);
         else {
@@ -455,7 +458,7 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans})); } catch {}
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
   },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded]);
 
   // Fetch session verses
@@ -1027,12 +1030,12 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:8,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:7}}>Today's Sessions</div>
               <div style={{display:"flex",gap:5,overflowX:"auto",paddingBottom:2}}>
                 {SESSIONS.map((s,idx)=>{
-                  const done=!!dailyChecks[s.id];
+                  const isCompleted=sessionsCompleted[s.id];
                   const isActive=idx===activeSessionIndex;
                   return (
-                    <div key={s.id} className="sbtn" onClick={()=>setActiveSessionIndex(idx)} style={{flexShrink:0,padding:"10px 16px",borderRadius:999,display:"flex",alignItems:"center",gap:8,fontWeight:600,fontSize:14,transition:"all .15s",...(isActive?{background:"linear-gradient(135deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 14px rgba(230,184,74,0.25)"}:done?{background:"rgba(46,204,113,0.15)",border:"1px solid rgba(46,204,113,0.3)",color:"#7EE2A8"}:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.6)"})}}>
-                      <span style={{fontSize:14}}>{s.icon}</span>
-                      <span style={{fontSize:13,whiteSpace:"nowrap"}}>{s.time}</span>
+                    <div key={s.id} style={{flexShrink:0,padding:"10px 16px",borderRadius:999,display:"flex",alignItems:"center",gap:8,fontWeight:600,fontSize:13,transition:"all .15s",...(isActive?{background:"linear-gradient(135deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 14px rgba(230,184,74,0.25)"}:isCompleted?{background:"rgba(46,204,113,0.15)",border:"1px solid rgba(46,204,113,0.3)",color:"#7EE2A8"}:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.55)"})}}>
+                      <span style={{fontSize:13}}>{s.icon}</span>
+                      <span style={{fontSize:12,whiteSpace:"nowrap"}}>{s.time}</span>
                     </div>
                   );
                 })}
@@ -1047,8 +1050,8 @@ export default function RihlatAlHifz() {
                 <div style={{marginBottom:12,padding:"11px 14px",background:T.surface,border:`1px solid ${T.accent}25`,borderLeft:"2px solid #F0C040",borderRadius:"0 8px 8px 0"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
                     <div style={{fontSize:13,fontWeight:700,color:T.text,letterSpacing:"-0.01em"}}>{sess.icon} {sess.title}</div>
-                    <div style={{fontSize:9,padding:"3px 9px",background:dailyChecks[sess.id]?"rgba(46,204,113,0.15)":"rgba(255,255,255,0.05)",border:dailyChecks[sess.id]?"1px solid rgba(46,204,113,0.3)":"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:dailyChecks[sess.id]?"#7EE2A8":"rgba(255,255,255,0.35)",fontWeight:600}}>
-                      {dailyChecks[sess.id]?"✓ Done":"Pending"}
+                    <div style={{fontSize:9,padding:"3px 9px",background:sessionsCompleted[sess.id]?"rgba(46,204,113,0.15)":"rgba(255,255,255,0.05)",border:sessionsCompleted[sess.id]?"1px solid rgba(46,204,113,0.3)":"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:sessionsCompleted[sess.id]?"#7EE2A8":"rgba(255,255,255,0.35)",fontWeight:600}}>
+                      {sessionsCompleted[sess.id]?"✓ Done":"Pending"}
                     </div>
                   </div>
                   <div style={{fontSize:11,color:T.sub,lineHeight:1.7}}>{sess.desc}</div>
@@ -1208,11 +1211,21 @@ export default function RihlatAlHifz() {
                 ):(
                   <div className="sbtn" onClick={()=>{
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
-                    setSessionDone(d=>[...d,bKey]);
+                    // Mark session complete
+                    setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                     toggleCheck(sess.id);
+                    setSessionDone(d=>[...d,bKey]);
                     setRepCounts({});
                     setOpenAyah(null);
-                    if(activeSessionIndex<SESSIONS.length-1) setActiveSessionIndex(i=>i+1);
+                    // Fajr → advance batch
+                    if(sess.id==="fajr") setSessionIdx(bEnd);
+                    // Isha → reset day
+                    if(activeSessionIndex>=SESSIONS.length-1){
+                      setActiveSessionIndex(0);
+                      setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
+                    } else {
+                      setActiveSessionIndex(i=>i+1);
+                    }
                   }} style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
                     {SESSION_CTA[activeSessionIndex]||"Finish & Continue →"}
                   </div>
