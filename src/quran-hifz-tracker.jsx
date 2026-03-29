@@ -1200,8 +1200,8 @@ export default function RihlatAlHifz() {
                     <div style={{fontSize:22,marginBottom:8}}>✅</div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
                     <div style={{fontSize:12,color:T.sub,marginBottom:14}}>Check off Fajr in Today's Sessions above.</div>
-                    <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));setRepCounts({});setOpenAyah(null);}}} style={{display:"inline-block",padding:"12px 28px",background:T.accent,borderRadius:8,fontSize:13,fontWeight:700,color:dark?"#060A07":"#fff"}}>
-                      Next Batch →
+                    <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));setRepCounts({});setOpenAyah(null);}}} style={{display:"inline-block",padding:"12px 32px",background:"linear-gradient(180deg,#F0C040,#D89A10)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",boxShadow:"0 6px 14px rgba(240,192,64,0.2)"}}>
+                      Finish & Continue →
                     </div>
                   </div>
                 ):(
@@ -1422,7 +1422,7 @@ export default function RihlatAlHifz() {
                         <stop offset="100%" stopColor="#E6B84A"/>
                       </linearGradient>
                       <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="3.5" result="blur"/>
+                        <feGaussianBlur stdDeviation="4.5" result="blur"/>
                         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                       </filter>
                       <filter id="currentGlow" x="-80%" y="-80%" width="260%" height="260%">
@@ -1434,8 +1434,8 @@ export default function RihlatAlHifz() {
                         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                       </filter>
                     </defs>
-                    <path d={pathD} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="4" strokeLinecap="round"/>
-                    <path d={pathD} fill="none" stroke="url(#journeyGradient)" strokeWidth="5" strokeLinecap="round" filter="url(#lineGlow)" strokeDasharray={`${revealed} ${hidden}`}/>
+                    <path d={pathD} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" strokeLinecap="round"/>
+                    <path d={pathD} fill="none" stroke="url(#journeyGradient)" strokeWidth="6" strokeLinecap="round" filter="url(#lineGlow)" strokeDasharray={`${revealed} ${hidden}`}/>
                     {[{x:105,y:73,juz:10,label:"Juz 10"},{x:170,y:50,juz:20,label:"Juz 20"},{x:245,y:32,juz:30,label:"Juz 30"}].map((m,i)=>{
                       const reached=completedCount>=m.juz;
                       return (
@@ -1783,14 +1783,14 @@ export default function RihlatAlHifz() {
           <div style={{background:"#0F1115",borderRadius:"16px 16px 0 0",padding:"20px 16px 36px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:40,height:4,background:"rgba(255,255,255,0.1)",borderRadius:2,margin:"0 auto 16px"}}/>
             <div style={{fontSize:12,color:"#6B7280",letterSpacing:"1px",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>Select Juz</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
+            <div style={{display:"flex",flexWrap:"wrap",paddingBottom:8}}>
               {JUZ_META.slice().reverse().map(j=>{
                 const isSel=sessionJuz===j.num;
                 const isDone=juzStatus[j.num]==="complete";
                 return (
-                  <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);setShowJuzModal(false);}} style={{padding:"10px 6px",borderRadius:10,background:isSel?"linear-gradient(135deg,#F0C040,#EAB308)":isDone?"rgba(56,214,126,0.08)":"rgba(255,255,255,0.03)",border:`1px solid ${isSel?"#F0C040":isDone?"rgba(56,214,126,0.25)":"rgba(255,255,255,0.08)"}`,boxShadow:isSel?"0 4px 12px rgba(240,192,64,0.3)":"none",textAlign:"center"}}>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,fontWeight:700,color:isSel?"#1a1a1a":isDone?"#4ADE80":"rgba(255,255,255,0.7)"}}>{j.num}</div>
-                    <div style={{fontSize:8,color:isSel?"#1a1a1a":isDone?"#4ADE80":"rgba(255,255,255,0.3)",marginTop:2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{j.roman?.split(" ")[0]||""}</div>
+                  <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);setShowJuzModal(false);}} style={{width:"30%",margin:"1.5%",paddingTop:14,paddingBottom:14,borderRadius:14,background:isDone?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:isSel?"1.5px solid #E6B84A":"1px solid rgba(255,255,255,0.06)",boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",textAlign:"center",transition:"all .15s"}}>
+                    <div style={{fontSize:12,color:isSel?"#E6B84A":isDone?"#E6B84A":"#888",fontWeight:isSel?700:400,marginBottom:4}}>{j.num}</div>
+                    <div style={{fontSize:12,color:isSel?"#F8FAFC":isDone?"rgba(230,184,74,0.8)":"#ccc",fontWeight:isSel?600:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:4,paddingRight:4}}>{j.roman?.split(" ")[0]||""}</div>
                   </div>
                 );
               })}
