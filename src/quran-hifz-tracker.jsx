@@ -2057,77 +2057,28 @@ export default function RihlatAlHifz() {
 
       {/* ── Reciter list ── */}
       <div style={{overflowY:"auto",padding:"0 14px 32px"}}>
-
-        {/* Masjid Al-Haram */}
-        <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 4px 8px"}}>
-          <span style={{fontSize:13}}>🕋</span>
-          <span style={{fontSize:11,fontWeight:700,color:"#4A3A2A",letterSpacing:".06em"}}>Masjid Al-Haram</span>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:1,borderRadius:12,overflow:"hidden",border:"1px solid #DDD4C0",marginBottom:16}}>
-          {RECITERS.filter(r=>r.tag==="Masjid Al-Haram").map((r,i,arr)=>{
-            const isSelected=(reciterMode==="quran"?quranReciter:reciter)===r.id;
-            return (
-              <div key={r.id} className="sbtn" onClick={()=>{
-              if(reciterMode==="quran"){
-                setQuranReciter(r.id);
-                setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null);
-                if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
-              } else { setReciter(r.id); }
-              setShowReciterModal(false);
-            }}
-                style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",background:isSelected?"#FFF8E8":"#FFFFFF",borderBottom:i<arr.length-1?"1px solid #EDE8DC":"none",transition:"background .1s"}}>
-                {/* Speaker icon */}
-                <div style={{width:32,height:32,borderRadius:"50%",background:"#EEE8D8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>🔊</div>
-                {/* Name + style */}
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13,fontWeight:isSelected?700:500,color:"#1A2A35"}}>{r.name}</div>
-                  <div style={{display:"flex",alignItems:"center",gap:5,marginTop:2}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:r.dot,flexShrink:0}}/>
-                    <div style={{fontSize:11,color:"#7A8A9A"}}>{r.style}</div>
-                  </div>
-                </div>
-                {/* Checkmark */}
-                {isSelected&&<div style={{fontSize:16,color:"#C9A84C",fontWeight:700,flexShrink:0}}>✓</div>}
-                {/* Info button */}
-                <div style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #CCC4B0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#9A9A88",flexShrink:0,fontWeight:700}}>i</div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Masjid An-Nabawi */}
-        <div style={{display:"flex",alignItems:"center",gap:8,padding:"4px 4px 8px"}}>
-          <span style={{fontSize:13}}>🕌</span>
-          <span style={{fontSize:11,fontWeight:700,color:"#4A3A2A",letterSpacing:".06em"}}>Masjid An-Nabawi</span>
-        </div>
         <div style={{display:"flex",flexDirection:"column",gap:1,borderRadius:12,overflow:"hidden",border:"1px solid #DDD4C0"}}>
-          {RECITERS.filter(r=>r.tag==="Masjid An-Nabawi").map((r,i,arr)=>{
+          {QURAN_RECITERS.map((r,i,arr)=>{
             const isSelected=(reciterMode==="quran"?quranReciter:reciter)===r.id;
             return (
               <div key={r.id} className="sbtn" onClick={()=>{
-              if(reciterMode==="quran"){
-                setQuranReciter(r.id);
-                setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null);
-                if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
-              } else { setReciter(r.id); }
-              setShowReciterModal(false);
-            }}
-                style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",background:isSelected?"#FFF8E8":"#FFFFFF",borderBottom:i<arr.length-1?"1px solid #EDE8DC":"none",transition:"background .1s"}}>
+                if(reciterMode==="quran"){
+                  setQuranReciter(r.id);
+                  setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null);
+                  if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
+                } else { setReciter(r.id); }
+                setShowReciterModal(false);
+              }} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",background:isSelected?"#FFF8E8":"#FFFFFF",borderBottom:i<arr.length-1?"1px solid #EDE8DC":"none",transition:"background .1s"}}>
                 <div style={{width:32,height:32,borderRadius:"50%",background:"#EEE8D8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>🔊</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:13,fontWeight:isSelected?700:500,color:"#1A2A35"}}>{r.name}</div>
-                  <div style={{display:"flex",alignItems:"center",gap:5,marginTop:2}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:r.dot,flexShrink:0}}/>
-                    <div style={{fontSize:11,color:"#7A8A9A"}}>{r.style}</div>
-                  </div>
+                  <div style={{fontFamily:"Amiri, serif",fontSize:12,color:"#7A8A9A",marginTop:2}}>{r.arabic}</div>
                 </div>
-                {isSelected&&<div style={{fontSize:16,color:"#C9A84C",fontWeight:700,flexShrink:0}}>✓</div>}
-                <div style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #CCC4B0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#9A9A88",flexShrink:0,fontWeight:700}}>i</div>
+                {isSelected&&<div style={{marginLeft:"auto",fontSize:16,color:"#C9A84C",fontWeight:700,flexShrink:0}}>✓</div>}
               </div>
             );
           })}
         </div>
-
       </div>
     </div>
   </div>
