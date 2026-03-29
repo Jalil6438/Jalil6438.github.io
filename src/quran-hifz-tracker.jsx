@@ -392,6 +392,7 @@ export default function RihlatAlHifz() {
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
+  const [dhuhrFallbackBatch,setDhuhrFallbackBatch]=useState([]);
   const [asrSelectedSurahs,setAsrSelectedSurahs]=useState([]);
   const [asrSelectedJuz,setAsrSelectedJuz]=useState([]);
   const [asrReviewBatch,setAsrReviewBatch]=useState([]);
@@ -511,6 +512,7 @@ export default function RihlatAlHifz() {
         setSessionIdx(p.sessionIdx||0);
         setSessionDone(p.sessionDone||[]);
         setYesterdayBatch(p.yesterdayBatch||[]);
+        setDhuhrFallbackBatch(p.dhuhrFallbackBatch||[]);
         setAsrSelectedSurahs(p.asrSelectedSurahs||[]);
         setAsrSelectedJuz(p.asrSelectedJuz||[]);
         setAsrReviewBatch(p.asrReviewBatch||[]);
@@ -536,8 +538,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,dhuhrFallbackBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,dhuhrFallbackBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Fetch session verses
   useEffect(()=>{
@@ -581,6 +583,34 @@ export default function RihlatAlHifz() {
     })();
     return()=>{cancelled=true;};
   },[sessionJuz,juzStatus]);
+
+    // Dhuhr fallback — nearest completed surah before current memorization point
+  useEffect(()=>{
+    let cancelled=false;
+    async function buildDhuhrFallbackBatch(){
+      if(!currentMemorizationSurahNum||!descendingSurahOrderForCurrentJuz.length){
+        if(!cancelled) setDhuhrFallbackBatch([]); return;
+      }
+      const currentIndex=descendingSurahOrderForCurrentJuz.indexOf(currentMemorizationSurahNum);
+      if(currentIndex===-1){ if(!cancelled) setDhuhrFallbackBatch([]); return; }
+      let fallbackSurahNum=null;
+      for(let i=currentIndex-1;i>=0;i--){
+        const surahNum=descendingSurahOrderForCurrentJuz[i];
+        if(juzStatus[`s${surahNum}`]==="complete"){ fallbackSurahNum=surahNum; break; }
+      }
+      if(!fallbackSurahNum){ if(!cancelled) setDhuhrFallbackBatch([]); return; }
+      try {
+        const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${fallbackSurahNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
+        if(!res.ok) throw new Error();
+        const data=await res.json();
+        if(cancelled) return;
+        const verses=data.verses||[];
+        if(!cancelled) setDhuhrFallbackBatch(verses.slice(Math.max(0,verses.length-dailyNew)));
+      } catch { if(!cancelled) setDhuhrFallbackBatch([]); }
+    }
+    buildDhuhrFallbackBatch();
+    return()=>{cancelled=true;};
+  },[sessionVerses,juzStatus,dailyNew,sessionJuz]);
 
     const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
@@ -683,7 +713,7 @@ export default function RihlatAlHifz() {
   const isIsha=currentSessionId==="isha";
 
   let batch=fajrBatch;
-  if(isDhuhr){ batch=yesterdayBatch.length>0?yesterdayBatch:[]; }
+  if(isDhuhr){ batch=yesterdayBatch.length>0?yesterdayBatch:dhuhrFallbackBatch.length>0?dhuhrFallbackBatch:[]; }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
   else if(isMaghrib||isIsha){ batch=fajrBatch; }
   const bKey=`${sessionJuz}-${bStart}`;
@@ -695,6 +725,9 @@ export default function RihlatAlHifz() {
   const currentReciter=RECITERS.find(r=>r.id===reciter)||RECITERS[0];
 
   const completedSurahOptions=Object.entries(juzStatus).filter(([key,value])=>String(key).startsWith("s")&&value==="complete").map(([key])=>{const surahNum=Number(String(key).replace("s",""));return{num:surahNum,en:SURAH_EN[surahNum],ar:SURAH_AR?.[surahNum]||""};}).sort((a,b)=>b.num-a.num);
+
+  const currentMemorizationSurahNum=sessionVerses[0]?.surah_number||parseInt(sessionVerses[0]?.verse_key?.split(":")?.[0]||"0",10);
+  const descendingSurahOrderForCurrentJuz=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
 
   const completedJuzOptions=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>{const juzNum=Number(key);const meta=JUZ_META.find(j=>j.num===juzNum);return{num:juzNum,name:meta?.roman||`Juz ${juzNum}`,arabic:meta?.arabic||""};}).sort((a,b)=>b.num-a.num);
 
@@ -1419,7 +1452,7 @@ export default function RihlatAlHifz() {
             {!sessLoading&&currentSessionId==="dhuhr"&&batch.length===0&&(
               <div style={{padding:"16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:12}}>
                 <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>No Dhuhr review batch yet</div>
-                <div style={{fontSize:11,color:T.sub,lineHeight:1.6}}>Complete a full day through Isha so tomorrow's Dhuhr can review the previous Fajr batch.</div>
+                <div style={{fontSize:11,color:T.sub,lineHeight:1.6}}>Dhuhr will review yesterday's Fajr batch, or the last completed surah before your current memorization point.</div>
               </div>
             )}
 
