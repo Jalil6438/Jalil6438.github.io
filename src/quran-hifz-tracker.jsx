@@ -1303,16 +1303,13 @@ export default function RihlatAlHifz() {
                 ):(
                   <div className="sbtn" onClick={()=>{
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
-                    // Mark session complete
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                     toggleCheck(sess.id);
                     setSessionDone(d=>[...d,bKey]);
                     setRepCounts({});
                     setOpenAyah(null);
-                    // Fajr → advance batch
-                    if(sess.id==="fajr") setSessionIdx(bEnd);
-                    // Isha → reset day
                     if(activeSessionIndex>=SESSIONS.length-1){
+                      setSessionIdx(bEnd);
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
                     } else {
