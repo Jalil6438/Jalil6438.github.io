@@ -707,50 +707,45 @@ export default function RihlatAlHifz() {
   const surahQueueRef = useRef([]);
   const surahIdxRef = useRef(0);
 
-  function playSurahQueue(verses, surahNum, startIdx=0) {
+  function playSurahQueue(verses, surahNum, startIdx=0, reciterId=reciter) {
     if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
-    if(playingSurah===surahNum){ setPlayingSurah(null); setPlayingKey(null); return; }
-    surahQueueRef.current = verses;
-    surahIdxRef.current = startIdx;
+    if(playingSurah===surahNum){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
+    surahQueueRef.current=verses; surahIdxRef.current=startIdx;
     setPlayingSurah(surahNum);
-    playNextInQueue(verses, startIdx, surahNum);
+    playNextInQueue(verses,startIdx,surahNum,reciterId);
   }
 
-  function playNextInQueue(verses, idx, surahNum) {
-    if(idx >= verses.length){ setPlayingSurah(null); setPlayingKey(null); return; }
-    if(!hasPerAyah(reciter)) {
-      const archiveUrl = getArchiveUrl(reciter, surahNum);
-      if(!archiveUrl){ setPlayingSurah(null); setPlayingKey(null); return; }
-      if(idx > 0) return;
-      setPlayingKey(verses[0]?.verse_key);
-      setAudioLoading(verses[0]?.verse_key);
-      const audio = new Audio(archiveUrl);
-      audioRef.current = audio;
-      audio.oncanplay = () => setAudioLoading(null);
-      audio.onended = () => { setPlayingSurah(null); setPlayingKey(null); };
-      audio.onerror = () => { setAudioLoading(null); setPlayingSurah(null); setPlayingKey(null); };
-      audio.play().catch(()=>{ setAudioLoading(null); setPlayingSurah(null); setPlayingKey(null); });
+  function playNextInQueue(verses, idx, surahNum, reciterId=reciter) {
+    if(idx>=verses.length){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
+    if(!hasPerAyah(reciterId)){
+      const archiveUrl=getArchiveUrl(reciterId,surahNum);
+      if(!archiveUrl){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
+      if(idx>0) return;
+      setPlayingKey(verses[0]?.verse_key); setAudioLoading(verses[0]?.verse_key);
+      const audio=new Audio(archiveUrl); audioRef.current=audio;
+      audio.oncanplay=()=>setAudioLoading(null);
+      audio.onended=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
+      audio.onerror=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
+      audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
       return;
     }
-    const v = verses[idx];
-    const vKey = v.verse_key;
-    const [surah, ayah] = vKey.split(":");
-    setPlayingKey(vKey);
-    setAudioLoading(vKey);
-    const folder = getEveryayahFolder(reciter);
-    const url = `https://everyayah.com/data/${folder}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`;
-    if(idx + 1 < verses.length) {
-      const nv = verses[idx+1];
-      const [ns, na] = nv.verse_key.split(":");
-      new Audio(`https://everyayah.com/data/${folder}/${String(ns).padStart(3,"0")}${String(na).padStart(3,"0")}.mp3`).preload = "auto";
+    const v=verses[idx]; const vKey=v.verse_key; const [surah,ayah]=vKey.split(":");
+    setPlayingKey(vKey); setAudioLoading(vKey);
+    const folder=getEveryayahFolder(reciterId);
+    const url=`https://everyayah.com/data/${folder}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`;
+    // preload next 2 ayahs
+    for(let offset=1;offset<=2;offset++){
+      if(idx+offset<verses.length){
+        const nv=verses[idx+offset]; const [ns,na]=nv.verse_key.split(":");
+        const pre=new Audio(`https://everyayah.com/data/${folder}/${String(ns).padStart(3,"0")}${String(na).padStart(3,"0")}.mp3`);
+        pre.preload="auto";
+      }
     }
-    const audio = new Audio(url);
-    audio.preload = "auto";
-    audioRef.current = audio;
-    audio.oncanplay = () => setAudioLoading(null);
-    audio.onended = () => { surahIdxRef.current = idx+1; playNextInQueue(surahQueueRef.current, idx+1, surahNum); };
-    audio.onerror = () => { surahIdxRef.current = idx+1; playNextInQueue(surahQueueRef.current, idx+1, surahNum); };
-    audio.play().catch(()=>{ setAudioLoading(null); setPlayingSurah(null); setPlayingKey(null); });
+    const audio=new Audio(url); audio.preload="auto"; audioRef.current=audio;
+    audio.oncanplay=()=>setAudioLoading(null);
+    audio.onended=()=>{ surahIdxRef.current=idx+1; playNextInQueue(surahQueueRef.current,idx+1,surahNum,reciterId); };
+    audio.onerror=()=>{ surahIdxRef.current=idx+1; playNextInQueue(surahQueueRef.current,idx+1,surahNum,reciterId); };
+    audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
   }
 
   function getEveryayahFolder(id){ const r=RECITERS.find(x=>x.id===id); return r?.everyayah||RECITERS[0].everyayah; }
@@ -1890,7 +1885,7 @@ export default function RihlatAlHifz() {
                           const firstVerseKey=verses[0]?.verse_key||"";
                           const firstAyahNum=parseInt(firstVerseKey.split(":")?.[1]||"1",10);
                           const shouldUseAyahQueue=MID_SURAH_JUZ.has(selectedJuz)&&firstAyahNum>1;
-                          if(shouldUseAyahQueue){ playSurahQueue(verses,surahNum,0); } else { playQuranSurah(surahNum); }
+                          if(shouldUseAyahQueue){ playSurahQueue(verses,surahNum,0,quranReciter); } else { playQuranSurah(surahNum); }
                         }} style={{padding:"0 14px",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderLeft:`1px solid ${T.border}`,background:playingSurah===surahNum?T.accent+"18":T.surface,minHeight:44,minWidth:44}}>
                             {audioLoading===`surah-${surahNum}`||(audioLoading&&playingSurah===surahNum)
                               ?<div className="spin" style={{width:14,height:14,border:`2px solid ${T.border}`,borderTopColor:T.accent,borderRadius:"50%"}}/>
