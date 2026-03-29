@@ -1025,15 +1025,12 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:8,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:7}}>Today's Sessions</div>
               <div style={{display:"flex",gap:5,overflowX:"auto",paddingBottom:2}}>
                 {SESSIONS.map(s=>{
-                  const done=dailyChecks[s.id];
+                  const done=!!dailyChecks[s.id];
                   const isActive=activeSession===s.id;
                   return (
-                    <div key={s.id} className="sbtn" onClick={()=>setActiveSession(s.id)} style={{flexShrink:0,padding:"7px 12px",borderRadius:20,background:isActive?T.accent:done?T.accentDim:T.surface,border:`1px solid ${isActive?T.accent:done?T.accent+"40":T.border}`,display:"flex",alignItems:"center",gap:5,transition:"all .15s"}}>
-                      <span style={{fontSize:13}}>{s.icon}</span>
-                      <div>
-                        <div style={{fontSize:10,fontWeight:isActive?700:500,color:isActive?dark?"#060A07":"#fff":done?T.accent:T.dim,whiteSpace:"nowrap"}}>{s.time}</div>
-                        {done&&!isActive&&<div style={{fontSize:7,color:T.accent}}>✓ done</div>}
-                      </div>
+                    <div key={s.id} className="sbtn" onClick={()=>setActiveSession(s.id)} style={{flexShrink:0,padding:"10px 16px",borderRadius:999,display:"flex",alignItems:"center",gap:8,fontWeight:600,fontSize:14,transition:"all .15s",...(isActive?{background:"linear-gradient(180deg,#F0C040,#D89A10)",color:"#1a1a1a"}:done?{background:"rgba(56,214,126,0.12)",border:"1px solid rgba(56,214,126,0.25)",color:"#9AE6B4"}:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.6)"})}}>
+                      <span style={{fontSize:14}}>{s.icon}</span>
+                      <span style={{fontSize:13,whiteSpace:"nowrap"}}>{s.time}</span>
                     </div>
                   );
                 })}
@@ -1047,7 +1044,7 @@ export default function RihlatAlHifz() {
               return (
                 <div style={{marginBottom:12,padding:"11px 14px",background:T.surface,border:`1px solid ${T.accent}25`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 8px 8px 0"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                    <div style={{fontSize:12,fontWeight:700,color:T.text}}>{sess.icon} {sess.title}</div>
+                    <div style={{fontSize:13,fontWeight:700,color:T.text,letterSpacing:"-0.01em"}}>{sess.icon} {sess.title}</div>
                     <div className="sbtn" onClick={()=>toggleCheck(sess.id)} style={{fontSize:9,padding:"3px 9px",background:dailyChecks[sess.id]?T.accent:T.surface2,border:`1px solid ${dailyChecks[sess.id]?T.accent:T.border}`,borderRadius:10,color:dailyChecks[sess.id]?dark?"#060A07":"#fff":T.dim,fontWeight:600}}>
                       {dailyChecks[sess.id]?"✓ Done":"Mark Done"}
                     </div>
@@ -1068,7 +1065,7 @@ export default function RihlatAlHifz() {
                   const isSel=sessionJuz===j.num;
                   const isDone=juzStatus[j.num]==="complete";
                   return (
-                    <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);}} style={{flexShrink:0,padding:"6px 10px",borderRadius:8,background:isSel?T.accent:isDone?T.accentDim:T.surface,border:`1px solid ${isSel?T.accent:isDone?T.accent+"40":T.border}`,textAlign:"center",minWidth:52,transition:"all .15s"}}>
+                    <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);}} style={{flexShrink:0,padding:"6px 10px",borderRadius:8,background:isSel?T.accent:isDone?T.accentDim:"rgba(255,255,255,0.02)",border:`1px solid ${isSel?T.accent:isDone?T.accent+"40":T.border}`,textAlign:"center",minWidth:52,transition:"all .15s"}}>
                       <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,fontWeight:700,color:isSel?dark?"#060A07":"#fff":isDone?T.accent:T.dim}}>{j.num}</div>
                       <div style={{fontSize:8,color:isSel?dark?"#060A07":"#fff":isDone?T.accent:T.vdim,whiteSpace:"nowrap"}}>{j.roman?.split(" ")[0]}</div>
                     </div>
@@ -1083,8 +1080,8 @@ export default function RihlatAlHifz() {
                 <span style={{fontSize:11,color:T.sub}}>Juz {sessionJuz} Progress</span>
                 <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:T.accent}}>{sessionIdx}/{totalSV} ayahs</span>
               </div>
-              <div style={{height:5,background:T.surface2,borderRadius:3,overflow:"hidden"}}>
-                <div className="pbfill" style={{height:"100%",width:`${sessPct}%`,background:`linear-gradient(90deg,${T.accent}70,${T.accent})`,borderRadius:3}}/>
+              <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:3,overflow:"hidden"}}>
+                <div className="pbfill" style={{height:"100%",width:`${sessPct}%`,background:"linear-gradient(90deg,#38D67E,#9AE6B4)",borderRadius:3,boxShadow:"0 0 8px rgba(56,214,126,0.4)",transition:"width .5s"}}/>
               </div>
               <div style={{fontSize:9,color:T.dim,marginTop:4}}>{dailyNew} ayahs/session · {Math.ceil((totalSV-sessionIdx)/Math.max(1,dailyNew))} sessions remaining</div>
             </div>
@@ -1092,10 +1089,11 @@ export default function RihlatAlHifz() {
             {/* ── LOADING / ERROR STATES ── */}
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
             {!sessLoading&&sessionVerses.length===0&&(
-              <div style={{textAlign:"center",padding:"30px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
-                <div style={{fontSize:20,marginBottom:8}}>⚠️</div>
-                <div style={{fontSize:13,color:T.sub,marginBottom:14}}>Ayahs did not load. Check your internet connection.</div>
-                <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{display:"inline-block",padding:"8px 20px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:6,fontSize:12,fontWeight:600}}>Retry</div>
+              <div style={{background:"#0B1020",border:"1px solid rgba(255,255,255,0.06)",borderRadius:24,padding:"48px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.28)"}}>
+                <div style={{width:72,height:72,borderRadius:"50%",background:"rgba(240,192,64,0.10)",border:"1px solid rgba(240,192,64,0.22)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:20,boxShadow:"0 0 8px rgba(240,192,64,0.08)",fontSize:32}}>📖</div>
+                <div style={{fontSize:22,fontWeight:700,color:"#F8FAFC",marginBottom:14,letterSpacing:"-0.02em"}}>Ayahs unavailable</div>
+                <div style={{maxWidth:320,fontSize:14,lineHeight:1.6,color:"rgba(255,255,255,0.70)",marginBottom:24}}>We couldn't load this session right now. Check your connection and try again.</div>
+                <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{background:"linear-gradient(180deg,#F0C040 0%,#D89A10 100%)",color:"#161616",border:"none",borderRadius:16,padding:"14px 28px",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:"0 6px 14px rgba(240,192,64,0.14)"}}>Retry</div>
               </div>
             )}
 
@@ -1131,85 +1129,72 @@ export default function RihlatAlHifz() {
                     const reps=repCounts[vKey]||0;
                     const repsDone=reps>=20;
                     const isOpen=openAyah===vKey;
+                    const pct=Math.min((reps/20)*100,100);
 
                     return (
-                      <div key={vKey} style={{background:T.surface,border:`1px solid ${repsDone?"#F0C04050":isOpen?T.accent+"40":T.border}`,borderRadius:10,overflow:"hidden",transition:"all .15s"}}>
+                      <div key={vKey} style={{borderRadius:16,overflow:"hidden",marginBottom:10,background:"rgba(255,255,255,0.03)",border:`1px solid ${repsDone?"rgba(240,192,64,0.3)":isOpen?"rgba(255,255,255,0.1)":"rgba(255,255,255,0.05)"}`,transition:"all .2s"}}>
 
                         {/* ── COLLAPSED ROW ── */}
-                        <div className="sbtn" onClick={()=>setOpenAyah(isOpen?null:vKey)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px"}}>
-                          {/* Ayah number */}
-                          <div style={{width:28,height:28,borderRadius:"50%",background:repsDone?T.accent:T.surface2,border:`1px solid ${repsDone?T.accent:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:repsDone?dark?"#060A07":"#fff":T.dim,fontWeight:700,flexShrink:0}}>
+                        <div className="sbtn" onClick={()=>setOpenAyah(isOpen?null:vKey)} style={{display:"flex",alignItems:"center",padding:"14px",gap:12}}>
+                          {/* Number circle */}
+                          <div style={{width:36,height:36,borderRadius:"50%",background:repsDone?"rgba(240,192,64,0.15)":"rgba(255,255,255,0.05)",border:`1px solid ${repsDone?"rgba(240,192,64,0.4)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,fontWeight:600,color:repsDone?"#F0C040":"#aaa"}}>
                             {repsDone?"✓":i+1}
                           </div>
-                          {/* Ayah ref */}
-                          <div style={{flex:1}}>
-                            <div style={{fontSize:10,color:T.sub,fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</div>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:15,color:T.text,direction:"rtl",lineHeight:1.8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:180}}>{v.text_uthmani}</div>
+                          {/* Middle — surah + arabic */}
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginBottom:3,fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"rgba(255,255,255,0.9)",direction:"rtl",lineHeight:1.6,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.text_uthmani}</div>
                           </div>
-                          {/* Rep counter pill */}
-                          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-                            <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:repsDone?"#2ECC71":reps>0?T.accent:T.vdim}}>{reps}/20</div>
-                            <div style={{display:"flex",gap:2}}>
-                              {Array.from({length:5},(_,d)=>(
-                                <div key={d} style={{width:6,height:4,borderRadius:1,background:reps>=((d+1)*4)?T.accent:T.border}}/>
-                              ))}
+                          {/* Right — count + progress bar */}
+                          <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,minWidth:80,flexShrink:0}}>
+                            <span style={{fontSize:13,color:repsDone?"#4ADE80":reps>0?"rgba(255,255,255,0.7)":"rgba(255,255,255,0.3)",fontWeight:600,fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
+                            <div style={{width:70,height:6,borderRadius:999,background:"rgba(255,255,255,0.08)",overflow:"hidden"}}>
+                              <div style={{width:`${pct}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.35s ease"}}/>
                             </div>
                           </div>
-                          {/* Chevron */}
-                          <div style={{fontSize:11,color:T.vdim}}>{isOpen?"▾":"›"}</div>
+                          <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>{isOpen?"▾":"›"}</div>
                         </div>
 
                         {/* ── EXPANDED ROW ── */}
                         {isOpen&&(
-                          <div style={{borderTop:`1px solid ${T.border}`,padding:"12px 14px"}}>
-                            {/* Arabic text */}
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:`${fontSize}px`,color:T.text,direction:"rtl",textAlign:"right",lineHeight:2.2,marginBottom:10}}>
+                          <div style={{borderTop:"1px solid rgba(255,255,255,0.06)",padding:"12px 14px"}}>
+                            {/* Arabic full text */}
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:`${fontSize}px`,color:"rgba(255,255,255,0.92)",direction:"rtl",textAlign:"right",lineHeight:2.2,marginBottom:10}}>
                               {v.text_uthmani}
                               <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.2em",height:"1.2em",borderRadius:"50%",border:`1px solid ${T.accent}35`,color:`${T.accent}70`,fontSize:"0.4em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 5px",verticalAlign:"middle"}}>{vNum}</span>
                             </div>
-
                             {/* Translation */}
                             {showTrans&&(
-                              <div style={{fontSize:12,color:T.sub,lineHeight:1.7,fontStyle:"italic",marginBottom:12,paddingBottom:12,borderBottom:`1px solid ${T.border}`}}>
-                                {trans===undefined?<span style={{color:T.vdim}}>Loading...</span>:trans||<span style={{color:T.vdim}}>Translation unavailable</span>}
+                              <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.7,fontStyle:"italic",marginBottom:12,paddingBottom:12,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                                {trans===undefined?<span style={{color:"rgba(255,255,255,0.2)"}}>Loading...</span>:trans||<span style={{color:"rgba(255,255,255,0.2)"}}>Translation unavailable</span>}
                               </div>
                             )}
-
                             {/* Audio controls */}
                             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-                              {/* Play/Pause */}
-                              <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(vKey,vKey):null} style={{width:36,height:36,borderRadius:"50%",background:isPlaying?T.accent:T.accentDim,border:`1px solid ${T.accent}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:isPlaying?dark?"#060A07":"#fff":T.accent,opacity:hasPerAyah(reciter)?1:0.4}}>
-                                {isLoading?<div className="spin" style={{width:14,height:14,border:`2px solid ${T.accent}40`,borderTopColor:T.accent,borderRadius:"50%"}}/>:(isPlaying?"⏸":"▶")}
+                              <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(vKey,vKey):null} style={{width:36,height:36,borderRadius:"50%",background:isPlaying?"rgba(240,192,64,0.2)":"rgba(255,255,255,0.05)",border:`1px solid ${isPlaying?"rgba(240,192,64,0.6)":"rgba(255,255,255,0.1)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:isPlaying?"#F0C040":"rgba(255,255,255,0.5)",opacity:hasPerAyah(reciter)?1:0.4}}>
+                                {isLoading?<div className="spin" style={{width:14,height:14,border:"2px solid rgba(240,192,64,0.3)",borderTopColor:"#F0C040",borderRadius:"50%"}}/>:(isPlaying?"⏸":"▶")}
                               </div>
-                              {/* Audio bar */}
-                              <div style={{flex:1,height:3,background:T.surface2,borderRadius:2}}>
-                                <div style={{height:"100%",width:isPlaying?"40%":"0%",background:T.accent,borderRadius:2,transition:"width .5s"}}/>
+                              <div style={{flex:1,height:3,background:"rgba(255,255,255,0.06)",borderRadius:2}}>
+                                <div style={{height:"100%",width:isPlaying?"40%":"0%",background:"#F0C040",borderRadius:2,transition:"width .5s"}}/>
                               </div>
-                              {/* Repeat */}
-                              <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:30,height:30,borderRadius:"50%",background:looping?T.accentDim:T.surface2,border:`1px solid ${looping?T.accent:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:T.dim}}>🔁</div>
-                              {/* Restart */}
-                              <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:30,height:30,borderRadius:"50%",background:T.surface2,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:T.dim}}>↩</div>
+                              <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:30,height:30,borderRadius:"50%",background:looping?"rgba(240,192,64,0.15)":"rgba(255,255,255,0.05)",border:`1px solid ${looping?"rgba(240,192,64,0.4)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:looping?"#F0C040":"rgba(255,255,255,0.4)"}}>🔁</div>
+                              <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:30,height:30,borderRadius:"50%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"rgba(255,255,255,0.4)"}}>↩</div>
                             </div>
-
-                            {/* Rep counter tap button */}
-                            <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:Math.min(20,(prev[vKey]||0)+1)}))} style={{width:"100%",padding:"12px",background:repsDone?"#2ECC7120":T.accentDim,border:`1px solid ${repsDone?"#2ECC71":T.accent}`,borderRadius:8,textAlign:"center",transition:"all .15s"}}>
+                            {/* Rep tap button */}
+                            <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:Math.min(20,(prev[vKey]||0)+1)}))} style={{width:"100%",padding:"12px",background:repsDone?"rgba(74,222,128,0.1)":"rgba(240,192,64,0.06)",border:`1px solid ${repsDone?"rgba(74,222,128,0.3)":"rgba(240,192,64,0.2)"}`,borderRadius:10,textAlign:"center",transition:"all .2s"}}>
                               {repsDone?(
-                                <div style={{fontSize:13,fontWeight:700,color:"#2ECC71"}}>✓ 20 Reps Complete — MashaAllah!</div>
+                                <div style={{fontSize:13,fontWeight:700,color:"#4ADE80"}}>✓ 20 Reps Complete — MashaAllah!</div>
                               ):(
                                 <div>
-                                  <div style={{fontSize:13,fontWeight:700,color:T.accent,marginBottom:2}}>Tap after each recitation · {reps}/20</div>
-                                  <div style={{display:"flex",justifyContent:"center",gap:3}}>
-                                    {Array.from({length:20},(_,d)=>(
-                                      <div key={d} style={{width:8,height:8,borderRadius:2,background:d<reps?T.accent:T.border,transition:"background .1s"}}/>
-                                    ))}
+                                  <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:6}}>Tap after each recitation · <span style={{color:"#F0C040",fontWeight:700}}>{reps}/20</span></div>
+                                  <div style={{width:"100%",height:6,borderRadius:999,background:"rgba(255,255,255,0.08)",overflow:"hidden"}}>
+                                    <div style={{width:`${pct}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.35s ease"}}/>
                                   </div>
                                 </div>
                               )}
                             </div>
-
-                            {/* Reset reps */}
                             {reps>0&&(
-                              <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:0}))} style={{textAlign:"center",fontSize:10,color:T.vdim,marginTop:8}}>Reset reps</div>
+                              <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Reset reps</div>
                             )}
                           </div>
                         )}
@@ -1263,56 +1248,35 @@ export default function RihlatAlHifz() {
 
         // ── Enhanced Badge Components ──
         const JuzBadge=({count,earned})=>(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
-            <div style={{position:"relative",width:64,height:64,marginBottom:4}}>
-              {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(52,211,153,0.3)",filter:"blur(8px)"}}/>}
-              <div style={{position:"relative",width:64,height:64,borderRadius:"50%",background:"linear-gradient(180deg,#34D399 0%,#059669 50%,#064E3B 100%)",boxShadow:earned?"0 4px 16px rgba(52,211,153,0.4)":"none",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"2px solid rgba(110,231,183,0.5)"}}>
-                <div style={{position:"absolute",inset:4,borderRadius:"50%",background:"linear-gradient(180deg,rgba(255,255,255,0.25) 0%,transparent 50%)"}}/>
-                <span style={{fontSize:22,fontWeight:700,color:"#fff",lineHeight:1,textShadow:"0 1px 4px rgba(0,0,0,0.4)",position:"relative",zIndex:1}}>{count}</span>
-                <span style={{fontSize:9,fontWeight:600,color:"rgba(167,243,208,0.9)",marginTop:-2,position:"relative",zIndex:1}}>Juz</span>
-                <div style={{position:"absolute",bottom:-5,width:12,height:12,background:"linear-gradient(180deg,#EF4444,#991B1B)",transform:"rotate(45deg)",boxShadow:"0 2px 4px rgba(0,0,0,0.3)",border:"1px solid rgba(252,165,165,0.5)"}}/>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.3,filter:earned?"none":"grayscale(0.6)",background:earned?"rgba(34,197,94,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(34,197,94,0.22)":"none"}}>
+            <div style={{position:"relative",width:52,height:52,marginBottom:6,display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(52,211,153,0.2)",filter:"blur(6px)"}}/>}
+              <div style={{position:"relative",width:52,height:52,borderRadius:"50%",background:"linear-gradient(180deg,#34D399 0%,#059669 50%,#064E3B 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"1.5px solid rgba(110,231,183,0.4)"}}>
+                <span style={{fontSize:18,fontWeight:700,color:"#fff",lineHeight:1,position:"relative",zIndex:1}}>{count}</span>
+                <span style={{fontSize:8,fontWeight:600,color:"rgba(167,243,208,0.9)",position:"relative",zIndex:1}}>Juz</span>
               </div>
             </div>
-            <div style={{fontSize:9,fontWeight:700,color:earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.28)",textAlign:"center",marginTop:4}}>{count} Juz</div>
+            <div style={{fontSize:9,fontWeight:700,color:earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.28)",textAlign:"center"}}>{count} Juz</div>
           </div>
         );
         const HabituatedBadge=({earned})=>(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
-            <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(245,158,11,0.2)",filter:"blur(8px)"}}/>}
-              <svg viewBox="0 0 64 64" style={{width:56,height:56,position:"relative",zIndex:1,filter:earned?"drop-shadow(0 2px 8px rgba(245,158,11,0.5))":"none"}}>
-                <defs><linearGradient id="hg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FCD34D"/><stop offset="50%" stopColor="#F59E0B"/><stop offset="100%" stopColor="#B45309"/></linearGradient></defs>
-                <path d="M20 50 Q15 40 18 32 Q12 35 10 28 Q15 28 18 25 Q12 22 12 15 Q18 18 22 18 Q20 12 24 8 Q26 14 28 18 Q28 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
-                <path d="M44 50 Q49 40 46 32 Q52 35 54 28 Q49 28 46 25 Q52 22 52 15 Q46 18 42 18 Q44 12 40 8 Q38 14 36 18 Q36 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
-                <ellipse cx="14" cy="30" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-30 14 30)"/><ellipse cx="16" cy="22" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-45 16 22)"/><ellipse cx="22" cy="15" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-60 22 15)"/><ellipse cx="18" cy="38" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-15 18 38)"/><ellipse cx="50" cy="30" rx="4" ry="2" fill="url(#hg1)" transform="rotate(30 50 30)"/><ellipse cx="48" cy="22" rx="4" ry="2" fill="url(#hg1)" transform="rotate(45 48 22)"/><ellipse cx="42" cy="15" rx="4" ry="2" fill="url(#hg1)" transform="rotate(60 42 15)"/><ellipse cx="46" cy="38" rx="4" ry="2" fill="url(#hg1)" transform="rotate(15 46 38)"/>
-              </svg>
-            </div>
-            <div style={{background:"linear-gradient(180deg,#F59E0B,#B45309)",padding:"2px 8px",borderRadius:4,marginTop:-4,position:"relative",zIndex:2}}>
-              <span style={{fontSize:8,fontWeight:700,color:"#fff",letterSpacing:".05em"}}>Habituated</span>
-            </div>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.3,filter:earned?"none":"grayscale(0.6)",background:earned?"rgba(245,158,11,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(245,158,11,0.2)":"none"}}>
+            <svg viewBox="0 0 64 64" style={{width:48,height:48,filter:earned?"drop-shadow(0 2px 8px rgba(245,158,11,0.4))":"none"}}>
+              <defs><linearGradient id="hg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FCD34D"/><stop offset="50%" stopColor="#F59E0B"/><stop offset="100%" stopColor="#B45309"/></linearGradient></defs>
+              <path d="M20 50 Q15 40 18 32 Q12 35 10 28 Q15 28 18 25 Q12 22 12 15 Q18 18 22 18 Q20 12 24 8 Q26 14 28 18 Q28 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
+              <path d="M44 50 Q49 40 46 32 Q52 35 54 28 Q49 28 46 25 Q52 22 52 15 Q46 18 42 18 Q44 12 40 8 Q38 14 36 18 Q36 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
+              <ellipse cx="14" cy="30" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-30 14 30)"/><ellipse cx="16" cy="22" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-45 16 22)"/><ellipse cx="22" cy="15" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-60 22 15)"/><ellipse cx="18" cy="38" rx="4" ry="2" fill="url(#hg1)" transform="rotate(-15 18 38)"/><ellipse cx="50" cy="30" rx="4" ry="2" fill="url(#hg1)" transform="rotate(30 50 30)"/><ellipse cx="48" cy="22" rx="4" ry="2" fill="url(#hg1)" transform="rotate(45 48 22)"/><ellipse cx="42" cy="15" rx="4" ry="2" fill="url(#hg1)" transform="rotate(60 42 15)"/><ellipse cx="46" cy="38" rx="4" ry="2" fill="url(#hg1)" transform="rotate(15 46 38)"/>
+            </svg>
+            <span style={{fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:500,letterSpacing:".02em"}}>Habituated</span>
           </div>
         );
         const StreakBadge=({earned})=>(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
-            <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(249,115,22,0.3)",filter:"blur(10px)"}}/>}
-              <div style={{position:"relative",width:56,height:56,borderRadius:"50%",background:"linear-gradient(180deg,#3F3F46,#18181B)",boxShadow:earned?"0 4px 16px rgba(249,115,22,0.3)":"none",display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(82,82,91,0.5)"}}>
-                <svg viewBox="0 0 24 24" style={{width:36,height:36}}>
-                  <defs><linearGradient id="fg1" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stopColor="#DC2626"/><stop offset="40%" stopColor="#F97316"/><stop offset="80%" stopColor="#FBBF24"/><stop offset="100%" stopColor="#FEF08A"/></linearGradient></defs>
-                  <path d="M12 2C10 6 6 8 6 13C6 16.5 8.5 19 12 19C15.5 19 18 16.5 18 13C18 8 14 6 12 2ZM12 17C10.5 17 9 15.5 9 14C9 12 10 11 12 9C14 11 15 12 15 14C15 15.5 13.5 17 12 17Z" fill="url(#fg1)"/>
-                </svg>
-              </div>
-            </div>
-            <div style={{position:"relative",marginTop:-6,zIndex:2}}>
-              <svg viewBox="0 0 80 24" style={{width:64,height:20}}>
-                <defs><linearGradient id="rb1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#EF4444"/><stop offset="100%" stopColor="#991B1B"/></linearGradient></defs>
-                <path d="M5 4 L15 4 L15 20 L10 16 L5 20 Z" fill="url(#rb1)"/>
-                <path d="M75 4 L65 4 L65 20 L70 16 L75 20 Z" fill="url(#rb1)"/>
-                <rect x="12" y="4" width="56" height="14" rx="2" fill="url(#rb1)"/>
-                <rect x="12" y="4" width="56" height="4" rx="1" fill="white" fillOpacity="0.2"/>
-              </svg>
-              <span style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:7,fontWeight:700,color:"#fff",paddingTop:2}}>7 Day Streak</span>
-            </div>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.3,filter:earned?"none":"grayscale(0.6)",background:earned?"rgba(249,115,22,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(249,115,22,0.2)":"none"}}>
+            <svg viewBox="0 0 24 24" style={{width:48,height:48,filter:earned?"drop-shadow(0 2px 10px rgba(249,115,22,0.5))":"none"}}>
+              <defs><linearGradient id="fg1" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stopColor="#DC2626"/><stop offset="40%" stopColor="#F97316"/><stop offset="80%" stopColor="#FBBF24"/><stop offset="100%" stopColor="#FEF08A"/></linearGradient></defs>
+              <path d="M12 2C10 6 6 8 6 13C6 16.5 8.5 19 12 19C15.5 19 18 16.5 18 13C18 8 14 6 12 2ZM12 17C10.5 17 9 15.5 9 14C9 12 10 11 12 9C14 11 15 12 15 14C15 15.5 13.5 17 12 17Z" fill="url(#fg1)"/>
+            </svg>
+            <span style={{fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:500,letterSpacing:".02em"}}>7 Day Streak</span>
           </div>
         );
         const HifzGoalBadge=({earned})=>(
@@ -1382,13 +1346,13 @@ export default function RihlatAlHifz() {
 
             <div style={{padding:"12px 14px 48px",position:"relative",zIndex:1}}>
 
-            {/* ── 2 & 3. OVERALL PROGRESS + DAILY GOALS side by side ── */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
-            {/* ── 2. OVERALL PROGRESS ── */}
-            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px"}}>
+            {/* ── 2 & 3. OVERALL PROGRESS + DAILY GOALS — single card ── */}
+            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px",marginBottom:10}}>
+
+              {/* ── Overall Progress ── */}
               <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:12}}>Overall Progress</div>
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-                <svg width={90} height={90} style={{overflow:"visible"}}>
+              <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:16}}>
+                <svg width={100} height={100} style={{flexShrink:0,overflow:"visible"}}>
                   <defs>
                     <linearGradient id="ringgrad" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#4ADE80"/>
@@ -1396,52 +1360,55 @@ export default function RihlatAlHifz() {
                     </linearGradient>
                     <filter id="glow2"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
-                  <circle cx={45} cy={45} r={36} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={8}/>
-                  <circle cx={45} cy={45} r={36} fill="none" stroke="url(#ringgrad)" strokeWidth={8}
-                    strokeDasharray={`${2*Math.PI*36*(pct/100)} ${2*Math.PI*36}`} strokeLinecap="round"
-                    transform="rotate(-90 45 45)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease"}}/>
-                  <text x={45} y={41} textAnchor="middle" fill="#4ADE80" fontSize={16} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={45} y={55} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={9} fontFamily="'DM Sans',sans-serif">{completedCount}/30 Juz</text>
+                  <circle cx={50} cy={50} r={40} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={9}/>
+                  <circle cx={50} cy={50} r={40} fill="none" stroke="url(#ringgrad)" strokeWidth={9}
+                    strokeDasharray={`${2*Math.PI*40*(pct/100)} ${2*Math.PI*40}`} strokeLinecap="round"
+                    transform="rotate(-90 50 50)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease"}}/>
+                  <text x={50} y={46} textAnchor="middle" fill="#4ADE80" fontSize={18} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
+                  <text x={50} y={61} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount}/30 Juz</text>
                 </svg>
-                <div style={{width:"100%"}}>
-                  {[{label:"Memorized",val:completedCount,color:"#4ADE80"},{label:"In Progress",val:Object.values(juzStatus).filter(s=>s==="in_progress").length,color:"#F6A623"},{label:"Left",val:30-completedCount,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.06)":"none"}}>
-                      <span style={{fontSize:10,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
-                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:s.color,fontWeight:700}}>{s.val}</span>
+                <div style={{flex:1}}>
+                  {[{label:"Memorized",val:completedCount,color:"#4ADE80"},{label:"In Progress",val:Object.values(juzStatus).filter(s=>s==="in_progress").length,color:"#F6A623"},{label:"Remaining",val:30-completedCount,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.06)":"none"}}>
+                      <span style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:s.color,fontWeight:700}}>{s.val}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* ── 3. DAILY GOALS ── */}
-            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              {/* ── Gold divider ── */}
+              <div style={{position:"relative",height:1,marginBottom:16}}>
+                <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,transparent 0%,rgba(201,166,70,0.6) 50%,transparent 100%)"}}/>
+              </div>
+
+              {/* ── Daily Goals ── */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700}}>Daily Goals</div>
                 <div style={{display:"flex",alignItems:"baseline",gap:4}}>
-                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:28,color:"#F0C040",fontWeight:700,lineHeight:1}}>{checkedCount}</span>
-                  <span style={{fontSize:14,color:"rgba(255,255,255,0.35)"}}> / {SESSIONS.length}</span>
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:24,color:"#F0C040",fontWeight:700,lineHeight:1}}>{checkedCount}</span>
+                  <span style={{fontSize:13,color:"rgba(255,255,255,0.35)"}}> / {SESSIONS.length}</span>
                   <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginLeft:4}}>Sessions</span>
                 </div>
               </div>
-              <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden",marginBottom:12}}>
-                <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#4ADE80,#22C55E)",borderRadius:999,boxShadow:"0 0 12px rgba(74,222,128,0.4)",transition:"width .5s"}}/>
+              <div style={{height:5,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden",marginBottom:12}}>
+                <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#4ADE80,#22C55E)",borderRadius:999,boxShadow:"0 0 10px rgba(74,222,128,0.4)",transition:"width .5s"}}/>
               </div>
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {SESSIONS.map(s=>{
+              <div style={{background:"rgba(255,255,255,0.02)",padding:"12px",borderRadius:16,boxShadow:"inset 0 0 10px rgba(255,255,255,0.02)"}}>
+                {SESSIONS.map((s,i)=>{
                   const done=!!dailyChecks[s.id];
+                  const isActive=s.id===activeSess?.id&&!done;
+                  const isInactive=!done&&!isActive;
                   return (
-                    <div key={s.id} className="sbtn" onClick={()=>toggleCheck(s.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,background:done?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)",border:done?"1px solid rgba(74,222,128,0.2)":"1px solid transparent",transition:"all .2s"}}>
-                      <div style={{width:18,height:18,borderRadius:"50%",background:done?s.color:"rgba(255,255,255,0.08)",border:done?`2px solid ${s.color}`:"1px solid rgba(255,255,255,0.1)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:done?`0 0 8px ${s.color}60`:"none",transition:"all .2s"}}>
+                    <div key={s.id} className="sbtn" onClick={()=>toggleCheck(s.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:12,marginBottom:i<SESSIONS.length-1?(isActive?14:10):0,background:isActive?"linear-gradient(180deg,rgba(240,192,64,0.08),rgba(240,192,64,0.02))":done?"rgba(34,197,94,0.06)":"transparent",border:isActive?"1.5px solid rgba(240,192,64,0.6)":done?"1px solid rgba(34,197,94,0.15)":"1px solid transparent",boxShadow:isActive?"0 0 35px rgba(240,192,64,0.18),0 0 30px rgba(240,192,64,0.25),inset 0 0 12px rgba(240,192,64,0.08)":"none",opacity:isInactive?0.2:1,filter:isInactive?"grayscale(0.7)":"none",transition:"all .2s"}}>
+                      <div style={{width:18,height:18,borderRadius:"50%",background:done?s.color:"rgba(255,255,255,0.08)",border:done?`2px solid ${s.color}`:"1px solid rgba(255,255,255,0.1)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:done?`0 0 8px ${s.color}60`:"none",filter:isActive?"drop-shadow(0 0 6px rgba(240,192,64,0.4))":"none",transition:"all .2s"}}>
                         {done&&<span style={{fontSize:8,color:"#fff",fontWeight:700}}>✓</span>}
                       </div>
-                      <span style={{fontSize:12,color:done?s.color:"rgba(255,255,255,0.6)",fontWeight:done?600:400,flex:1,transition:"color .2s"}}>{s.icon} {s.time} — {s.title}</span>
+                      <span style={{fontSize:12,color:isActive?"#F0C040":done?s.color:"rgba(255,255,255,0.6)",fontWeight:isActive||done?600:400,flex:1,transition:"color .2s"}}>{s.icon} {s.time} — {s.title}</span>
                     </div>
                   );
                 })}
               </div>
-            </div>
-
             </div>
 
             {/* ── 4. HIFZ JOURNEY ── */}
@@ -1450,7 +1417,7 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:14,position:"relative",zIndex:1}}>Hifz Journey</div>
               {/* Mountain SVG path */}
               <div style={{position:"relative",height:120,marginBottom:8}}>
-                <svg viewBox="0 0 400 120" style={{position:"absolute",bottom:0,left:0,right:0,width:"100%",height:80}} preserveAspectRatio="none">
+                <svg viewBox="0 0 400 120" style={{position:"absolute",bottom:0,left:0,right:0,width:"100%",height:80,opacity:0.1}} preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="mtnfill" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#374151" stopOpacity="0.4"/>
@@ -1462,27 +1429,27 @@ export default function RihlatAlHifz() {
                 </svg>
                 <svg viewBox="0 0 400 120" style={{position:"absolute",inset:0,width:"100%",height:"100%"}} preserveAspectRatio="none">
                   <defs>
-                    <linearGradient id="pathgrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#14B8A6"/>
-                      <stop offset="60%" stopColor="#A3A3A3"/>
-                      <stop offset="100%" stopColor="#D4A574"/>
+                    <linearGradient id="pathgrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#00FFC6"/>
+                      <stop offset="50%" stopColor="#7CFFB2"/>
+                      <stop offset="100%" stopColor="#FFD166"/>
                     </linearGradient>
                   </defs>
-                  <path d="M20,110 C50,105 70,90 100,80 C140,65 170,55 200,50 C240,43 280,30 320,23 C350,17 370,13 385,7" fill="none" stroke="url(#pathgrad)" strokeWidth="3.5" strokeLinecap="round" style={{filter:"drop-shadow(0 0 6px rgba(20,184,166,0.4))"}}/>
+                  <path d="M20,110 C50,105 70,90 100,80 C140,65 170,55 200,50 C240,43 280,30 320,23 C350,17 370,13 385,7" fill="none" stroke="url(#pathgrad)" strokeWidth="4" strokeLinecap="round" style={{filter:"drop-shadow(0 0 14px rgba(0,255,200,0.35))"}}/>
                 </svg>
                 {/* Milestone dots */}
                 {[{juz:1,label:"Juz 1",pct:5,btm:12},{juz:10,label:"Juz 10",pct:28,btm:30},{juz:20,label:"Juz 20",pct:52,btm:52},{juz:30,label:"Juz 30",pct:78,btm:72}].map((m,i)=>{
                   const reached=completedCount>=m.juz;
                   return (
-                    <div key={i} style={{position:"absolute",left:`${m.pct}%`,bottom:`${m.btm}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-                      <div style={{width:10,height:10,borderRadius:"50%",background:reached?"#14B8A6":"rgba(255,255,255,0.2)",boxShadow:reached?"0 0 8px rgba(20,184,166,0.5)":"none"}}/>
-                      <span style={{fontSize:8,color:reached?"#14B8A6":"rgba(255,255,255,0.3)",whiteSpace:"nowrap",fontWeight:reached?700:400}}>{m.label}</span>
+                    <div key={i} style={{position:"absolute",left:`${m.pct}%`,bottom:`${m.btm}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:3,opacity:reached?1:0.4}}>
+                      <div style={{width:10,height:10,borderRadius:"50%",background:"rgba(255,255,255,0.4)",boxShadow:"0 0 8px rgba(255,255,255,0.2)"}}/>
+                      <span style={{fontSize:8,color:"rgba(255,255,255,0.6)",whiteSpace:"nowrap",fontWeight:reached?700:400}}>{m.label}</span>
                     </div>
                   );
                 })}
                 {/* Hafiz endpoint */}
                 <div style={{position:"absolute",right:"3%",top:"5%",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-                  <div style={{width:36,height:36,borderRadius:10,background:"rgba(180,83,9,0.3)",border:"1px solid rgba(245,158,11,0.4)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 16px rgba(245,158,11,0.2)"}}>
+                  <div style={{width:40,height:40,borderRadius:12,background:"rgba(180,83,9,0.3)",border:"1.5px solid rgba(240,192,64,0.6)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 25px rgba(240,192,64,0.28)"}}>
                     <span style={{fontSize:18}}>📖</span>
                   </div>
                   <span style={{fontSize:8,color:"rgba(240,192,64,0.8)",fontWeight:700}}>Hafiz</span>
@@ -1491,7 +1458,7 @@ export default function RihlatAlHifz() {
                 {completedCount>0&&(
                   <div style={{position:"absolute",left:`${5+Math.min(73,(completedCount/30)*73)}%`,bottom:`${12+Math.min(60,(completedCount/30)*60)}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:3,zIndex:10}}>
                     <div style={{background:"#14B8A6",color:"#fff",fontSize:9,fontWeight:800,padding:"2px 6px",borderRadius:4,boxShadow:"0 0 10px rgba(20,184,166,0.5)"}}>{completedCount}</div>
-                    <div style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,#14B8A6,#0D9488)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 12px rgba(20,184,166,0.5)",border:"2px solid rgba(20,184,166,0.4)"}}>
+                    <div style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,#14B8A6,#0D9488)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 20px rgba(0,255,200,0.5)",border:"2px solid rgba(0,255,200,0.5)",transform:"scale(1.1)"}}>
                       <span style={{fontSize:11}}>📖</span>
                     </div>
                   </div>
@@ -1557,7 +1524,7 @@ export default function RihlatAlHifz() {
             <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"18px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 16%)"}}/>
               <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
-              <div style={{display:"flex",justifyContent:"space-around",gap:4,position:"relative",zIndex:1}}>
+              <div style={{display:"flex",justifyContent:"space-around",gap:8,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"12px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)"}}>
                 <JuzBadge count={completedCount||0} earned={completedCount>0}/>
                 <HabituatedBadge earned={streak>=14}/>
                 <StreakBadge earned={streak>=7}/>
@@ -1567,12 +1534,12 @@ export default function RihlatAlHifz() {
 
             {/* ── 7. NAV BUTTONS ── */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:"linear-gradient(135deg,rgba(13,46,24,0.9),rgba(26,74,40,0.8))",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 8px 24px rgba(0,0,0,0.3)"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:"linear-gradient(145deg,#0B1020,#111A33)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>📖</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Juz</div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Track memorization</div>
               </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:"linear-gradient(135deg,rgba(30,35,50,0.9),rgba(20,25,40,0.8))",border:"1px solid rgba(240,192,64,0.18)",borderRadius:18,textAlign:"center",boxShadow:"0 8px 24px rgba(0,0,0,0.3)"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:"linear-gradient(145deg,#0B1020,#111A33)",border:"1px solid rgba(240,192,64,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>Timeline</div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Goal calculator</div>
