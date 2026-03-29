@@ -525,7 +525,7 @@ export default function RihlatAlHifz() {
   const surahGroups=[];let cur=null;
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
-  const completedCount=Object.values(juzStatus).filter(s=>s==="complete").length;
+  const completedCount=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
   const pct=Math.round((completedCount/30)*100);
   const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>juzStatus[j.num]!=="complete");
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
