@@ -756,6 +756,8 @@ export default function RihlatAlHifz() {
   function getEveryayahFolder(id){ const r=RECITERS.find(x=>x.id===id); return r?.everyayah||RECITERS[0].everyayah; }
   function getArchiveUrl(id, surahNum){ const r=RECITERS.find(x=>x.id===id); if(!r?.archive) return null; return `https://archive.org/download/${r.archive}/${String(surahNum).padStart(3,"0")}.mp3`; }
 
+  const MID_SURAH_JUZ=new Set([2,3,4,5,6,7,8,11,12,16,19,20,21,22,23,24,25,27]);
+
   function getQuranSurahUrl(reciterId,surahNum){
     const r=QURAN_RECITERS.find(x=>x.id===reciterId);
     if(!r?.quranicaudio) return null;
@@ -1883,8 +1885,14 @@ export default function RihlatAlHifz() {
                               <div style={{color:isOpen?T.accent:T.dim,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(90deg)":"none"}}>›</div>
                             </div>
                           </div>
-                          <div className="sbtn" onClick={(e)=>{e.stopPropagation();playQuranSurah(surahNum);}} style={{padding:"0 14px",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderLeft:`1px solid ${T.border}`,background:playingSurah===surahNum?T.accent+"18":T.surface,minHeight:44,minWidth:44}}>
-                            {audioLoading===`surah-${surahNum}`
+                          <div className="sbtn" onClick={(e)=>{
+                          e.stopPropagation();
+                          const firstVerseKey=verses[0]?.verse_key||"";
+                          const firstAyahNum=parseInt(firstVerseKey.split(":")?.[1]||"1",10);
+                          const shouldUseAyahQueue=MID_SURAH_JUZ.has(selectedJuz)&&firstAyahNum>1;
+                          if(shouldUseAyahQueue){ playSurahQueue(verses,surahNum,0); } else { playQuranSurah(surahNum); }
+                        }} style={{padding:"0 14px",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderLeft:`1px solid ${T.border}`,background:playingSurah===surahNum?T.accent+"18":T.surface,minHeight:44,minWidth:44}}>
+                            {audioLoading===`surah-${surahNum}`||(audioLoading&&playingSurah===surahNum)
                               ?<div className="spin" style={{width:14,height:14,border:`2px solid ${T.border}`,borderTopColor:T.accent,borderRadius:"50%"}}/>
                               :<span style={{fontSize:16,color:playingSurah===surahNum?T.accent:T.dim}}>{playingSurah===surahNum?"⏸":"▶"}</span>
                             }
