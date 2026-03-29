@@ -763,6 +763,26 @@ export default function RihlatAlHifz() {
 
   function getEveryayahFolder(id){ const r=RECITERS.find(x=>x.id===id); return r?.everyayah||RECITERS[0].everyayah; }
   function getArchiveUrl(id, surahNum){ const r=RECITERS.find(x=>x.id===id); if(!r?.archive) return null; return `https://archive.org/download/${r.archive}/${String(surahNum).padStart(3,"0")}.mp3`; }
+
+  function getQuranSurahUrl(reciterId,surahNum){
+    const r=QURAN_RECITERS.find(x=>x.id===reciterId);
+    if(!r?.quranicaudio) return null;
+    return `https://download.quranicaudio.com/quran/${r.quranicaudio}/${String(surahNum).padStart(3,"0")}.mp3`;
+  }
+
+  function playQuranSurah(surahNum){
+    if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
+    if(playingSurah===surahNum){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
+    const url=getQuranSurahUrl(quranReciter,surahNum);
+    if(!url) return;
+    setPlayingSurah(surahNum); setPlayingKey(`surah-${surahNum}`); setAudioLoading(`surah-${surahNum}`);
+    const audio=new Audio(url);
+    audioRef.current=audio;
+    audio.oncanplay=()=>{ setAudioLoading(null); };
+    audio.onended=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
+    audio.onerror=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
+    audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
+  }
   function hasPerAyah(id){ const r=RECITERS.find(x=>x.id===id); return !!r?.everyayah; }
 
   async function toggleAsrSurahReview(surahNum){
@@ -1871,8 +1891,8 @@ export default function RihlatAlHifz() {
                               <div style={{color:isOpen?T.accent:T.dim,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(90deg)":"none"}}>›</div>
                             </div>
                           </div>
-                          <div className="sbtn" onClick={(e)=>{e.stopPropagation();playSurahQueue(verses,surahNum);}} style={{padding:"0 14px",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderLeft:`1px solid ${T.border}`,background:playingSurah===surahNum?T.accent+"18":T.surface,minHeight:44,minWidth:44}}>
-                            {audioLoading&&playingSurah===surahNum
+                          <div className="sbtn" onClick={(e)=>{e.stopPropagation();playQuranSurah(surahNum);}} style={{padding:"0 14px",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",borderLeft:`1px solid ${T.border}`,background:playingSurah===surahNum?T.accent+"18":T.surface,minHeight:44,minWidth:44}}>
+                            {audioLoading===`surah-${surahNum}`
                               ?<div className="spin" style={{width:14,height:14,border:`2px solid ${T.border}`,borderTopColor:T.accent,borderRadius:"50%"}}/>
                               :<span style={{fontSize:16,color:playingSurah===surahNum?T.accent:T.dim}}>{playingSurah===surahNum?"⏸":"▶"}</span>
                             }
