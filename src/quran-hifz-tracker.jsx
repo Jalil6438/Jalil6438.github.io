@@ -392,6 +392,7 @@ export default function RihlatAlHifz() {
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
+  const [asrReviewBatch,setAsrReviewBatch]=useState([]);
   const [sessLoading,setSessLoading]=useState(false);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
 
@@ -508,6 +509,7 @@ export default function RihlatAlHifz() {
         setSessionIdx(p.sessionIdx||0);
         setSessionDone(p.sessionDone||[]);
         setYesterdayBatch(p.yesterdayBatch||[]);
+        setAsrReviewBatch(p.asrReviewBatch||[]);
         if(p.dark!==undefined) setDark(p.dark);
         if(p.streak!==undefined) setStreak(p.streak);
         if(p.checkHistory) setCheckHistory(p.checkHistory);
@@ -530,8 +532,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Fetch session verses
   useEffect(()=>{
@@ -576,7 +578,45 @@ export default function RihlatAlHifz() {
     return()=>{cancelled=true;};
   },[sessionJuz,juzStatus]);
 
-  const fetchTranslations=async(verses)=>{
+  // Build Asr review batch from completed juz/surahs
+  useEffect(()=>{
+    let cancelled=false;
+    async function buildAsrReviewBatch(){
+      const completedJuzNums=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key)).sort((a,b)=>b-a);
+      if(completedJuzNums.length>0){
+        const juzToReview=completedJuzNums[0];
+        try {
+          let page=1,all=[],tp=1;
+          do {
+            const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${juzToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
+            if(!res.ok) throw new Error();
+            const data=await res.json();
+            if(cancelled) return;
+            all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
+          } while(page<=tp);
+          if(!cancelled) setAsrReviewBatch(all.slice(0,dailyNew));
+          return;
+        } catch {}
+      }
+      const completedSurahNums=Object.entries(juzStatus).filter(([key,value])=>String(key).startsWith("s")&&value==="complete").map(([key])=>Number(String(key).replace("s",""))).sort((a,b)=>b-a);
+      if(completedSurahNums.length>0){
+        const surahToReview=completedSurahNums[0];
+        try {
+          const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
+          if(!res.ok) throw new Error();
+          const data=await res.json();
+          if(cancelled) return;
+          if(!cancelled) setAsrReviewBatch((data.verses||[]).slice(0,dailyNew));
+          return;
+        } catch {}
+      }
+      if(!cancelled) setAsrReviewBatch([]);
+    }
+    buildAsrReviewBatch();
+    return()=>{cancelled=true;};
+  },[juzStatus,dailyNew]);
+
+    const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
     const updated={};
@@ -631,8 +671,10 @@ export default function RihlatAlHifz() {
   const bStart=sessionIdx;
   const bEnd=Math.min(sessionIdx+dailyNew,totalSV);
   const fajrBatch=sessionVerses.slice(bStart,bEnd);
-  const isDhuhr=SESSIONS[activeSessionIndex]?.id==="dhuhr";
-  const batch=isDhuhr&&yesterdayBatch.length>0?yesterdayBatch:fajrBatch;
+  const currentSessionId=SESSIONS[activeSessionIndex]?.id;
+  const isDhuhr=currentSessionId==="dhuhr";
+  const isAsr=currentSessionId==="asr";
+  const batch=isDhuhr&&yesterdayBatch.length>0?yesterdayBatch:isAsr&&asrReviewBatch.length>0?asrReviewBatch:fajrBatch;
   const bKey=`${sessionJuz}-${bStart}`;
   const bDone=sessionDone.includes(bKey);
   const sessM=JUZ_META.find(j=>j.num===sessionJuz);
@@ -1196,7 +1238,7 @@ export default function RihlatAlHifz() {
               <div>
                 {/* Batch header */}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                  <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{sessionJuz===30?"Revision":"Fajr"} — Ayahs {bStart+1}–{bEnd} of {totalSV}</div>
+                  <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{currentSessionId==="fajr"?"Fajr":currentSessionId==="dhuhr"?"Dhuhr Review":currentSessionId==="asr"?"Asr Review":currentSessionId==="maghrib"?"Listening":"Isha Review"} — Ayah Batch</div>
                   <div style={{display:"flex",gap:6,alignItems:"center"}}>
                     <div className="sbtn" onClick={()=>setShowTrans(s=>!s)} style={{fontSize:10,padding:"3px 8px",background:showTrans?T.accentDim:T.surface2,border:`1px solid ${showTrans?T.accent+"50":T.border}`,borderRadius:5,color:showTrans?T.accent:T.dim}}>
                       {showTrans?"Hide Trans":"Translation"}
