@@ -762,8 +762,7 @@ export default function RihlatAlHifz() {
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
           {onboardStep===4&&(()=>{
             const totalAyahs=6236;
-            const memorizedSurahs=Object.entries(juzStatus).filter(([,v])=>v==="complete").length;
-            const juzDone=Object.values(juzStatus).filter(v=>v==="complete").length;
+            const juzDone=Object.entries(juzStatus).filter(([key,value])=>{return!String(key).startsWith("s")&&value==="complete";}).length;
             const remainingJuz=30-juzDone;
             const totalMonths=(goalYears*12)+goalMonths;
             const remainingAyahs=Math.round(totalAyahs*(remainingJuz/30));
