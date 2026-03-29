@@ -1416,7 +1416,14 @@ export default function RihlatAlHifz() {
             )}
 
             {/* ── JUZ COMPLETE ── */}
-            {!sessLoading&&batch.length===0&&totalSV>0&&(
+            {!sessLoading&&currentSessionId==="dhuhr"&&batch.length===0&&(
+              <div style={{padding:"16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:12}}>
+                <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>No Dhuhr review batch yet</div>
+                <div style={{fontSize:11,color:T.sub,lineHeight:1.6}}>Complete a full day through Isha so tomorrow's Dhuhr can review the previous Fajr batch.</div>
+              </div>
+            )}
+
+            {!sessLoading&&currentSessionId==="fajr"&&batch.length===0&&totalSV>0&&(
               <div style={{textAlign:"center",paddingTop:40}}>
                 <div style={{fontSize:26,marginBottom:10}}>🎉</div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:T.accent,marginBottom:6}}>Juz {sessionJuz} Complete — Alhamdulillah!</div>
