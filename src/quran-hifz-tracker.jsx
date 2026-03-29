@@ -1422,7 +1422,17 @@ export default function RihlatAlHifz() {
             {!sessLoading&&currentSessionId==="dhuhr"&&batch.length===0&&(
               <div style={{padding:"16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:12}}>
                 <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>No Dhuhr review batch yet</div>
-                <div style={{fontSize:11,color:T.sub,lineHeight:1.6}}>Complete a full day through Isha so tomorrow's Dhuhr can review the previous Fajr batch.</div>
+                <div style={{fontSize:11,color:T.sub,lineHeight:1.6,marginBottom:12}}>Complete a full day through Isha so tomorrow's Dhuhr can review the previous Fajr batch.</div>
+                <div className="sbtn" onClick={()=>{
+                  const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
+                  setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
+                  toggleCheck(sess.id);
+                  setRepCounts({});
+                  setOpenAyah(null);
+                  setActiveSessionIndex(i=>i+1);
+                }} style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
+                  Complete Dhuhr Revision
+                </div>
               </div>
             )}
 
