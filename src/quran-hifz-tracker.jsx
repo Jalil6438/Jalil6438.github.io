@@ -387,82 +387,17 @@ export default function RihlatAlHifz() {
   const [goalYears,setGoalYears]=useState(3);
   const [goalMonths,setGoalMonths]=useState(1);
   const [openMethod,setOpenMethod]=useState(null);
-  const [sessionJuz,setSessionJuz]=useState(29);
+  const [sessionJuz,setSessionJuz]=useState(30);
   const [sessionIdx,setSessionIdx]=useState(0);
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
   const [sessLoading,setSessLoading]=useState(false);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
-
-  useEffect(()=>{
-    const completedJuz=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key));
-    if(!completedJuz.includes(30)) setSessionJuz(30);
-    else if(!completedJuz.includes(29)) setSessionJuz(29);
-    else if(!completedJuz.includes(28)) setSessionJuz(28);
-    else if(!completedJuz.includes(27)) setSessionJuz(27);
-    else if(!completedJuz.includes(26)) setSessionJuz(26);
-    else if(!completedJuz.includes(25)) setSessionJuz(25);
-    else if(!completedJuz.includes(24)) setSessionJuz(24);
-    else if(!completedJuz.includes(23)) setSessionJuz(23);
-    else if(!completedJuz.includes(22)) setSessionJuz(22);
-    else if(!completedJuz.includes(21)) setSessionJuz(21);
-    else if(!completedJuz.includes(20)) setSessionJuz(20);
-    else if(!completedJuz.includes(19)) setSessionJuz(19);
-    else if(!completedJuz.includes(18)) setSessionJuz(18);
-    else if(!completedJuz.includes(17)) setSessionJuz(17);
-    else if(!completedJuz.includes(16)) setSessionJuz(16);
-    else if(!completedJuz.includes(15)) setSessionJuz(15);
-    else if(!completedJuz.includes(14)) setSessionJuz(14);
-    else if(!completedJuz.includes(13)) setSessionJuz(13);
-    else if(!completedJuz.includes(12)) setSessionJuz(12);
-    else if(!completedJuz.includes(11)) setSessionJuz(11);
-    else if(!completedJuz.includes(10)) setSessionJuz(10);
-    else if(!completedJuz.includes(9)) setSessionJuz(9);
-    else if(!completedJuz.includes(8)) setSessionJuz(8);
-    else if(!completedJuz.includes(7)) setSessionJuz(7);
-    else if(!completedJuz.includes(6)) setSessionJuz(6);
-    else if(!completedJuz.includes(5)) setSessionJuz(5);
-    else if(!completedJuz.includes(4)) setSessionJuz(4);
-    else if(!completedJuz.includes(3)) setSessionJuz(3);
-    else if(!completedJuz.includes(2)) setSessionJuz(2);
-    else if(!completedJuz.includes(1)) setSessionJuz(1);
-    else setSessionJuz(30);
-  },[juzStatus]);
-
-  useEffect(()=>{
-    const completedJuz=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key));
-    if(!completedJuz.includes(30)) setSessionJuz(30);
-    else if(!completedJuz.includes(29)) setSessionJuz(29);
-    else if(!completedJuz.includes(28)) setSessionJuz(28);
-    else if(!completedJuz.includes(27)) setSessionJuz(27);
-    else if(!completedJuz.includes(26)) setSessionJuz(26);
-    else if(!completedJuz.includes(25)) setSessionJuz(25);
-    else if(!completedJuz.includes(24)) setSessionJuz(24);
-    else if(!completedJuz.includes(23)) setSessionJuz(23);
-    else if(!completedJuz.includes(22)) setSessionJuz(22);
-    else if(!completedJuz.includes(21)) setSessionJuz(21);
-    else if(!completedJuz.includes(20)) setSessionJuz(20);
-    else if(!completedJuz.includes(19)) setSessionJuz(19);
-    else if(!completedJuz.includes(18)) setSessionJuz(18);
-    else if(!completedJuz.includes(17)) setSessionJuz(17);
-    else if(!completedJuz.includes(16)) setSessionJuz(16);
-    else if(!completedJuz.includes(15)) setSessionJuz(15);
-    else if(!completedJuz.includes(14)) setSessionJuz(14);
-    else if(!completedJuz.includes(13)) setSessionJuz(13);
-    else if(!completedJuz.includes(12)) setSessionJuz(12);
-    else if(!completedJuz.includes(11)) setSessionJuz(11);
-    else if(!completedJuz.includes(10)) setSessionJuz(10);
-    else if(!completedJuz.includes(9)) setSessionJuz(9);
-    else if(!completedJuz.includes(8)) setSessionJuz(8);
-    else if(!completedJuz.includes(7)) setSessionJuz(7);
-    else if(!completedJuz.includes(6)) setSessionJuz(6);
-    else if(!completedJuz.includes(5)) setSessionJuz(5);
-    else if(!completedJuz.includes(4)) setSessionJuz(4);
-    else if(!completedJuz.includes(3)) setSessionJuz(3);
-    else if(!completedJuz.includes(2)) setSessionJuz(2);
-    else if(!completedJuz.includes(1)) setSessionJuz(1);
-    else setSessionJuz(30);
-  },[juzStatus]);
+  useEffect(()=>{const completedJuz=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key));
+    if(!completedJuz.includes(30))setSessionJuz(30);
+    else if(!completedJuz.includes(29))setSessionJuz(29);
+    else if
+  })
   const [streak,setStreak]=useState(0);
   const [checkHistory,setCheckHistory]=useState({});
   const [calMonth,setCalMonth]=useState(new Date().getMonth());
@@ -532,47 +467,78 @@ export default function RihlatAlHifz() {
   },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded]);
 
   // Fetch session verses
-  useEffect(()=>{
-    let cancelled=false;
-    (async()=>{
-      setSessLoading(true); setSessionVerses([]);
-      try {
-        let page=1,all=[],tp=1;
-        do {
-          const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${sessionJuz}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
-          if(!res.ok) throw new Error();
-          const data=await res.json();
-          if(cancelled) return;
-          all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
-        } while(page<=tp);
+  useEffect(() => {
+  let cancelled = false;
 
-        // 1) Get this juz's surahs in descending memorization order
-        const descendingSurahOrder=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
+  (async () => {
+    setSessLoading(true);
+    setSessionVerses([]);
 
-        // 2) Remove surahs already marked complete
-        const unfinishedVerses=all.filter(v=>{
-          const surahNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
-          return juzStatus[`s${surahNum}`]!=="complete";
-        });
+    try {
+      let page = 1;
+      let all = [];
+      let tp = 1;
 
-        // 3) Sort by descending surah order, then ayah ASC inside each surah
-        const orderedVerses=unfinishedVerses.sort((a,b)=>{
-          const surahA=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
-          const surahB=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
-          const ayahA=parseInt(a.verse_key?.split(":")?.[1],10);
-          const ayahB=parseInt(b.verse_key?.split(":")?.[1],10);
-          const idxA=descendingSurahOrder.indexOf(surahA);
-          const idxB=descendingSurahOrder.indexOf(surahB);
-          if(idxA!==idxB) return idxA-idxB;
-          return ayahA-ayahB;
-        });
+      do {
+        const res = await fetch(
+          `https://api.qurancdn.com/api/qdc/verses/by_juz/${sessionJuz}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`
+        );
+        if (!res.ok) throw new Error();
 
-        if(!cancelled){ setSessionIdx(0); setSessionVerses(orderedVerses); }
-      } catch {}
-      if(!cancelled) setSessLoading(false);
-    })();
-    return()=>{cancelled=true;};
-  },[sessionJuz,juzStatus]);
+        const data = await res.json();
+        if (cancelled) return;
+
+        all = [...all, ...(data.verses || [])];
+        tp = data.pagination?.total_pages || 1;
+        page++;
+      } while (page <= tp);
+
+      // 1) Get this juz's surahs in DESCENDING memorization order
+      const descendingSurahOrder = [...(JUZ_SURAHS[sessionJuz] || [])]
+        .map(item => item.s)
+        .reverse();
+
+      // 2) Remove surahs already marked complete in onboarding/tracker
+      const unfinishedVerses = all.filter(v => {
+        const surahNum =
+          v.surah_number || parseInt(v.verse_key?.split(":")?.[0], 10);
+
+        return juzStatus[`s${surahNum}`] !== "complete";
+      });
+
+      // 3) Sort by descending surah order, then ayah ASC inside each surah
+      const orderedVerses = unfinishedVerses.sort((a, b) => {
+        const surahA =
+          a.surah_number || parseInt(a.verse_key?.split(":")?.[0], 10);
+        const surahB =
+          b.surah_number || parseInt(b.verse_key?.split(":")?.[0], 10);
+
+        const ayahA = parseInt(a.verse_key?.split(":")?.[1], 10);
+        const ayahB = parseInt(b.verse_key?.split(":")?.[1], 10);
+
+        const surahIndexA = descendingSurahOrder.indexOf(surahA);
+        const surahIndexB = descendingSurahOrder.indexOf(surahB);
+
+        if (surahIndexA !== surahIndexB) {
+          return surahIndexA - surahIndexB;
+        }
+
+        return ayahA - ayahB;
+      });
+
+      if (!cancelled) {
+        setSessionIdx(0);
+        setSessionVerses(orderedVerses);
+      }
+    } catch {}
+
+    if (!cancelled) setSessLoading(false);
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [sessionJuz, juzStatus]);
 
   const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
@@ -854,8 +820,7 @@ export default function RihlatAlHifz() {
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
           {onboardStep===4&&(()=>{
             const totalAyahs=6236;
-            const memorizedSurahs=Object.entries(juzStatus).filter(([,v])=>v==="complete").length;
-            const juzDone=Object.values(juzStatus).filter(v=>v==="complete").length;
+            const juzDone=Object.entries(juzStatus).filter(([key,value])=>{return!String(key).startsWith("s")&&value==="complete";}).length;
             const remainingJuz=30-juzDone;
             const totalMonths=(goalYears*12)+goalMonths;
             const remainingAyahs=Math.round(totalAyahs*(remainingJuz/30));
@@ -1296,26 +1261,30 @@ export default function RihlatAlHifz() {
                     <div style={{fontSize:22,marginBottom:8}}>✅</div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
                     <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",marginBottom:14}}>Session complete — MashaAllah! 🤲</div>
-                    <div className="sbtn" onClick={()=>{if(bEnd<totalSV){setSessionIdx(bEnd);setSessionDone(d=>d.filter(k=>k!==bKey));setRepCounts({});setOpenAyah(null);}}} style={{display:"inline-block",padding:"12px 32px",background:"linear-gradient(180deg,#F0C040,#D89A10)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",boxShadow:"0 6px 14px rgba(240,192,64,0.2)"}}>
+                    <div className="sbtn" onClick={()=>{setSessionDone(d=>d.filter(k=>k!==bKey));setRepCounts({});setOpenAyah(null);}}style={{display:"inline-block",padding:"12px 32px",background:"linear-gradient(180deg,#F0C040,#D89A10)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",boxShadow:"0 6px 14px rgba(240,192,64,0.2)"}}>
                       Finish & Continue →
                     </div>
                   </div>
                 ):(
                   <div className="sbtn" onClick={()=>{
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
+                    // Mark session complete
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                     toggleCheck(sess.id);
                     setSessionDone(d=>[...d,bKey]);
                     setRepCounts({});
                     setOpenAyah(null);
+                    // Fajr → advance batch
+                    if(sess.id==="fajr") setSessionIdx(bEnd);
+                    // Isha → reset day
                     if(activeSessionIndex>=SESSIONS.length-1){
-                      setSessionIdx(bEnd);
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
                     } else {
                       setActiveSessionIndex(i=>i+1);
                     }
-                  }} style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
+                  }} 
+                  style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
                     {SESSION_CTA[activeSessionIndex]||"Finish & Continue →"}
                   </div>
                 )}
