@@ -392,6 +392,8 @@ export default function RihlatAlHifz() {
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
+  const [asrSelectedSurahs,setAsrSelectedSurahs]=useState([]);
+  const [asrSelectedJuz,setAsrSelectedJuz]=useState([]);
   const [asrReviewBatch,setAsrReviewBatch]=useState([]);
   const [sessLoading,setSessLoading]=useState(false);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
@@ -509,6 +511,8 @@ export default function RihlatAlHifz() {
         setSessionIdx(p.sessionIdx||0);
         setSessionDone(p.sessionDone||[]);
         setYesterdayBatch(p.yesterdayBatch||[]);
+        setAsrSelectedSurahs(p.asrSelectedSurahs||[]);
+        setAsrSelectedJuz(p.asrSelectedJuz||[]);
         setAsrReviewBatch(p.asrReviewBatch||[]);
         if(p.dark!==undefined) setDark(p.dark);
         if(p.streak!==undefined) setStreak(p.streak);
@@ -532,8 +536,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Fetch session verses
   useEffect(()=>{
@@ -630,43 +634,43 @@ export default function RihlatAlHifz() {
   const timeline=calcTimeline(goalYears,completedCount,5);
   const dailyNew=Math.ceil(parseFloat(timeline.ayahsPerDay));
 
-  // Build Asr review batch from completed juz/surahs
+  // Build manual Asr review batch
   useEffect(()=>{
     let cancelled=false;
-    async function buildAsrReviewBatch(){
-      const completedJuzNums=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key)).sort((a,b)=>b-a);
-      if(completedJuzNums.length>0){
-        const juzToReview=completedJuzNums[0];
+    async function buildManualAsrBatch(){
+      if(asrSelectedSurahs.length===0&&asrSelectedJuz.length===0){
+        if(!cancelled) setAsrReviewBatch([]); return;
+      }
+      let collected=[];
+      for(const juzNum of asrSelectedJuz){
         try {
           let page=1,all=[],tp=1;
           do {
-            const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${juzToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
+            const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
             if(!res.ok) throw new Error();
             const data=await res.json();
             if(cancelled) return;
             all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
           } while(page<=tp);
-          if(!cancelled) setAsrReviewBatch(all.slice(0,dailyNew));
-          return;
+          collected=[...collected,...all];
         } catch {}
       }
-      const completedSurahNums=Object.entries(juzStatus).filter(([key,value])=>String(key).startsWith("s")&&value==="complete").map(([key])=>Number(String(key).replace("s",""))).sort((a,b)=>b-a);
-      if(completedSurahNums.length>0){
-        const surahToReview=completedSurahNums[0];
+      for(const surahNum of asrSelectedSurahs){
         try {
-          const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
+          const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
           if(!res.ok) throw new Error();
           const data=await res.json();
           if(cancelled) return;
-          if(!cancelled) setAsrReviewBatch((data.verses||[]).slice(0,dailyNew));
-          return;
+          collected=[...collected,...(data.verses||[])];
         } catch {}
       }
-      if(!cancelled) setAsrReviewBatch([]);
+      const unique=[]; const seen=new Set();
+      for(const verse of collected){ if(!seen.has(verse.verse_key)){ seen.add(verse.verse_key); unique.push(verse); } }
+      if(!cancelled) setAsrReviewBatch(unique);
     }
-    buildAsrReviewBatch();
+    buildManualAsrBatch();
     return()=>{cancelled=true;};
-  },[juzStatus,goalYears]);
+  },[asrSelectedSurahs,asrSelectedJuz]);
 
     const totalSV=sessionVerses.length;
   const bStart=sessionIdx;
@@ -683,6 +687,10 @@ export default function RihlatAlHifz() {
   const checkedCount=SESSIONS.filter(s=>dailyChecks[s.id]).length;
   const allChecked=checkedCount===SESSIONS.length;
   const currentReciter=RECITERS.find(r=>r.id===reciter)||RECITERS[0];
+
+  const completedSurahOptions=Object.entries(juzStatus).filter(([key,value])=>String(key).startsWith("s")&&value==="complete").map(([key])=>{const surahNum=Number(String(key).replace("s",""));return{num:surahNum,en:SURAH_EN[surahNum],ar:SURAH_AR?.[surahNum]||""};}).sort((a,b)=>b.num-a.num);
+
+  const completedJuzOptions=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>{const juzNum=Number(key);const meta=JUZ_META.find(j=>j.num===juzNum);return{num:juzNum,name:meta?.roman||`Juz ${juzNum}`,arabic:meta?.arabic||""};}).sort((a,b)=>b.num-a.num);
 
   useEffect(()=>{if(batch.length&&showTrans)fetchTranslations(batch);},[batch,showTrans]);
 
@@ -1197,6 +1205,29 @@ export default function RihlatAlHifz() {
                 </div>
               );
             })()}
+
+            {/* ── ASR PICKER ── */}
+            {SESSIONS[activeSessionIndex]?.id==="asr"&&(
+              <div style={{marginBottom:12,padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10}}>
+                <div style={{fontSize:11,fontWeight:700,color:T.text,marginBottom:10}}>Choose material for Asr review</div>
+                <div style={{fontSize:9,color:T.dim,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Completed Surahs</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+                  {completedSurahOptions.length===0&&<div style={{fontSize:11,color:T.dim}}>No completed surahs yet</div>}
+                  {completedSurahOptions.map(s=>{
+                    const selected=asrSelectedSurahs.includes(s.num);
+                    return (<div key={s.num} className="sbtn" onClick={()=>setAsrSelectedSurahs(prev=>prev.includes(s.num)?prev.filter(n=>n!==s.num):[...prev,s.num])} style={{padding:"6px 10px",borderRadius:20,background:selected?T.accentDim:T.surface2,border:`1px solid ${selected?T.accent+"50":T.border}`,color:selected?T.accent:T.sub,fontSize:11}}>{s.en}</div>);
+                  })}
+                </div>
+                <div style={{fontSize:9,color:T.dim,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Completed Juz</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {completedJuzOptions.length===0&&<div style={{fontSize:11,color:T.dim}}>No completed juz yet</div>}
+                  {completedJuzOptions.map(j=>{
+                    const selected=asrSelectedJuz.includes(j.num);
+                    return (<div key={j.num} className="sbtn" onClick={()=>setAsrSelectedJuz(prev=>prev.includes(j.num)?prev.filter(n=>n!==j.num):[...prev,j.num])} style={{padding:"6px 10px",borderRadius:20,background:selected?T.accentDim:T.surface2,border:`1px solid ${selected?T.accent+"50":T.border}`,color:selected?T.accent:T.sub,fontSize:11}}>Juz {j.num}</div>);
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* ── JUZ SELECTOR ── */}
             <div style={{marginTop:16,marginBottom:16}}>
