@@ -545,12 +545,34 @@ export default function RihlatAlHifz() {
           if(cancelled) return;
           all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
         } while(page<=tp);
-        if(!cancelled) setSessionVerses(all);
+
+        // 1) Get this juz's surahs in descending memorization order
+        const descendingSurahOrder=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
+
+        // 2) Remove surahs already marked complete
+        const unfinishedVerses=all.filter(v=>{
+          const surahNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+          return juzStatus[`s${surahNum}`]!=="complete";
+        });
+
+        // 3) Sort by descending surah order, then ayah ASC inside each surah
+        const orderedVerses=unfinishedVerses.sort((a,b)=>{
+          const surahA=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
+          const surahB=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
+          const ayahA=parseInt(a.verse_key?.split(":")?.[1],10);
+          const ayahB=parseInt(b.verse_key?.split(":")?.[1],10);
+          const idxA=descendingSurahOrder.indexOf(surahA);
+          const idxB=descendingSurahOrder.indexOf(surahB);
+          if(idxA!==idxB) return idxA-idxB;
+          return ayahA-ayahB;
+        });
+
+        if(!cancelled){ setSessionIdx(0); setSessionVerses(orderedVerses); }
       } catch {}
       if(!cancelled) setSessLoading(false);
     })();
     return()=>{cancelled=true;};
-  },[sessionJuz]);
+  },[sessionJuz,juzStatus]);
 
   const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
