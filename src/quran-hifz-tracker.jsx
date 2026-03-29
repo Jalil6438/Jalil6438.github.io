@@ -1004,7 +1004,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&(
-        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column"}} className="fi">
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:"linear-gradient(180deg,#0B1220,#0E1628)"}} className="fi">
 
           {/* ── STICKY RECITER BUTTON ── */}
           <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,paddingBottom:2}}>
@@ -1057,36 +1057,37 @@ export default function RihlatAlHifz() {
 
             {/* ── JUZ SELECTOR ── */}
             <div style={{marginTop:16,marginBottom:16}}>
-              <div style={{fontSize:12,color:"#6B7280",marginBottom:6,letterSpacing:"1px",textTransform:"uppercase"}}>Session Juz</div>
-              <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{padding:"14px 16px",borderRadius:14,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}}>
+              <div style={{fontSize:11,color:"#6B7280",marginBottom:6,letterSpacing:"1.2px",textTransform:"uppercase"}}>Session Juz</div>
+              <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"20px 18px",marginBottom:0,display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",transition:"all 0.2s ease"}}>
                 <div>
-                  <div style={{fontSize:16,fontWeight:600,color:T.text}}>Juz {sessionJuz}</div>
-                  <div style={{fontSize:12,color:"#9CA3AF",marginTop:2}}>{sessM?.roman||sessM?.arabic}</div>
+                  <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:4}}>Juz {sessionJuz}</div>
+                  <div style={{fontSize:14,color:"rgba(255,255,255,0.62)"}}>{sessM?.roman||sessM?.arabic}</div>
                 </div>
-                <div style={{color:"#F0C040",fontSize:14}}>▼</div>
+                <div style={{color:"#E6B84A",fontSize:16}}>▼</div>
               </div>
             </div>
 
             {/* ── PROGRESS CARD ── */}
-            <div style={{padding:"14px",borderRadius:14,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",marginBottom:16}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                <span style={{fontSize:14,color:T.text}}>Juz {sessionJuz} Progress</span>
-                <span style={{color:"#F0C040",fontWeight:600,fontFamily:"'IBM Plex Mono',monospace"}}>{sessionIdx} / {totalSV}</span>
+            <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:18,marginBottom:18}}>
+              <div style={{width:42,height:4,borderRadius:999,background:"#E6B84A",marginBottom:14}}/>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <div style={{fontSize:17,fontWeight:600,color:"#F8FAFC"}}>Juz {sessionJuz} Progress</div>
+                {totalSV===0?(<div style={{fontSize:14,color:"rgba(255,255,255,0.48)",fontStyle:"italic"}}>Loading...</div>):(<span style={{fontSize:14,color:"#E6B84A",fontWeight:600,fontFamily:"'IBM Plex Mono',monospace"}}>{sessionIdx} / {totalSV}</span>)}
               </div>
-              <div style={{fontSize:12,color:"#6B7280",marginBottom:8}}>{dailyNew} ayahs/session · {Math.ceil((totalSV-sessionIdx)/Math.max(1,dailyNew))} sessions remaining</div>
-              <div style={{height:6,borderRadius:999,background:"rgba(255,255,255,0.08)",overflow:"hidden"}}>
-                <div className="pbfill" style={{height:"100%",width:`${sessPct}%`,background:"linear-gradient(90deg,#38D67E,#9AE6B4)",borderRadius:999,boxShadow:"0 0 8px rgba(56,214,126,0.4)",transition:"width .5s"}}/>
+              <div style={{fontSize:14,color:"rgba(255,255,255,0.58)",marginBottom:14}}>{dailyNew} ayahs/session · {Math.ceil((totalSV-sessionIdx)/Math.max(1,dailyNew))} sessions remaining</div>
+              <div style={{height:8,borderRadius:999,background:"rgba(255,255,255,0.08)",overflow:"hidden"}}>
+                <div className="pbfill" style={{height:"100%",width:`${sessPct}%`,background:"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .5s"}}/>
               </div>
             </div>
 
             {/* ── LOADING / ERROR STATES ── */}
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
             {!sessLoading&&sessionVerses.length===0&&(
-              <div style={{background:"#0B1020",border:"1px solid rgba(255,255,255,0.06)",borderRadius:24,padding:"48px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.28)"}}>
-                <div style={{width:72,height:72,borderRadius:"50%",background:"rgba(240,192,64,0.10)",border:"1px solid rgba(240,192,64,0.22)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:20,boxShadow:"0 0 8px rgba(240,192,64,0.08)",fontSize:32}}>📖</div>
-                <div style={{fontSize:22,fontWeight:700,color:"#F8FAFC",marginBottom:14,letterSpacing:"-0.02em"}}>Ayahs unavailable</div>
-                <div style={{maxWidth:320,fontSize:14,lineHeight:1.6,color:"rgba(255,255,255,0.70)",marginBottom:24}}>We couldn't load this session right now. Check your connection and try again.</div>
-                <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{background:"linear-gradient(180deg,#F0C040 0%,#D89A10 100%)",color:"#161616",border:"none",borderRadius:16,padding:"14px 28px",fontSize:15,fontWeight:700,cursor:"pointer",boxShadow:"0 6px 14px rgba(240,192,64,0.14)"}}>Retry</div>
+              <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
+                <div style={{width:74,height:74,borderRadius:"50%",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,boxShadow:"0 0 10px rgba(230,184,74,0.10)",fontSize:30}}>📖</div>
+                <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
+                <div style={{fontSize:14,lineHeight:1.7,color:"rgba(255,255,255,0.60)",maxWidth:320,marginBottom:22}}>Please check your connection and try again.</div>
+                <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{background:"linear-gradient(180deg,#F0C040 0%,#D89A10 100%)",color:"#0B1220",border:"none",borderRadius:14,padding:"12px 28px",fontWeight:700,fontSize:16,boxShadow:"0 6px 14px rgba(240,192,64,0.14)",cursor:"pointer"}}>Retry</div>
               </div>
             )}
 
@@ -1125,20 +1126,20 @@ export default function RihlatAlHifz() {
                     const pct=Math.min((reps/20)*100,100);
 
                     return (
-                      <div key={vKey} style={{borderRadius:18,marginBottom:16,background:"rgba(255,255,255,0.02)",border:`1px solid ${repsDone?"rgba(240,192,64,0.25)":"rgba(255,255,255,0.08)"}`,overflow:"hidden",transition:"all .2s"}}>
+                      <div key={vKey} style={{borderRadius:18,marginBottom:16,background:"#0F1A2B",border:`1px solid ${repsDone?"rgba(230,184,74,0.4)":"rgba(230,184,74,0.12)"}`,overflow:"hidden",transition:"all .2s",boxShadow:repsDone?"0 0 20px rgba(230,184,74,0.15)":"0 4px 12px rgba(0,0,0,0.3)"}}>
 
                         {/* ── COLLAPSED: header + arabic preview + rep bar ── */}
                         <div className="sbtn" onClick={()=>setOpenAyah(isOpen?null:vKey)} style={{padding:16}}>
                           {/* Header row */}
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                             <div style={{display:"flex",alignItems:"center",gap:10}}>
-                              <div style={{width:30,height:30,borderRadius:"50%",background:repsDone?"rgba(240,192,64,0.15)":"rgba(255,255,255,0.05)",border:`1px solid ${repsDone?"rgba(240,192,64,0.4)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600,color:repsDone?"#F0C040":"#aaa",flexShrink:0}}>
+                              <div style={{width:30,height:30,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.05)",border:`1px solid ${repsDone?"rgba(230,184,74,0.5)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600,color:repsDone?"#E6B84A":"#aaa",flexShrink:0,boxShadow:repsDone?"0 0 10px rgba(230,184,74,0.2)":"none"}}>
                                 {repsDone?"✓":i+1}
                               </div>
                               <span style={{fontSize:12,color:"#9CA3AF",fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</span>
                             </div>
                             <div style={{display:"flex",alignItems:"center",gap:8}}>
-                              <span style={{fontSize:12,color:repsDone?"#4ADE80":reps>0?"rgba(255,255,255,0.6)":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
+                              <span style={{fontSize:12,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
                               <span style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>{isOpen?"▾":"›"}</span>
                             </div>
                           </div>
@@ -1154,7 +1155,7 @@ export default function RihlatAlHifz() {
 
                         {/* ── EXPANDED ── */}
                         {isOpen&&(
-                          <div style={{borderTop:"1px solid rgba(255,255,255,0.06)",padding:"0 16px 16px"}}>
+                          <div style={{borderTop:"1px solid rgba(255,255,255,0.05)",padding:"0 16px 16px",background:"#0F1A2B"}}>
                             {/* Translation */}
                             {showTrans&&(
                               <div style={{fontSize:13,color:"#9CA3AF",fontStyle:"italic",lineHeight:1.7,marginBottom:14,marginTop:12}}>
@@ -1173,7 +1174,7 @@ export default function RihlatAlHifz() {
                               <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:30,height:30,borderRadius:"50%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"rgba(255,255,255,0.4)"}}>↩</div>
                             </div>
                             {/* Tap to rep */}
-                            <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:Math.min(20,(prev[vKey]||0)+1)}))} style={{width:"100%",padding:"12px",background:repsDone?"rgba(74,222,128,0.08)":"rgba(240,192,64,0.06)",border:`1px solid ${repsDone?"rgba(74,222,128,0.25)":"rgba(240,192,64,0.18)"}`,borderRadius:12,textAlign:"center",transition:"all .2s"}}>
+                            <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:Math.min(20,(prev[vKey]||0)+1)}))} style={{width:"100%",padding:"12px",background:repsDone?"rgba(74,222,128,0.08)":"rgba(230,184,74,0.08)",border:`1px solid ${repsDone?"rgba(74,222,128,0.25)":"rgba(230,184,74,0.2)"}`,borderRadius:12,textAlign:"center",transition:"all .2s"}}>
                               {repsDone?(
                                 <div style={{fontSize:13,fontWeight:700,color:"#4ADE80"}}>✓ 20 Reps Complete — MashaAllah!</div>
                               ):(
@@ -1402,63 +1403,69 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 4. HIFZ JOURNEY ── */}
-            <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 80% 70%, rgba(74,222,128,0.06) 0, transparent 20%)"}}/>
-              <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:14,position:"relative",zIndex:1}}>Hifz Journey</div>
-              {/* Mountain SVG path */}
-              <div style={{position:"relative",height:120,marginBottom:8}}>
-                <svg viewBox="0 0 400 120" style={{position:"absolute",bottom:0,left:0,right:0,width:"100%",height:80,opacity:0.1}} preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="mtnfill" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#374151" stopOpacity="0.4"/>
-                      <stop offset="50%" stopColor="#4b5563" stopOpacity="0.3"/>
-                      <stop offset="100%" stopColor="#78716c" stopOpacity="0.35"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,120 L0,80 L30,60 L60,75 L100,45 L140,65 L180,35 L220,55 L260,30 L300,50 L340,25 L380,40 L400,20 L400,120 Z" fill="url(#mtnfill)"/>
-                </svg>
-                <svg viewBox="0 0 400 120" style={{position:"absolute",inset:0,width:"100%",height:"100%"}} preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="pathgrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#00FFC6"/>
-                      <stop offset="50%" stopColor="#7CFFB2"/>
-                      <stop offset="100%" stopColor="#FFD166"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M20,110 C50,105 70,90 100,80 C140,65 170,55 200,50 C240,43 280,30 320,23 C350,17 370,13 385,7" fill="none" stroke="url(#pathgrad)" strokeWidth="4" strokeLinecap="round" style={{filter:"drop-shadow(0 0 14px rgba(0,255,200,0.35))"}}/>
-                </svg>
-                {/* Milestone dots */}
-                {[{juz:1,label:"Juz 1",pct:5,btm:12},{juz:10,label:"Juz 10",pct:28,btm:30},{juz:20,label:"Juz 20",pct:52,btm:52},{juz:30,label:"Juz 30",pct:78,btm:72}].map((m,i)=>{
-                  const reached=completedCount>=m.juz;
-                  return (
-                    <div key={i} style={{position:"absolute",left:`${m.pct}%`,bottom:`${m.btm}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:3,opacity:reached?1:0.4}}>
-                      <div style={{width:10,height:10,borderRadius:"50%",background:"rgba(255,255,255,0.4)",boxShadow:"0 0 8px rgba(255,255,255,0.2)"}}/>
-                      <span style={{fontSize:8,color:"rgba(255,255,255,0.6)",whiteSpace:"nowrap",fontWeight:reached?700:400}}>{m.label}</span>
-                    </div>
-                  );
-                })}
-                {/* Hafiz endpoint */}
-                <div style={{position:"absolute",right:"3%",top:"5%",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-                  <div style={{width:40,height:40,borderRadius:12,background:"rgba(180,83,9,0.3)",border:"1.5px solid rgba(240,192,64,0.6)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 25px rgba(240,192,64,0.28)"}}>
-                    <span style={{fontSize:18}}>📖</span>
-                  </div>
-                  <span style={{fontSize:8,color:"rgba(240,192,64,0.8)",fontWeight:700}}>Hafiz</span>
-                </div>
-                {/* Current position */}
-                {completedCount>0&&(
-                  <div style={{position:"absolute",left:`${5+Math.min(73,(completedCount/30)*73)}%`,bottom:`${12+Math.min(60,(completedCount/30)*60)}%`,transform:"translateX(-50%)",display:"flex",flexDirection:"column",alignItems:"center",gap:3,zIndex:10}}>
-                    <div style={{background:"#14B8A6",color:"#fff",fontSize:9,fontWeight:800,padding:"2px 6px",borderRadius:4,boxShadow:"0 0 10px rgba(20,184,166,0.5)"}}>{completedCount}</div>
-                    <div style={{width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,#14B8A6,#0D9488)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 20px rgba(0,255,200,0.5)",border:"2px solid rgba(0,255,200,0.5)",transform:"scale(1.1)"}}>
-                      <span style={{fontSize:11}}>📖</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",position:"relative",zIndex:1}}>
-                <div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>Goal: {goalYears}-Year Plan</div>
-                <div style={{fontSize:9,color:"rgba(255,255,255,0.35)"}}>{timeline.juzLeft} Juz remaining</div>
+            <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 10% 20%, rgba(46,230,197,0.05) 0, transparent 40%), radial-gradient(circle at 85% 75%, rgba(230,184,74,0.05) 0, transparent 40%)"}}/>
+              <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.5)",fontWeight:700,marginBottom:12,position:"relative",zIndex:1}}>Hifz Journey</div>
+              {(()=>{
+                const journeyPct=Math.round((completedCount/30)*100);
+                const pathD="M20 110 C 55 105, 78 78, 110 72 S 175 45, 210 42 S 265 28, 300 18";
+                const pathLength=320;
+                const revealed=(journeyPct/100)*pathLength;
+                const hidden=pathLength-revealed;
+                const cp=journeyPct<=5?{x:28,y:105}:journeyPct<=25?{x:95,y:77}:journeyPct<=50?{x:160,y:56}:journeyPct<=75?{x:230,y:38}:{x:286,y:23};
+                return (
+                  <svg width="100%" viewBox="0 0 320 140" style={{display:"block",marginBottom:8}}>
+                    <defs>
+                      <linearGradient id="journeyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#2EE6C5"/>
+                        <stop offset="75%" stopColor="#8EF0A8"/>
+                        <stop offset="100%" stopColor="#E6B84A"/>
+                      </linearGradient>
+                      <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3.5" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                      <filter id="currentGlow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="4" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                      <filter id="goalGlow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="5" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                    </defs>
+                    <path d={pathD} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="4" strokeLinecap="round"/>
+                    <path d={pathD} fill="none" stroke="url(#journeyGradient)" strokeWidth="5" strokeLinecap="round" filter="url(#lineGlow)" strokeDasharray={`${revealed} ${hidden}`}/>
+                    {[{x:105,y:73,juz:10,label:"Juz 10"},{x:170,y:50,juz:20,label:"Juz 20"},{x:245,y:32,juz:30,label:"Juz 30"}].map((m,i)=>{
+                      const reached=completedCount>=m.juz;
+                      return (
+                        <g key={i} opacity={reached?1:0.4}>
+                          <circle cx={m.x} cy={m.y} r="5.5" fill="rgba(255,255,255,0.22)"/>
+                          <text x={m.x} y={m.y+16} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.5)">{m.label}</text>
+                        </g>
+                      );
+                    })}
+                    {completedCount>0&&(
+                      <g>
+                        <circle cx={cp.x} cy={cp.y} r="9" fill="#2EE6C5" filter="url(#currentGlow)"/>
+                        <circle cx={cp.x} cy={cp.y} r="5.5" fill="#C8FFF4"/>
+                        <text x={cp.x} y={cp.y-13} textAnchor="middle" fontSize="8" fontWeight="700" fill="#2EE6C5">{completedCount}</text>
+                      </g>
+                    )}
+                    <g transform="translate(300 18)">
+                      <circle cx="0" cy="0" r="16" fill="rgba(230,184,74,0.10)" stroke="rgba(230,184,74,0.70)" strokeWidth="1.5" filter="url(#goalGlow)"/>
+                      <text x="0" y="5" textAnchor="middle" fontSize="13" fill="#F0C040">📖</text>
+                    </g>
+                    <text x="20" y="126" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.4)">Juz 1</text>
+                  </svg>
+                );
+              })()}
+              <div style={{display:"flex",justifyContent:"space-between",position:"relative",zIndex:1,marginTop:4}}>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Goal: {goalYears}-Year Plan</div>
+                <div style={{fontSize:10,color:"rgba(230,184,74,0.6)",fontWeight:600}}>{timeline.juzLeft} Juz remaining</div>
               </div>
             </div>
+
 
             {/* ── 5. ACTIVE SESSION CHECKLIST ── */}
             <div style={{background:"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px",marginBottom:10}}>
