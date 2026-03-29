@@ -679,7 +679,13 @@ export default function RihlatAlHifz() {
   const currentSessionId=SESSIONS[activeSessionIndex]?.id;
   const isDhuhr=currentSessionId==="dhuhr";
   const isAsr=currentSessionId==="asr";
-  const batch=isDhuhr&&yesterdayBatch.length>0?yesterdayBatch:isAsr&&asrReviewBatch.length>0?asrReviewBatch:fajrBatch;
+  const isMaghrib=currentSessionId==="maghrib";
+  const isIsha=currentSessionId==="isha";
+
+  let batch=fajrBatch;
+  if(isDhuhr){ batch=yesterdayBatch.length>0?yesterdayBatch:[]; }
+  else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
+  else if(isMaghrib||isIsha){ batch=fajrBatch; }
   const bKey=`${sessionJuz}-${bStart}`;
   const bDone=sessionDone.includes(bKey);
   const sessM=JUZ_META.find(j=>j.num===sessionJuz);
@@ -1262,6 +1268,14 @@ export default function RihlatAlHifz() {
                 <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
                 <div style={{fontSize:14,lineHeight:1.7,color:"rgba(255,255,255,0.60)",maxWidth:320,marginBottom:22}}>Please check your connection and try again.</div>
                 <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{background:"linear-gradient(180deg,#F0C040 0%,#D89A10 100%)",color:"#0B1220",border:"none",borderRadius:14,padding:"12px 28px",fontWeight:700,fontSize:16,boxShadow:"0 6px 14px rgba(240,192,64,0.14)",cursor:"pointer"}}>Retry</div>
+              </div>
+            )}
+
+            {/* ── ASR EMPTY STATE ── */}
+            {!sessLoading&&currentSessionId==="asr"&&batch.length===0&&(
+              <div style={{padding:"16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:12}}>
+                <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>Choose review material for Asr</div>
+                <div style={{fontSize:11,color:T.sub,lineHeight:1.6}}>Select completed surahs or completed juz above to build your Asr revision set.</div>
               </div>
             )}
 
