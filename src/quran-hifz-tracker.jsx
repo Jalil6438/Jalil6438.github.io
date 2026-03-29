@@ -578,44 +578,6 @@ export default function RihlatAlHifz() {
     return()=>{cancelled=true;};
   },[sessionJuz,juzStatus]);
 
-  // Build Asr review batch from completed juz/surahs
-  useEffect(()=>{
-    let cancelled=false;
-    async function buildAsrReviewBatch(){
-      const completedJuzNums=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key)).sort((a,b)=>b-a);
-      if(completedJuzNums.length>0){
-        const juzToReview=completedJuzNums[0];
-        try {
-          let page=1,all=[],tp=1;
-          do {
-            const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${juzToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
-            if(!res.ok) throw new Error();
-            const data=await res.json();
-            if(cancelled) return;
-            all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
-          } while(page<=tp);
-          if(!cancelled) setAsrReviewBatch(all.slice(0,dailyNew));
-          return;
-        } catch {}
-      }
-      const completedSurahNums=Object.entries(juzStatus).filter(([key,value])=>String(key).startsWith("s")&&value==="complete").map(([key])=>Number(String(key).replace("s",""))).sort((a,b)=>b-a);
-      if(completedSurahNums.length>0){
-        const surahToReview=completedSurahNums[0];
-        try {
-          const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
-          if(!res.ok) throw new Error();
-          const data=await res.json();
-          if(cancelled) return;
-          if(!cancelled) setAsrReviewBatch((data.verses||[]).slice(0,dailyNew));
-          return;
-        } catch {}
-      }
-      if(!cancelled) setAsrReviewBatch([]);
-    }
-    buildAsrReviewBatch();
-    return()=>{cancelled=true;};
-  },[juzStatus,dailyNew]);
-
     const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
@@ -667,7 +629,46 @@ export default function RihlatAlHifz() {
   const curCfg=STATUS_CFG[curStatus];
   const timeline=calcTimeline(goalYears,completedCount,5);
   const dailyNew=Math.ceil(parseFloat(timeline.ayahsPerDay));
-  const totalSV=sessionVerses.length;
+
+  // Build Asr review batch from completed juz/surahs
+  useEffect(()=>{
+    let cancelled=false;
+    async function buildAsrReviewBatch(){
+      const completedJuzNums=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key)).sort((a,b)=>b-a);
+      if(completedJuzNums.length>0){
+        const juzToReview=completedJuzNums[0];
+        try {
+          let page=1,all=[],tp=1;
+          do {
+            const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${juzToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
+            if(!res.ok) throw new Error();
+            const data=await res.json();
+            if(cancelled) return;
+            all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
+          } while(page<=tp);
+          if(!cancelled) setAsrReviewBatch(all.slice(0,dailyNew));
+          return;
+        } catch {}
+      }
+      const completedSurahNums=Object.entries(juzStatus).filter(([key,value])=>String(key).startsWith("s")&&value==="complete").map(([key])=>Number(String(key).replace("s",""))).sort((a,b)=>b-a);
+      if(completedSurahNums.length>0){
+        const surahToReview=completedSurahNums[0];
+        try {
+          const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahToReview}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
+          if(!res.ok) throw new Error();
+          const data=await res.json();
+          if(cancelled) return;
+          if(!cancelled) setAsrReviewBatch((data.verses||[]).slice(0,dailyNew));
+          return;
+        } catch {}
+      }
+      if(!cancelled) setAsrReviewBatch([]);
+    }
+    buildAsrReviewBatch();
+    return()=>{cancelled=true;};
+  },[juzStatus,goalYears]);
+
+    const totalSV=sessionVerses.length;
   const bStart=sessionIdx;
   const bEnd=Math.min(sessionIdx+dailyNew,totalSV);
   const fajrBatch=sessionVerses.slice(bStart,bEnd);
