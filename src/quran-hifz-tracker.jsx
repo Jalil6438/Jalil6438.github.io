@@ -387,7 +387,7 @@ export default function RihlatAlHifz() {
   const [goalYears,setGoalYears]=useState(3);
   const [goalMonths,setGoalMonths]=useState(1);
   const [openMethod,setOpenMethod]=useState(null);
-  const [sessionJuz,setSessionJuz]=useState(29);
+  const [sessionJuz,setSessionJuz]=useState(30);
   const [sessionIdx,setSessionIdx]=useState(0);
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
