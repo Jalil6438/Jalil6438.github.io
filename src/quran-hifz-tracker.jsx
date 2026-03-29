@@ -391,6 +391,7 @@ export default function RihlatAlHifz() {
   const [sessionIdx,setSessionIdx]=useState(0);
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
+  const [yesterdayBatch,setYesterdayBatch]=useState([]);
   const [sessLoading,setSessLoading]=useState(false);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
 
@@ -506,6 +507,7 @@ export default function RihlatAlHifz() {
         setSessionJuz(p.sessionJuz||29);
         setSessionIdx(p.sessionIdx||0);
         setSessionDone(p.sessionDone||[]);
+        setYesterdayBatch(p.yesterdayBatch||[]);
         if(p.dark!==undefined) setDark(p.dark);
         if(p.streak!==undefined) setStreak(p.streak);
         if(p.checkHistory) setCheckHistory(p.checkHistory);
@@ -528,8 +530,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Fetch session verses
   useEffect(()=>{
@@ -628,7 +630,9 @@ export default function RihlatAlHifz() {
   const totalSV=sessionVerses.length;
   const bStart=sessionIdx;
   const bEnd=Math.min(sessionIdx+dailyNew,totalSV);
-  const batch=sessionVerses.slice(bStart,bEnd);
+  const fajrBatch=sessionVerses.slice(bStart,bEnd);
+  const isDhuhr=SESSIONS[activeSessionIndex]?.id==="dhuhr";
+  const batch=isDhuhr&&yesterdayBatch.length>0?yesterdayBatch:fajrBatch;
   const bKey=`${sessionJuz}-${bStart}`;
   const bDone=sessionDone.includes(bKey);
   const sessM=JUZ_META.find(j=>j.num===sessionJuz);
@@ -1309,6 +1313,7 @@ export default function RihlatAlHifz() {
                     setRepCounts({});
                     setOpenAyah(null);
                     if(activeSessionIndex>=SESSIONS.length-1){
+                      setYesterdayBatch(fajrBatch);
                       setSessionIdx(bEnd);
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
