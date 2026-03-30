@@ -892,7 +892,7 @@ export default function RihlatAlHifz() {
 
           {/* ── STEP 3 — NAME INPUT ── */}
           {onboardStep===3&&(
-            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"linear-gradient(180deg,#060A07 0%,#0B1220 100%)"}}>
+            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"#060A07",minHeight:0}}>
               {/* Progress bar */}
               <div style={{display:"flex",gap:5,marginBottom:28}}>
                 {[1,2,3].map(i=>(
