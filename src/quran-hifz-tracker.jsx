@@ -879,17 +879,16 @@ export default function RihlatAlHifz() {
                   بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
                 </div>
                 <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent)",margin:"0 auto 24px"}}/>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85}}>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85,textShadow:"0 0 8px rgba(212,175,55,0.10)"}}>
                   وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
                 </div>
                 <div style={{fontSize:11,color:"rgba(243,231,191,0.5)",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
                 <div style={{fontSize:9,color:"rgba(212,175,55,0.35)",marginBottom:40}}>Al-Qamar · 54:17</div>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#F6E27A",direction:"rtl",marginBottom:4,textShadow:"0 0 16px rgba(212,175,55,0.18)"}}>رحلة الحفظ</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.85)",marginBottom:44}}>Rihlat Al-Hifz</div>
+<div style={{marginBottom:44}}/>
                 <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
                   Begin Your Journey →
                 </div>
-                <div style={{fontSize:9,color:"rgba(212,175,55,0.30)",marginTop:16}}>© 2026 NoorTech Studio</div>
+                <div style={{fontSize:9,color:"rgba(243,231,191,0.5)",marginTop:16,textShadow:"0 0 6px rgba(212,175,55,0.08)"}}>© 2026 NoorTech Studio</div>
               </div>
             </div>
           )}
@@ -913,7 +912,7 @@ export default function RihlatAlHifz() {
                   value={userName}
                   onChange={e=>setUserName(e.target.value)}
                   placeholder="Enter your name"
-                  style={{width:"100%",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",border:`1px solid ${userName?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"14px 16px",fontSize:18,color:"#F3E7BF",fontFamily:"'DM Sans',sans-serif",outline:"none",marginBottom:20,transition:"border .2s",boxShadow:userName?"0 0 14px rgba(212,175,55,0.08)":"none"}}
+                  style={{width:"100%",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",border:`1px solid ${userName?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"14px 16px",fontSize:18,color:"#F3E7BF",fontFamily:"'DM Sans',sans-serif",outline:"none",marginBottom:20,transition:"border .2s",boxShadow:userName?"0 0 14px rgba(212,175,55,0.08), inset 0 0 12px rgba(212,175,55,0.06)":"inset 0 0 12px rgba(212,175,55,0.04)"}}
                 />
                 {userName&&(
                   <div className="fi" style={{padding:"16px 18px",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99)), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:14,textAlign:"center",marginBottom:24,boxShadow:"0 0 18px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
@@ -929,7 +928,7 @@ export default function RihlatAlHifz() {
                     Continue →
                   </div>
                 </div>
-                <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{textAlign:"center",fontSize:11,color:"rgba(212,175,55,0.35)",marginTop:10}}>Skip for now</div>
+                <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{textAlign:"center",fontSize:11,color:"rgba(212,175,55,0.35)",marginTop:10,opacity:0.5}}>Skip for now</div>
               </div>
             </div>
           )}
@@ -1078,21 +1077,21 @@ export default function RihlatAlHifz() {
         return (
           <div style={{position:"fixed",inset:0,background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)"}}/>
-            <div className="fi" style={{position:"relative",background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:20,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),0 20px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
+            <div className="fi" style={{position:"relative",background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:20,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center",boxShadow:"0 20px 50px rgba(0,0,0,0.45),0 0 30px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
               <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F6E27A",direction:"rtl",lineHeight:1.8,marginBottom:20,textShadow:"0 0 18px rgba(212,175,55,0.18)"}}>
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </div>
-              <div style={{fontSize:8,color:"rgba(212,175,55,0.65)",letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:"#F6E27A",direction:"rtl",lineHeight:2,marginBottom:10,textShadow:"0 0 10px rgba(255,240,200,0.12)"}}>{d.arabic}</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:"rgba(243,231,191,0.55)",fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
-              <div style={{fontSize:11,color:"rgba(243,231,191,0.80)",lineHeight:1.6,marginBottom:4}}>{d.translation}</div>
-              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"rgba(212,175,55,0.40)",marginBottom:20}}>{d.source}</div>
+              <div style={{fontSize:8,color:"rgba(212,175,55,0.65)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,opacity:0.75}}>Begin With Dua</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F6E27A",direction:"rtl",lineHeight:2,marginBottom:10,textShadow:"0 0 12px rgba(212,175,55,0.12)"}}>{d.arabic}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:"rgba(243,231,191,0.65)",fontStyle:"italic",marginBottom:4,opacity:0.65}}>"{d.transliteration}"</div>
+              <div style={{fontSize:11,color:"rgba(243,231,191,0.85)",lineHeight:1.6,marginBottom:4,opacity:0.85}}>{d.translation}</div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"rgba(212,175,55,0.40)",marginBottom:20,opacity:0.5}}>{d.source}</div>
               <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:20}}>
                 {[0,1,2,3,4,5].map(i=>(
-                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"linear-gradient(90deg,#D4AF37,#F6E27A)":"rgba(255,255,255,0.08)",boxShadow:i===duaIdx%6?"0 0 8px rgba(212,175,55,0.35)":"none",transition:"all .3s"}}/>
+                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"linear-gradient(90deg,#D4AF37,#F6E27A)":"rgba(255,255,255,0.08)",boxShadow:i===duaIdx%6?"0 0 8px rgba(212,175,55,0.35)":"none",opacity:i===duaIdx%6?1:0.3,transition:"all .3s"}}/>
                 ))}
               </div>
-              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",borderRadius:12,fontSize:13,fontWeight:700,display:"inline-block",boxShadow:"0 10px 22px rgba(212,175,55,0.22)"}}>
+              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",borderRadius:12,fontSize:13,fontWeight:700,display:"inline-block",boxShadow:"0 12px 30px rgba(212,175,55,0.25),inset 0 1px 0 rgba(255,255,255,0.2)"}}>
                 Let's Begin →
               </div>
             </div>
