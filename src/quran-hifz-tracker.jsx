@@ -942,9 +942,8 @@ export default function RihlatAlHifz() {
             const daysPerJuz=apd>0?Math.round((6236/30)/apd):0;
             const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
             return (
-              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#080604 0%,#0D0C0A 25%,#0C1020 55%,#0C1526 100%)",position:"relative"}}>
-                <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(ellipse at 50% 0%,rgba(180,120,30,0.18) 0%,rgba(140,90,20,0.08) 35%,transparent 65%)",zIndex:0}}/>
-                <div style={{position:"absolute",inset:0,pointerEvents:"none",backgroundImage:"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E\")",opacity:0.35,zIndex:0}}/>
+              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
+                <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
                 <div style={{position:"relative",zIndex:1,display:"flex",gap:5,marginBottom:20}}>
                   {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.35)"}}/>))}
                 </div>
@@ -952,7 +951,7 @@ export default function RihlatAlHifz() {
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8,textShadow:"0 0 22px rgba(212,175,55,0.12)"}}>Choose Your Timeline</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.75)",lineHeight:1.2}}>Mark Your Memorization</div>
                 </div>
-                <div style={{background:"linear-gradient(180deg,rgba(26,20,12,0.97) 0%,rgba(14,12,10,0.99) 100%)",border:"1px solid rgba(180,130,40,0.28)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 12px 35px rgba(0,0,0,0.45),0 0 30px rgba(160,110,20,0.10),inset 0 1px 0 rgba(212,175,55,0.12)"}}>
+                <div style={{background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 12px 35px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
                   <div style={{fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Your Goal</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?" • "+goalMonths+" Month"+(goalMonths!==1?"s":""):""}</div>
                   <div style={{fontSize:13,color:"rgba(243,231,191,0.75)",lineHeight:1.7,marginBottom:10}}>
@@ -988,12 +987,12 @@ export default function RihlatAlHifz() {
                     const someChecked=surahs.some(s=>juzStatus[`s${s.s}`]==="complete");
                     const juzComplete=juzStatus[j.num]==="complete";
                     return (
-                      <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.55)":someChecked?"1px solid rgba(212,175,55,0.30)":"1px solid rgba(180,130,40,0.22)",background:juzComplete?"linear-gradient(180deg,rgba(212,175,55,0.12) 0%,rgba(24,18,8,0.98) 100%), radial-gradient(circle at 50% 40%,rgba(180,130,30,0.10),transparent 65%)":"linear-gradient(180deg,rgba(22,18,12,0.97) 0%,rgba(12,10,8,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(160,110,20,0.07),transparent 65%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 30px rgba(180,130,30,0.18),0 12px 30px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.14)":"0 10px 24px rgba(0,0,0,0.35),inset 0 1px 0 rgba(180,130,40,0.08)"}}>
+                      <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.55)":someChecked?"1px solid rgba(212,175,55,0.30)":"1px solid rgba(180,130,40,0.22)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 24px rgba(212,175,55,0.12),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
                         {/* Juz header — tap to expand */}
                         <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                           <div>
-                            <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(210,175,100,0.65)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF2C4":"#DDD0A0",textShadow:juzComplete?"0 0 18px rgba(212,175,55,0.22),0 0 40px rgba(180,130,30,0.10)":"0 0 8px rgba(180,130,30,0.08)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
+                            <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"none",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                           </div>
                           <div style={{display:"flex",alignItems:"center",gap:10}}>
                             {juzComplete&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:11,fontWeight:700}}>✓</div>}
