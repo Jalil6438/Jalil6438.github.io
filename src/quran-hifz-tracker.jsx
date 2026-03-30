@@ -942,19 +942,19 @@ export default function RihlatAlHifz() {
             const daysPerJuz=apd>0?Math.round((6236/30)/apd):0;
             const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
             return (
-              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#05080A 0%,#0A1120 45%,#0D1628 100%)"}}>
+              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 45%,#0C1526 100%)"}}>
                 <div style={{display:"flex",gap:5,marginBottom:20}}>
                   {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",boxShadow:"0 0 8px rgba(212,175,55,0.25)"}}/>))}
                 </div>
                 <div style={{textAlign:"center",marginBottom:18}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8}}>Choose Your Timeline</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.82)",lineHeight:1.2}}>Mark Your Memorization</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8,textShadow:"0 0 22px rgba(212,175,55,0.12)"}}>Choose Your Timeline</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.75)",lineHeight:1.2}}>Mark Your Memorization</div>
                 </div>
-                <div style={{background:"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(10,14,24,0.98) 100%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 12px 35px rgba(0,0,0,0.35),0 0 22px rgba(212,175,55,0.06)"}}>
+                <div style={{background:"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(10,14,24,0.98) 100%), radial-gradient(circle at 50% 20%,rgba(212,175,55,0.05),transparent 60%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 12px 35px rgba(0,0,0,0.35),0 0 22px rgba(212,175,55,0.06)"}}>
                   <div style={{fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Your Goal</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?" • "+goalMonths+" Month"+(goalMonths!==1?"s":""):""}</div>
                   <div style={{fontSize:13,color:"rgba(243,231,191,0.75)",lineHeight:1.7,marginBottom:10}}>
-                    <span style={{color:"#F6E27A",fontWeight:700}}>{apd} ayahs per day</span>{" • "}{daysPerJuz} days per juz{" • "}{remainingJuz} juz remaining
+                    <span style={{color:"#F6E27A",fontWeight:700}}>{apd} ayahs per day</span><span style={{opacity:0.7}}>{" • "}{daysPerJuz} days per juz</span><span style={{opacity:0.7}}>{" • "}{remainingJuz} juz remaining</span>
                   </div>
                   <div className="sbtn" onClick={()=>setOpenMethod(openMethod==="timeline-adjust"?null:"timeline-adjust")} style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:12,color:"#D4AF37",padding:"6px 12px",borderRadius:999,border:"1px solid rgba(212,175,55,0.22)",background:"rgba(212,175,55,0.05)"}}>
                     Adjust timeline <span style={{fontSize:11}}>{openMethod==="timeline-adjust"?"▴":"▾"}</span>
@@ -986,16 +986,16 @@ export default function RihlatAlHifz() {
                     const someChecked=surahs.some(s=>juzStatus[`s${s.s}`]==="complete");
                     const juzComplete=juzStatus[j.num]==="complete";
                     return (
-                      <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.14)",background:juzComplete?"linear-gradient(180deg,rgba(212,175,55,0.12) 0%,rgba(22,17,9,0.96) 100%)":"linear-gradient(180deg,rgba(18,24,34,0.96) 0%,rgba(9,13,22,0.98) 100%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 26px rgba(212,175,55,0.14),0 12px 30px rgba(0,0,0,0.32)":"0 10px 24px rgba(0,0,0,0.28)"}}>
+                      <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.14)",background:juzComplete?"linear-gradient(180deg,rgba(212,175,55,0.10) 0%,rgba(22,17,9,0.96) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.06),transparent 70%)":"linear-gradient(180deg,rgba(18,24,34,0.96) 0%,rgba(9,13,22,0.98) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.04),transparent 70%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 26px rgba(212,175,55,0.14),0 12px 30px rgba(0,0,0,0.32)":"0 10px 24px rgba(0,0,0,0.28)"}}>
                         {/* Juz header — tap to expand */}
                         <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                           <div>
                             <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(243,231,191,0.7)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#EDE0B7",textShadow:juzComplete?"0 0 14px rgba(212,175,55,0.10)":"none"}}>{JUZ_OPENERS[j.num]}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF7DB":"#E8D9A8",textShadow:juzComplete?"0 0 14px rgba(212,175,55,0.10)":"none",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                           </div>
                           <div style={{display:"flex",alignItems:"center",gap:10}}>
                             {juzComplete&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:11,fontWeight:700}}>✓</div>}
-                            <div style={{color:"#D4AF37",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
+                            <div style={{color:"rgba(212,175,55,0.7)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg) translateY(-2px)":"translateY(2px)"}}>▾</div>
                           </div>
                         </div>
                         {/* Surah list */}
@@ -1039,7 +1039,7 @@ export default function RihlatAlHifz() {
                 </div>
                 {visibleOnboardJuzCount<30&&(
                   <div style={{textAlign:"center",marginBottom:18}}>
-                    <div className="sbtn" onClick={()=>setVisibleOnboardJuzCount(v=>Math.min(v+7,30))} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 16px",borderRadius:999,background:"rgba(212,175,55,0.04)",border:"1px solid rgba(212,175,55,0.14)",color:"#D4AF37",fontSize:12,fontWeight:600}}>
+                    <div className="sbtn" onClick={()=>setVisibleOnboardJuzCount(v=>Math.min(v+7,30))} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 16px",borderRadius:999,background:"rgba(212,175,55,0.03)",border:"1px solid rgba(212,175,55,0.12)",color:"rgba(212,175,55,0.85)",fontSize:12,fontWeight:600}}>
                       Load More <span style={{fontSize:11}}>↓</span>
                     </div>
                   </div>
@@ -1047,7 +1047,7 @@ export default function RihlatAlHifz() {
                 <div style={{flex:1}}/>
                 <div style={{display:"flex",gap:8}}>
                   <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:12,fontSize:14,color:"#A8B89A"}}>←</div>
-                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 10px 22px rgba(212,175,55,0.18)"}}>
+                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 8px 18px rgba(212,175,55,0.16)"}}>
                     Select your starting point
                   </div>
                 </div>
