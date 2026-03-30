@@ -2316,6 +2316,8 @@ export default function RihlatAlHifz() {
           </div>
         );
       })()}
+      </div>
+      )}
 
     </div>
   );
