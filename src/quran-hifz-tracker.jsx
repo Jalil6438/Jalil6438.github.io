@@ -1001,7 +1001,8 @@ export default function RihlatAlHifz() {
                         </div>
                         {/* Surah list */}
                         {isOpen&&(
-                          <div style={{borderTop:"1px solid rgba(212,175,55,0.15)",padding:"12px 14px 14px",background:"rgba(0,0,0,0.2)"}}>
+                          <div style={{borderTop:"1px solid rgba(212,175,55,0.12)",padding:"14px 14px 16px",background:"rgba(0,0,0,0.18)"}}>
+                            {/* Select All */}
                             <div className="sbtn" onClick={()=>{
                               setJuzStatus(prev=>{
                                 const next={...prev};
@@ -1009,12 +1010,13 @@ export default function RihlatAlHifz() {
                                 else { surahs.forEach(s=>{next[`s${s.s}`]="complete";}); next[j.num]="complete"; }
                                 return next;
                               });
-                            }} style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,padding:"6px 0"}}>
-                              <div style={{width:16,height:16,borderRadius:4,background:allChecked?"#D4AF37":"transparent",border:`1.5px solid ${allChecked?"#D4AF37":"#3A4A2E"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#060A07",fontWeight:700,flexShrink:0}}>{allChecked?"✓":""}</div>
-                              <div style={{fontSize:11,color:"#A8B89A",fontWeight:600}}>Select all surahs in Juz {j.num}</div>
+                            }} style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"8px 10px",borderRadius:10,background:allChecked?"rgba(212,175,55,0.08)":"rgba(255,255,255,0.02)",border:`1px solid ${allChecked?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.06)"}`}}>
+                              <div style={{width:18,height:18,borderRadius:5,background:allChecked?"linear-gradient(135deg,#D4AF37,#F5E6A8)":"transparent",border:`1.5px solid ${allChecked?"#D4AF37":"rgba(212,175,55,0.35)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:allChecked?"0 0 10px rgba(212,175,55,0.45)":"none"}}>{allChecked?"✓":""}</div>
+                              <div style={{fontSize:12,color:allChecked?"#F6E27A":"rgba(212,175,55,0.8)",fontWeight:700,letterSpacing:".02em"}}>Select all surahs in Juz {j.num}</div>
                             </div>
-                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                              {surahs.map(s=>{
+                            {/* Surah grid */}
+                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+                              {surahs.map((s,si)=>{
                                 const checked=juzStatus[`s${s.s}`]==="complete";
                                 return (
                                   <div key={s.s} className="sbtn" onClick={()=>{
@@ -1024,10 +1026,10 @@ export default function RihlatAlHifz() {
                                       if(allNow) next[j.num]="complete"; else delete next[j.num];
                                       return next;
                                     });
-                                  }} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 8px",borderRadius:8,background:checked?"rgba(212,175,55,0.1)":"rgba(255,255,255,0.03)",border:`1px solid ${checked?"rgba(212,175,55,0.4)":"rgba(255,255,255,0.08)"}`}}>
-                                    <div style={{width:13,height:13,borderRadius:3,background:checked?"#D4AF37":"transparent",border:`1.5px solid ${checked?"#D4AF37":"#3A4A2E"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:700,flexShrink:0}}>{checked?"✓":""}</div>
-                                    <div style={{fontSize:10,color:checked?"#F6E27A":"#A8B89A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
-                                    <div style={{fontSize:8,color:"#4A5A3E",flexShrink:0}}>{s.a}v</div>
+                                  }} style={{display:"flex",alignItems:"center",gap:7,padding:"9px 10px",borderRadius:10,background:checked?"rgba(212,175,55,0.08)":"rgba(255,255,255,0.02)",border:`1px solid ${checked?"rgba(212,175,55,0.45)":"rgba(255,255,255,0.06)"}`,boxShadow:checked?"0 0 14px rgba(212,175,55,0.18)":"none",transform:checked?"scale(1.02)":"scale(1)",transition:"all .18s ease",animationDelay:`${si*0.04}s`}}>
+                                    <div style={{width:14,height:14,borderRadius:4,background:checked?"linear-gradient(135deg,#D4AF37,#F5E6A8)":"transparent",border:`1.5px solid ${checked?"#D4AF37":"rgba(212,175,55,0.35)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:800,flexShrink:0,boxShadow:checked?"0 0 8px rgba(212,175,55,0.45)":"none"}}>{checked?"✓":""}</div>
+                                    <div style={{fontSize:10,color:checked?"#F6E27A":"rgba(255,255,255,0.65)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:checked?600:400}}>{s.name}</div>
+                                    <div style={{fontSize:8,color:"rgba(255,255,255,0.25)",flexShrink:0}}>{s.a}v</div>
                                   </div>
                                 );
                               })}
