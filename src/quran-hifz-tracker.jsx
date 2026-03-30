@@ -91,8 +91,6 @@ const SURAH_AR = {
   101:"القارعة",102:"التكاثر",103:"العصر",104:"الهمزة",105:"الفيل",106:"قريش",107:"الماعون",108:"الكوثر",109:"الكافرون",110:"النصر",
   111:"المسد",112:"الإخلاص",113:"الفلق",114:"الناس",
 };
-const JUZ_OPENERS={1:"الم",2:"سَيَقُولُ السُّفَهَاءُ",3:"تِلْكَ الرُّسُلُ",4:"لَنْ تَنَالُوا الْبِرَّ",5:"وَالْمُحْصَنَاتُ",6:"لَا يُحِبُّ اللَّهُ",7:"وَإِذَا سَمِعُوا",8:"وَلَوْ أَنَّنَا",9:"قَالَ الْمَلَأُ",10:"وَاعْلَمُوا",11:"يَعْتَذِرُونَ",12:"وَمَا مِنْ دَابَّةٍ",13:"وَمَا أُبَرِّئُ",14:"رُبَمَا",15:"سُبْحَانَ الَّذِي",16:"قَالَ أَلَمْ",17:"اقْتَرَبَ لِلنَّاسِ",18:"قَدْ أَفْلَحَ",19:"وَقَالَ الَّذِينَ",20:"أَمَّنْ خَلَقَ",21:"اتْلُ مَا أُوحِيَ",22:"وَمَنْ يَقْنُتْ",23:"وَمَا لِيَ",24:"فَمَنْ أَظْلَمُ",25:"إِلَيْهِ يُرَدُّ",26:"حم",27:"قَالَ فَمَا خَطْبُكُمْ",28:"قَدْ سَمِعَ اللَّهُ",29:"تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ",30:"عَمَّ يَتَسَاءَلُونَ"};
-
 const JUZ_META = [
   {num:1,arabic:"الم",roman:"Alif Lam Mim",order:30},{num:2,arabic:"سَيَقُولُ",roman:"Sayaqool",order:29},
   {num:3,arabic:"تِلْكَ الرُّسُل",roman:"Tilkal Rusul",order:28},{num:4,arabic:"لَن تَنَالُوا",roman:"Lan Tanaloo",order:27},
@@ -357,7 +355,6 @@ export default function RihlatAlHifz() {
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [onboardStep,setOnboardStep]=useState(1);
-  const [visibleOnboardJuzCount,setVisibleOnboardJuzCount]=useState(7);
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
   const [repCounts,setRepCounts]=useState({});
@@ -933,7 +930,7 @@ export default function RihlatAlHifz() {
 
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
           {onboardStep===4&&(()=>{
-            const juzDone=Object.values(juzStatus).filter(v=>v==="complete").length;
+            const juzDone=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
             const remainingJuz=30-juzDone;
             const totalMonths=(goalYears*12)+goalMonths;
             const totalAyahs=6236;
@@ -947,12 +944,12 @@ export default function RihlatAlHifz() {
                   {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",boxShadow:"0 0 8px rgba(212,175,55,0.25)"}}/>))}
                 </div>
                 <div style={{textAlign:"center",marginBottom:18}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8,textShadow:"0 0 18px rgba(212,175,55,0.10)"}}>Choose Your Timeline</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8}}>Choose Your Timeline</div>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.82)",lineHeight:1.2}}>Mark Your Memorization</div>
                 </div>
-                <div style={{background:"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(12,18,30,0.96) 100%)",border:"1px solid rgba(212,175,55,0.22)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.30),0 0 18px rgba(212,175,55,0.08)"}}>
+                <div style={{background:"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(12,18,30,0.96) 100%)",border:"1px solid rgba(212,175,55,0.22)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 10px 30px rgba(0,0,0,0.30)"}}>
                   <div style={{fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Your Goal</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10,textShadow:"0 0 14px rgba(212,175,55,0.12)"}}>{goalYears} Year{goalYears!==1?"s":""} • {goalMonths} Month{goalMonths!==1?"s":""}</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?" • "+goalMonths+" Month"+(goalMonths!==1?"s":""):""}</div>
                   <div style={{fontSize:13,color:"rgba(243,231,191,0.9)",lineHeight:1.7,marginBottom:10}}>
                     <span style={{color:"#F6E27A",fontWeight:700}}>{apd} ayahs per day</span>{" • "}{daysPerJuz} days per juz{" • "}{remainingJuz} juz remaining
                   </div>
@@ -976,16 +973,16 @@ export default function RihlatAlHifz() {
                 )}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                   <div style={{fontSize:9,color:"#F3E7BF",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
-                  <div style={{fontSize:11,color:"#D4AF37",fontWeight:700}}>{juzDone} Juz selected ✓</div>
+                  <div style={{fontSize:11,color:"#D4AF37",fontWeight:700}}>{juzDone} Juz selected</div>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
                   {displayedJuz.map(j=>{
                     const isSelected=juzStatus[j.num]==="complete";
                     return (
-                      <div key={j.num} className="sbtn" onClick={()=>{setJuzStatus(prev=>{const next={...prev};if(next[j.num]==="complete")delete next[j.num];else next[j.num]="complete";return next;});}} style={{position:"relative",width:"100%",borderRadius:18,padding:"16px 18px 18px",background:isSelected?"linear-gradient(180deg,rgba(212,175,55,0.14) 0%,rgba(25,19,10,0.94) 100%)":"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(12,18,30,0.96) 100%)",border:isSelected?"1px solid rgba(246,226,122,0.55)":"1px solid rgba(212,175,55,0.18)",boxShadow:isSelected?"0 0 24px rgba(212,175,55,0.16),0 10px 26px rgba(0,0,0,0.28)":"0 8px 20px rgba(0,0,0,0.24)",transform:isSelected?"scale(1.01)":"scale(1)",transition:"all .18s ease"}}>
+                      <div key={j.num} className="sbtn" onClick={()=>setJuzStatus(prev=>{const next={...prev};if(next[j.num]==="complete")delete next[j.num];else next[j.num]="complete";return next;})} style={{position:"relative",width:"100%",borderRadius:18,padding:"16px 18px 18px",background:isSelected?"linear-gradient(180deg,rgba(212,175,55,0.14) 0%,rgba(25,19,10,0.94) 100%)":"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(12,18,30,0.96) 100%)",border:isSelected?"1px solid rgba(246,226,122,0.55)":"1px solid rgba(212,175,55,0.18)",boxShadow:isSelected?"0 0 24px rgba(212,175,55,0.16)":"0 8px 20px rgba(0,0,0,0.24)",transition:"all .18s ease"}}>
                         {isSelected&&<div style={{position:"absolute",top:12,right:14,width:24,height:24,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:12,fontWeight:700}}>✓</div>}
                         <div style={{textAlign:"center",fontSize:11,color:isSelected?"#F6E27A":"rgba(243,231,191,0.7)",marginBottom:10,letterSpacing:".08em"}}>Juz {j.num}</div>
-                        <div style={{textAlign:"center",fontFamily:"'Amiri',serif",fontSize:28,lineHeight:1.6,color:isSelected?"#FFF4CF":"#F3E7BF",textShadow:isSelected?"0 0 12px rgba(212,175,55,0.12)":"none"}}>{JUZ_OPENERS[j.num]}</div>
+                        <div style={{textAlign:"center",fontFamily:"'Amiri',serif",fontSize:28,lineHeight:1.6,color:isSelected?"#FFF4CF":"#F3E7BF"}}>{JUZ_OPENERS[j.num]}</div>
                       </div>
                     );
                   })}
@@ -993,7 +990,7 @@ export default function RihlatAlHifz() {
                 {visibleOnboardJuzCount<30&&(
                   <div style={{textAlign:"center",marginBottom:18}}>
                     <div className="sbtn" onClick={()=>setVisibleOnboardJuzCount(v=>Math.min(v+7,30))} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 16px",borderRadius:999,background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.18)",color:"#D4AF37",fontSize:12,fontWeight:600}}>
-                      Load More Juz <span style={{fontSize:11}}>↓</span>
+                      Load More <span style={{fontSize:11}}>↓</span>
                     </div>
                   </div>
                 )}
@@ -1008,7 +1005,46 @@ export default function RihlatAlHifz() {
             );
           })()}
 
-            {/* TOP BAR */}
+        </div>
+      )}
+
+      {/* ── DAILY DUA MODAL (every launch, after onboarding) ── */}
+      {!showOnboarding&&showDua&&(()=>{
+        const DUAS=[
+          {arabic:"رَبِّ زِدْنِي عِلْمًا",transliteration:"Rabbi zidni ilma",translation:"My Lord, increase me in knowledge.",source:"Surah Ta-Ha · 20:114"},
+          {arabic:"رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",transliteration:"Rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina adhaban-nar",translation:"Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.",source:"Surah Al-Baqarah · 2:201"},
+          {arabic:"رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً",transliteration:"Rabbana la tuzigh qulubana ba'da idh hadaytana wa hab lana min ladunka rahmah",translation:"Our Lord, do not let our hearts deviate after You have guided us, and grant us mercy from Yourself.",source:"Surah Aal-Imran · 3:8"},
+          {arabic:"اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا",transliteration:"Allahumma inni as'aluka ilman nafi'an wa rizqan tayyiban wa amalan mutaqabbala",translation:"O Allah, I ask You for beneficial knowledge, pure provision, and accepted deeds.",source:"Morning Dua · Ibn Majah"},
+          {arabic:"رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",transliteration:"Rabbi ishrah li sadri wa yassir li amri",translation:"My Lord, expand my chest and ease my affairs.",source:"Surah Ta-Ha · 20:25-26"},
+          {arabic:"اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",transliteration:"Allahumma a'inni ala dhikrika wa shukrika wa husni ibadatik",translation:"O Allah, help me to remember You, to be grateful to You, and to worship You in an excellent manner.",source:"Abu Dawud · After every Salah"},
+        ];
+        const d=DUAS[duaIdx%DUAS.length];
+        return (
+          <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+            <div className="fi" style={{background:"#060A07",border:"1px solid #F0C04060",borderRadius:14,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center"}}>
+              {/* Bismillah at top */}
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F0C040",direction:"rtl",lineHeight:1.8,marginBottom:20}}>
+                بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+              </div>
+              <div style={{fontSize:8,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:T.accent,direction:"rtl",lineHeight:2,marginBottom:10}}>{d.arabic}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:T.sub,fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
+              <div style={{fontSize:11,color:T.text,lineHeight:1.6,marginBottom:4}}>{d.translation}</div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:T.dim,marginBottom:20}}>{d.source}</div>
+              <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:20}}>
+                {[0,1,2,3,4,5].map(i=>(
+                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"#F0C040":"#2E4030",transition:"all .3s"}}/>
+                ))}
+              </div>
+              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:8,fontSize:13,fontWeight:600,display:"inline-block"}}>
+                Let's Begin →
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* TOP BAR */}
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 16px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div>
@@ -1949,7 +1985,7 @@ export default function RihlatAlHifz() {
       </div>
     </div>
   </div>
-      )}
+)}
 
       {activeTab==="masjidayn"&&(
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -2316,8 +2352,9 @@ export default function RihlatAlHifz() {
           </div>
         );
       })()}
-      </div>
-      )}
+
+    </div>
+  )}
 
     </div>
   );
