@@ -868,66 +868,69 @@ export default function RihlatAlHifz() {
         <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
 
           {/* ── STEP 1 — BISMILLAH ── */}
-          {onboardStep===1&&(
-            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+                    {onboardStep===1&&(
+            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)"}}>
+              {/* Top ambient glow */}
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
               {/* Star field */}
-              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 15% 20%,#F0C04030 0%,transparent 100%),radial-gradient(1px 1px at 75% 15%,#ffffff18 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 8%,#F0C04038 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,#ffffff14 0%,transparent 100%),radial-gradient(1px 1px at 25% 65%,#F0C04018 0%,transparent 100%),radial-gradient(1px 1px at 60% 80%,#ffffff10 0%,transparent 100%)",pointerEvents:"none"}}/>
-              {/* Glow */}
-              <div style={{position:"absolute",width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,#F0C04006 0%,transparent 70%)",top:"50%",left:"50%",transform:"translate(-50%,-60%)",pointerEvents:"none"}}/>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(28px,6vw,44px)",color:"#F0C040",direction:"rtl",lineHeight:1.7,marginBottom:24,position:"relative",zIndex:1}}>
-                بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 15% 20%,rgba(212,175,55,0.20) 0%,transparent 100%),radial-gradient(1px 1px at 75% 15%,rgba(255,255,255,0.08) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 8%,rgba(212,175,55,0.18) 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,rgba(255,255,255,0.06) 0%,transparent 100%),radial-gradient(1px 1px at 25% 65%,rgba(212,175,55,0.08) 0%,transparent 100%)",pointerEvents:"none",zIndex:0}}/>
+              <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",alignItems:"center",width:"100%"}}>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(28px,6vw,44px)",color:"#F6E27A",direction:"rtl",lineHeight:1.7,marginBottom:24,textShadow:"0 0 22px rgba(212,175,55,0.18)"}}>
+                  بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+                </div>
+                <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent)",margin:"0 auto 24px"}}/>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85}}>
+                  وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
+                </div>
+                <div style={{fontSize:11,color:"rgba(243,231,191,0.5)",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
+                <div style={{fontSize:9,color:"rgba(212,175,55,0.35)",marginBottom:40}}>Al-Qamar · 54:17</div>
+                <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#F6E27A",direction:"rtl",marginBottom:4,textShadow:"0 0 16px rgba(212,175,55,0.18)"}}>رحلة الحفظ</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.85)",marginBottom:44}}>Rihlat Al-Hifz</div>
+                <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
+                  Begin Your Journey →
+                </div>
+                <div style={{fontSize:9,color:"rgba(212,175,55,0.30)",marginTop:16}}>© 2026 NoorTech Studio</div>
               </div>
-              <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,#F0C04060,transparent)",margin:"0 auto 24px"}}/>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#F0C040",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85}}>
-                وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
-              </div>
-              <div style={{fontSize:11,color:"#5A7050",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
-              <div style={{fontSize:9,color:"#2E4030",marginBottom:40}}>Al-Qamar · 54:17</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#F0C040",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#EDE8DC",marginBottom:44}}>Rihlat Al-Hifz</div>
-              <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em"}}>
-                Begin Your Journey →
-              </div>
-              <div style={{fontSize:9,color:"#2E4030",marginTop:16}}>© 2026 NoorTech Studio</div>
             </div>
           )}
 
 
           {/* ── STEP 3 — NAME INPUT ── */}
           {onboardStep===3&&(
-            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"#060A07",minHeight:0}}>
-              {/* Progress bar */}
-              <div style={{display:"flex",gap:5,marginBottom:28}}>
-                {[1,2,3].map(i=>(
-                  <div key={i} style={{flex:1,height:3,borderRadius:2,background:"#F0C040",transition:"background .3s"}}/>
-                ))}
-              </div>
-              <div style={{fontSize:8,color:"#F0C040",letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>Welcome</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#EDE8DC",marginBottom:6}}>What should we call you?</div>
-              <div style={{fontSize:12,color:"#5A7050",lineHeight:1.6,marginBottom:28}}>Your name will appear throughout the app to personalize your Hifz journey.</div>
-              <div style={{fontSize:9,color:"#A8B89A",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Your Name</div>
-              <input
-                type="text"
-                value={userName}
-                onChange={e=>setUserName(e.target.value)}
-                placeholder="Enter your name"
-                style={{width:"100%",background:"#0D1008",border:`1px solid ${userName?"#F0C04060":"#1E2A18"}`,borderRadius:10,padding:"14px 16px",fontSize:18,color:"#EDE8DC",fontFamily:"'DM Sans',sans-serif",outline:"none",marginBottom:20,transition:"border .2s"}}
-              />
-              {userName&&(
-                <div className="fi" style={{padding:"16px 18px",background:"#0D1008",border:"1px solid #F0C04025",borderRadius:12,textAlign:"center",marginBottom:24}}>
-                  <div style={{fontSize:9,color:"#5A7050",marginBottom:6}}>Your journey will begin as</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#F0C040",marginBottom:4}}>{userName} · رحلة الحفظ</div>
-                  <div style={{fontSize:10,color:"#5A7050",fontStyle:"italic"}}>May Allah make it easy for you 🤲</div>
+            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",minHeight:0,position:"relative"}}>
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 55%)",zIndex:0}}/>
+              <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",flex:1}}>
+                {/* Progress bars */}
+                <div style={{display:"flex",gap:5,marginBottom:28}}>
+                  {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
                 </div>
-              )}
-              <div style={{flex:1}}/>
-              <div style={{display:"flex",gap:8}}>
-                <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
-                <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
-                  Continue →
+                <div style={{fontSize:8,color:"rgba(212,175,55,0.75)",letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>Welcome</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#F3E7BF",marginBottom:6,textShadow:"0 0 18px rgba(212,175,55,0.12)"}}>What should we call you?</div>
+                <div style={{fontSize:12,color:"rgba(243,231,191,0.50)",lineHeight:1.6,marginBottom:28}}>Your name will appear throughout the app to personalize your Hifz journey.</div>
+                <div style={{fontSize:9,color:"rgba(212,175,55,0.65)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Your Name</div>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={e=>setUserName(e.target.value)}
+                  placeholder="Enter your name"
+                  style={{width:"100%",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",border:`1px solid ${userName?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"14px 16px",fontSize:18,color:"#F3E7BF",fontFamily:"'DM Sans',sans-serif",outline:"none",marginBottom:20,transition:"border .2s",boxShadow:userName?"0 0 14px rgba(212,175,55,0.08)":"none"}}
+                />
+                {userName&&(
+                  <div className="fi" style={{padding:"16px 18px",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99)), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:14,textAlign:"center",marginBottom:24,boxShadow:"0 0 18px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
+                    <div style={{fontSize:9,color:"rgba(212,175,55,0.55)",marginBottom:6}}>Your journey will begin as</div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#F6E27A",marginBottom:4,textShadow:"0 0 16px rgba(212,175,55,0.18)"}}>{userName} · رحلة الحفظ</div>
+                    <div style={{fontSize:10,color:"rgba(243,231,191,0.50)",fontStyle:"italic"}}>May Allah make it easy for you 🤲</div>
+                  </div>
+                )}
+                <div style={{flex:1}}/>
+                <div style={{display:"flex",gap:8}}>
+                  <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,fontSize:14,color:"rgba(243,231,191,0.50)"}}>←</div>
+                  <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
+                    Continue →
+                  </div>
                 </div>
+                <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{textAlign:"center",fontSize:11,color:"rgba(212,175,55,0.35)",marginTop:10}}>Skip for now</div>
               </div>
-              <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{textAlign:"center",fontSize:11,color:"#2E4030",marginTop:10}}>Skip for now</div>
             </div>
           )}
 
@@ -1073,23 +1076,23 @@ export default function RihlatAlHifz() {
         ];
         const d=DUAS[duaIdx%DUAS.length];
         return (
-          <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
-            <div className="fi" style={{background:"#060A07",border:"1px solid #F0C04060",borderRadius:14,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center"}}>
-              {/* Bismillah at top */}
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F0C040",direction:"rtl",lineHeight:1.8,marginBottom:20}}>
+          <div style={{position:"fixed",inset:0,background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)"}}/>
+            <div className="fi" style={{position:"relative",background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:20,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),0 20px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F6E27A",direction:"rtl",lineHeight:1.8,marginBottom:20,textShadow:"0 0 18px rgba(212,175,55,0.18)"}}>
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </div>
-              <div style={{fontSize:8,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:T.accent,direction:"rtl",lineHeight:2,marginBottom:10}}>{d.arabic}</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:T.sub,fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
-              <div style={{fontSize:11,color:T.text,lineHeight:1.6,marginBottom:4}}>{d.translation}</div>
-              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:T.dim,marginBottom:20}}>{d.source}</div>
+              <div style={{fontSize:8,color:"rgba(212,175,55,0.65)",letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:"#F6E27A",direction:"rtl",lineHeight:2,marginBottom:10,textShadow:"0 0 10px rgba(255,240,200,0.12)"}}>{d.arabic}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:"rgba(243,231,191,0.55)",fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
+              <div style={{fontSize:11,color:"rgba(243,231,191,0.80)",lineHeight:1.6,marginBottom:4}}>{d.translation}</div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"rgba(212,175,55,0.40)",marginBottom:20}}>{d.source}</div>
               <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:20}}>
                 {[0,1,2,3,4,5].map(i=>(
-                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"#F0C040":"#2E4030",transition:"all .3s"}}/>
+                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"linear-gradient(90deg,#D4AF37,#F6E27A)":"rgba(255,255,255,0.08)",boxShadow:i===duaIdx%6?"0 0 8px rgba(212,175,55,0.35)":"none",transition:"all .3s"}}/>
                 ))}
               </div>
-              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:8,fontSize:13,fontWeight:600,display:"inline-block"}}>
+              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",borderRadius:12,fontSize:13,fontWeight:700,display:"inline-block",boxShadow:"0 10px 22px rgba(212,175,55,0.22)"}}>
                 Let's Begin →
               </div>
             </div>
