@@ -884,11 +884,11 @@ export default function RihlatAlHifz() {
                 </div>
                 <div style={{fontSize:11,color:"rgba(243,231,191,0.5)",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
                 <div style={{fontSize:9,color:"rgba(212,175,55,0.35)",marginBottom:40}}>Al-Qamar · 54:17</div>
-<div style={{marginBottom:44}}/>
+
                 <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
                   Begin Your Journey →
                 </div>
-                <div style={{fontSize:9,color:"rgba(243,231,191,0.5)",marginTop:16,textShadow:"0 0 6px rgba(212,175,55,0.08)"}}>© 2026 NoorTech Studio</div>
+                <div style={{width:40,height:1,background:"rgba(212,175,55,0.25)",margin:"16px auto 10px"}}/><div style={{fontSize:9,color:"rgba(243,231,191,0.7)",fontWeight:500,letterSpacing:".08em",textShadow:"0 0 8px rgba(212,175,55,0.12)"}}>© 2026 NoorTech Studio</div>
               </div>
             </div>
           )}
@@ -900,13 +900,14 @@ export default function RihlatAlHifz() {
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 55%)",zIndex:0}}/>
               <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",flex:1}}>
                 {/* Progress bars */}
-                <div style={{display:"flex",gap:5,marginBottom:28}}>
+                <div style={{display:"flex",gap:5,marginBottom:32}}>
                   {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
                 </div>
-                <div style={{fontSize:8,color:"rgba(212,175,55,0.75)",letterSpacing:".2em",textTransform:"uppercase",marginBottom:6}}>Welcome</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#F3E7BF",marginBottom:6,textShadow:"0 0 18px rgba(212,175,55,0.12)"}}>What should we call you?</div>
-                <div style={{fontSize:12,color:"rgba(243,231,191,0.50)",lineHeight:1.6,marginBottom:28}}>Your name will appear throughout the app to personalize your Hifz journey.</div>
-                <div style={{fontSize:9,color:"rgba(212,175,55,0.65)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Your Name</div>
+                <div style={{textAlign:"center",marginBottom:28}}>
+                  <div style={{fontFamily:"'Amiri',serif",fontSize:28,color:"#F6E27A",direction:"rtl",lineHeight:1.7,marginBottom:10,textShadow:"0 0 10px rgba(212,175,55,0.12)"}}>أَهْلًا وَسَهْلًا</div>
+                  <div style={{fontSize:14,color:"rgba(243,231,191,0.85)",marginBottom:6}}>Welcome to your Hifz journey</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7BF",textShadow:"0 0 14px rgba(212,175,55,0.10)"}}>What should we call you?</div>
+                </div>
                 <input
                   type="text"
                   value={userName}
@@ -916,8 +917,8 @@ export default function RihlatAlHifz() {
                 />
                 {userName&&(
                   <div className="fi" style={{padding:"16px 18px",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99)), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:14,textAlign:"center",marginBottom:24,boxShadow:"0 0 18px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-                    <div style={{fontSize:9,color:"rgba(212,175,55,0.55)",marginBottom:6}}>Your journey will begin as</div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#F6E27A",marginBottom:4,textShadow:"0 0 16px rgba(212,175,55,0.18)"}}>{userName} · رحلة الحفظ</div>
+                    <div style={{fontSize:9,color:"rgba(212,175,55,0.55)",marginBottom:8,textAlign:"center",letterSpacing:".10em",textTransform:"uppercase"}}>Your name</div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F6E27A",marginBottom:4,textShadow:"0 0 16px rgba(212,175,55,0.18)",textAlign:"center"}}>{userName}</div>
                     <div style={{fontSize:10,color:"rgba(243,231,191,0.50)",fontStyle:"italic"}}>May Allah make it easy for you 🤲</div>
                   </div>
                 )}
@@ -1082,8 +1083,7 @@ export default function RihlatAlHifz() {
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </div>
               <div style={{fontSize:8,color:"rgba(212,175,55,0.65)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,opacity:0.75}}>Begin With Dua</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F6E27A",direction:"rtl",lineHeight:2,marginBottom:10,textShadow:"0 0 12px rgba(212,175,55,0.12)"}}>{d.arabic}</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:"rgba(243,231,191,0.65)",fontStyle:"italic",marginBottom:4,opacity:0.65}}>"{d.transliteration}"</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,32px)",color:"#F6E27A",direction:"rtl",lineHeight:2,marginBottom:16,textShadow:"0 0 12px rgba(212,175,55,0.12)"}}>{d.arabic}</div>
               <div style={{fontSize:11,color:"rgba(243,231,191,0.85)",lineHeight:1.6,marginBottom:4,opacity:0.85}}>{d.translation}</div>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"rgba(212,175,55,0.40)",marginBottom:20,opacity:0.5}}>{d.source}</div>
               <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:20}}>
