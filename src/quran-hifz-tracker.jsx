@@ -357,7 +357,7 @@ export default function RihlatAlHifz() {
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [onboardStep,setOnboardStep]=useState(1);
-  const [visibleOnboardJuzCount,setVisibleOnboardJuzCount]=useState(7);
+  const [visibleOnboardJuzCount,setVisibleOnboardJuzCount]=useState(5);
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
   const [repCounts,setRepCounts]=useState({});
@@ -980,12 +980,59 @@ export default function RihlatAlHifz() {
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
                   {displayedJuz.map(j=>{
-                    const isSelected=juzStatus[j.num]==="complete";
+                    const isOpen=openJuzPanel===j.num;
+                    const surahs=JUZ_SURAHS[j.num]||[];
+                    const allChecked=surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
+                    const someChecked=surahs.some(s=>juzStatus[`s${s.s}`]==="complete");
+                    const juzComplete=juzStatus[j.num]==="complete";
                     return (
-                      <div key={j.num} className="sbtn" onClick={()=>setJuzStatus(prev=>{const next={...prev};if(next[j.num]==="complete")delete next[j.num];else next[j.num]="complete";return next;})} style={{position:"relative",width:"100%",borderRadius:18,padding:"16px 18px 18px",background:isSelected?"linear-gradient(180deg,rgba(212,175,55,0.14) 0%,rgba(25,19,10,0.94) 100%)":"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(12,18,30,0.96) 100%)",border:isSelected?"1px solid rgba(246,226,122,0.55)":"1px solid rgba(212,175,55,0.18)",boxShadow:isSelected?"0 0 24px rgba(212,175,55,0.16)":"0 8px 20px rgba(0,0,0,0.24)",transition:"all .18s ease"}}>
-                        {isSelected&&<div style={{position:"absolute",top:12,right:14,width:24,height:24,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:12,fontWeight:700}}>✓</div>}
-                        <div style={{textAlign:"center",fontSize:11,color:isSelected?"#F6E27A":"rgba(243,231,191,0.7)",marginBottom:10,letterSpacing:".08em"}}>Juz {j.num}</div>
-                        <div style={{textAlign:"center",fontFamily:"'Amiri',serif",fontSize:28,lineHeight:1.6,color:isSelected?"#FFF4CF":"#F3E7BF"}}>{JUZ_OPENERS[j.num]}</div>
+                      <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.55)":someChecked?"1px solid rgba(212,175,55,0.25)":"1px solid rgba(212,175,55,0.18)",background:juzComplete?"linear-gradient(180deg,rgba(212,175,55,0.14) 0%,rgba(25,19,10,0.94) 100%)":"linear-gradient(180deg,rgba(19,25,36,0.96) 0%,rgba(12,18,30,0.96) 100%)",transition:"all .18s ease"}}>
+                        {/* Juz header — tap to expand */}
+                        <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                          <div>
+                            <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(243,231,191,0.7)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF4CF":"#F3E7BF"}}>{JUZ_OPENERS[j.num]}</div>
+                          </div>
+                          <div style={{display:"flex",alignItems:"center",gap:10}}>
+                            {juzComplete&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:11,fontWeight:700}}>✓</div>}
+                            <div style={{color:"#D4AF37",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
+                          </div>
+                        </div>
+                        {/* Surah list */}
+                        {isOpen&&(
+                          <div style={{borderTop:"1px solid rgba(212,175,55,0.15)",padding:"12px 14px 14px",background:"rgba(0,0,0,0.2)"}}>
+                            <div className="sbtn" onClick={()=>{
+                              setJuzStatus(prev=>{
+                                const next={...prev};
+                                if(allChecked){ surahs.forEach(s=>{delete next[`s${s.s}`];}); delete next[j.num]; }
+                                else { surahs.forEach(s=>{next[`s${s.s}`]="complete";}); next[j.num]="complete"; }
+                                return next;
+                              });
+                            }} style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,padding:"6px 0"}}>
+                              <div style={{width:16,height:16,borderRadius:4,background:allChecked?"#D4AF37":"transparent",border:`1.5px solid ${allChecked?"#D4AF37":"#3A4A2E"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#060A07",fontWeight:700,flexShrink:0}}>{allChecked?"✓":""}</div>
+                              <div style={{fontSize:11,color:"#A8B89A",fontWeight:600}}>Select all surahs in Juz {j.num}</div>
+                            </div>
+                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                              {surahs.map(s=>{
+                                const checked=juzStatus[`s${s.s}`]==="complete";
+                                return (
+                                  <div key={s.s} className="sbtn" onClick={()=>{
+                                    setJuzStatus(prev=>{
+                                      const next={...prev,[`s${s.s}`]:checked?undefined:"complete"};
+                                      const allNow=surahs.every(sr=>next[`s${sr.s}`]==="complete");
+                                      if(allNow) next[j.num]="complete"; else delete next[j.num];
+                                      return next;
+                                    });
+                                  }} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 8px",borderRadius:8,background:checked?"rgba(212,175,55,0.1)":"rgba(255,255,255,0.03)",border:`1px solid ${checked?"rgba(212,175,55,0.4)":"rgba(255,255,255,0.08)"}`}}>
+                                    <div style={{width:13,height:13,borderRadius:3,background:checked?"#D4AF37":"transparent",border:`1.5px solid ${checked?"#D4AF37":"#3A4A2E"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:700,flexShrink:0}}>{checked?"✓":""}</div>
+                                    <div style={{fontSize:10,color:checked?"#F6E27A":"#A8B89A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
+                                    <div style={{fontSize:8,color:"#4A5A3E",flexShrink:0}}>{s.a}v</div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
