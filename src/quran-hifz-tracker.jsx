@@ -977,7 +977,7 @@ export default function RihlatAlHifz() {
                 )}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                   <div style={{fontSize:9,color:"rgba(243,231,191,0.65)",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
-                  <div style={{fontSize:11,color:"#D4AF37",fontWeight:700}}>{juzDone} Juz selected</div>
+                  <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{juzDone} Juz selected</div>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
                   {displayedJuz.map(j=>{
@@ -992,7 +992,7 @@ export default function RihlatAlHifz() {
                         <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                           <div>
                             <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"none",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                           </div>
                           <div style={{display:"flex",alignItems:"center",gap:10}}>
                             {juzComplete&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:11,fontWeight:700}}>✓</div>}
@@ -1048,7 +1048,7 @@ export default function RihlatAlHifz() {
                 <div style={{flex:1}}/>
                 <div style={{display:"flex",gap:8}}>
                   <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:12,fontSize:14,color:"#A8B89A"}}>←</div>
-                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 10px 22px rgba(212,175,55,0.18)"}}>
+                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
                     Select your starting point
                   </div>
                 </div>
