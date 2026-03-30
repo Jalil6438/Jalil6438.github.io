@@ -91,8 +91,6 @@ const SURAH_AR = {
   101:"القارعة",102:"التكاثر",103:"العصر",104:"الهمزة",105:"الفيل",106:"قريش",107:"الماعون",108:"الكوثر",109:"الكافرون",110:"النصر",
   111:"المسد",112:"الإخلاص",113:"الفلق",114:"الناس",
 };
-const JUZ_OPENERS={1:"الم",2:"سَيَقُولُ السُّفَهَاءُ",3:"تِلْكَ الرُّسُلُ",4:"لَنْ تَنَالُوا الْبِرَّ",5:"وَالْمُحْصَنَاتُ",6:"لَا يُحِبُّ اللَّهُ",7:"وَإِذَا سَمِعُوا",8:"وَلَوْ أَنَّنَا",9:"قَالَ الْمَلَأُ",10:"وَاعْلَمُوا",11:"يَعْتَذِرُونَ",12:"وَمَا مِنْ دَابَّةٍ",13:"وَمَا أُبَرِّئُ",14:"رُبَمَا",15:"سُبْحَانَ الَّذِي",16:"قَالَ أَلَمْ",17:"اقْتَرَبَ لِلنَّاسِ",18:"قَدْ أَفْلَحَ",19:"وَقَالَ الَّذِينَ",20:"أَمَّنْ خَلَقَ",21:"اتْلُ مَا أُوحِيَ",22:"وَمَنْ يَقْنُتْ",23:"وَمَا لِيَ",24:"فَمَنْ أَظْلَمُ",25:"إِلَيْهِ يُرَدُّ",26:"حم",27:"قَالَ فَمَا خَطْبُكُمْ",28:"قَدْ سَمِعَ اللَّهُ",29:"تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ",30:"عَمَّ يَتَسَاءَلُونَ"};
-
 const JUZ_META = [
   {num:1,arabic:"الم",roman:"Alif Lam Mim",order:30},{num:2,arabic:"سَيَقُولُ",roman:"Sayaqool",order:29},
   {num:3,arabic:"تِلْكَ الرُّسُل",roman:"Tilkal Rusul",order:28},{num:4,arabic:"لَن تَنَالُوا",roman:"Lan Tanaloo",order:27},
@@ -357,7 +355,6 @@ export default function RihlatAlHifz() {
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [onboardStep,setOnboardStep]=useState(1);
-  const [visibleOnboardJuzCount,setVisibleOnboardJuzCount]=useState(5);
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
   const [repCounts,setRepCounts]=useState({});
@@ -868,28 +865,27 @@ export default function RihlatAlHifz() {
         <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
 
           {/* ── STEP 1 — BISMILLAH ── */}
-                    {onboardStep===1&&(
-            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)"}}>
-              {/* Top ambient glow */}
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
+          {onboardStep===1&&(
+            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden"}}>
               {/* Star field */}
-              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 15% 20%,rgba(212,175,55,0.20) 0%,transparent 100%),radial-gradient(1px 1px at 75% 15%,rgba(255,255,255,0.08) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 8%,rgba(212,175,55,0.18) 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,rgba(255,255,255,0.06) 0%,transparent 100%),radial-gradient(1px 1px at 25% 65%,rgba(212,175,55,0.08) 0%,transparent 100%)",pointerEvents:"none",zIndex:0}}/>
-              <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",alignItems:"center",width:"100%"}}>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(28px,6vw,44px)",color:"#F6E27A",direction:"rtl",lineHeight:1.7,marginBottom:24,textShadow:"0 0 22px rgba(212,175,55,0.18)"}}>
-                  بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-                </div>
-                <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent)",margin:"0 auto 24px"}}/>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85,textShadow:"0 0 10px rgba(212,175,55,0.12)"}}>
-                  وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
-                </div>
-                <div style={{fontSize:11,color:"rgba(243,231,191,0.5)",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
-                <div style={{fontSize:9,color:"rgba(212,175,55,0.35)",marginBottom:40}}>Al-Qamar · 54:17</div>
-
-                <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
-                  Begin Your Journey →
-                </div>
-                <div style={{width:40,height:1,background:"rgba(212,175,55,0.25)",margin:"16px auto 10px"}}/><div style={{fontSize:9,color:"rgba(243,231,191,0.7)",fontWeight:500,letterSpacing:".08em",textShadow:"0 0 8px rgba(212,175,55,0.12)"}}>© 2026 NoorTech Studio</div>
+              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 15% 20%,#F0C04030 0%,transparent 100%),radial-gradient(1px 1px at 75% 15%,#ffffff18 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 8%,#F0C04038 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,#ffffff14 0%,transparent 100%),radial-gradient(1px 1px at 25% 65%,#F0C04018 0%,transparent 100%),radial-gradient(1px 1px at 60% 80%,#ffffff10 0%,transparent 100%)",pointerEvents:"none"}}/>
+              {/* Glow */}
+              <div style={{position:"absolute",width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,#F0C04006 0%,transparent 70%)",top:"50%",left:"50%",transform:"translate(-50%,-60%)",pointerEvents:"none"}}/>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(28px,6vw,44px)",color:"#F0C040",direction:"rtl",lineHeight:1.7,marginBottom:24,position:"relative",zIndex:1}}>
+                بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </div>
+              <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,#F0C04060,transparent)",margin:"0 auto 24px"}}/>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#F0C040",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85}}>
+                وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
+              </div>
+              <div style={{fontSize:11,color:"#5A7050",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
+              <div style={{fontSize:9,color:"#2E4030",marginBottom:40}}>Al-Qamar · 54:17</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#F0C040",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#EDE8DC",marginBottom:44}}>Rihlat Al-Hifz</div>
+              <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em"}}>
+                Begin Your Journey →
+              </div>
+              <div style={{fontSize:9,color:"#2E4030",marginTop:16}}>© 2026 NoorTech Studio</div>
             </div>
           )}
 
@@ -898,37 +894,37 @@ export default function RihlatAlHifz() {
           {onboardStep===3&&(
             <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",minHeight:0,position:"relative"}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 55%)",zIndex:0}}/>
-              <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",flex:1}}>
-                {/* TOP — progress + welcome */}
+              <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",flex:1,justifyContent:"space-between"}}>
+                {/* TOP — progress + welcome + question + input */}
                 <div>
                   <div style={{display:"flex",gap:5,marginBottom:32}}>
                     {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
                   </div>
                   <div style={{textAlign:"center"}}>
                     <div style={{fontFamily:"'Amiri',serif",fontSize:28,color:"#F6E27A",direction:"rtl",lineHeight:1.7,marginBottom:10,textShadow:"0 0 10px rgba(212,175,55,0.12)"}}>أَهْلًا وَسَهْلًا</div>
-                    <div style={{fontSize:14,color:"rgba(243,231,191,0.85)"}}>Welcome to your Hifz journey</div>
+                    <div style={{fontSize:14,color:"rgba(243,231,191,0.85)",marginBottom:24}}>Welcome to your Hifz journey</div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7BF",textShadow:"0 0 14px rgba(212,175,55,0.10)",marginBottom:20}}>What should we call you?</div>
+                    <input
+                      type="text"
+                      value={userName}
+                      onChange={e=>setUserName(e.target.value)}
+                      placeholder="Enter your name"
+                      style={{width:"100%",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",border:`1px solid ${userName?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"14px 16px",fontSize:18,color:"#F3E7BF",fontFamily:"'DM Sans',sans-serif",outline:"none",transition:"border .2s",textAlign:"center",boxShadow:userName?"0 0 14px rgba(212,175,55,0.08),inset 0 0 12px rgba(212,175,55,0.06)":"inset 0 0 12px rgba(212,175,55,0.04)"}}
+                    />
                   </div>
                 </div>
-                {/* MIDDLE — centered question + input */}
-                <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",textAlign:"center"}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7BF",textShadow:"0 0 14px rgba(212,175,55,0.10)",marginBottom:20}}>What should we call you?</div>
-                  <input
-                    type="text"
-                    value={userName}
-                    onChange={e=>setUserName(e.target.value)}
-                    placeholder="Enter your name"
-                    style={{width:"100%",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",border:`1px solid ${userName?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"14px 16px",fontSize:18,color:"#F3E7BF",fontFamily:"'DM Sans',sans-serif",outline:"none",transition:"border .2s",textAlign:"center",boxShadow:userName?"0 0 14px rgba(212,175,55,0.08),inset 0 0 12px rgba(212,175,55,0.06)":"inset 0 0 12px rgba(212,175,55,0.04)"}}
-                  />
-                </div>
-                {/* BOTTOM — preview card + buttons */}
-                <div>
+                {/* MIDDLE — preview card centered in available space */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
                   {userName&&(
-                    <div className="fi" style={{padding:"14px 18px",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99)), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:14,textAlign:"center",marginBottom:16,boxShadow:"0 0 18px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
+                    <div className="fi" style={{width:"100%",padding:"14px 18px",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99)), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:14,textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
                       <div style={{fontSize:9,color:"rgba(212,175,55,0.55)",marginBottom:6,letterSpacing:".10em",textTransform:"uppercase"}}>Your name</div>
                       <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F6E27A",marginBottom:4,textShadow:"0 0 16px rgba(212,175,55,0.18)"}}>{userName}</div>
                       <div style={{fontSize:10,color:"rgba(243,231,191,0.50)",fontStyle:"italic"}}>May Allah make it easy for you 🤲</div>
                     </div>
                   )}
+                </div>
+                {/* BOTTOM — buttons */}
+                <div>
                   <div style={{display:"flex",gap:8}}>
                     <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,fontSize:14,color:"rgba(243,231,191,0.50)"}}>←</div>
                     <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
@@ -943,125 +939,173 @@ export default function RihlatAlHifz() {
 
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
           {onboardStep===4&&(()=>{
-            const juzDone=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
+            const totalAyahs=6236;
+            const memorizedSurahs=Object.entries(juzStatus).filter(([,v])=>v==="complete").length;
+            const juzDone=Object.values(juzStatus).filter(v=>v==="complete").length;
             const remainingJuz=30-juzDone;
             const totalMonths=(goalYears*12)+goalMonths;
-            const totalAyahs=6236;
             const remainingAyahs=Math.round(totalAyahs*(remainingJuz/30));
             const apd=totalMonths>0?Math.max(1,Math.round(remainingAyahs/(totalMonths*30))):0;
-            const daysPerJuz=apd>0?Math.round((6236/30)/apd):0;
-            const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
+            const daysPerJuz=apd>0?Math.round(6236/30/apd):0;
             return (
-              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
-                <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
-                <div style={{position:"relative",zIndex:1,display:"flex",gap:5,marginBottom:20}}>
-                  {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
+              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto"}}>
+                {/* Progress bar */}
+                <div style={{display:"flex",gap:5,marginBottom:20}}>
+                  {[1,2,3].map(i=>(
+                    <div key={i} style={{flex:1,height:3,borderRadius:2,background:"#F0C040"}}/>
+                  ))}
                 </div>
-                <div style={{textAlign:"center",marginBottom:18}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8,textShadow:"0 0 18px rgba(212,175,55,0.15)"}}>Choose Your Timeline</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.75)",lineHeight:1.2}}>Mark Your Memorization</div>
-                </div>
-                <div style={{background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),0 12px 35px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-                  <div style={{fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Your Goal</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?" • "+goalMonths+" Month"+(goalMonths!==1?"s":""):""}</div>
-                  <div style={{fontSize:13,color:"rgba(243,231,191,0.75)",lineHeight:1.7,marginBottom:10}}>
-                    <span style={{color:"#F6E27A",fontWeight:700}}>{apd} ayahs per day</span><span style={{opacity:0.7}}>{" • "}{daysPerJuz} days per juz</span><span style={{opacity:0.7}}>{" • "}{remainingJuz} juz remaining</span>
-                  </div>
-                  <div className="sbtn" onClick={()=>setOpenMethod(openMethod==="timeline-adjust"?null:"timeline-adjust")} style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:12,color:"#D4AF37",padding:"6px 12px",borderRadius:999,border:"1px solid rgba(212,175,55,0.22)",background:"rgba(212,175,55,0.05)"}}>
-                    Adjust timeline <span style={{fontSize:11}}>{openMethod==="timeline-adjust"?"▴":"▾"}</span>
-                  </div>
-                </div>
-                {openMethod==="timeline-adjust"&&(
-                  <div className="fi" style={{background:"rgba(12,18,30,0.92)",border:"1px solid rgba(212,175,55,0.16)",borderRadius:16,padding:"14px 14px 12px",marginBottom:18}}>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                      <div>
-                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Years</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalYears}</span></div>
-                        <input type="range" min="1" max="10" value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%"}}/>
-                      </div>
-                      <div>
-                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Months</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalMonths}</span></div>
-                        <input type="range" min="0" max="11" value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
-                      </div>
+                <div style={{fontSize:8,color:"#F0C040",letterSpacing:".2em",textTransform:"uppercase",marginBottom:4}}>Your Goal</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:19,color:"#EDE8DC",marginBottom:14}}>Set your timeline & mark memorization</div>
+
+                {/* Sliders */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                  <div style={{background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,padding:"10px 12px"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                      <span style={{fontSize:8,color:"#5A7050",textTransform:"uppercase",letterSpacing:".1em"}}>Years</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#F0C040",fontWeight:600}}>{goalYears}yr</span>
                     </div>
+                    <input type="range" min="1" max="10" value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%"}}/>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:7,color:"#2E4030",marginTop:2}}><span>1yr</span><span>5yr</span><span>10yr</span></div>
                   </div>
-                )}
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                  <div style={{fontSize:9,color:"rgba(243,231,191,0.65)",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
-                  <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{juzDone} Juz selected</div>
+                  <div style={{background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,padding:"10px 12px"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                      <span style={{fontSize:8,color:"#5A7050",textTransform:"uppercase",letterSpacing:".1em"}}>Months</span>
+                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:"#F0C040",fontWeight:600}}>{goalMonths}mo</span>
+                    </div>
+                    <input type="range" min="0" max="11" value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:7,color:"#2E4030",marginTop:2}}><span>0mo</span><span>6mo</span><span>11mo</span></div>
+                  </div>
                 </div>
-                <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
-                  {displayedJuz.map(j=>{
-                    const isOpen=openJuzPanel===j.num;
-                    const surahs=JUZ_SURAHS[j.num]||[];
-                    const allChecked=surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
-                    const someChecked=surahs.some(s=>juzStatus[`s${s.s}`]==="complete");
-                    const juzComplete=juzStatus[j.num]==="complete";
+
+                {/* Live stats */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:12}}>
+                  {[
+                    {val:apd,lbl:"Ayahs/day"},
+                    {val:remainingJuz,lbl:"Juz left"},
+                    {val:`~${daysPerJuz}d`,lbl:"Days/Juz"},
+                  ].map(s=>(
+                    <div key={s.lbl} style={{background:"#0D1008",border:"1px solid #F0C04020",borderTop:"2px solid #F0C040",borderRadius:8,padding:"8px 6px",textAlign:"center"}}>
+                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:"#F0C040",fontWeight:600,marginBottom:2}}>{s.val}</div>
+                      <div style={{fontSize:8,color:"#5A7050"}}>{s.lbl}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Juz grid */}
+                <div style={{fontSize:8,color:"#A8B89A",letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",justifyContent:"space-between"}}>
+                  <span>Mark your memorization</span>
+                  <span style={{fontFamily:"'IBM Plex Mono',monospace",color:"#F0C040"}}>{juzDone} Juz ✓</span>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginBottom:6}}>
+                  {Array.from({length:30},(_,i)=>{
+                    const juz=i+1;
+                    const status=juzStatus[juz];
+                    const isFull=status==="complete";
+                    const isOpen=openJuzPanel===juz;
+                    const hasPartial=!isFull&&Object.keys(juzStatus).some(k=>k.startsWith("s")&&JUZ_SURAHS[juz]?.some(s=>`s${s.s}`===k&&juzStatus[k]==="complete"));
+                    const juzMeta=JUZ_META.find(j=>j.num===juz);
+                    const juzName=juzMeta?.roman||`Juz ${juz}`;
+                    const juzArabic=juzMeta?.arabic||"";
                     return (
-                      <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.12)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 20px rgba(212,175,55,0.14),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 0 12px rgba(212,175,55,0.05),0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
-                        {/* Juz header — tap to expand */}
-                        <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                          <div>
-                            <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
-                          </div>
-                          <div style={{display:"flex",alignItems:"center",gap:10}}>
-                            {juzComplete&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:11,fontWeight:700}}>✓</div>}
-                            <div style={{color:"rgba(212,175,55,0.7)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg) translateY(-2px)":"translateY(2px)"}}>▾</div>
-                          </div>
+                      <div key={juz} className="sbtn"
+                        onClick={()=>setOpenJuzPanel(isOpen?null:juz)}
+                        style={{
+                          borderRadius:10,
+                          padding:"10px 6px",
+                          background:isOpen?"#F0C040":isFull?"#F0C04025":hasPartial?"#F0C04012":"#141A0F",
+                          border:`1px solid ${isOpen?"#F0C040":isFull?"#F0C040":hasPartial?"#F0C04055":"#1E2A18"}`,
+                          display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+                          textAlign:"center",
+                          transition:"all .15s",
+                          boxShadow:isFull?"0 2px 8px rgba(240,192,64,.2)":"none",
+                        }}
+                      >
+                        <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:isOpen?"#060A07":isFull?"#F0C040":"#F0C04050",fontWeight:700,marginBottom:3}}>
+                          {String(juz).padStart(2,"0")}
                         </div>
-                        {/* Surah list */}
-                        {isOpen&&(
-                          <div style={{borderTop:"1px solid rgba(212,175,55,0.12)",padding:"14px 14px 16px",background:"rgba(0,0,0,0.18)"}}>
-                            {/* Select All */}
-                            <div className="sbtn" onClick={()=>{
-                              setJuzStatus(prev=>{
-                                const next={...prev};
-                                if(allChecked){ surahs.forEach(s=>{delete next[`s${s.s}`];}); delete next[j.num]; }
-                                else { surahs.forEach(s=>{next[`s${s.s}`]="complete";}); next[j.num]="complete"; }
-                                return next;
-                              });
-                            }} style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"8px 10px",borderRadius:10,background:"rgba(212,175,55,0.03)",border:"1px solid rgba(212,175,55,0.16)",boxShadow:"0 0 10px rgba(212,175,55,0.05)"}}>
-                              <div style={{width:18,height:18,borderRadius:5,background:allChecked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:allChecked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:allChecked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{allChecked?"✓":""}</div>
-                              <div style={{fontSize:12,color:allChecked?"#F6E27A":"rgba(212,175,55,0.8)",fontWeight:700,letterSpacing:".02em"}}>Select all surahs in Juz {j.num}</div>
-                            </div>
-                            {/* Surah grid */}
-                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-                              {surahs.map((s,si)=>{
-                                const checked=juzStatus[`s${s.s}`]==="complete";
-                                return (
-                                  <div key={s.s} className="sbtn" onClick={()=>{
-                                    setJuzStatus(prev=>{
-                                      const next={...prev,[`s${s.s}`]:checked?undefined:"complete"};
-                                      const allNow=surahs.every(sr=>next[`s${sr.s}`]==="complete");
-                                      if(allNow) next[j.num]="complete"; else delete next[j.num];
-                                      return next;
-                                    });
-                                  }} style={{display:"flex",alignItems:"center",gap:7,padding:"9px 10px",borderRadius:10,background:checked?"linear-gradient(180deg,rgba(212,175,55,0.08) 0%,rgba(12,16,26,0.96) 100%)":"rgba(255,255,255,0.02)",border:checked?"1px solid rgba(212,175,55,0.38)":"1px solid rgba(255,255,255,0.05)",boxShadow:checked?"0 0 14px rgba(212,175,55,0.12)":"none",transform:checked?"scale(1.01)":"scale(1)",transition:"all .18s ease"}}>
-                                    <div style={{width:14,height:14,borderRadius:4,background:checked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:checked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:800,flexShrink:0,boxShadow:checked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{checked?"✓":""}</div>
-                                    <div style={{fontSize:10,color:checked?"#F6E27A":"rgba(255,255,255,0.65)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:checked?600:400}}>{s.name}</div>
-                                    <div style={{fontSize:8,color:"rgba(255,255,255,0.25)",flexShrink:0}}>{s.a}v</div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
+                        <div style={{fontSize:10,fontWeight:600,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#F0C04080":"#A8B89A",marginBottom:2,lineHeight:1.2}}>
+                          {juzName}
+                        </div>
+                        <div style={{fontFamily:"'Amiri',serif",fontSize:11,color:isOpen?"#060A07":isFull?"#F0C040":hasPartial?"#F0C04070":"#5A7050",direction:"rtl",lineHeight:1.3}}>
+                          {juzArabic}
+                        </div>
+                        {isFull&&<div style={{fontSize:9,color:isOpen?"#060A07":"#F0C040",marginTop:3,fontWeight:700}}>✓</div>}
+                        {hasPartial&&!isFull&&<div style={{fontSize:7,color:"#F0C04070",marginTop:2}}>partial</div>}
                       </div>
                     );
                   })}
                 </div>
-                {visibleOnboardJuzCount<30&&(
-                  <div style={{textAlign:"center",marginBottom:18}}>
-                    <div className="sbtn" onClick={()=>setVisibleOnboardJuzCount(v=>Math.min(v+7,30))} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 16px",borderRadius:999,background:"rgba(212,175,55,0.03)",border:"1px solid rgba(212,175,55,0.12)",color:"rgba(212,175,55,0.85)",fontSize:12,fontWeight:600}}>
-                      Load More <span style={{fontSize:11}}>↓</span>
+
+                {/* Surah panel — shows when a Juz is tapped */}
+                {openJuzPanel&&(()=>{
+                  const surahs=JUZ_SURAHS[openJuzPanel]||[];
+                  const allChecked=surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
+                  const totalAyahsInJuz=surahs.reduce((a,s)=>a+s.a,0);
+                  return (
+                    <div className="fi" style={{background:"#0D1008",border:"1px solid #F0C04040",borderRadius:10,padding:"12px",marginBottom:8}}>
+                      {/* Panel header */}
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                        <div style={{fontSize:11,fontWeight:700,color:"#F0C040"}}>Juz {openJuzPanel} — {JUZ_META.find(j=>j.num===openJuzPanel)?.roman}</div>
+                        <div className="sbtn" onClick={()=>setOpenJuzPanel(null)} style={{fontSize:11,color:"#5A7050"}}>✕</div>
+                      </div>
+                      {/* Select All */}
+                      <div className="sbtn" onClick={()=>{
+                        const allKey=`j${openJuzPanel}`;
+                        if(allChecked){
+                          setJuzStatus(prev=>{
+                            const n={...prev};
+                            surahs.forEach(s=>delete n[`s${s.s}`]);
+                            delete n[openJuzPanel];
+                            return n;
+                          });
+                        } else {
+                          setJuzStatus(prev=>{
+                            const n={...prev};
+                            surahs.forEach(s=>n[`s${s.s}`]="complete");
+                            n[openJuzPanel]="complete";
+                            return n;
+                          });
+                        }
+                      }} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 0",borderBottom:"1px solid #1E2A18",marginBottom:7,cursor:"pointer"}}>
+                        <div style={{width:15,height:15,borderRadius:3,background:allChecked?"#20b2aa":"transparent",border:`1.5px solid ${allChecked?"#20b2aa":"#2E4030"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#060A07",fontWeight:700,flexShrink:0}}>{allChecked?"✓":""}</div>
+                        <div style={{fontSize:11,color:"#A8B89A",fontWeight:500,flex:1}}>Select All Surahs</div>
+                        <div style={{fontSize:8,color:"#5A7050"}}>{surahs.length} surahs · {totalAyahsInJuz} ayahs</div>
+                      </div>
+                      {/* Surah list — 2 per row */}
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
+                        {surahs.map(s=>{
+                          const checked=juzStatus[`s${s.s}`]==="complete";
+                          return (
+                            <div key={s.s} className="sbtn" onClick={()=>{
+                              setJuzStatus(prev=>{
+                                const n={...prev,[`s${s.s}`]:checked?undefined:"complete"};
+                                const allNowChecked=surahs.every(sr=>n[`s${sr.s}`]==="complete");
+                                if(allNowChecked) n[openJuzPanel]="complete";
+                                else delete n[openJuzPanel];
+                                return n;
+                              });
+                            }} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 7px",borderRadius:6,background:checked?"#20b2aa15":"#141A0F",border:`1px solid ${checked?"#20b2aa40":"#1E2A18"}`,cursor:"pointer"}}>
+                              <div style={{width:13,height:13,borderRadius:3,background:checked?"#20b2aa":"transparent",border:`1.5px solid ${checked?"#20b2aa":"#2E4030"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:700,flexShrink:0}}>{checked?"✓":""}</div>
+                              <div style={{fontSize:9,color:checked?"#20b2aa":"#A8B89A",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
+                              <div style={{fontSize:7,color:"#2E4030",fontFamily:"'IBM Plex Mono',monospace",flexShrink:0}}>{s.a}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
-                <div style={{flex:1}}/>
+                  );
+                })()}
+
+                <div style={{marginBottom:6,fontSize:8,color:"#2E4030",fontStyle:"italic",textAlign:"center"}}>Tap a Juz to select surahs · Gold = memorized</div>
                 <div style={{display:"flex",gap:8}}>
-                  <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:12,fontSize:14,color:"#A8B89A"}}>←</div>
-                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
-                    Select your starting point
+                  <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:10,fontSize:14,color:"#5A7050"}}>←</div>
+                  <div className="sbtn" onClick={()=>{
+                    if(userName) localStorage.setItem("rihlat-username",userName);
+                    localStorage.setItem("rihlat-onboarded","1");
+                    setShowOnboarding(false);
+                  }} style={{flex:1,padding:"14px",background:"#F0C040",borderRadius:10,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center"}}>
+                    Continue →
                   </div>
                 </div>
               </div>
@@ -1070,6 +1114,8 @@ export default function RihlatAlHifz() {
 
         </div>
       )}
+
+
 
       {/* ── DAILY DUA MODAL (every launch, after onboarding) ── */}
       {!showOnboarding&&showDua&&(()=>{
@@ -1083,22 +1129,23 @@ export default function RihlatAlHifz() {
         ];
         const d=DUAS[duaIdx%DUAS.length];
         return (
-          <div style={{position:"fixed",inset:0,background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
-            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)"}}/>
-            <div className="fi" style={{position:"relative",background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:20,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center",boxShadow:"0 20px 50px rgba(0,0,0,0.45),0 0 30px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F6E27A",direction:"rtl",lineHeight:1.8,marginBottom:20,textShadow:"0 0 18px rgba(212,175,55,0.18)"}}>
+          <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+            <div className="fi" style={{background:"#060A07",border:"1px solid #F0C04060",borderRadius:14,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center"}}>
+              {/* Bismillah at top */}
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F0C040",direction:"rtl",lineHeight:1.8,marginBottom:20}}>
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </div>
-              <div style={{fontSize:8,color:"rgba(212,175,55,0.65)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,opacity:0.75}}>Begin With Dua</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,32px)",color:"#F6E27A",direction:"rtl",lineHeight:2,marginBottom:16,textShadow:"0 0 12px rgba(212,175,55,0.12)"}}>{d.arabic}</div>
-              <div style={{fontSize:11,color:"rgba(243,231,191,0.85)",lineHeight:1.6,marginBottom:4,opacity:0.85}}>{d.translation}</div>
-              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"rgba(212,175,55,0.40)",marginBottom:20,opacity:0.5}}>{d.source}</div>
+              <div style={{fontSize:8,color:T.accent,letterSpacing:".22em",textTransform:"uppercase",marginBottom:14}}>Begin With Dua</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,4vw,28px)",color:T.accent,direction:"rtl",lineHeight:2,marginBottom:10}}>{d.arabic}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,color:T.sub,fontStyle:"italic",marginBottom:4}}>"{d.transliteration}"</div>
+              <div style={{fontSize:11,color:T.text,lineHeight:1.6,marginBottom:4}}>{d.translation}</div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:T.dim,marginBottom:20}}>{d.source}</div>
               <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:20}}>
                 {[0,1,2,3,4,5].map(i=>(
-                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"linear-gradient(90deg,#D4AF37,#F6E27A)":"rgba(255,255,255,0.08)",boxShadow:i===duaIdx%6?"0 0 8px rgba(212,175,55,0.35)":"none",opacity:i===duaIdx%6?1:0.3,transition:"all .3s"}}/>
+                  <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"#F0C040":"#2E4030",transition:"all .3s"}}/>
                 ))}
               </div>
-              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",borderRadius:12,fontSize:13,fontWeight:700,display:"inline-block",boxShadow:"0 12px 30px rgba(212,175,55,0.25),inset 0 1px 0 rgba(255,255,255,0.2)"}}>
+              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:8,fontSize:13,fontWeight:600,display:"inline-block"}}>
                 Let's Begin →
               </div>
             </div>
