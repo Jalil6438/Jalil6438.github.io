@@ -355,6 +355,7 @@ export default function RihlatAlHifz() {
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [onboardStep,setOnboardStep]=useState(1);
+  const [visibleOnboardJuzCount,setVisibleOnboardJuzCount]=useState(7);
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
   const [repCounts,setRepCounts]=useState({});
