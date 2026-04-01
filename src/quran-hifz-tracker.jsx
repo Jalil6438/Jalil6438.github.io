@@ -515,33 +515,6 @@ export default function RihlatAlHifz() {
     });
   },[sessionJuz,sessionIdx,loaded]);
 
-  // Seed juzProgress from onboarding-completed Juz so they count toward journey baseline
-  useEffect(()=>{
-    if(!loaded) return;
-    setJuzProgress(prev=>{
-      const next={...prev};
-      let changed=false;
-      Object.entries(juzStatus).forEach(([key,value])=>{
-        if(String(key).startsWith("s")) return;
-        if(value!=="complete") return;
-        const juzNum=Number(key);
-        const juzTotal=(JUZ_SURAHS[juzNum]||[]).reduce((sum,s)=>sum+s.a,0);
-        if((next[juzNum]||0)<juzTotal){ next[juzNum]=juzTotal; changed=true; }
-      });
-      return changed?next:prev;
-    });
-  },[loaded,juzStatus]);
-
-  // Auto-promote Juz to global complete when sessionIdx reaches totalSV
-  useEffect(()=>{
-    if(sessLoading) return;
-    if(totalSV===0) return;
-    if(sessionIdx<totalSV) return;
-    if(juzStatus[sessionJuz]==="complete") return;
-    setJuzStatus(prev=>({...prev,[sessionJuz]:"complete"}));
-    setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
-  },[sessLoading,sessionIdx,totalSV,sessionJuz,juzStatus]);
-
   // Fetch session verses
   useEffect(()=>{
     let cancelled=false;
