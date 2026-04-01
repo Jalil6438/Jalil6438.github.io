@@ -579,6 +579,16 @@ export default function RihlatAlHifz() {
     }
   },[sessLoading,sessionVerses.length,sessionJuz,juzStatus]);
 
+  // Mark Juz complete when sessionIdx reaches totalSV (covers all completion paths)
+  useEffect(()=>{
+    if(sessLoading) return;
+    if(totalSV===0) return;
+    if(sessionIdx<totalSV) return;
+    if(juzStatus[sessionJuz]==="complete") return;
+    setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
+    setJuzProgress(p=>({...p,[sessionJuz]:totalSV}));
+  },[sessLoading,sessionIdx,totalSV,sessionJuz]); // eslint-disable-line
+
 
       const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
@@ -624,7 +634,17 @@ export default function RihlatAlHifz() {
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
   const completedCount=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
-  const pct=Math.round((completedCount/30)*100);
+
+  const totalAyahsInQuran=Object.values(JUZ_SURAHS).reduce((sum,surahs)=>sum+surahs.reduce((n,s)=>n+s.a,0),0);
+
+  const memorizedAyahs=Object.keys(JUZ_SURAHS).reduce((sum,juzKey)=>{
+    const juzNum=Number(juzKey);
+    const juzTotal=(JUZ_SURAHS[juzNum]||[]).reduce((n,s)=>n+s.a,0);
+    if(juzStatus[juzNum]==="complete") return sum+juzTotal;
+    return sum+Math.min(juzProgress[juzNum]||0,juzTotal);
+  },0);
+
+  const pct=totalAyahsInQuran>0?Math.round((memorizedAyahs/totalAyahsInQuran)*100):0;
   const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>juzStatus[j.num]!=="complete");
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
@@ -1003,14 +1023,14 @@ export default function RihlatAlHifz() {
                     const juzComplete=juzStatus[j.num]==="complete";
                     return (
                       <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.12)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 20px rgba(212,175,55,0.14),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 0 12px rgba(212,175,55,0.05),0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
-                        {/* Juz header — tap to expand */}
+                        {/* Juz header — tap to expand, long-press or ✓ button to mark complete */}
                         <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                           <div>
                             <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
                             <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                           </div>
                           <div style={{display:"flex",alignItems:"center",gap:10}}>
-                            {juzComplete&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(246,226,122,0.14)",border:"1px solid rgba(246,226,122,0.45)",display:"flex",alignItems:"center",justifyContent:"center",color:"#F6E27A",fontSize:11,fontWeight:700}}>✓</div>}
+                            <div className="sbtn" onClick={e=>{e.stopPropagation();setJuzStatus(prev=>{const next={...prev};if(next[j.num]==="complete")delete next[j.num];else next[j.num]="complete";return next;});}} style={{width:22,height:22,borderRadius:"50%",background:juzComplete?"rgba(246,226,122,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${juzComplete?"rgba(246,226,122,0.45)":"rgba(212,175,55,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:juzComplete?"#F6E27A":"rgba(212,175,55,0.4)",fontSize:11,fontWeight:700}}>{juzComplete?"✓":"○"}</div>
                             <div style={{color:"rgba(212,175,55,0.7)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg) translateY(-2px)":"translateY(2px)"}}>▾</div>
                           </div>
                         </div>
@@ -1385,8 +1405,14 @@ export default function RihlatAlHifz() {
                     setOpenAyah(null);
                     if(activeSessionIndex>=SESSIONS.length-1){
                       setYesterdayBatch(fajrBatch);
-                      setSessionIdx(bEnd);
-                      setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
+                      if(bEnd>=totalSV&&totalSV>0){
+                        setSessionIdx(totalSV);
+                        setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
+                        setJuzStatus(prev=>({...prev,[sessionJuz]:"complete"}));
+                      } else {
+                        setSessionIdx(bEnd);
+                        setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
+                      }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
                     } else {
