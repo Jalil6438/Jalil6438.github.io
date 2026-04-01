@@ -352,6 +352,14 @@ function HlsPlayer({ src, T }) {
 }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+function getJuzAyahTotal(juzNum){
+  return (JUZ_SURAHS[juzNum]||[]).reduce((sum,s)=>sum+s.a,0);
+}
+
+function getAllQuranAyahTotal(){
+  return Object.keys(JUZ_SURAHS).reduce((sum,juzNum)=>sum+getJuzAyahTotal(Number(juzNum)),0);
+}
+
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showDua,setShowDua]=useState(true);
@@ -505,6 +513,23 @@ export default function RihlatAlHifz() {
     try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
   },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
+  // Seed juzProgress from onboarding-completed Juz
+  useEffect(()=>{
+    if(!loaded) return;
+    setJuzProgress(prev=>{
+      let changed=false;
+      const next={...prev};
+      Object.entries(juzStatus).forEach(([key,value])=>{
+        if(String(key).startsWith("s")) return;
+        if(value!=="complete") return;
+        const juzNum=Number(key);
+        const juzTotal=getJuzAyahTotal(juzNum);
+        if((next[juzNum]||0)<juzTotal){ next[juzNum]=juzTotal; changed=true; }
+      });
+      return changed?next:prev;
+    });
+  },[loaded,juzStatus]);
+
   // Sync sessionIdx into juzProgress for durable per-Juz progress
   useEffect(()=>{
     if(!loaded) return;
@@ -579,6 +604,18 @@ export default function RihlatAlHifz() {
     }
   },[sessLoading,sessionVerses.length,sessionJuz,juzStatus]);
 
+  // Auto-promote fully finished Juz into global completion
+  useEffect(()=>{
+    if(!loaded) return;
+    if(sessLoading) return;
+    if(totalSV===0) return;
+    if(sessionIdx<totalSV) return;
+    if(juzStatus[sessionJuz]!=="complete"){
+      setJuzStatus(prev=>{ if(prev[sessionJuz]==="complete") return prev; return {...prev,[sessionJuz]:"complete"}; });
+    }
+    setJuzProgress(prev=>{ if((prev[sessionJuz]||0)===totalSV) return prev; return {...prev,[sessionJuz]:totalSV}; });
+  },[loaded,sessLoading,sessionIdx,totalSV,sessionJuz,juzStatus]);
+
       const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
@@ -623,14 +660,13 @@ export default function RihlatAlHifz() {
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
   const completedCount=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
-
-  const totalAyahsAllJuz=Object.values(JUZ_SURAHS).flat().reduce((sum,s)=>sum+s.a,0);
+  const totalQuranAyahs=getAllQuranAyahTotal();
   const memorizedAyahs=Object.entries(juzProgress).reduce((sum,[juzNum,progress])=>{
     const juz=Number(juzNum);
-    const juzTotal=(JUZ_SURAHS[juz]||[]).reduce((n,s)=>n+s.a,0);
+    const juzTotal=getJuzAyahTotal(juz);
     return sum+Math.min(progress||0,juzTotal);
   },0);
-  const pct=Math.round((memorizedAyahs/totalAyahsAllJuz)*100);
+  const pct=totalQuranAyahs>0?Math.round((memorizedAyahs/totalQuranAyahs)*100):0;
   const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>juzStatus[j.num]!=="complete");
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
