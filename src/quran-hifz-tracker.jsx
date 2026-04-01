@@ -159,7 +159,7 @@ const STATUS_CFG = {
            activeDays:active, ayahsLeft, juzLeft };
 }
 
-const DARK  = {bg:"#060A07",surface:"#121722",surface2:"#1A2130",border:"#263042",border2:"#1C2533",text:"#EDE8DC",sub:"#B8C0CC",dim:"#5A7050",vdim:"#2E4030",accent:"#F0C040",accentDim:"#F0C04018",input:"#0A0E07",inputBorder:"#263042",inputText:"#D7DCE4"};
+const DARK  = {bg:"#04070A",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
 const LIGHT = {bg:"#F7F3EC",surface:"#FFFFFF",surface2:"#F0EBE0",border:"#DDD4C0",border2:"#D0C8B0",text:"#1A2A18",sub:"#4A6A40",dim:"#7A8A70",vdim:"#9A9A88",accent:"#8B6A10",accentDim:"#8B6A1012",input:"#F7F3EC",inputBorder:"#CCC4B0",inputText:"#3A6A40"};
 const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TODAY=()=>new Date().toDateString();
@@ -394,6 +394,8 @@ export default function RihlatAlHifz() {
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
 
   useEffect(()=>{
+    if(!loaded) return;
+    if(sessionJuz) return;
     const completedJuz=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key));
     if(!completedJuz.includes(30)) setSessionJuz(30);
     else if(!completedJuz.includes(29)) setSessionJuz(29);
@@ -426,7 +428,7 @@ export default function RihlatAlHifz() {
     else if(!completedJuz.includes(2)) setSessionJuz(2);
     else if(!completedJuz.includes(1)) setSessionJuz(1);
     else setSessionJuz(30);
-  },[juzStatus]);
+  },[loaded]);
 
 
   const [streak,setStreak]=useState(0);
@@ -502,6 +504,16 @@ export default function RihlatAlHifz() {
     if(!loaded) return;
     try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
   },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+
+  // Sync sessionIdx into juzProgress for durable per-Juz progress
+  useEffect(()=>{
+    if(!loaded) return;
+    setJuzProgress(prev=>{
+      const current=prev[sessionJuz]||0;
+      if(current===sessionIdx) return prev;
+      return {...prev,[sessionJuz]:sessionIdx};
+    });
+  },[sessionJuz,sessionIdx,loaded]);
 
   // Fetch session verses
   useEffect(()=>{
@@ -1373,6 +1385,7 @@ export default function RihlatAlHifz() {
                     if(activeSessionIndex>=SESSIONS.length-1){
                       setYesterdayBatch(fajrBatch);
                       setSessionIdx(bEnd);
+                      setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
                     } else {
