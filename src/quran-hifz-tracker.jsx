@@ -383,6 +383,7 @@ export default function RihlatAlHifz() {
   const [openMethod,setOpenMethod]=useState(null);
   const [sessionJuz,setSessionJuz]=useState(29);
   const [sessionIdx,setSessionIdx]=useState(0);
+  const [juzProgress,setJuzProgress]=useState({});
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
@@ -471,6 +472,7 @@ export default function RihlatAlHifz() {
         setGoalYears(p.goalYears||3);
         setSessionJuz(p.sessionJuz||29);
         setSessionIdx(p.sessionIdx||0);
+        setJuzProgress(p.juzProgress||{});
         setSessionDone(p.sessionDone||[]);
         setYesterdayBatch(p.yesterdayBatch||[]);
         setAsrSelectedSurahs(p.asrSelectedSurahs||[]);
@@ -498,8 +500,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Fetch session verses
   useEffect(()=>{
@@ -544,7 +546,7 @@ export default function RihlatAlHifz() {
           return ayahA-ayahB;
         });
 
-        if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(prev=>{ if(orderedVerses.length===0) return 0; return Math.min(prev,orderedVerses.length); }); }
+        if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(()=>{ const saved=juzProgress[sessionJuz]||0; return Math.min(saved,orderedVerses.length); }); }
       } catch {}
       if(!cancelled) setSessLoading(false);
     })();
@@ -659,7 +661,11 @@ export default function RihlatAlHifz() {
     setSessionDone(d=>[...d,bKey]);
     if(bEnd>=totalSV){
       setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
-    } else {setSessionIdx(bEnd);}
+      setJuzProgress(p=>({...p,[sessionJuz]:totalSV}));
+    } else {
+      setSessionIdx(bEnd);
+      setJuzProgress(p=>({...p,[sessionJuz]:bEnd}));
+    }
   }
 
   async function playAyah(verseKey,key){
@@ -1978,7 +1984,7 @@ export default function RihlatAlHifz() {
                 const isSel=sessionJuz===j.num;
                 const isDone=juzStatus[j.num]==="complete";
                 return (
-                  <div key={j.num} className="sbtn" onClick={()=>{setSessionJuz(j.num);setSessionIdx(0);setRepCounts({});setOpenAyah(null);setShowJuzModal(false);}} style={{paddingTop:18,paddingBottom:18,borderRadius:16,background:isDone?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:isSel?"1.5px solid #E6B84A":"1px solid rgba(255,255,255,0.06)",boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",textAlign:"center",transition:"all .15s"}}>
+                  <div key={j.num} className="sbtn" onClick={()=>{ setJuzProgress(prev=>({...prev,[sessionJuz]:sessionIdx})); setSessionJuz(j.num); setSessionIdx(juzProgress[j.num]||0); setRepCounts({}); setOpenAyah(null); setShowJuzModal(false); }} style={{paddingTop:18,paddingBottom:18,borderRadius:16,background:isDone?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:isSel?"1.5px solid #E6B84A":"1px solid rgba(255,255,255,0.06)",boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",textAlign:"center",transition:"all .15s"}}>
                     <div style={{fontSize:12,color:isSel?"#E6B84A":isDone?"#E6B84A":"#888",fontWeight:isSel?700:400,marginBottom:4}}>{j.num}</div>
                     <div style={{fontSize:12,color:isSel?"#F8FAFC":isDone?"rgba(230,184,74,0.8)":"#ccc",fontWeight:isSel?600:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:4,paddingRight:4}}>{j.roman?.split(" ")[0]||""}</div>
                   </div>
