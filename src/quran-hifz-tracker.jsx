@@ -623,7 +623,14 @@ export default function RihlatAlHifz() {
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
   const completedCount=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
-  const pct=Math.round((completedCount/30)*100);
+
+  const totalAyahsAllJuz=Object.values(JUZ_SURAHS).flat().reduce((sum,s)=>sum+s.a,0);
+  const memorizedAyahs=Object.entries(juzProgress).reduce((sum,[juzNum,progress])=>{
+    const juz=Number(juzNum);
+    const juzTotal=(JUZ_SURAHS[juz]||[]).reduce((n,s)=>n+s.a,0);
+    return sum+Math.min(progress||0,juzTotal);
+  },0);
+  const pct=Math.round((memorizedAyahs/totalAyahsAllJuz)*100);
   const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>juzStatus[j.num]!=="complete");
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
