@@ -544,6 +544,20 @@ export default function RihlatAlHifz() {
     return()=>{cancelled=true;};
   },[sessionJuz,juzStatus]);
 
+  // Auto-mark Juz complete when sessionVerses goes to 0 after having verses
+  // This catches the case where all surahs are marked done via individual surah completion
+  useEffect(()=>{
+    if(sessLoading) return;
+    if(sessionVerses.length>0) return; // still have verses, not done
+    if(juzStatus[sessionJuz]==="complete") return; // already marked
+    // Check that at least some surahs in this juz are marked complete
+    const juzSurahs=JUZ_SURAHS[sessionJuz]||[];
+    const allSurahsDone=juzSurahs.length>0&&juzSurahs.every(s=>juzStatus[`s${s.s}`]==="complete");
+    if(allSurahsDone){
+      setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
+    }
+  },[sessLoading,sessionVerses.length,sessionJuz,juzStatus]);
+
       const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
