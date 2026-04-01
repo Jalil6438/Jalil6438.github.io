@@ -579,16 +579,6 @@ export default function RihlatAlHifz() {
     }
   },[sessLoading,sessionVerses.length,sessionJuz,juzStatus]);
 
-  // Mark Juz complete when sessionIdx reaches totalSV (covers all completion paths)
-  useEffect(()=>{
-    if(sessLoading) return;
-    if(totalSV===0) return;
-    if(sessionIdx<totalSV) return;
-    if(juzStatus[sessionJuz]==="complete") return;
-    setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
-    setJuzProgress(p=>({...p,[sessionJuz]:totalSV}));
-  },[sessLoading,sessionIdx,totalSV,sessionJuz]); // eslint-disable-line
-
 
       const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
