@@ -519,6 +519,13 @@ export default function RihlatAlHifz() {
         // 1) Get this juz's surahs in descending memorization order
         const descendingSurahOrder=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
 
+        // If whole Juz is already complete, show full progress (don't filter)
+        if(juzStatus[sessionJuz]==="complete"){
+          if(!cancelled){ setSessionVerses(all); setSessionIdx(all.length); }
+          if(!cancelled) setSessLoading(false);
+          return;
+        }
+
         // 2) Remove surahs already marked complete
         const unfinishedVerses=all.filter(v=>{
           const surahNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
