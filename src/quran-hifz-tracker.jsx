@@ -638,8 +638,6 @@ export default function RihlatAlHifz() {
     setSessionDone(d=>[...d,bKey]);
     if(bEnd>=totalSV){
       setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
-      const nj=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>j.num!==sessionJuz&&juzStatus[j.num]!=="complete"&&j.num!==30);
-      if(nj){setSessionJuz(nj.num);setSessionIdx(0);}
     } else {setSessionIdx(bEnd);}
   }
 
