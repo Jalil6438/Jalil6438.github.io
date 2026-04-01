@@ -427,40 +427,7 @@ export default function RihlatAlHifz() {
     else setSessionJuz(30);
   },[juzStatus]);
 
-  useEffect(()=>{
-    const completedJuz=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key));
-    if(!completedJuz.includes(30)) setSessionJuz(30);
-    else if(!completedJuz.includes(29)) setSessionJuz(29);
-    else if(!completedJuz.includes(28)) setSessionJuz(28);
-    else if(!completedJuz.includes(27)) setSessionJuz(27);
-    else if(!completedJuz.includes(26)) setSessionJuz(26);
-    else if(!completedJuz.includes(25)) setSessionJuz(25);
-    else if(!completedJuz.includes(24)) setSessionJuz(24);
-    else if(!completedJuz.includes(23)) setSessionJuz(23);
-    else if(!completedJuz.includes(22)) setSessionJuz(22);
-    else if(!completedJuz.includes(21)) setSessionJuz(21);
-    else if(!completedJuz.includes(20)) setSessionJuz(20);
-    else if(!completedJuz.includes(19)) setSessionJuz(19);
-    else if(!completedJuz.includes(18)) setSessionJuz(18);
-    else if(!completedJuz.includes(17)) setSessionJuz(17);
-    else if(!completedJuz.includes(16)) setSessionJuz(16);
-    else if(!completedJuz.includes(15)) setSessionJuz(15);
-    else if(!completedJuz.includes(14)) setSessionJuz(14);
-    else if(!completedJuz.includes(13)) setSessionJuz(13);
-    else if(!completedJuz.includes(12)) setSessionJuz(12);
-    else if(!completedJuz.includes(11)) setSessionJuz(11);
-    else if(!completedJuz.includes(10)) setSessionJuz(10);
-    else if(!completedJuz.includes(9)) setSessionJuz(9);
-    else if(!completedJuz.includes(8)) setSessionJuz(8);
-    else if(!completedJuz.includes(7)) setSessionJuz(7);
-    else if(!completedJuz.includes(6)) setSessionJuz(6);
-    else if(!completedJuz.includes(5)) setSessionJuz(5);
-    else if(!completedJuz.includes(4)) setSessionJuz(4);
-    else if(!completedJuz.includes(3)) setSessionJuz(3);
-    else if(!completedJuz.includes(2)) setSessionJuz(2);
-    else if(!completedJuz.includes(1)) setSessionJuz(1);
-    else setSessionJuz(30);
-  },[juzStatus]);
+
   const [streak,setStreak]=useState(0);
   const [checkHistory,setCheckHistory]=useState({});
   const [calMonth,setCalMonth]=useState(new Date().getMonth());
@@ -570,7 +537,7 @@ export default function RihlatAlHifz() {
           return ayahA-ayahB;
         });
 
-        if(!cancelled){ setSessionIdx(0); setSessionVerses(orderedVerses); }
+        if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(prev=>{ if(orderedVerses.length===0) return 0; return Math.min(prev,orderedVerses.length); }); }
       } catch {}
       if(!cancelled) setSessLoading(false);
     })();
