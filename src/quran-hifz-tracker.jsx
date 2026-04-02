@@ -975,11 +975,14 @@ export default function RihlatAlHifz() {
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,
   }) {
     const theme={
-      bg:"radial-gradient(circle at 50% 18%, rgba(20,35,63,0.42) 0%, rgba(11,23,48,0.18) 28%, rgba(6,11,20,0) 55%), linear-gradient(180deg, #08101D 0%, #060B14 100%)",
-      panel:"rgba(10,18,32,0.72)",panelBorder:"rgba(217,177,95,0.16)",
-      divider:"rgba(255,255,255,0.08)",gold:"#D9B15F",goldBright:"#E8C878",
-      ivory:"#F3E7C9",ivoryDim:"rgba(243,231,201,0.68)",ivoryFaint:"rgba(243,231,201,0.42)",
-      green:"#57D98A",greenSoft:"rgba(87,217,138,0.16)",shadow:"0 10px 28px rgba(0,0,0,0.34)",
+      bg:`radial-gradient(circle at 50% 12%, rgba(62,108,196,0.20) 0%, rgba(62,108,196,0.08) 18%, rgba(0,0,0,0) 42%), radial-gradient(circle at 50% 0%, rgba(217,177,95,0.08) 0%, rgba(217,177,95,0.03) 20%, rgba(0,0,0,0) 38%), linear-gradient(180deg, #081225 0%, #040814 100%)`,
+      panel:"linear-gradient(180deg, rgba(12,24,46,0.92) 0%, rgba(9,19,39,0.84) 100%)",
+      panelBorder:"rgba(210,170,95,0.18)",
+      divider:"rgba(232,216,182,0.10)",
+      gold:"#D2A85A",goldBright:"#E2BC72",goldMuted:"rgba(210,168,90,0.18)",
+      ivory:"#F3E7C8",ivoryDim:"rgba(243,231,200,0.74)",ivoryFaint:"rgba(243,231,200,0.46)",
+      green:"#59D98A",greenSoft:"rgba(89,217,138,0.16)",
+      shadow:"0 12px 32px rgba(0,0,0,0.42)",
     };
     const arrowBase=(disabled)=>({
       position:"absolute",top:"50%",transform:"translateY(-50%)",
@@ -1010,7 +1013,7 @@ export default function RihlatAlHifz() {
             if(delta<0) setAsrPage(p=>Math.min(asrPages-1,p+1));
             else setAsrPage(p=>Math.max(0,p-1));
           }}
-          style={{position:"relative",background:theme.panel,border:`1px solid ${theme.panelBorder}`,borderRadius:24,boxShadow:theme.shadow,padding:"10px 48px",marginBottom:14,overflow:"visible"}}
+          style={{position:"relative",background:theme.panel,border:`1px solid ${theme.panelBorder}`,borderRadius:24,boxShadow:`${theme.shadow}, inset 0 1px 0 rgba(255,255,255,0.02)`,padding:"10px 48px",marginBottom:14,overflow:"visible"}}
         >
           <div className="sbtn" onClick={()=>setAsrPage(p=>Math.max(0,p-1))} style={{...arrowBase(asrSafePage===0),left:-20}}>‹</div>
           <div className="sbtn" onClick={()=>setAsrPage(p=>Math.min(asrPages-1,p+1))} style={{...arrowBase(asrSafePage>=asrPages-1),right:-20}}>›</div>
@@ -1067,14 +1070,14 @@ export default function RihlatAlHifz() {
             <div style={{color:theme.goldBright,fontSize:12,fontWeight:700}}>{asrPageStart+1}–{asrPageEnd}</div>
           </div>
           <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
-            <div style={{height:"100%",width:`${Math.round(((asrSafePage+1)/asrPages)*100)}%`,background:`linear-gradient(90deg,${theme.gold},${theme.goldBright})`,borderRadius:999}}/>
+            <div style={{height:"100%",width:`${Math.round(((asrSafePage+1)/asrPages)*100)}%`,background:"linear-gradient(90deg,#D2A85A,#E2BC72)",borderRadius:999}}/>
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"14px 16px",borderRadius:16,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:`linear-gradient(180deg,${theme.goldBright},${theme.gold})`,color:"#0B1220",boxShadow:"0 6px 14px rgba(217,177,95,0.18)"}}>
+          <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"14px 16px",borderRadius:16,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E2BC72 0%,#D2A85A 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.18)"}}>
             Complete Asr Session
           </div>
-          <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:16,textAlign:"center",fontSize:13,fontWeight:700,color:theme.goldBright,border:`1px solid rgba(217,177,95,0.18)`,background:"transparent"}}>
+          <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:16,textAlign:"center",fontSize:13,fontWeight:700,color:theme.gold,border:`1px solid ${theme.panelBorder}`,background:"rgba(10,18,32,0.32)"}}>
             Change Selection
           </div>
         </div>
@@ -1550,7 +1553,7 @@ export default function RihlatAlHifz() {
             )}
 
             {/* ── AYAH BATCH ── */}
-            {!sessLoading&&batch.length>0&&(
+            {!sessLoading&&batch.length>0&&!isAsr&&(
               <div>
                 {/* Batch header */}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
