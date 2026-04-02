@@ -1022,7 +1022,7 @@ export default function RihlatAlHifz() {
                     <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:21,lineHeight:expanded?1.8:1.9,whiteSpace:expanded?"normal":"nowrap",overflow:expanded?"visible":"hidden",textOverflow:"clip",paddingLeft:10,paddingBottom:expanded?0:4,paddingTop:4}}>
                       {v.text_uthmani}
                     </div>
-                    <div style={{width:58,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0}}>
+                    <div style={{width:72,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0}}>
                       <div className="asr-num">{vNum}</div>
                     </div>
                   </div>
@@ -1107,9 +1107,9 @@ export default function RihlatAlHifz() {
         .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:24px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.04) 24%,rgba(217,177,95,0.12) 50%,rgba(217,177,95,0.04) 76%,rgba(217,177,95,0) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-row{display:flex;align-items:center;gap:16px;min-height:64px;padding:12px 14px;}
         .asr-row-divider{height:1px;margin:0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.035) 20%,rgba(243,231,200,0.09) 50%,rgba(217,177,95,0.035) 80%,rgba(217,177,95,0) 100%);}
-        .asr-num{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.72);font-size:12px;font-weight:500;background:rgba(255,255,255,0.01);box-shadow:inset 0 0 0 1px rgba(217,177,95,0.18);}
+        .asr-num{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.72);font-size:11px;font-weight:500;opacity:0.7;background:rgba(255,255,255,0.01);box-shadow:inset 0 0 0 1px rgba(217,177,95,0.18);}
         .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.52);font-size:28px;font-weight:300;background:transparent;cursor:pointer;user-select:none;transition:all .15s;z-index:5;}
-        .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.80);} .asr-arw.left{left:-18px;} .asr-arw.right{right:-18px;}
+        .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.80);} .asr-arw.left{left:-14px;} .asr-arw.right{right:-14px;}
         .asr-progress-rule{height:1px;margin:18px 0 16px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.05) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.05) 80%,rgba(217,177,95,0) 100%);}
 
         input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:${T.accent};cursor:pointer;}
