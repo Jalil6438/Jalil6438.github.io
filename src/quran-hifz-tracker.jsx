@@ -981,7 +981,7 @@ export default function RihlatAlHifz() {
     };
     return (
       <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto",padding:"12px 20px 36px",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)"}}>
-        <div className="asr-shell" style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div className="asr-shell" style={{flex:1,display:"flex",flexDirection:"column",overflow:"visible"}}>
           <div className="asr-title" style={{paddingLeft:18,paddingRight:18}}>ASR SESSION</div>
           <div className="asr-title-line" style={{margin:"8px 18px 18px"}}/>
 
@@ -997,7 +997,7 @@ export default function RihlatAlHifz() {
           {/* Swipeable ayah panel */}
           <div
             className="asr-ayah-panel"
-            style={{padding:"6px 48px",marginBottom:0,borderRadius:0}}
+            style={{padding:"6px 48px",marginBottom:0,borderRadius:0,border:"none",borderTop:"1px solid rgba(217,177,95,0.28)",borderBottom:"1px solid rgba(217,177,95,0.28)"}}
             onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               if(asrTouchStartRef.current==null) return;
@@ -1021,7 +1021,7 @@ export default function RihlatAlHifz() {
               return (
                 <div key={vKey}>
                   <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:17,lineHeight:expanded?1.8:1.6,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"clip",paddingLeft:18}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:18,lineHeight:expanded?1.8:1.65,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:18}}>
                       {v.text_uthmani}
                     </div>
                     <div style={{width:72,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0}}>
@@ -1105,7 +1105,7 @@ export default function RihlatAlHifz() {
         .asr-shell::before{content:"";position:absolute;inset:0;border-radius:30px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.03) 10%,rgba(232,200,120,0.18) 50%,rgba(217,177,95,0.03) 90%,rgba(217,177,95,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(217,177,95,0.05) 0%,rgba(217,177,95,0.015) 30%,rgba(217,177,95,0.035) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-title{text-align:center;font-size:15px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:#E8C878;margin-bottom:10px;text-shadow:0 0 18px rgba(217,177,95,0.28);}
         .asr-title-line{position:relative;height:1px;margin:8px 0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.04) 18%,rgba(232,200,120,0.42) 50%,rgba(217,177,95,0.04) 82%,rgba(217,177,95,0) 100%);}
-        .asr-ayah-panel{position:relative;border-radius:24px;padding:6px 20px;overflow:visible;background:rgba(8,16,34,0.30);}
+        .asr-ayah-panel{position:relative;border-radius:0;padding:6px 20px;overflow:visible;background:rgba(8,16,34,0.30);border-left:1px solid rgba(217,177,95,0.22);border-right:1px solid rgba(217,177,95,0.22);}
         .asr-ayah-panel::before{display:none;}
         .asr-row{display:flex;align-items:center;gap:14px;min-height:56px;padding:10px 8px 10px 14px;}
         .asr-row-divider{height:1px;margin:0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.035) 20%,rgba(243,231,200,0.09) 50%,rgba(217,177,95,0.035) 80%,rgba(217,177,95,0) 100%);}
