@@ -395,6 +395,7 @@ export default function RihlatAlHifz() {
   const [ayahPage, setAyahPage] = useState(0);
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrPage,setAsrPage]=useState(0);
+  const [asrSlideDir,setAsrSlideDir]=useState(null);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const asrTouchStartRef=useRef(null);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
@@ -971,7 +972,7 @@ export default function RihlatAlHifz() {
   function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
     asrVisibleAyahs,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
-    setAsrPage,translations,fetchTranslations,playAyah,playingKey,
+    setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,
   }) {
     const T2={
@@ -992,22 +993,36 @@ export default function RihlatAlHifz() {
           </div>
           <div style={{color:T2.ivory,fontSize:15,fontWeight:600,marginBottom:18,lineHeight:1.25,maxWidth:"82%"}}>{asrSelectionSummary||"Asr Review"}</div>
 
-          {/* Swipeable ayah panel */}
+          {/* Ayah panel — frame is static, only content slides */}
           <div
             className="asr-ayah-panel"
-            style={{padding:"6px 0",marginBottom:0,borderRadius:0,borderTop:"1px solid rgba(217,177,95,0.32)",borderBottom:"1px solid rgba(217,177,95,0.32)"}}
+            style={{padding:"6px 0",marginBottom:0,borderRadius:0,borderTop:"1px solid rgba(217,177,95,0.32)",borderBottom:"1px solid rgba(217,177,95,0.32)",position:"relative",overflow:"hidden"}}
             onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               if(asrTouchStartRef.current==null) return;
               const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
               asrTouchStartRef.current=null;
               if(Math.abs(delta)<40) return;
-              if(delta<0) setAsrPage(p=>Math.min(asrPages-1,p+1));
-              else setAsrPage(p=>Math.max(0,p-1));
+              const dir=delta<0?"left":"right";
+              if(dir==="left"&&asrSafePage>=asrPages-1) return;
+              if(dir==="right"&&asrSafePage===0) return;
+              setAsrSlideDir(dir);
+              setTimeout(()=>{
+                if(dir==="left") setAsrPage(p=>Math.min(asrPages-1,p+1));
+                else setAsrPage(p=>Math.max(0,p-1));
+                setAsrSlideDir(null);
+              },180);
             }}
           >
-            <div className="asr-arw left" onClick={()=>setAsrPage(p=>Math.max(0,p-1))} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
-            <div className="asr-arw right" onClick={()=>setAsrPage(p=>Math.min(asrPages-1,p+1))} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
+            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setTimeout(()=>{setAsrPage(p=>Math.max(0,p-1));setAsrSlideDir(null);},180);}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
+            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setTimeout(()=>{setAsrPage(p=>Math.min(asrPages-1,p+1));setAsrSlideDir(null);},180);}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
+
+            {/* Sliding content only */}
+            <div style={{
+              transform:asrSlideDir==="left"?"translateX(-100%)":asrSlideDir==="right"?"translateX(100%)":"translateX(0)",
+              transition:asrSlideDir?"transform 0.18s ease":"none",
+              willChange:"transform"
+            }}>
 
             {asrVisibleAyahs.map((v,idx)=>{
               const vKey=v.verse_key;
@@ -1043,6 +1058,7 @@ export default function RihlatAlHifz() {
                 </div>
               );
             })}
+            </div>{/* end sliding content */}
           </div>
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
@@ -1129,6 +1145,8 @@ export default function RihlatAlHifz() {
           setAsrExpandedAyah={setAsrExpandedAyah}
           asrTouchStartRef={asrTouchStartRef}
           setAsrPage={setAsrPage}
+          asrSlideDir={asrSlideDir}
+          setAsrSlideDir={setAsrSlideDir}
           translations={translations}
           fetchTranslations={fetchTranslations}
           playAyah={playAyah}
