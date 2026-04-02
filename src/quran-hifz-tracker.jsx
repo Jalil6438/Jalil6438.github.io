@@ -995,7 +995,7 @@ export default function RihlatAlHifz() {
           {/* Swipeable ayah panel */}
           <div
             className="asr-ayah-panel"
-            style={{padding:"4px 46px",marginBottom:0}}
+            style={{padding:"4px 0",marginBottom:0}}
             onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               if(asrTouchStartRef.current==null) return;
@@ -1104,12 +1104,12 @@ export default function RihlatAlHifz() {
         .asr-title{text-align:center;font-size:15px;letter-spacing:.24em;text-transform:uppercase;font-weight:800;color:#E8C878;margin-bottom:10px;text-shadow:0 0 18px rgba(217,177,95,0.35);}
         .asr-title-line{position:relative;height:1px;margin:8px 0 16px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 25%,rgba(232,200,120,0.65) 50%,rgba(217,177,95,0.08) 75%,rgba(217,177,95,0) 100%);}
         .asr-ayah-panel{position:relative;border-radius:18px;padding:4px 12px;overflow:visible;background:rgba(8,16,34,0.40);}
-        .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 30%,rgba(217,177,95,0.12) 50%,rgba(217,177,95,0.08) 70%,rgba(217,177,95,0) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
-        .asr-row{display:flex;align-items:center;gap:14px;min-height:58px;padding:12px 14px;position:relative;border-left:1px solid rgba(217,177,95,0.12);border-right:1px solid rgba(217,177,95,0.12);}
-        .asr-row-divider{height:1px;margin:0;background:linear-gradient(90deg,rgba(217,177,95,0.04) 0%,rgba(217,177,95,0.22) 20%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0.22) 80%,rgba(217,177,95,0.04) 100%);}
+        .asr-ayah-panel::before{display:none;}
+        .asr-row{display:flex;align-items:center;gap:14px;min-height:58px;padding:12px 56px 12px 14px;position:relative;}
+        .asr-row-divider{height:1px;margin:0;background:rgba(217,177,95,0.18);}
         .asr-num{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.50);font-size:10px;font-weight:400;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.16);}
         .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.60);font-size:30px;font-weight:300;background:transparent;cursor:pointer;user-select:none;transition:all .15s;z-index:5;}
-        .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.85);} .asr-arw.left{left:-18px;} .asr-arw.right{right:-18px;}
+        .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.85);} .asr-arw.left{left:4px;} .asr-arw.right{right:4px;}
         .asr-progress-rule{height:1px;margin:14px 0;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.10) 80%,rgba(217,177,95,0) 100%);}
 
         input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:${T.accent};cursor:pointer;}
