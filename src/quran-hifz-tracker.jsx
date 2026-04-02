@@ -456,8 +456,6 @@ export default function RihlatAlHifz() {
   const [liveSource,setLiveSource]=useState("aloula");
   const [selectedRamadanNight,setSelectedRamadanNight]=useState(null);
   const [ramadanVideoType,setRamadanVideoType]=useState("taraweeh"); // "taraweeh" | "tahajjud"
-  const AYAHS_PER_PAGE=5;
-  const [ayahPage,setAyahPage]=useState(0);
   const T=dark?DARK:LIGHT;
 
   useEffect(()=>{
@@ -577,7 +575,7 @@ export default function RihlatAlHifz() {
     const juzSurahs=JUZ_SURAHS[sessionJuz]||[];
     const allSurahsDone=juzSurahs.length>0&&juzSurahs.every(s=>juzStatus[`s${s.s}`]==="complete");
     if(allSurahsDone){
-      setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
+      setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
     }
   },[sessLoading,sessionVerses.length,sessionJuz,juzStatus]);
 
@@ -662,11 +660,6 @@ export default function RihlatAlHifz() {
   const bDone=sessionDone.includes(bKey);
   const sessM=JUZ_META.find(j=>j.num===sessionJuz);
   const sessPct=totalSV>0?Math.round((sessionIdx/totalSV)*100):0;
-  const totalPages=Math.max(1,Math.ceil(batch.length/AYAHS_PER_PAGE));
-  const safeAyahPage=Math.min(ayahPage,totalPages-1);
-  const pageStart=safeAyahPage*AYAHS_PER_PAGE;
-  const pageEnd=Math.min(pageStart+AYAHS_PER_PAGE,batch.length);
-  const visibleAyahs=batch.slice(pageStart,pageEnd);
   const checkedCount=SESSIONS.filter(s=>dailyChecks[s.id]).length;
   const allChecked=checkedCount===SESSIONS.length;
   const currentReciter=RECITERS.find(r=>r.id===reciter)||RECITERS[0];
@@ -680,9 +673,6 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{if(batch.length&&showTrans)fetchTranslations(batch);},[batch,showTrans]);
 
-  // Reset ayah page when session or batch changes
-  useEffect(()=>{setAyahPage(0);},[currentSessionId,sessionJuz,sessionIdx,dailyNew]);
-
   function toggleCheck(id){
     const updated={...dailyChecks,[id]:!dailyChecks[id]};
     setDailyChecks(updated);
@@ -690,17 +680,10 @@ export default function RihlatAlHifz() {
     setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:!dailyChecks[id]}}));
     if(SESSIONS.every(s=>updated[s.id]))setStreak(p=>p+1);
   }
-  function markJuzAndSurahsComplete(prev,juzNum){
-    const next={...prev,[juzNum]:"complete"};
-    const surahs=JUZ_SURAHS[juzNum]||[];
-    surahs.forEach(({s})=>{ next[`s${s}`]="complete"; });
-    return next;
-  }
-
   function markBatchDone(){
     setSessionDone(d=>[...d,bKey]);
     if(bEnd>=totalSV){
-      setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
+      setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
       setJuzProgress(p=>({...p,[sessionJuz]:totalSV}));
     } else {
       setSessionIdx(bEnd);
@@ -1309,35 +1292,9 @@ export default function RihlatAlHifz() {
                   </div>
                 )}
 
-                {/* ── PAGER CONTROLS ── */}
-                {batch.length>0&&(
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginBottom:10,padding:"10px 12px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:12}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <div style={{fontSize:11,color:T.dim,letterSpacing:".12em",textTransform:"uppercase"}}>Ayahs</div>
-                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:T.accent,fontWeight:600}}>{safeAyahPage+1} / {totalPages}</div>
-                    </div>
-                    <div style={{fontSize:11,color:T.sub}}>{pageStart+1}–{pageEnd} of {batch.length}</div>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <div className="sbtn" onClick={()=>setAyahPage(p=>Math.max(0,p-1))} style={{padding:"8px 12px",borderRadius:10,background:safeAyahPage===0?T.surface2:T.accentDim,border:`1px solid ${safeAyahPage===0?T.border:T.accent+"40"}`,color:safeAyahPage===0?T.vdim:T.accent,fontSize:12,opacity:safeAyahPage===0?0.5:1,pointerEvents:safeAyahPage===0?"none":"auto"}}>← Prev</div>
-                      <div className="sbtn" onClick={()=>setAyahPage(p=>Math.min(totalPages-1,p+1))} style={{padding:"8px 12px",borderRadius:10,background:safeAyahPage>=totalPages-1?T.surface2:T.accentDim,border:`1px solid ${safeAyahPage>=totalPages-1?T.border:T.accent+"40"}`,color:safeAyahPage>=totalPages-1?T.vdim:T.accent,fontSize:12,opacity:safeAyahPage>=totalPages-1?0.5:1,pointerEvents:safeAyahPage>=totalPages-1?"none":"auto"}}>Next →</div>
-                    </div>
-                  </div>
-                )}
-
                 {/* ── COLLAPSIBLE AYAH ROWS ── */}
-                <div
-                  onTouchStart={e=>{e.currentTarget.dataset.touchX=String(e.touches[0].clientX);}}
-                  onTouchEnd={e=>{
-                    const startX=Number(e.currentTarget.dataset.touchX||0);
-                    const endX=e.changedTouches[0].clientX;
-                    const delta=endX-startX;
-                    if(Math.abs(delta)<40) return;
-                    if(delta<0) setAyahPage(p=>Math.min(totalPages-1,p+1));
-                    else setAyahPage(p=>Math.max(0,p-1));
-                  }}
-                  style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
-                  {visibleAyahs.map((v,i)=>{
-                    const realIndex=pageStart+i;
+                <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
+                  {batch.map((v,i)=>{
                     const vNum=v.verse_key?.split(":")?.[1];
                     const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
                     const vKey=v.verse_key;
@@ -1347,7 +1304,6 @@ export default function RihlatAlHifz() {
                     const reps=repCounts[vKey]||0;
                     const repsDone=reps>=20;
                     const isOpen=openAyah===vKey;
-                    const displayNum=realIndex+1;
                     const pct=Math.min((reps/20)*100,100);
 
                     return (
@@ -1442,7 +1398,7 @@ export default function RihlatAlHifz() {
                       if(bEnd>=totalSV&&totalSV>0){
                         setSessionIdx(totalSV);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
-                        setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
+                        setJuzStatus(prev=>({...prev,[sessionJuz]:"complete"}));
                       } else {
                         setSessionIdx(bEnd);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
