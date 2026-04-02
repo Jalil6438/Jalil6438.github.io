@@ -974,50 +974,41 @@ export default function RihlatAlHifz() {
     setAsrPage,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,
   }) {
-    const theme={
-      bg:`radial-gradient(circle at 50% 12%, rgba(62,108,196,0.20) 0%, rgba(62,108,196,0.08) 18%, rgba(0,0,0,0) 42%), radial-gradient(circle at 50% 0%, rgba(217,177,95,0.08) 0%, rgba(217,177,95,0.03) 20%, rgba(0,0,0,0) 38%), linear-gradient(180deg, #081225 0%, #040814 100%)`,
-      panel:"linear-gradient(180deg, rgba(12,24,46,0.92) 0%, rgba(9,19,39,0.84) 100%)",
-      panelBorder:"rgba(210,170,95,0.18)",
-      divider:"rgba(232,216,182,0.10)",
-      gold:"#D2A85A",goldBright:"#E2BC72",goldMuted:"rgba(210,168,90,0.18)",
+    const T2={
+      gold:"#D2A85A",goldBright:"#E2BC72",
       ivory:"#F3E7C8",ivoryDim:"rgba(243,231,200,0.74)",ivoryFaint:"rgba(243,231,200,0.46)",
       green:"#59D98A",greenSoft:"rgba(89,217,138,0.16)",
-      shadow:"0 12px 32px rgba(0,0,0,0.42)",
     };
-    const arrowBase=(disabled)=>({
-      position:"absolute",top:"50%",transform:"translateY(-50%)",
-      width:42,height:42,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",
-      background:disabled?"rgba(255,255,255,0.04)":"rgba(217,177,95,0.10)",
-      border:`1px solid ${disabled?"rgba(255,255,255,0.06)":"rgba(217,177,95,0.20)"}`,
-      color:disabled?"rgba(255,255,255,0.18)":theme.goldBright,
-      fontSize:24,fontWeight:700,boxShadow:disabled?"none":"0 0 18px rgba(217,177,95,0.10)",
-      zIndex:5,pointerEvents:disabled?"none":"auto",
-    });
     return (
-      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",background:theme.bg,zIndex:100,overflowY:"auto",padding:"20px 16px 28px"}}>
-        <div style={{textAlign:"center",marginBottom:14}}>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:11,color:theme.gold,letterSpacing:".22em",textTransform:"uppercase",fontWeight:800,marginBottom:12}}>Asr Session</div>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-            <div style={{width:11,height:11,borderRadius:"50%",background:theme.green,boxShadow:"0 0 10px rgba(87,217,138,0.30)"}}/>
-            <div style={{color:theme.ivoryFaint,fontSize:11,letterSpacing:".12em",textTransform:"uppercase"}}>Reviewing</div>
+      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",justifyContent:"center",zIndex:100,overflowY:"auto",padding:"24px 20px",background:"linear-gradient(180deg,#081225 0%,#040814 100%)"}}>
+        <div className="asr-shell">
+          <div className="asr-title">ASR SESSION</div>
+          <div className="asr-title-line"/>
+
+          {/* Reviewing + selection */}
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+            <div style={{width:10,height:10,borderRadius:"50%",background:T2.green,boxShadow:"0 0 10px rgba(89,217,138,0.30)",flexShrink:0}}/>
+            <div style={{color:T2.ivoryFaint,fontSize:11,letterSpacing:".12em",textTransform:"uppercase"}}>Reviewing</div>
           </div>
-          <div style={{color:theme.ivory,fontSize:18,fontWeight:800,textAlign:"left"}}>{asrSelectionSummary||"Asr Review"}</div>
-        </div>
-        <div
-          onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
-          onTouchEnd={e=>{
-            if(asrTouchStartRef.current==null) return;
-            const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
-            asrTouchStartRef.current=null;
-            if(Math.abs(delta)<40) return;
-            if(delta<0) setAsrPage(p=>Math.min(asrPages-1,p+1));
-            else setAsrPage(p=>Math.max(0,p-1));
-          }}
-          style={{position:"relative",background:theme.panel,border:`1px solid ${theme.panelBorder}`,borderRadius:24,boxShadow:`${theme.shadow}, inset 0 1px 0 rgba(255,255,255,0.02)`,padding:"10px 48px",marginBottom:14,overflow:"visible"}}
-        >
-          <div className="sbtn" onClick={()=>setAsrPage(p=>Math.max(0,p-1))} style={{...arrowBase(asrSafePage===0),left:-20}}>‹</div>
-          <div className="sbtn" onClick={()=>setAsrPage(p=>Math.min(asrPages-1,p+1))} style={{...arrowBase(asrSafePage>=asrPages-1),right:-20}}>›</div>
-          <div style={{borderRadius:18,overflow:"hidden",background:"rgba(255,255,255,0.01)"}}>
+          <div style={{color:T2.ivory,fontSize:18,fontWeight:800,marginBottom:16}}>{asrSelectionSummary||"Asr Review"}</div>
+
+          {/* Swipeable ayah panel */}
+          <div
+            className="asr-ayah-panel"
+            style={{padding:"10px 48px",marginBottom:0}}
+            onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
+            onTouchEnd={e=>{
+              if(asrTouchStartRef.current==null) return;
+              const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
+              asrTouchStartRef.current=null;
+              if(Math.abs(delta)<40) return;
+              if(delta<0) setAsrPage(p=>Math.min(asrPages-1,p+1));
+              else setAsrPage(p=>Math.max(0,p-1));
+            }}
+          >
+            <div className="asr-arw left" onClick={()=>setAsrPage(p=>Math.max(0,p-1))} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
+            <div className="asr-arw right" onClick={()=>setAsrPage(p=>Math.min(asrPages-1,p+1))} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
+
             {asrVisibleAyahs.map((v,idx)=>{
               const vKey=v.verse_key;
               const vNum=v.verse_key?.split(":")?.[1];
@@ -1027,58 +1018,61 @@ export default function RihlatAlHifz() {
               const isLoading=audioLoading===vKey;
               return (
                 <div key={vKey}>
-                  <div className="sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}
-                    style={{display:"flex",alignItems:"center",gap:14,padding:"12px 14px",minHeight:62}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:theme.ivory,fontFamily:"'Amiri',serif",fontSize:expanded?30:24,lineHeight:expanded?1.9:1.65,whiteSpace:"normal",wordBreak:"break-word",overflowWrap:"break-word"}}>
+                  <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri',serif",fontSize:expanded?30:24,lineHeight:expanded?1.9:1.7,wordBreak:"break-word",overflowWrap:"break-word"}}>
                       {v.text_uthmani}
                     </div>
-                    <div style={{width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.24)",background:"rgba(217,177,95,0.08)",color:theme.goldBright,fontSize:14,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                      {vNum}
-                    </div>
+                    <div className="asr-num">{vNum}</div>
                   </div>
                   {expanded&&(
-                    <div style={{padding:"2px 14px 12px 14px",background:"rgba(217,177,95,0.04)"}}>
-                      <div style={{color:theme.ivoryDim,fontSize:13,lineHeight:1.65,marginBottom:10}}>
-                        {trans===undefined?<span style={{color:theme.ivoryFaint}}>Loading translation...</span>:trans||<span style={{color:theme.ivoryFaint}}>Translation unavailable</span>}
+                    <div style={{padding:"2px 14px 14px",background:"rgba(217,177,95,0.04)",borderRadius:12,margin:"0 0 4px"}}>
+                      <div style={{color:T2.ivoryDim,fontSize:13,lineHeight:1.65,marginBottom:10}}>
+                        {trans===undefined?<span style={{color:T2.ivoryFaint}}>Loading...</span>:trans||<span style={{color:T2.ivoryFaint}}>Translation unavailable</span>}
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:10}}>
-                        <div className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{width:34,height:34,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:isPlaying?"rgba(217,177,95,0.16)":"rgba(255,255,255,0.05)",border:`1px solid ${isPlaying?"rgba(217,177,95,0.24)":"rgba(255,255,255,0.08)"}`,color:isPlaying?theme.goldBright:theme.ivoryDim}}>
+                        <div className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{width:34,height:34,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:isPlaying?"rgba(217,177,95,0.16)":"rgba(255,255,255,0.05)",border:`1px solid ${isPlaying?"rgba(217,177,95,0.28)":"rgba(255,255,255,0.08)"}`,color:isPlaying?T2.goldBright:T2.ivoryDim}}>
                           {isLoading?"…":isPlaying?"⏸":"▶"}
                         </div>
-                        <div style={{fontSize:11,color:theme.ivoryFaint}}>Tap again to collapse</div>
+                        <div style={{fontSize:11,color:T2.ivoryFaint}}>Tap again to collapse</div>
                       </div>
                     </div>
                   )}
-                  {idx<asrVisibleAyahs.length-1&&<div style={{height:1,background:theme.divider,margin:"0 14px"}}/>}
+                  {idx<asrVisibleAyahs.length-1&&<div className="asr-row-divider"/>}
                 </div>
               );
             })}
           </div>
-        </div>
-        <div style={{borderTop:`1px solid ${theme.divider}`,paddingTop:10,marginBottom:12}}>
-          <div style={{color:theme.goldBright,fontSize:12,fontWeight:800,marginBottom:8}}>Progress</div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
-            <div style={{padding:"6px 12px",borderRadius:999,background:theme.greenSoft,border:"1px solid rgba(87,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
-              {asrSurahProgress.filter(s=>s.state==="complete").length} completed
+
+          <div className="asr-progress-rule"/>
+
+          {/* Progress */}
+          <div style={{marginBottom:12}}>
+            <div style={{color:T2.goldBright,fontSize:12,fontWeight:800,marginBottom:8}}>Progress</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
+              <div style={{padding:"6px 12px",borderRadius:999,background:T2.greenSoft,border:"1px solid rgba(89,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
+                {asrSurahProgress.filter(s=>s.state==="complete").length} completed
+              </div>
+              <div style={{padding:"6px 12px",borderRadius:999,background:"rgba(210,168,90,0.08)",border:"1px solid rgba(210,168,90,0.16)",color:T2.goldBright,fontSize:12,fontWeight:700}}>
+                {asrSurahProgress.find(s=>s.state==="current")?.label||"In progress"}
+              </div>
             </div>
-            <div style={{padding:"6px 12px",borderRadius:999,background:"rgba(217,177,95,0.08)",border:"1px solid rgba(217,177,95,0.16)",color:theme.goldBright,fontSize:12,fontWeight:700}}>
-              {asrSurahProgress.find(s=>s.state==="current")?.label||"In progress"}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <div style={{color:T2.ivoryFaint,fontSize:12}}>Page {asrSafePage+1} of {asrPages}</div>
+              <div style={{color:T2.goldBright,fontSize:12,fontWeight:700}}>{asrPageStart+1}–{asrPageEnd}</div>
+            </div>
+            <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${Math.round(((asrSafePage+1)/asrPages)*100)}%`,background:"linear-gradient(90deg,#D2A85A,#E2BC72)",borderRadius:999}}/>
             </div>
           </div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-            <div style={{color:theme.ivoryFaint,fontSize:12}}>Page {asrSafePage+1} of {asrPages}</div>
-            <div style={{color:theme.goldBright,fontSize:12,fontWeight:700}}>{asrPageStart+1}–{asrPageEnd}</div>
-          </div>
-          <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
-            <div style={{height:"100%",width:`${Math.round(((asrSafePage+1)/asrPages)*100)}%`,background:"linear-gradient(90deg,#D2A85A,#E2BC72)",borderRadius:999}}/>
-          </div>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"14px 16px",borderRadius:16,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E2BC72 0%,#D2A85A 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.18)"}}>
-            Complete Asr Session
-          </div>
-          <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:16,textAlign:"center",fontSize:13,fontWeight:700,color:theme.gold,border:`1px solid ${theme.panelBorder}`,background:"rgba(10,18,32,0.32)"}}>
-            Change Selection
+
+          {/* Buttons */}
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"14px 16px",borderRadius:16,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E2BC72 0%,#D2A85A 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.18)"}}>
+              Complete Asr Session
+            </div>
+            <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:16,textAlign:"center",fontSize:13,fontWeight:700,color:T2.gold,border:"1px solid rgba(210,170,95,0.18)",background:"rgba(10,18,32,0.32)"}}>
+              Change Selection
+            </div>
           </div>
         </div>
       </div>
@@ -1101,6 +1095,19 @@ export default function RihlatAlHifz() {
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
+        .asr-shell{position:relative;border-radius:28px;padding:18px 16px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(74,110,180,0.20) 0%,rgba(74,110,180,0.07) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
+        .asr-shell::before{content:"";position:absolute;inset:0;border-radius:28px;padding:1px;background:linear-gradient(180deg,rgba(217,177,95,0.18) 0%,rgba(217,177,95,0.10) 18%,rgba(217,177,95,0.05) 45%,rgba(217,177,95,0.12) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+        .asr-title{text-align:center;font-size:10px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:#D9B15F;margin-bottom:14px;}
+        .asr-title-line{position:relative;height:1px;margin:10px 0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.18) 18%,rgba(217,177,95,0.42) 50%,rgba(217,177,95,0.18) 82%,rgba(217,177,95,0) 100%);}
+        .asr-ayah-panel{position:relative;border-radius:24px;padding:10px 14px;overflow:visible;background:linear-gradient(180deg,rgba(10,20,38,0.72) 0%,rgba(7,15,30,0.64) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02),0 10px 28px rgba(0,0,0,0.28);}
+        .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:24px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0.02) 0%,rgba(217,177,95,0.16) 18%,rgba(217,177,95,0.24) 50%,rgba(217,177,95,0.16) 82%,rgba(217,177,95,0.02) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+        .asr-row{display:flex;align-items:center;gap:14px;min-height:64px;padding:12px 14px;}
+        .asr-row-divider{height:1px;margin:0 14px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 18%,rgba(243,231,200,0.10) 50%,rgba(217,177,95,0.10) 82%,rgba(217,177,95,0) 100%);}
+        .asr-num{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#E2BC72;font-size:14px;font-weight:800;background:rgba(217,177,95,0.05);box-shadow:inset 0 0 0 1px rgba(217,177,95,0.20);}
+        .asr-arw{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#E2BC72;font-size:24px;font-weight:700;background:rgba(8,18,37,0.42);box-shadow:inset 0 0 0 1px rgba(217,177,95,0.14),0 0 18px rgba(217,177,95,0.08);backdrop-filter:blur(2px);cursor:pointer;user-select:none;transition:opacity .12s;z-index:5;}
+        .asr-arw:hover{opacity:.72;} .asr-arw.left{left:-22px;} .asr-arw.right{right:-22px;}
+        .asr-progress-rule{height:1px;margin:14px 0;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.10) 80%,rgba(217,177,95,0) 100%);}
+
         input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:${T.accent};cursor:pointer;}
         textarea:focus{outline:none;} select{cursor:pointer;}
       `}</style>
