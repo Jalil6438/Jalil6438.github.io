@@ -1010,8 +1010,8 @@ export default function RihlatAlHifz() {
             <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
             <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
 
-            {/* Sliding content — keyed to page so animation re-triggers on each change */}
-            <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":"asr-slide-right"}>
+            {/* Sliding content — CSS animation only, no remount */}
+            <div style={{animation:`${asrSlideDir==="left"?"asrSlideInLeft":"asrSlideInRight"} 0.20s ease forwards`}}>
 
             {asrVisibleAyahs.map((v,idx)=>{
               const vKey=v.verse_key;
@@ -1047,6 +1047,11 @@ export default function RihlatAlHifz() {
                 </div>
               );
             })}
+            {/* Swipe indicator */}
+            <div style={{textAlign:"center",padding:"10px 0 6px",opacity:0.35}}>
+              <div style={{fontSize:10,color:"rgba(226,188,114,0.8)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:4}}>Swipe</div>
+              <div style={{fontSize:13,color:"rgba(226,188,114,0.6)",letterSpacing:"2px"}}>←──────→</div>
+            </div>
             </div>{/* end sliding content */}
           </div>
 
