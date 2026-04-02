@@ -981,21 +981,23 @@ export default function RihlatAlHifz() {
     };
     return (
       <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto",padding:"12px 20px 36px",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)"}}>
-        <div className="asr-shell" style={{flex:1,display:"flex",flexDirection:"column"}}>
-          <div className="asr-title">ASR SESSION</div>
-          <div className="asr-title-line"/>
+        <div className="asr-shell" style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          <div className="asr-title" style={{paddingLeft:18,paddingRight:18}}>ASR SESSION</div>
+          <div className="asr-title-line" style={{margin:"8px 18px 18px"}}/>
 
           {/* Reviewing + selection */}
+          <div style={{padding:"0 18px"}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
             <div style={{width:10,height:10,borderRadius:"50%",background:T2.green,boxShadow:"0 0 10px rgba(89,217,138,0.26)",flexShrink:0}}/>
             <div style={{color:"rgba(243,231,200,0.52)",fontSize:11,letterSpacing:".12em",textTransform:"uppercase",fontWeight:500}}>Reviewing</div>
           </div>
           <div style={{color:T2.ivory,fontSize:15,fontWeight:600,marginBottom:18,lineHeight:1.25,maxWidth:"82%"}}>{asrSelectionSummary||"Asr Review"}</div>
+          </div>
 
           {/* Swipeable ayah panel */}
           <div
             className="asr-ayah-panel"
-            style={{padding:"6px 52px 6px 22px",marginBottom:0}}
+            style={{padding:"6px 48px",marginBottom:0,borderRadius:0}}
             onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               if(asrTouchStartRef.current==null) return;
@@ -1019,7 +1021,7 @@ export default function RihlatAlHifz() {
               return (
                 <div key={vKey}>
                   <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?24:17,lineHeight:expanded?1.8:1.7,wordBreak:"normal",overflowWrap:"normal",paddingLeft:18,whiteSpace:"normal"}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:17,lineHeight:expanded?1.8:1.6,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"clip",paddingLeft:18}}>
                       {v.text_uthmani}
                     </div>
                     <div style={{width:72,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0}}>
@@ -1045,10 +1047,10 @@ export default function RihlatAlHifz() {
             })}
           </div>
 
-          <div className="asr-progress-rule"/>
+          <div className="asr-progress-rule" style={{margin:"18px 18px 16px"}}/>
 
           {/* Progress */}
-          <div style={{marginBottom:6}}>
+          <div style={{marginBottom:6,padding:"0 18px"}}>
             <div style={{color:T2.goldBright,fontSize:12,fontWeight:800,marginBottom:8}}>Progress</div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
               <div style={{padding:"6px 12px",borderRadius:999,background:T2.greenSoft,border:"1px solid rgba(89,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
@@ -1070,7 +1072,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Buttons */}
-          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22}}>
+          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 18px"}}>
             <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E3C07A 0%,#D1A659 100%)",color:"#0A1020",boxShadow:"0 10px 22px rgba(210,168,90,0.14),inset 0 1px 0 rgba(255,255,255,0.14)"}}>
               Complete Asr Session
             </div>
@@ -1099,7 +1101,7 @@ export default function RihlatAlHifz() {
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
-        .asr-shell{position:relative;border-radius:30px;padding:16px 18px 22px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
+        .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
         .asr-shell::before{content:"";position:absolute;inset:0;border-radius:30px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.03) 10%,rgba(232,200,120,0.18) 50%,rgba(217,177,95,0.03) 90%,rgba(217,177,95,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(217,177,95,0.05) 0%,rgba(217,177,95,0.015) 30%,rgba(217,177,95,0.035) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-title{text-align:center;font-size:15px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:#E8C878;margin-bottom:10px;text-shadow:0 0 18px rgba(217,177,95,0.28);}
         .asr-title-line{position:relative;height:1px;margin:8px 0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.04) 18%,rgba(232,200,120,0.42) 50%,rgba(217,177,95,0.04) 82%,rgba(217,177,95,0) 100%);}
