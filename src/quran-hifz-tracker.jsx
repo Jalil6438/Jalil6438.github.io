@@ -995,7 +995,7 @@ export default function RihlatAlHifz() {
           {/* Swipeable ayah panel */}
           <div
             className="asr-ayah-panel"
-            style={{padding:"10px 48px",marginBottom:0}}
+            style={{padding:"4px 46px",marginBottom:0}}
             onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               if(asrTouchStartRef.current==null) return;
@@ -1019,7 +1019,7 @@ export default function RihlatAlHifz() {
               return (
                 <div key={vKey}>
                   <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?26:19,lineHeight:expanded?1.8:1.6,wordBreak:"break-word",overflowWrap:"break-word"}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?24:17,lineHeight:expanded?1.75:1.5,wordBreak:"break-word",overflowWrap:"break-word"}}>
                       {v.text_uthmani}
                     </div>
                     <div className="asr-num">{vNum}</div>
@@ -1099,11 +1099,11 @@ export default function RihlatAlHifz() {
         .asr-shell::before{content:"";position:absolute;inset:0;border-radius:28px;padding:1px;background:linear-gradient(180deg,rgba(217,177,95,0.18) 0%,rgba(217,177,95,0.10) 18%,rgba(217,177,95,0.05) 45%,rgba(217,177,95,0.12) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-title{text-align:center;font-size:11px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:#E8C878;margin-bottom:14px;text-shadow:0 0 18px rgba(217,177,95,0.35);}
         .asr-title-line{position:relative;height:1px;margin:10px 0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.18) 18%,rgba(217,177,95,0.42) 50%,rgba(217,177,95,0.18) 82%,rgba(217,177,95,0) 100%);}
-        .asr-ayah-panel{position:relative;border-radius:20px;padding:6px 14px;overflow:visible;background:linear-gradient(180deg,rgba(10,20,42,0.55) 0%,rgba(6,12,28,0.45) 100%);}
-        .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:20px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 30%,rgba(217,177,95,0.14) 50%,rgba(217,177,95,0.10) 70%,rgba(217,177,95,0) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
-        .asr-row{display:flex;align-items:center;gap:14px;min-height:64px;padding:12px 14px;}
+        .asr-ayah-panel{position:relative;border-radius:18px;padding:4px 12px;overflow:visible;background:rgba(8,16,34,0.40);}
+        .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 30%,rgba(217,177,95,0.12) 50%,rgba(217,177,95,0.08) 70%,rgba(217,177,95,0) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+        .asr-row{display:flex;align-items:center;gap:10px;min-height:48px;padding:8px 12px;}
         .asr-row-divider{height:1px;margin:0 20px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.06) 30%,rgba(243,231,200,0.05) 50%,rgba(217,177,95,0.06) 70%,rgba(217,177,95,0) 100%);}
-        .asr-num{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#E2BC72;font-size:14px;font-weight:800;background:rgba(217,177,95,0.05);box-shadow:inset 0 0 0 1px rgba(217,177,95,0.20);}
+        .asr-num{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.70);font-size:12px;font-weight:600;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.22);}
         .asr-arw{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#E2BC72;font-size:24px;font-weight:700;background:rgba(8,18,37,0.42);box-shadow:inset 0 0 0 1px rgba(217,177,95,0.14),0 0 18px rgba(217,177,95,0.08);backdrop-filter:blur(2px);cursor:pointer;user-select:none;transition:opacity .12s;z-index:5;}
         .asr-arw:hover{opacity:.72;} .asr-arw.left{left:-22px;} .asr-arw.right{right:-22px;}
         .asr-progress-rule{height:1px;margin:14px 0;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.10) 80%,rgba(217,177,95,0) 100%);}
