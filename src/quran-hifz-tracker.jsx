@@ -1047,12 +1047,13 @@ export default function RihlatAlHifz() {
                 </div>
               );
             })}
-            {/* Swipe indicator */}
-            <div style={{textAlign:"center",padding:"10px 0 6px",opacity:0.35}}>
-              <div style={{fontSize:10,color:"rgba(226,188,114,0.8)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:4}}>Swipe</div>
-              <div style={{fontSize:13,color:"rgba(226,188,114,0.6)",letterSpacing:"2px"}}>←──────→</div>
-            </div>
             </div>{/* end sliding content */}
+          </div>
+
+          {/* Swipe indicator — below panel border */}
+          <div style={{textAlign:"center",padding:"8px 0 4px",opacity:0.35}}>
+            <div style={{fontSize:10,color:"rgba(226,188,114,0.8)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Swipe</div>
+            <div style={{fontSize:13,color:"rgba(226,188,114,0.6)",letterSpacing:"2px"}}>←──────→</div>
           </div>
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
@@ -1120,7 +1121,7 @@ export default function RihlatAlHifz() {
         .asr-ayah-panel{position:relative;border-radius:0;padding:6px 20px;overflow:visible;background:rgba(8,16,34,0.30);}
         .asr-ayah-panel::before{display:none;}
         .asr-row{display:flex;align-items:center;gap:4px;min-height:56px;padding:10px 6px;}
-        .asr-row-divider{height:1px;margin:0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.035) 20%,rgba(243,231,200,0.09) 50%,rgba(217,177,95,0.035) 80%,rgba(217,177,95,0) 100%);}
+        .asr-row-divider{height:1px;margin:0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.15) 15%,rgba(232,200,120,0.55) 50%,rgba(217,177,95,0.15) 85%,rgba(217,177,95,0) 100%);box-shadow:0 0 6px rgba(217,177,95,0.18),0 1px 3px rgba(217,177,95,0.10);}
         .asr-num{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.72);font-size:11px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.18);}
         .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.52);font-size:28px;font-weight:300;background:transparent;cursor:pointer;user-select:none;transition:all .15s;z-index:5;}
         .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.80);} .asr-arw.left{left:-16px;} .asr-arw.right{right:-12px;}
