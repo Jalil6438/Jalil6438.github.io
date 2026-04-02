@@ -980,7 +980,7 @@ export default function RihlatAlHifz() {
       green:"#59D98A",greenSoft:"rgba(89,217,138,0.16)",
     };
     return (
-      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",justifyContent:"flex-start",zIndex:100,overflowY:"auto",padding:"12px 20px 24px",background:"linear-gradient(180deg,#081225 0%,#040814 100%)"}}>
+      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",justifyContent:"flex-start",zIndex:100,overflowY:"auto",padding:"12px 20px 32px",background:"linear-gradient(180deg,#081225 0%,#040814 100%)"}}>
         <div className="asr-shell">
           <div className="asr-title">ASR SESSION</div>
           <div className="asr-title-line"/>
@@ -1019,7 +1019,7 @@ export default function RihlatAlHifz() {
               return (
                 <div key={vKey}>
                   <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?24:17,lineHeight:expanded?1.75:1.5,wordBreak:"break-word",overflowWrap:"break-word"}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?24:17,lineHeight:expanded?1.75:1.5,wordBreak:"break-word",overflowWrap:"break-word",paddingRight:10}}>
                       {v.text_uthmani}
                     </div>
                     <div className="asr-num">{vNum}</div>
@@ -1052,9 +1052,6 @@ export default function RihlatAlHifz() {
               <div style={{padding:"6px 12px",borderRadius:999,background:T2.greenSoft,border:"1px solid rgba(89,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
                 {asrSurahProgress.filter(s=>s.state==="complete").length} completed
               </div>
-              <div style={{padding:"6px 12px",borderRadius:999,background:"rgba(210,168,90,0.08)",border:"1px solid rgba(210,168,90,0.16)",color:T2.goldBright,fontSize:12,fontWeight:700}}>
-                {asrSurahProgress.find(s=>s.state==="current")?.label||"In progress"}
-              </div>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <div style={{color:T2.ivoryFaint,fontSize:12}}>Page {asrSafePage+1} of {asrPages}</div>
@@ -1066,7 +1063,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Buttons */}
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:8}}>
             <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"14px 16px",borderRadius:16,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E2BC72 0%,#D2A85A 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.18)"}}>
               Complete Asr Session
             </div>
@@ -1101,9 +1098,9 @@ export default function RihlatAlHifz() {
         .asr-title-line{position:relative;height:1px;margin:8px 0 16px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 25%,rgba(232,200,120,0.65) 50%,rgba(217,177,95,0.08) 75%,rgba(217,177,95,0) 100%);}
         .asr-ayah-panel{position:relative;border-radius:18px;padding:4px 12px;overflow:visible;background:rgba(8,16,34,0.40);}
         .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 30%,rgba(217,177,95,0.12) 50%,rgba(217,177,95,0.08) 70%,rgba(217,177,95,0) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
-        .asr-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:48px;padding:8px 12px;}
+        .asr-row{display:flex;align-items:center;gap:0;min-height:48px;padding:8px 12px;}
         .asr-row-divider{height:1px;margin:0 20px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.06) 30%,rgba(243,231,200,0.05) 50%,rgba(217,177,95,0.06) 70%,rgba(217,177,95,0) 100%);}
-        .asr-num{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.55);font-size:10px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.16);margin-left:auto;}
+        .asr-num{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.55);font-size:10px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.16);}
         .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.60);font-size:30px;font-weight:300;background:transparent;cursor:pointer;user-select:none;transition:all .15s;z-index:5;}
         .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.85);} .asr-arw.left{left:-18px;} .asr-arw.right{right:-18px;}
         .asr-progress-rule{height:1px;margin:14px 0;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.10) 80%,rgba(217,177,95,0) 100%);}
