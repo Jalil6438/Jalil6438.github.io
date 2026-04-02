@@ -391,6 +391,8 @@ export default function RihlatAlHifz() {
   const [asrSelectedJuz,setAsrSelectedJuz]=useState([]);
   const [asrReviewBatch,setAsrReviewBatch]=useState([]);
   const [sessLoading,setSessLoading]=useState(false);
+  const AYAHS_PER_PAGE = 5;
+  const [ayahPage, setAyahPage] = useState(0);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
 
   useEffect(()=>{
@@ -452,6 +454,7 @@ export default function RihlatAlHifz() {
   const [playingKey,setPlayingKey]=useState(null);
   const [audioLoading,setAudioLoading]=useState(null);
   const audioRef=useRef(null);
+  const touchStartRef=useRef(0);
   const [ramadanMosque,setRamadanMosque]=useState("makkah");
   const [liveSource,setLiveSource]=useState("aloula");
   const [selectedRamadanNight,setSelectedRamadanNight]=useState(null);
@@ -656,6 +659,15 @@ export default function RihlatAlHifz() {
   if(isDhuhr){ batch=yesterdayBatch.length>0?yesterdayBatch:[]; }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
   else if(isMaghrib||isIsha){ batch=fajrBatch; }
+
+  const totalPages=Math.max(1,Math.ceil(batch.length/AYAHS_PER_PAGE));
+  const safePage=Math.min(ayahPage,totalPages-1);
+  const pageStart=safePage*AYAHS_PER_PAGE;
+  const pageEnd=Math.min(pageStart+AYAHS_PER_PAGE,batch.length);
+  const visibleAyahs=batch.slice(pageStart,pageEnd);
+
+  useEffect(()=>{setAyahPage(0);},[currentSessionId,sessionJuz,sessionIdx,dailyNew,batch.length]);
+
   const bKey=`${sessionJuz}-${bStart}`;
   const bDone=sessionDone.includes(bKey);
   const sessM=JUZ_META.find(j=>j.num===sessionJuz);
@@ -1292,9 +1304,22 @@ export default function RihlatAlHifz() {
                   </div>
                 )}
 
+                {/* ── PAGE CONTROLS ── */}
+                {batch.length>AYAHS_PER_PAGE&&(
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,padding:"8px 4px"}}>
+                    <div className="sbtn" onClick={()=>setAyahPage(p=>Math.max(0,p-1))} style={{width:32,height:32,borderRadius:"50%",background:safePage===0?"rgba(255,255,255,0.03)":"rgba(230,184,74,0.12)",border:`1px solid ${safePage===0?"rgba(255,255,255,0.06)":"rgba(230,184,74,0.3)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:safePage===0?"rgba(255,255,255,0.15)":"#E6B84A",fontSize:14,opacity:safePage===0?0.4:1}}>◂</div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:12,color:T.accent,fontWeight:600,fontFamily:"'IBM Plex Mono',monospace"}}>Page {safePage+1} of {totalPages}</div>
+                      <div style={{fontSize:10,color:T.dim,marginTop:2}}>Showing ayahs {pageStart+1}–{pageEnd} of {batch.length}</div>
+                    </div>
+                    <div className="sbtn" onClick={()=>setAyahPage(p=>Math.min(totalPages-1,p+1))} style={{width:32,height:32,borderRadius:"50%",background:safePage>=totalPages-1?"rgba(255,255,255,0.03)":"rgba(230,184,74,0.12)",border:`1px solid ${safePage>=totalPages-1?"rgba(255,255,255,0.06)":"rgba(230,184,74,0.3)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:safePage>=totalPages-1?"rgba(255,255,255,0.15)":"#E6B84A",fontSize:14,opacity:safePage>=totalPages-1?0.4:1}}>▸</div>
+                  </div>
+                )}
+
                 {/* ── COLLAPSIBLE AYAH ROWS ── */}
-                <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
-                  {batch.map((v,i)=>{
+                <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}} onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}} onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx<-40)setAyahPage(p=>Math.min(totalPages-1,p+1));else if(dx>40)setAyahPage(p=>Math.max(0,p-1));}}>
+                  {visibleAyahs.map((v,i)=>{
+                    const realIndex=pageStart+i;
                     const vNum=v.verse_key?.split(":")?.[1];
                     const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
                     const vKey=v.verse_key;
@@ -1315,7 +1340,7 @@ export default function RihlatAlHifz() {
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                             <div style={{display:"flex",alignItems:"center",gap:10}}>
                               <div style={{width:30,height:30,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.05)",border:`1px solid ${repsDone?"rgba(230,184,74,0.5)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600,color:repsDone?"#E6B84A":"#aaa",flexShrink:0,boxShadow:repsDone?"0 0 10px rgba(230,184,74,0.2)":"none"}}>
-                                {repsDone?"✓":i+1}
+                                {repsDone?"✓":realIndex+1}
                               </div>
                               <span style={{fontSize:12,color:"#9CA3AF",fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</span>
                             </div>
