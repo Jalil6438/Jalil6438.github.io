@@ -980,7 +980,7 @@ export default function RihlatAlHifz() {
       green:"#59D98A",greenSoft:"rgba(89,217,138,0.16)",
     };
     return (
-      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",justifyContent:"center",zIndex:100,overflowY:"auto",padding:"24px 20px",background:"linear-gradient(180deg,#081225 0%,#040814 100%)"}}>
+      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",justifyContent:"flex-start",zIndex:100,overflowY:"auto",padding:"12px 20px 24px",background:"linear-gradient(180deg,#081225 0%,#040814 100%)"}}>
         <div className="asr-shell">
           <div className="asr-title">ASR SESSION</div>
           <div className="asr-title-line"/>
@@ -1095,7 +1095,7 @@ export default function RihlatAlHifz() {
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
-        .asr-shell{position:relative;border-radius:28px;padding:18px 16px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(74,110,180,0.20) 0%,rgba(74,110,180,0.07) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
+        .asr-shell{position:relative;border-radius:28px;padding:14px 16px 18px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(74,110,180,0.20) 0%,rgba(74,110,180,0.07) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
         .asr-shell::before{content:"";position:absolute;inset:0;border-radius:28px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 20%,rgba(232,200,120,0.55) 50%,rgba(217,177,95,0.08) 80%,rgba(217,177,95,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(217,177,95,0.06) 0%,rgba(217,177,95,0.03) 50%,rgba(217,177,95,0.05) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-title{text-align:center;font-size:13px;letter-spacing:.24em;text-transform:uppercase;font-weight:800;color:#E8C878;margin-bottom:10px;text-shadow:0 0 18px rgba(217,177,95,0.35);}
         .asr-title-line{position:relative;height:1px;margin:8px 0 16px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 25%,rgba(232,200,120,0.65) 50%,rgba(217,177,95,0.08) 75%,rgba(217,177,95,0) 100%);}
@@ -1103,8 +1103,8 @@ export default function RihlatAlHifz() {
         .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 30%,rgba(217,177,95,0.12) 50%,rgba(217,177,95,0.08) 70%,rgba(217,177,95,0) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:48px;padding:8px 12px;}
         .asr-row-divider{height:1px;margin:0 20px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.06) 30%,rgba(243,231,200,0.05) 50%,rgba(217,177,95,0.06) 70%,rgba(217,177,95,0) 100%);}
-        .asr-num{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.60);font-size:11px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.18);}
-        .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.55);font-size:22px;font-weight:400;background:transparent;cursor:pointer;user-select:none;transition:opacity .15s;z-index:5;}
+        .asr-num{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.55);font-size:10px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.16);margin-left:auto;}
+        .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.60);font-size:30px;font-weight:300;background:transparent;cursor:pointer;user-select:none;transition:all .15s;z-index:5;}
         .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.85);} .asr-arw.left{left:-18px;} .asr-arw.right{right:-18px;}
         .asr-progress-rule{height:1px;margin:14px 0;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.10) 80%,rgba(217,177,95,0) 100%);}
 
