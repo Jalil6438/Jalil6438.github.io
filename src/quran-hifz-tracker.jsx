@@ -395,7 +395,7 @@ export default function RihlatAlHifz() {
   const [ayahPage, setAyahPage] = useState(0);
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrPage,setAsrPage]=useState(0);
-  const [asrSlideDir,setAsrSlideDir]=useState(null);
+  const [asrSlideDir,setAsrSlideDir]=useState("left");
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const asrTouchStartRef=useRef(null);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
@@ -1003,26 +1003,15 @@ export default function RihlatAlHifz() {
               const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
               asrTouchStartRef.current=null;
               if(Math.abs(delta)<40) return;
-              const dir=delta<0?"left":"right";
-              if(dir==="left"&&asrSafePage>=asrPages-1) return;
-              if(dir==="right"&&asrSafePage===0) return;
-              setAsrSlideDir(dir);
-              setTimeout(()=>{
-                if(dir==="left") setAsrPage(p=>Math.min(asrPages-1,p+1));
-                else setAsrPage(p=>Math.max(0,p-1));
-                setAsrSlideDir(null);
-              },180);
+              if(delta<0&&asrSafePage<asrPages-1){setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}
+              else if(delta>0&&asrSafePage>0){setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}
             }}
           >
-            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setTimeout(()=>{setAsrPage(p=>Math.max(0,p-1));setAsrSlideDir(null);},180);}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
-            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setTimeout(()=>{setAsrPage(p=>Math.min(asrPages-1,p+1));setAsrSlideDir(null);},180);}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
+            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
+            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
 
-            {/* Sliding content only */}
-            <div style={{
-              transform:asrSlideDir==="left"?"translateX(-100%)":asrSlideDir==="right"?"translateX(100%)":"translateX(0)",
-              transition:asrSlideDir?"transform 0.18s ease":"none",
-              willChange:"transform"
-            }}>
+            {/* Sliding content — keyed to page so animation re-triggers on each change */}
+            <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":"asr-slide-right"}>
 
             {asrVisibleAyahs.map((v,idx)=>{
               const vKey=v.verse_key;
@@ -1113,6 +1102,10 @@ export default function RihlatAlHifz() {
         @keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}.fi{animation:fi .2s ease;}
         @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
+        @keyframes asrSlideInLeft{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes asrSlideInRight{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .asr-slide-left{animation:asrSlideInLeft 0.22s ease forwards;}
+        .asr-slide-right{animation:asrSlideInRight 0.22s ease forwards;}
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
         .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
