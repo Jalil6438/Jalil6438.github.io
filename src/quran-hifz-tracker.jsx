@@ -1019,10 +1019,10 @@ export default function RihlatAlHifz() {
               return (
                 <div key={vKey}>
                   <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,lineHeight:1.45,wordBreak:"break-word",overflowWrap:"break-word",paddingLeft:10}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:19,lineHeight:1.5,whiteSpace:expanded?"normal":"nowrap",overflow:expanded?"visible":"hidden",textOverflow:"clip",paddingLeft:10}}>
                       {v.text_uthmani}
                     </div>
-                    <div style={{width:56,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0}}>
+                    <div style={{width:68,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0}}>
                       <div className="asr-num">{vNum}</div>
                     </div>
                   </div>
@@ -1061,8 +1061,8 @@ export default function RihlatAlHifz() {
               )}
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div style={{color:T2.ivoryFaint,fontSize:12}}>Page {asrSafePage+1} of {asrPages}</div>
-              <div style={{color:T2.goldBright,fontSize:12,fontWeight:700}}>{asrPageStart+1}–{asrPageEnd}</div>
+              <div style={{color:T2.ivoryFaint,fontSize:12}}>Pages</div>
+              <div style={{color:T2.goldBright,fontSize:12,fontWeight:600}}>Page {asrSafePage+1} of {asrPages}</div>
             </div>
             <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
               <div style={{height:"100%",width:`${Math.round(((asrSafePage+1)/asrPages)*100)}%`,background:"linear-gradient(90deg,#D2A85A,#E2BC72)",borderRadius:999}}/>
@@ -1070,7 +1070,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Buttons */}
-          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22}}>
+          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:"auto",paddingTop:16}}>
             <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"14px 16px",borderRadius:16,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E2BC72 0%,#D2A85A 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.18)"}}>
               Complete Asr Session
             </div>
@@ -1106,8 +1106,8 @@ export default function RihlatAlHifz() {
         .asr-ayah-panel{position:relative;border-radius:18px;padding:4px 12px;overflow:visible;background:rgba(8,16,34,0.40);}
         .asr-ayah-panel::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.08) 30%,rgba(217,177,95,0.12) 50%,rgba(217,177,95,0.08) 70%,rgba(217,177,95,0) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-row{display:flex;align-items:center;gap:14px;min-height:52px;padding:10px 14px;position:relative;}
-        .asr-row-divider{height:1px;margin:0 20px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.06) 30%,rgba(243,231,200,0.05) 50%,rgba(217,177,95,0.06) 70%,rgba(217,177,95,0) 100%);}
-        .asr-num{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.72);font-size:12px;font-weight:600;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.20);}
+        .asr-row-divider{height:1px;margin:0 12px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.20) 20%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0.20) 80%,rgba(217,177,95,0) 100%);}
+        .asr-num{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.60);font-size:11px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.18);}
         .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.60);font-size:30px;font-weight:300;background:transparent;cursor:pointer;user-select:none;transition:all .15s;z-index:5;}
         .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.85);} .asr-arw.left{left:-18px;} .asr-arw.right{right:-18px;}
         .asr-progress-rule{height:1px;margin:14px 0;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.10) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.10) 80%,rgba(217,177,95,0) 100%);}
