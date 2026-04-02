@@ -1019,10 +1019,12 @@ export default function RihlatAlHifz() {
               return (
                 <div key={vKey}>
                   <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?24:17,lineHeight:expanded?1.75:1.5,wordBreak:"break-word",overflowWrap:"break-word",paddingRight:10}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",color:T2.ivory,fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?24:17,lineHeight:expanded?1.75:1.5,wordBreak:"break-word",overflowWrap:"break-word"}}>
                       {v.text_uthmani}
                     </div>
-                    <div className="asr-num">{vNum}</div>
+                    <div style={{width:44,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0}}>
+                      <div className="asr-num">{vNum}</div>
+                    </div>
                   </div>
                   {expanded&&(
                     <div style={{padding:"2px 14px 14px",background:"rgba(217,177,95,0.04)",borderRadius:12,margin:"0 0 4px"}}>
@@ -1052,6 +1054,11 @@ export default function RihlatAlHifz() {
               <div style={{padding:"6px 12px",borderRadius:999,background:T2.greenSoft,border:"1px solid rgba(89,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
                 {asrSurahProgress.filter(s=>s.state==="complete").length} completed
               </div>
+              {asrSurahProgress.find(s=>s.state==="current")&&(
+                <div style={{padding:"6px 12px",borderRadius:999,background:"transparent",border:"1px solid rgba(210,168,90,0.18)",color:"rgba(226,188,114,0.65)",fontSize:11,fontWeight:400}}>
+                  {asrSurahProgress.find(s=>s.state==="current")?.label}
+                </div>
+              )}
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <div style={{color:T2.ivoryFaint,fontSize:12}}>Page {asrSafePage+1} of {asrPages}</div>
