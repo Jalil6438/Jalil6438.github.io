@@ -567,9 +567,11 @@ export default function RihlatAlHifz() {
   // This catches the case where all surahs are marked done via individual surah completion
   useEffect(()=>{
     if(sessLoading) return;
-    if(sessionVerses.length>0) return; // still have verses, not done
-    if(juzStatus[sessionJuz]==="complete") return; // already marked
-    // Check that at least some surahs in this juz are marked complete
+    if(sessionVerses.length>0) return;
+    if(!sessionJuz) return;
+    if(juzStatus[sessionJuz]==="complete") return;
+    // Only fire if juzProgress shows actual work was done in this Juz
+    if((juzProgress[sessionJuz]||0)===0) return;
     const juzSurahs=JUZ_SURAHS[sessionJuz]||[];
     const allSurahsDone=juzSurahs.length>0&&juzSurahs.every(s=>juzStatus[`s${s.s}`]==="complete");
     if(allSurahsDone){
@@ -651,7 +653,12 @@ export default function RihlatAlHifz() {
   const surahGroups=[];let cur=null;
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
-  const completedCount=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
+  const completedCount=Object.keys(JUZ_SURAHS).filter(juzKey=>{
+    const juzNum=Number(juzKey);
+    if(juzStatus[juzNum]==="complete") return true;
+    const surahs=JUZ_SURAHS[juzNum]||[];
+    return surahs.length>0&&surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
+  }).length;
 
   const totalAyahsInQuran=Object.values(JUZ_SURAHS).reduce((sum,surahs)=>sum+surahs.reduce((n,s)=>n+s.a,0),0);
 
