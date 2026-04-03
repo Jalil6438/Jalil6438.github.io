@@ -657,9 +657,13 @@ export default function RihlatAlHifz() {
 
   const memorizedAyahs=Object.keys(JUZ_SURAHS).reduce((sum,juzKey)=>{
     const juzNum=Number(juzKey);
-    const juzTotal=(JUZ_SURAHS[juzNum]||[]).reduce((n,s)=>n+s.a,0);
+    const surahs=JUZ_SURAHS[juzNum]||[];
+    const juzTotal=surahs.reduce((n,s)=>n+s.a,0);
     if(juzStatus[juzNum]==="complete") return sum+juzTotal;
-    return sum+Math.min(juzProgress[juzNum]||0,juzTotal);
+    // Count ayahs from individually completed surahs
+    const completedSurahAyahs=surahs.reduce((n,s)=>juzStatus[`s${s.s}`]==="complete"?n+s.a:n,0);
+    // Use the higher of surah-based count or juzProgress (My Hifz sequential progress)
+    return sum+Math.min(Math.max(completedSurahAyahs,juzProgress[juzNum]||0),juzTotal);
   },0);
 
   const pct=totalAyahsInQuran>0?Math.round((memorizedAyahs/totalAyahsInQuran)*100):0;
