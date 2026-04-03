@@ -497,9 +497,12 @@ export default function RihlatAlHifz() {
   // Sync sessionIdx into juzProgress for durable per-Juz progress
   useEffect(()=>{
     if(!loaded) return;
+    if(!sessionJuz) return; // don't write during transitions when sessionJuz=null
     setJuzProgress(prev=>{
       const current=prev[sessionJuz]||0;
       if(current===sessionIdx) return prev;
+      // Only update if sessionIdx is a meaningful progress value (not 0 resetting active progress)
+      if(sessionIdx===0&&current>0) return prev;
       return {...prev,[sessionJuz]:sessionIdx};
     });
   },[sessionJuz,sessionIdx,loaded]);
@@ -557,6 +560,7 @@ export default function RihlatAlHifz() {
         });
 
         if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(()=>{ const saved=juzProgress[sessionJuz]||0; return saved>orderedVerses.length?0:Math.min(saved,orderedVerses.length); }); }
+
       } catch { if(!cancelled) setSessError(true); }
       if(!cancelled) setSessLoading(false);
     })();
