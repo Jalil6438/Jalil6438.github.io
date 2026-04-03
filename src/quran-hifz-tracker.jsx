@@ -510,6 +510,10 @@ export default function RihlatAlHifz() {
     if(!sessionJuz) return;
     setSessionDone([]);
   },[sessionJuz]);
+
+  // Fetch session verses
+  useEffect(()=>{
+    if(!sessionJuz) return;
     let cancelled=false;
     (async()=>{
       setSessLoading(true); setSessionVerses([]); setSessError(false);
