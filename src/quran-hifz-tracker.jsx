@@ -404,39 +404,19 @@ export default function RihlatAlHifz() {
   useEffect(()=>{
     if(!loaded) return;
     if(sessionJuz) return;
-    const completedJuz=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").map(([key])=>Number(key));
-    if(!completedJuz.includes(30)) setSessionJuz(30);
-    else if(!completedJuz.includes(29)) setSessionJuz(29);
-    else if(!completedJuz.includes(28)) setSessionJuz(28);
-    else if(!completedJuz.includes(27)) setSessionJuz(27);
-    else if(!completedJuz.includes(26)) setSessionJuz(26);
-    else if(!completedJuz.includes(25)) setSessionJuz(25);
-    else if(!completedJuz.includes(24)) setSessionJuz(24);
-    else if(!completedJuz.includes(23)) setSessionJuz(23);
-    else if(!completedJuz.includes(22)) setSessionJuz(22);
-    else if(!completedJuz.includes(21)) setSessionJuz(21);
-    else if(!completedJuz.includes(20)) setSessionJuz(20);
-    else if(!completedJuz.includes(19)) setSessionJuz(19);
-    else if(!completedJuz.includes(18)) setSessionJuz(18);
-    else if(!completedJuz.includes(17)) setSessionJuz(17);
-    else if(!completedJuz.includes(16)) setSessionJuz(16);
-    else if(!completedJuz.includes(15)) setSessionJuz(15);
-    else if(!completedJuz.includes(14)) setSessionJuz(14);
-    else if(!completedJuz.includes(13)) setSessionJuz(13);
-    else if(!completedJuz.includes(12)) setSessionJuz(12);
-    else if(!completedJuz.includes(11)) setSessionJuz(11);
-    else if(!completedJuz.includes(10)) setSessionJuz(10);
-    else if(!completedJuz.includes(9)) setSessionJuz(9);
-    else if(!completedJuz.includes(8)) setSessionJuz(8);
-    else if(!completedJuz.includes(7)) setSessionJuz(7);
-    else if(!completedJuz.includes(6)) setSessionJuz(6);
-    else if(!completedJuz.includes(5)) setSessionJuz(5);
-    else if(!completedJuz.includes(4)) setSessionJuz(4);
-    else if(!completedJuz.includes(3)) setSessionJuz(3);
-    else if(!completedJuz.includes(2)) setSessionJuz(2);
-    else if(!completedJuz.includes(1)) setSessionJuz(1);
-    else setSessionJuz(30);
-  },[loaded]);
+    // A Juz is "done" if fully complete OR all its surahs are individually marked
+    const isJuzDone=(juzNum)=>{
+      if(juzStatus[juzNum]==="complete") return true;
+      const surahs=JUZ_SURAHS[juzNum]||[];
+      return surahs.length>0&&surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
+    };
+    // Find first incomplete Juz starting from 30 down
+    let next=null;
+    for(let j=30;j>=1;j--){
+      if(!isJuzDone(j)){ next=j; break; }
+    }
+    setSessionJuz(next||30);
+  },[loaded,juzStatus]);
 
 
   const [streak,setStreak]=useState(0);
@@ -619,10 +599,7 @@ export default function RihlatAlHifz() {
     if(Object.keys(progressUpdates).length>0){
       setJuzProgress(prev=>({...prev,...progressUpdates}));
     }
-  },[loaded,juzStatus]);
-
-
-      const fetchTranslations=async(verses)=>{
+  },[loaded,juzStatus,juzCompletedInSession]);=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
     const updated={};
@@ -1420,7 +1397,7 @@ export default function RihlatAlHifz() {
                 <div style={{flex:1}}/>
                 <div style={{display:"flex",gap:8}}>
                   <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:12,fontSize:14,color:"#A8B89A"}}>←</div>
-                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
+                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setSessionJuz(null);setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
                     Select your starting point
                   </div>
                 </div>
