@@ -1580,109 +1580,93 @@ export default function RihlatAlHifz() {
             })()}
 
             {/* ── ASR PICKER ── */}
-            {SESSIONS[activeSessionIndex]?.id==="asr"&&(
-              <div style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)",overflowY:"auto",padding:"28px 20px 40px"}}>
+            {SESSIONS[activeSessionIndex]?.id==="asr"&&(()=>{
+              const activeJuz=asrActiveJuzPanel||(completedJuzOptions.length>0?completedJuzOptions[0].num:null);
+              const activeJuzSurahs=activeJuz?(JUZ_SURAHS[activeJuz]||[]).filter(s=>juzStatus[`s${s.s}`]==="complete"||juzStatus[activeJuz]==="complete"||asrPassedSurahs.has(s.s)):[];
+              const isJuzSelected=asrSelectedJuz.includes(activeJuz);
+              return (
+              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)",overflowY:"auto",padding:"32px 20px 40px"}}>
 
                 {/* Header */}
-                <div style={{textAlign:"center",marginBottom:6}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#F3E7C8",fontWeight:700,marginBottom:6}}>Choose Your Asr Review</div>
-                  <div style={{fontSize:13,color:"rgba(243,231,200,0.50)"}}>Cycle through your completed memorization.</div>
+                <div style={{textAlign:"center",marginBottom:8}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7C8",fontWeight:700,fontStyle:"italic",marginBottom:6}}>Choose Your Asr Review</div>
+                  <div style={{fontSize:13,color:"rgba(243,231,200,0.45)"}}>Cycle through completed memorization.</div>
                 </div>
-                <div style={{height:1,margin:"16px 0",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.40) 50%,rgba(217,177,95,0) 100%)"}}/>
 
-                {/* Juz accordion */}
-                <div style={{fontSize:9,color:"rgba(217,177,95,0.65)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:12,textAlign:"center"}}>Select Juz</div>
+                {/* ── SELECT JUZ ── */}
+                <div style={{display:"flex",alignItems:"center",gap:12,margin:"20px 0 14px"}}>
+                  <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
+                  <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>Select Juz</div>
+                  <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
+                </div>
 
-                {completedJuzOptions.length===0&&(
+                {completedJuzOptions.length===0?(
                   <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.40)",marginBottom:16}}>No completed Juz yet</div>
+                ):(
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:4}}>
+                    {completedJuzOptions.map(j=>{
+                      const isSel=j.num===activeJuz;
+                      const hasSelections=asrSelectedJuz.includes(j.num)||(JUZ_SURAHS[j.num]||[]).some(s=>asrSelectedSurahs.includes(s.s));
+                      return (
+                        <div key={j.num} className="sbtn" onClick={()=>setAsrActiveJuzPanel(j.num)}
+                          style={{padding:"13px 16px",borderRadius:14,textAlign:"center",
+                            background:isSel?"rgba(217,177,95,0.10)":"rgba(255,255,255,0.03)",
+                            border:`1px solid ${isSel?"rgba(232,200,120,0.50)":hasSelections?"rgba(217,177,95,0.35)":"rgba(217,177,95,0.12)"}`,
+                            boxShadow:isSel?"0 0 20px rgba(217,177,95,0.15),inset 0 0 12px rgba(217,177,95,0.05)":"none",
+                            transition:"all .18s"}}>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F3E7C8":hasSelections?"#E2BC72":"rgba(243,231,200,0.70)",fontWeight:600}}>Juz {j.num}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
 
-                {completedJuzOptions.map(j=>{
-                  const isOpen=asrActiveJuzPanel===j.num;
-                  const isSelected=asrSelectedJuz.includes(j.num);
-                  const juzSurahs=(JUZ_SURAHS[j.num]||[]).filter(s=>juzStatus[`s${s.s}`]==="complete"||juzStatus[j.num]==="complete"||asrPassedSurahs.has(s.s));
+                {/* ── SURAHS IN JUZ ── */}
+                {activeJuz&&activeJuzSurahs.length>0&&(<>
+                  <div style={{display:"flex",alignItems:"center",gap:12,margin:"18px 0 14px"}}>
+                    <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
+                    <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>Surahs in Juz {activeJuz}</div>
+                    <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
+                  </div>
 
-                  const selectedSurahsInJuz=juzSurahs.filter(s=>asrSelectedSurahs.includes(s.s)&&!isSelected);
-                  const hasSelections=isSelected||selectedSurahsInJuz.length>0;
-                  return (
-                    <div key={j.num} style={{marginBottom:10}}>
-                      {/* Juz button */}
-                      <div className="sbtn" onClick={()=>setAsrActiveJuzPanel(isOpen?null:j.num)}
-                        style={{width:"100%",padding:"14px 18px",borderRadius:16,display:"flex",justifyContent:"space-between",alignItems:"center",
-                          background:isOpen?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.03)",
-                          border:`1px solid ${hasSelections?"rgba(217,177,95,0.45)":isOpen?"rgba(217,177,95,0.25)":"rgba(217,177,95,0.12)"}`,
-                          boxShadow:hasSelections?"0 0 18px rgba(217,177,95,0.12)":"none"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10}}>
-                          {hasSelections&&<div style={{width:8,height:8,borderRadius:"50%",background:"#D2A85A",boxShadow:"0 0 8px rgba(210,168,90,0.5)"}}/>}
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:hasSelections?"#F3E7C8":"rgba(243,231,200,0.80)",fontWeight:600}}>Juz {j.num}</div>
-                          {j.name&&<div style={{fontSize:11,color:"rgba(243,231,200,0.40)"}}>{j.name}</div>}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:4}}>
+                    {activeJuzSurahs.map(s=>{
+                      const checked=asrSelectedSurahs.includes(s.s)||isJuzSelected;
+                      return (
+                        <div key={s.s} className="sbtn" onClick={()=>{ if(!isJuzSelected) toggleAsrSurahReview(s.s); }}
+                          style={{padding:"12px 14px",borderRadius:12,textAlign:"center",
+                            background:checked?"rgba(217,177,95,0.10)":"rgba(255,255,255,0.03)",
+                            border:`1px solid ${checked?"rgba(232,200,120,0.45)":"rgba(217,177,95,0.12)"}`,
+                            boxShadow:checked?"0 0 14px rgba(217,177,95,0.12)":"none",
+                            transition:"all .15s"}}>
+                          <div style={{fontSize:13,color:checked?"#F3E7C8":"rgba(243,231,200,0.70)",fontWeight:checked?600:400}}>{s.name}</div>
                         </div>
-                        <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          {hasSelections&&<div style={{fontSize:10,color:"rgba(217,177,95,0.75)",fontWeight:600}}>{isSelected?"All":`${selectedSurahsInJuz.length} selected`}</div>}
-                          <div style={{color:"rgba(217,177,95,0.50)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
-                        </div>
-                      </div>
-
-                      {/* Surah panel — expands when Juz is open */}
-                      {isOpen&&(
-                        <div style={{marginTop:6,padding:"14px 16px",borderRadius:14,background:"rgba(7,14,28,0.60)",border:"1px solid rgba(217,177,95,0.14)"}}>
-                          {/* Select whole Juz toggle */}
-                          <div className="sbtn" onClick={()=>loadAsrJuzReview(j.num)}
-                            style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,padding:"8px 10px",borderRadius:10,
-                              background:isSelected?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.02)",
-                              border:`1px solid ${isSelected?"rgba(217,177,95,0.30)":"rgba(217,177,95,0.12)"}`}}>
-                            <div style={{width:18,height:18,borderRadius:4,background:isSelected?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${isSelected?"#D4AF37":"rgba(212,175,55,0.35)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:isSelected?"0 0 8px rgba(212,175,55,0.40)":"none"}}>{isSelected?"✓":""}</div>
-                            <div style={{fontSize:12,color:isSelected?"#F6E27A":"rgba(212,175,55,0.75)",fontWeight:600}}>Select all surahs in Juz {j.num}</div>
-                          </div>
-
-                          {/* Individual surah grid — fixed height scrollable */}
-                          <div style={{maxHeight:220,overflowY:"auto",paddingRight:2}}>
-                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-                              {juzSurahs.map(s=>{
-                                const checked=asrSelectedSurahs.includes(s.s)||isSelected;
-                                return (
-                                  <div key={s.s} className="sbtn" onClick={()=>{ if(!isSelected) toggleAsrSurahReview(s.s); }}
-                                    style={{display:"flex",alignItems:"center",gap:7,padding:"9px 10px",borderRadius:10,
-                                      background:checked?"linear-gradient(180deg,rgba(212,175,55,0.08),rgba(12,16,26,0.96))":"rgba(255,255,255,0.02)",
-                                      border:`1px solid ${checked?"rgba(212,175,55,0.38)":"rgba(255,255,255,0.06)"}`,
-                                      boxShadow:checked?"0 0 12px rgba(212,175,55,0.12)":"none",
-                                      transform:checked?"scale(1.01)":"scale(1)",transition:"all .15s"}}>
-                                    <div style={{width:14,height:14,borderRadius:4,background:checked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${checked?"#D4AF37":"rgba(212,175,55,0.30)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:800,flexShrink:0,boxShadow:checked?"0 0 8px rgba(212,175,55,0.35)":"none"}}>{checked?"✓":""}</div>
-                                    <div style={{fontSize:11,color:checked?"#F6E27A":"rgba(255,255,255,0.65)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:checked?600:400}}>{s.name}</div>
-                                    <div style={{fontSize:9,color:"rgba(255,255,255,0.22)",flexShrink:0}}>{s.a}v</div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                <div style={{height:1,margin:"16px 0",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.25) 50%,rgba(217,177,95,0) 100%)"}}/>
+                      );
+                    })}
+                  </div>
+                </>)}
 
                 {/* Summary */}
-                <div style={{textAlign:"center",marginBottom:16,minHeight:20}}>
+                <div style={{textAlign:"center",margin:"18px 0 8px",minHeight:20}}>
                   {asrSelectionSummary
-                    ?<div style={{fontSize:13,color:"rgba(243,231,200,0.65)"}}><span style={{color:"rgba(243,231,200,0.40)"}}>Selected: </span><span style={{color:"#E2BC72",fontWeight:600}}>{asrSelectionSummary}</span></div>
+                    ?<div style={{fontSize:13,color:"rgba(243,231,200,0.65)"}}><span style={{color:"rgba(243,231,200,0.40)"}}>Selected: </span><br/><span style={{color:"#E2BC72",fontWeight:600}}>{asrSelectionSummary}</span></div>
                     :<div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Select a Juz or individual surahs to begin</div>
                   }
                 </div>
 
                 {/* CTA */}
                 <div className="sbtn" onClick={()=>{if(!asrCanStart)return;setAsrStarted(true);setAsrPage(0);setAsrExpandedAyah(null);}}
-                  style={{width:"100%",padding:"15px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".06em",textTransform:"uppercase",
+                  style={{width:"100%",padding:"16px",borderRadius:18,textAlign:"center",fontSize:15,fontWeight:800,letterSpacing:".04em",
                     background:asrCanStart?"linear-gradient(180deg,#E3C07A 0%,#D1A659 100%)":"rgba(255,255,255,0.05)",
                     color:asrCanStart?"#0A1020":"rgba(255,255,255,0.25)",
-                    boxShadow:asrCanStart?"0 10px 22px rgba(210,168,90,0.18),inset 0 1px 0 rgba(255,255,255,0.14)":"none",
+                    boxShadow:asrCanStart?"0 10px 22px rgba(210,168,90,0.22),inset 0 1px 0 rgba(255,255,255,0.14)":"none",
                     border:asrCanStart?"none":"1px solid rgba(255,255,255,0.06)",
                     pointerEvents:asrCanStart?"auto":"none"}}>
                   Start Asr Review
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* ── JUZ SELECTOR ── */}
             <div style={{marginTop:16,marginBottom:16}}>
