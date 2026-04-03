@@ -507,6 +507,7 @@ export default function RihlatAlHifz() {
 
   // Fetch session verses
   useEffect(()=>{
+    if(!sessionJuz) return;
     let cancelled=false;
     (async()=>{
       setSessLoading(true); setSessionVerses([]); setSessError(false);
