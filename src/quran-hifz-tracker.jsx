@@ -397,6 +397,7 @@ export default function RihlatAlHifz() {
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrPage,setAsrPage]=useState(0);
+  const [asrSlideDir,setAsrSlideDir]=useState(null);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const [juzCompletedInSession,setJuzCompletedInSession]=useState(new Set());
   const asrTouchStartRef=useRef(null);
@@ -1033,7 +1034,7 @@ export default function RihlatAlHifz() {
   function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
     asrVisibleAyahs,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
-    setAsrPage,translations,fetchTranslations,playAyah,playingKey,
+    setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,
   }) {
     const T2={
@@ -1064,15 +1065,15 @@ export default function RihlatAlHifz() {
               const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
               asrTouchStartRef.current=null;
               if(Math.abs(delta)<40) return;
-              if(delta<0&&asrSafePage<asrPages-1) setAsrPage(p=>Math.min(asrPages-1,p+1));
-              else if(delta>0&&asrSafePage>0) setAsrPage(p=>Math.max(0,p-1));
+              if(delta<0&&asrSafePage<asrPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(asrPages-1,p+1)); }
+              else if(delta>0&&asrSafePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); }
             }}
           >
-            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
-            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
+            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
+            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
 
-            {/* Ayah list — direct render, no animation */}
-            <div>
+            {/* Ayah list — slides on page change */}
+            <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""}>
               {asrVisibleAyahs.map((v,idx)=>{
                 const vKey=v.verse_key;
                 const vNum=v.verse_key?.split(":")?.[1];
@@ -1160,6 +1161,10 @@ export default function RihlatAlHifz() {
         .chkrow{cursor:pointer;transition:all .13s;}.chkrow:hover{background:${dark?"#141B27":"#EDE8DC"}!important;}
         .ttab{cursor:pointer;transition:all .15s;user-select:none;}.ttab:hover{opacity:.8;}
         @keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}.fi{animation:fi .2s ease;}
+        @keyframes asrSlideLeft{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes asrSlideRight{from{transform:translateX(-40px);opacity:0}to{transform:translateX(0);opacity:1}}
+        .asr-slide-left{animation:asrSlideLeft .2s ease-out}
+        .asr-slide-right{animation:asrSlideRight .2s ease-out}
         @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
 
@@ -1195,6 +1200,8 @@ export default function RihlatAlHifz() {
           setAsrExpandedAyah={setAsrExpandedAyah}
           asrTouchStartRef={asrTouchStartRef}
           setAsrPage={setAsrPage}
+          asrSlideDir={asrSlideDir}
+          setAsrSlideDir={setAsrSlideDir}
           translations={translations}
           fetchTranslations={fetchTranslations}
           playAyah={playAyah}
