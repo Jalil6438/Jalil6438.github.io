@@ -559,6 +559,7 @@ export default function RihlatAlHifz() {
   // This catches the case where all surahs are marked done via individual surah completion
   useEffect(()=>{
     if(sessLoading) return;
+    if(sessError) return;
     if(sessionVerses.length>0) return;
     if(!sessionJuz) return;
     if(juzStatus[sessionJuz]==="complete") return;
@@ -600,16 +601,21 @@ export default function RihlatAlHifz() {
   const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
+    // Group by surah — one request per surah instead of one per ayah
+    const surahSet=new Set(needed.map(v=>v.verse_key.split(":")[0]));
     const updated={};
-    await Promise.all(needed.map(async v=>{
-      try {
-        const [s,a]=v.verse_key.split(":");
-        const res=await fetch(`https://api.alquran.cloud/v1/ayah/${s}:${a}/en.sahih`);
-        if(!res.ok) return;
+    for(const surahNum of surahSet){
+      try{
+        const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahNum}?translations=131&fields=verse_key&per_page=300&page=1`);
+        if(!res.ok) continue;
         const data=await res.json();
-        updated[v.verse_key]=data.data?.text||"";
-      } catch {}
-    }));
+        if(!data.verses?.length) continue;
+        data.verses.forEach(v=>{
+          const text=v.translations?.[0]?.text||"";
+          updated[v.verse_key]=text.replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").trim();
+        });
+      }catch{}
+    }
     if(Object.keys(updated).length) setTranslations(prev=>({...prev,...updated}));
   };
 
