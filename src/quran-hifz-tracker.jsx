@@ -414,7 +414,7 @@ export default function RihlatAlHifz() {
       if(!isJuzDone(j)){ next=j; break; }
     }
     const target=next||30;
-    console.log('[INIT]', {target, sessionJuz, willUpdate: target!==sessionJuz});
+    console.log('[INIT]', {target, sessionJuz, willUpdate: target!==sessionJuz, juz30done: isJuzDone(30), juz29done: isJuzDone(29), juz28done: isJuzDone(28), s67: juzStatus['s67'], s68: juzStatus['s68'], juz29status: juzStatus[29], juz30status: juzStatus[30]});
     if(target!==sessionJuz) setSessionJuz(target);
   },[loaded,juzStatus]);
 
@@ -547,7 +547,13 @@ export default function RihlatAlHifz() {
           return ayahA-ayahB;
         });
 
-        if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(()=>{ const saved=juzProgress[sessionJuz]||0; return saved>orderedVerses.length?0:Math.min(saved,orderedVerses.length); }); }
+        if(!cancelled){
+          const surahsInOrder=[...new Set(orderedVerses.map(v=>v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10)))];
+          const saved=juzProgress[sessionJuz]||0;
+          const newIdx=saved>orderedVerses.length?0:Math.min(saved,orderedVerses.length);
+          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, savedProgress: saved, newSessionIdx: newIdx});
+          setSessionVerses(orderedVerses); setSessionIdx(newIdx);
+        }
 
       } catch { if(!cancelled) setSessError(true); }
       if(!cancelled) setSessLoading(false);
@@ -587,6 +593,8 @@ export default function RihlatAlHifz() {
       // pct calculation uses surah keys directly via memorizedAyahs formula
     });
     if(juzToUnmark.length>0){
+      console.log('[AUTO-FIX] UNMARKING JUZ:', juzToUnmark, 'juzCompletedInSession:', [...juzCompletedInSession]);
+      juzToUnmark.forEach(n=>{const surahs=JUZ_SURAHS[n]||[];console.log(`[AUTO-FIX] Juz ${n} surahs:`, surahs.map(s=>({s:s.s, status:juzStatus[`s${s.s}`]})));});
       setJuzStatus(prev=>{
         const next={...prev};
         juzToUnmark.forEach(n=>delete next[n]);
@@ -1449,7 +1457,7 @@ export default function RihlatAlHifz() {
                   <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"linear-gradient(90deg,#D4AF37,#F6E27A)":"rgba(255,255,255,0.08)",boxShadow:i===duaIdx%6?"0 0 8px rgba(212,175,55,0.35)":"none",opacity:i===duaIdx%6?1:0.3,transition:"all .3s"}}/>
                 ))}
               </div>
-              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);}} style={{padding:"12px 28px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",borderRadius:12,fontSize:13,fontWeight:700,display:"inline-block",boxShadow:"0 12px 30px rgba(212,175,55,0.25),inset 0 1px 0 rgba(255,255,255,0.2)"}}>
+              <div className="sbtn" onClick={()=>{setShowDua(false);setDuaIdx(i=>(i+1)%6);setActiveTab("myhifz");}} style={{padding:"12px 28px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",borderRadius:12,fontSize:13,fontWeight:700,display:"inline-block",boxShadow:"0 12px 30px rgba(212,175,55,0.25),inset 0 1px 0 rgba(255,255,255,0.2)"}}>
                 Let's Begin →
               </div>
             </div>
