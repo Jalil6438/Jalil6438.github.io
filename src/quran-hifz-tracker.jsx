@@ -561,7 +561,7 @@ export default function RihlatAlHifz() {
       if(!cancelled) setSessLoading(false);
     })();
     return()=>{cancelled=true;};
-  },[sessionJuz,juzStatus]);
+  },[sessionJuz]);
 
   // Auto-mark Juz complete when sessionVerses goes to 0 after having verses
   // This catches the case where all surahs are marked done via individual surah completion
