@@ -556,7 +556,7 @@ export default function RihlatAlHifz() {
           return ayahA-ayahB;
         });
 
-        if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(()=>{ const saved=juzProgress[sessionJuz]||0; return Math.min(saved,orderedVerses.length); }); }
+        if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(()=>{ const saved=juzProgress[sessionJuz]||0; return saved>orderedVerses.length?0:Math.min(saved,orderedVerses.length); }); }
       } catch { if(!cancelled) setSessError(true); }
       if(!cancelled) setSessLoading(false);
     })();
@@ -590,15 +590,8 @@ export default function RihlatAlHifz() {
         const allDone=surahs.length>0&&surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
         if(!allDone&&!juzCompletedInSession.has(j.num)) juzToUnmark.push(j.num);
       }
-      // Seed juzProgress from completed surahs ONLY if no session progress exists yet
-      if(juzStatus[j.num]!=="complete"){
-        const completedAyahs=surahs.reduce((sum,s)=>juzStatus[`s${s.s}`]==="complete"?sum+s.a:sum,0);
-        const existing=juzProgress[j.num]||0;
-        // Only seed if no progress recorded yet (existing=0) — don't overwrite session progress
-        if(completedAyahs>0&&existing===0){
-          progressUpdates[j.num]=completedAyahs;
-        }
-      }
+      // Note: juzProgress is only written by actual session progress, not seeded here
+      // pct calculation uses surah keys directly via memorizedAyahs formula
     });
     if(juzToUnmark.length>0){
       setJuzStatus(prev=>{
