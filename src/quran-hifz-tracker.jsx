@@ -391,6 +391,7 @@ export default function RihlatAlHifz() {
   const [asrSelectedJuz,setAsrSelectedJuz]=useState([]);
   const [asrReviewBatch,setAsrReviewBatch]=useState([]);
   const [sessLoading,setSessLoading]=useState(false);
+  const [sessError,setSessError]=useState(false);
   const AYAHS_PER_PAGE = 5;
   const [ayahPage, setAyahPage] = useState(0);
   const [asrStarted,setAsrStarted]=useState(false);
@@ -508,7 +509,7 @@ export default function RihlatAlHifz() {
   useEffect(()=>{
     let cancelled=false;
     (async()=>{
-      setSessLoading(true); setSessionVerses([]);
+      setSessLoading(true); setSessionVerses([]); setSessError(false);
       try {
         let page=1,all=[],tp=1;
         do {
@@ -550,7 +551,7 @@ export default function RihlatAlHifz() {
         });
 
         if(!cancelled){ setSessionVerses(orderedVerses); setSessionIdx(()=>{ const saved=juzProgress[sessionJuz]||0; return saved>orderedVerses.length?0:Math.min(saved,orderedVerses.length); }); }
-      } catch {}
+      } catch { if(!cancelled) setSessError(true); }
       if(!cancelled) setSessLoading(false);
     })();
     return()=>{cancelled=true;};
@@ -1661,7 +1662,7 @@ export default function RihlatAlHifz() {
 
             {/* ── LOADING / ERROR STATES ── */}
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
-            {!sessLoading&&sessionVerses.length===0&&juzStatus[sessionJuz]!=="complete"&&(
+            {!sessLoading&&sessError&&(
               <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
                 <div style={{width:74,height:74,borderRadius:"50%",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,boxShadow:"0 0 10px rgba(230,184,74,0.10)",fontSize:30}}>📖</div>
                 <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
