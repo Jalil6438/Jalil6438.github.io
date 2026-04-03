@@ -505,9 +505,11 @@ export default function RihlatAlHifz() {
     });
   },[sessionJuz,sessionIdx,loaded]);
 
-  // Fetch session verses
+  // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
   useEffect(()=>{
     if(!sessionJuz) return;
+    setSessionDone([]);
+  },[sessionJuz]);
     let cancelled=false;
     (async()=>{
       setSessLoading(true); setSessionVerses([]); setSessError(false);
