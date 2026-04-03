@@ -515,6 +515,7 @@ export default function RihlatAlHifz() {
   const [ayahPage, setAyahPage] = useState(0);
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
+  const [asrSurahShowCount,setAsrSurahShowCount]=useState(10);
   const [asrPage,setAsrPage]=useState(0);
   const [asrSlideDir,setAsrSlideDir]=useState(null);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
@@ -1608,13 +1609,13 @@ export default function RihlatAlHifz() {
                       const isSel=j.num===activeJuz;
                       const hasSelections=asrSelectedJuz.includes(j.num)||(JUZ_SURAHS[j.num]||[]).some(s=>asrSelectedSurahs.includes(s.s));
                       return (
-                        <div key={j.num} className="sbtn" onClick={()=>setAsrActiveJuzPanel(j.num)}
+                        <div key={j.num} className="sbtn" onClick={()=>{setAsrActiveJuzPanel(j.num);setAsrSurahShowCount(10);}}
                           style={{padding:"13px 16px",borderRadius:14,textAlign:"center",
-                            background:isSel?"rgba(217,177,95,0.10)":"rgba(255,255,255,0.03)",
-                            border:`1px solid ${isSel?"rgba(232,200,120,0.50)":hasSelections?"rgba(217,177,95,0.35)":"rgba(217,177,95,0.12)"}`,
-                            boxShadow:isSel?"0 0 20px rgba(217,177,95,0.15),inset 0 0 12px rgba(217,177,95,0.05)":"none",
+                            background:isSel?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)",
+                            border:`1px solid ${isSel?"rgba(232,200,120,0.65)":hasSelections?"rgba(217,177,95,0.35)":"rgba(217,177,95,0.12)"}`,
+                            boxShadow:isSel?"0 0 28px rgba(232,200,120,0.30),0 0 8px rgba(217,177,95,0.20),inset 0 0 14px rgba(217,177,95,0.08)":"none",
                             transition:"all .18s"}}>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F3E7C8":hasSelections?"#E2BC72":"rgba(243,231,200,0.70)",fontWeight:600}}>Juz {j.num}</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F6E27A":hasSelections?"#E2BC72":"rgba(243,231,200,0.70)",fontWeight:600}}>Juz {j.num}</div>
                         </div>
                       );
                     })}
@@ -1622,15 +1623,28 @@ export default function RihlatAlHifz() {
                 )}
 
                 {/* ── SURAHS IN JUZ ── */}
-                {activeJuz&&activeJuzSurahs.length>0&&(<>
+                {activeJuz&&activeJuzSurahs.length>0&&(()=>{
+                  const visibleSurahs=activeJuzSurahs.slice(0,asrSurahShowCount);
+                  const hasMore=activeJuzSurahs.length>asrSurahShowCount;
+                  return (<>
                   <div style={{display:"flex",alignItems:"center",gap:12,margin:"18px 0 14px"}}>
                     <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
                     <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>Surahs in Juz {activeJuz}</div>
                     <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
                   </div>
 
+                  {/* Select All */}
+                  <div className="sbtn" onClick={()=>loadAsrJuzReview(activeJuz)}
+                    style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"11px 14px",borderRadius:12,marginBottom:10,
+                      background:isJuzSelected?"rgba(217,177,95,0.10)":"rgba(255,255,255,0.02)",
+                      border:`1px solid ${isJuzSelected?"rgba(232,200,120,0.45)":"rgba(217,177,95,0.15)"}`,
+                      boxShadow:isJuzSelected?"0 0 14px rgba(217,177,95,0.12)":"none"}}>
+                    <div style={{width:16,height:16,borderRadius:4,background:isJuzSelected?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${isJuzSelected?"#D4AF37":"rgba(212,175,55,0.35)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:isJuzSelected?"0 0 8px rgba(212,175,55,0.40)":"none"}}>{isJuzSelected?"✓":""}</div>
+                    <div style={{fontSize:12,color:isJuzSelected?"#F6E27A":"rgba(217,177,95,0.75)",fontWeight:600}}>Select all surahs in Juz {activeJuz}</div>
+                  </div>
+
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:4}}>
-                    {activeJuzSurahs.map(s=>{
+                    {visibleSurahs.map(s=>{
                       const checked=asrSelectedSurahs.includes(s.s)||isJuzSelected;
                       return (
                         <div key={s.s} className="sbtn" onClick={()=>{ if(!isJuzSelected) toggleAsrSurahReview(s.s); }}
@@ -1644,7 +1658,15 @@ export default function RihlatAlHifz() {
                       );
                     })}
                   </div>
-                </>)}
+
+                  {hasMore&&(
+                    <div className="sbtn" onClick={()=>setAsrSurahShowCount(c=>c+10)}
+                      style={{textAlign:"center",padding:"10px",marginTop:6,borderRadius:10,fontSize:12,fontWeight:600,color:"rgba(217,177,95,0.70)",
+                        border:"1px solid rgba(217,177,95,0.12)",background:"rgba(255,255,255,0.02)"}}>
+                      Load More ({activeJuzSurahs.length-asrSurahShowCount} remaining)
+                    </div>
+                  )}
+                </>);})()}
 
                 {/* Summary */}
                 <div style={{textAlign:"center",margin:"18px 0 8px",minHeight:20}}>
