@@ -1189,6 +1189,8 @@ export default function RihlatAlHifz() {
         @keyframes asrSlideRight{from{transform:translateX(-40px);opacity:0}to{transform:translateX(0);opacity:1}}
         .asr-slide-left{animation:asrSlideLeft .2s ease-out}
         .asr-slide-right{animation:asrSlideRight .2s ease-out}
+        .asr-surah-btn{transition:all .15s ease;transform:scale(1);}
+        .asr-surah-btn:active{transform:scale(0.97);transition:transform .06s ease-out;}
         @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
 
@@ -1627,7 +1629,7 @@ export default function RihlatAlHifz() {
                   const visibleSurahs=activeJuzSurahs.slice(0,asrSurahShowCount);
                   const hasMore=activeJuzSurahs.length>asrSurahShowCount;
                   return (<>
-                  <div style={{display:"flex",alignItems:"center",gap:12,margin:"18px 0 14px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12,margin:"18px 0 10px"}}>
                     <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
                     <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>Surahs in Juz {activeJuz}</div>
                     <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
@@ -1635,7 +1637,7 @@ export default function RihlatAlHifz() {
 
                   {/* Select All — control row */}
                   <div className="sbtn" onClick={()=>loadAsrJuzReview(activeJuz)}
-                    style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",marginBottom:8}}>
+                    style={{display:"flex",alignItems:"center",gap:10,padding:"4px 4px",marginBottom:6}}>
                     <div style={{width:15,height:15,borderRadius:3,background:isJuzSelected?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${isJuzSelected?"#D4AF37":"rgba(212,175,55,0.30)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:700,flexShrink:0}}>{isJuzSelected?"✓":""}</div>
                     <div style={{fontSize:11,color:isJuzSelected?"rgba(217,177,95,0.85)":"rgba(217,177,95,0.50)",fontWeight:500}}>Select all</div>
                   </div>
@@ -1644,12 +1646,11 @@ export default function RihlatAlHifz() {
                     {visibleSurahs.map(s=>{
                       const checked=asrSelectedSurahs.includes(s.s)||isJuzSelected;
                       return (
-                        <div key={s.s} className="sbtn" onClick={()=>{ if(!isJuzSelected) toggleAsrSurahReview(s.s); }}
+                        <div key={s.s} className="asr-surah-btn sbtn" onClick={()=>{ if(!isJuzSelected) toggleAsrSurahReview(s.s); }}
                           style={{padding:"10px 14px",borderRadius:12,textAlign:"center",
-                            background:checked?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.03)",
-                            border:`1px solid ${checked?"rgba(232,200,120,0.40)":"rgba(255,255,255,0.05)"}`,
-                            boxShadow:checked?"0 0 18px rgba(217,177,95,0.16),inset 0 0 8px rgba(217,177,95,0.04)":"none",
-                            transition:"all .15s"}}>
+                            background:checked?"rgba(217,177,95,0.10)":"rgba(255,255,255,0.03)",
+                            border:`1px solid ${checked?"rgba(232,200,120,0.55)":"rgba(255,255,255,0.05)"}`,
+                            boxShadow:checked?"0 0 22px rgba(217,177,95,0.20),0 0 6px rgba(217,177,95,0.12),inset 0 0 10px rgba(217,177,95,0.05)":"none"}}>
                           <div style={{fontSize:13,color:checked?"#F6E27A":"rgba(243,231,200,0.65)",fontWeight:checked?600:400}}>{s.name}</div>
                         </div>
                       );
@@ -1667,7 +1668,7 @@ export default function RihlatAlHifz() {
                 </>);})()}
 
                 {/* Summary */}
-                <div style={{textAlign:"center",margin:"18px 0 8px",minHeight:20}}>
+                <div style={{textAlign:"center",margin:"18px 0 0",minHeight:20}}>
                   {asrSelectionSummary
                     ?<div style={{fontSize:13,color:"rgba(243,231,200,0.65)"}}><span style={{fontSize:10,color:"rgba(243,231,200,0.28)",letterSpacing:".08em",textTransform:"uppercase"}}>Selected:</span><br/><span style={{color:"#F6E27A",fontWeight:700,textShadow:"0 0 12px rgba(217,177,95,0.20)"}}>{asrSelectionSummary}</span></div>
                     :<div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Select a Juz or individual surahs to begin</div>
@@ -1676,7 +1677,7 @@ export default function RihlatAlHifz() {
 
                 {/* CTA */}
                 <div className="sbtn" onClick={()=>{if(!asrCanStart)return;setAsrStarted(true);setAsrPage(0);setAsrExpandedAyah(null);}}
-                  style={{width:"100%",padding:"16px",borderRadius:18,textAlign:"center",fontSize:15,fontWeight:800,letterSpacing:".04em",
+                  style={{width:"100%",marginTop:16,padding:"16px",borderRadius:18,textAlign:"center",fontSize:15,fontWeight:800,letterSpacing:".04em",
                     background:asrCanStart?"linear-gradient(180deg,#E3C07A 0%,#D1A659 100%)":"rgba(255,255,255,0.05)",
                     color:asrCanStart?"#0A1020":"rgba(255,255,255,0.25)",
                     boxShadow:asrCanStart?"0 10px 22px rgba(210,168,90,0.22),inset 0 1px 0 rgba(255,255,255,0.14)":"none",
