@@ -1818,7 +1818,30 @@ export default function RihlatAlHifz() {
                     <div style={{fontSize:22,marginBottom:8}}>✅</div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
                     <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",marginBottom:14}}>Session complete — MashaAllah! 🤲</div>
-                    <div className="sbtn" onClick={()=>{setSessionDone(d=>d.filter(k=>k!==bKey));setRepCounts({});setOpenAyah(null);}} style={{display:"inline-block",padding:"12px 32px",background:"linear-gradient(180deg,#F0C040,#D89A10)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",boxShadow:"0 6px 14px rgba(240,192,64,0.2)"}}>
+                    <div className="sbtn" onClick={()=>{
+                      const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
+                      setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
+                      toggleCheck(sess.id);
+                      setRepCounts({});
+                      setOpenAyah(null);
+                      if(activeSessionIndex>=SESSIONS.length-1){
+                        setYesterdayBatch(fajrBatch);
+                        if(bEnd>=totalSV&&totalSV>0){
+                          setSessionIdx(totalSV);
+                          setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
+                          setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
+                          setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
+                          setSessionJuz(null);
+                        } else {
+                          setSessionIdx(bEnd);
+                          setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
+                        }
+                        setActiveSessionIndex(0);
+                        setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
+                      } else {
+                        setActiveSessionIndex(i=>i+1);
+                      }
+                    }} style={{display:"inline-block",padding:"12px 32px",background:"linear-gradient(180deg,#F0C040,#D89A10)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",boxShadow:"0 6px 14px rgba(240,192,64,0.2)"}}>
                       Finish & Continue →
                     </div>
                   </div>
