@@ -1825,7 +1825,9 @@ export default function RihlatAlHifz() {
                       if(bEnd>=totalSV&&totalSV>0){
                         setSessionIdx(totalSV);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
-                        setJuzStatus(prev=>({...prev,[sessionJuz]:"complete"}));
+                        setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
+                        setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
+                        setSessionJuz(null);
                       } else {
                         setSessionIdx(bEnd);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
