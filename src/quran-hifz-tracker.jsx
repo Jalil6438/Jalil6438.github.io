@@ -1188,6 +1188,7 @@ export default function RihlatAlHifz() {
           asrSurahProgress={asrSurahProgress}
           onComplete={()=>{
             const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
+            console.log('[ASR COMPLETE]', {activeSessionIndex, nextIndex: Math.min(SESSIONS.length-1,activeSessionIndex+1)});
             setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
             toggleCheck(sess.id);
             setAsrStarted(false);
@@ -1814,19 +1815,23 @@ export default function RihlatAlHifz() {
                     setOpenAyah(null);
                     if(activeSessionIndex>=SESSIONS.length-1){
                       setYesterdayBatch(fajrBatch);
+                      console.log('[ISHA CTA]', {bEnd, totalSV, sessionIdx, sessionJuz, 'bEnd>=totalSV': bEnd>=totalSV, 'totalSV>0': totalSV>0, activeSessionIndex, 'isIsha': activeSessionIndex>=SESSIONS.length-1});
                       if(bEnd>=totalSV&&totalSV>0){
+                        console.log('[ISHA CTA] → COMPLETION BRANCH');
                         setSessionIdx(totalSV);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
                         setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
                         setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
                         setSessionJuz(null);
                       } else {
+                        console.log('[ISHA CTA] → ELSE BRANCH');
                         setSessionIdx(bEnd);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
                     } else {
+                      console.log('[NON-ISHA CTA]', {activeSessionIndex, 'SESSIONS.length-1': SESSIONS.length-1});
                       setActiveSessionIndex(i=>i+1);
                     }
                   }} style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
