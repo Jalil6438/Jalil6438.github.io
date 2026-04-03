@@ -396,8 +396,6 @@ export default function RihlatAlHifz() {
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrPage,setAsrPage]=useState(0);
-  const [asrSlideDir,setAsrSlideDir]=useState(null);
-  const [asrPrevAyahs,setAsrPrevAyahs]=useState([]);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const [juzCompletedInSession,setJuzCompletedInSession]=useState(new Set());
   const asrTouchStartRef=useRef(null);
@@ -601,7 +599,7 @@ export default function RihlatAlHifz() {
       const surahs=JUZ_SURAHS[j.num]||[];
       if(juzStatus[j.num]==="complete"){
         const allDone=surahs.length>0&&surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
-        if(!allDone) juzToUnmark.push(j.num);
+        if(!allDone&&!juzCompletedInSession.has(j.num)) juzToUnmark.push(j.num);
       }
       // Seed juzProgress from completed surahs for any partial Juz
       if(juzStatus[j.num]!=="complete"){
@@ -1036,8 +1034,8 @@ export default function RihlatAlHifz() {
   // ── ASR SESSION VIEW (dedicated full-screen Asr review) ─────────────────────
   function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
-    asrVisibleAyahs,asrPrevAyahs,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
-    setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
+    asrVisibleAyahs,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
+    setAsrPage,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,
   }) {
     const T2={
@@ -1068,89 +1066,50 @@ export default function RihlatAlHifz() {
               const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
               asrTouchStartRef.current=null;
               if(Math.abs(delta)<40) return;
-              if(delta<0&&asrSafePage<asrPages-1){setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));setTimeout(()=>setAsrSlideDir(null),240);}
-              else if(delta>0&&asrSafePage>0){setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));setTimeout(()=>setAsrSlideDir(null),240);}
+              if(delta<0&&asrSafePage<asrPages-1) setAsrPage(p=>Math.min(asrPages-1,p+1));
+              else if(delta>0&&asrSafePage>0) setAsrPage(p=>Math.max(0,p-1));
             }}
           >
-            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));setTimeout(()=>setAsrSlideDir(null),240);}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
-            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));setTimeout(()=>setAsrSlideDir(null),240);}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
+            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
+            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
 
-            {/* Viewport — rest state shows current page only; sliding shows two-page track */}
-            <div className="asr-track-viewport">
-              {asrSlideDir===null?(
-                <div>
-                  {asrVisibleAyahs.map((v,idx)=>{
-                    const vKey=v.verse_key;
-                    const vNum=v.verse_key?.split(":")?.[1];
-                    const expanded=asrExpandedAyah===vKey;
-                    const trans=translations[vKey];
-                    const isPlaying=playingKey===vKey;
-                    const isLoading=audioLoading===vKey;
-                    return (
-                      <div key={vKey}>
-                        <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                          <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:18,lineHeight:expanded?1.8:1.65,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>
-                            {v.text_uthmani}
-                          </div>
-                          <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}>
-                            <div className="asr-num">{vNum}</div>
-                          </div>
-                        </div>
-                        {expanded&&(
-                          <div style={{margin:"4px 0 8px",padding:"14px 18px 16px",borderRadius:22,background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),rgba(20,28,46,0.78)",boxShadow:"0 14px 30px rgba(0,0,0,0.30),inset 0 1px 0 rgba(255,255,255,0.03)",border:"1px solid rgba(217,177,95,0.10)"}}>
-                            <div style={{color:"rgba(243,231,200,0.76)",fontSize:13,lineHeight:1.75,marginBottom:12}}>
-                              {trans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:trans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
-                            </div>
-                            <div style={{display:"flex",alignItems:"center",gap:10}}>
-                              <div className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:isPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${isPlaying?"rgba(217,177,95,0.22)":"rgba(255,255,255,0.06)"}`,color:isPlaying?T2.goldBright:"rgba(243,231,200,0.56)"}}>
-                                {isLoading?"…":isPlaying?"⏸":"▶"}
-                              </div>
-                              <div style={{fontSize:11,color:"rgba(243,231,200,0.34)"}}>Tap again to collapse</div>
-                            </div>
-                          </div>
-                        )}
-                        {idx<asrVisibleAyahs.length-1&&<div className="asr-row-divider"/>}
+            {/* Ayah list — direct render, no animation */}
+            <div>
+              {asrVisibleAyahs.map((v,idx)=>{
+                const vKey=v.verse_key;
+                const vNum=v.verse_key?.split(":")?.[1];
+                const expanded=asrExpandedAyah===vKey;
+                const trans=translations[vKey];
+                const isPlaying=playingKey===vKey;
+                const isLoading=audioLoading===vKey;
+                return (
+                  <div key={vKey}>
+                    <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
+                      <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:18,lineHeight:expanded?1.8:1.65,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>
+                        {v.text_uthmani}
                       </div>
-                    );
-                  })}
-                </div>
-              ):(
-                <div className="asr-track" style={{transform:asrSlideDir==="left"?"translateX(-50%)":"translateX(0)"}}>
-                  <div className="asr-track-page">
-                    {(asrSlideDir==="left"?asrPrevAyahs:asrVisibleAyahs).map((v,idx)=>{
-                      const vKey=v.verse_key;
-                      const vNum=v.verse_key?.split(":")?.[1];
-                      const arr=asrSlideDir==="left"?asrPrevAyahs:asrVisibleAyahs;
-                      return (
-                        <div key={vKey}>
-                          <div className="asr-row">
-                            <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.65,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>{v.text_uthmani}</div>
-                            <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}><div className="asr-num">{vNum}</div></div>
-                          </div>
-                          {idx<arr.length-1&&<div className="asr-row-divider"/>}
+                      <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}>
+                        <div className="asr-num">{vNum}</div>
+                      </div>
+                    </div>
+                    {expanded&&(
+                      <div style={{margin:"4px 0 8px",padding:"14px 18px 16px",borderRadius:22,background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),rgba(20,28,46,0.78)",boxShadow:"0 14px 30px rgba(0,0,0,0.30),inset 0 1px 0 rgba(255,255,255,0.03)",border:"1px solid rgba(217,177,95,0.10)"}}>
+                        <div style={{color:"rgba(243,231,200,0.76)",fontSize:13,lineHeight:1.75,marginBottom:12}}>
+                          {trans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:trans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
                         </div>
-                      );
-                    })}
-                  </div>
-                  <div className="asr-track-page">
-                    {(asrSlideDir==="left"?asrVisibleAyahs:asrPrevAyahs).map((v,idx)=>{
-                      const vKey=v.verse_key;
-                      const vNum=v.verse_key?.split(":")?.[1];
-                      const arr=asrSlideDir==="left"?asrVisibleAyahs:asrPrevAyahs;
-                      return (
-                        <div key={vKey}>
-                          <div className="asr-row">
-                            <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.65,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>{v.text_uthmani}</div>
-                            <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}><div className="asr-num">{vNum}</div></div>
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:isPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${isPlaying?"rgba(217,177,95,0.22)":"rgba(255,255,255,0.06)"}`,color:isPlaying?T2.goldBright:"rgba(243,231,200,0.56)"}}>
+                            {isLoading?"…":isPlaying?"⏸":"▶"}
                           </div>
-                          {idx<arr.length-1&&<div className="asr-row-divider"/>}
+                          <div style={{fontSize:11,color:"rgba(243,231,200,0.34)"}}>Tap again to collapse</div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    )}
+                    {idx<asrVisibleAyahs.length-1&&<div className="asr-row-divider"/>}
                   </div>
-                </div>
-              )}
-            </div>{/* end viewport */}
+                );
+              })}
+            </div>
           </div>
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
@@ -1205,9 +1164,7 @@ export default function RihlatAlHifz() {
         @keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}.fi{animation:fi .2s ease;}
         @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
-        .asr-track-viewport{overflow:hidden;position:relative;}
-        .asr-track{display:flex;width:200%;transition:transform 0.22s ease;will-change:transform;}
-        .asr-track-page{width:50%;flex-shrink:0;}
+
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
         .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
@@ -1236,13 +1193,10 @@ export default function RihlatAlHifz() {
           asrPageStart={asrPageStart}
           asrPageEnd={asrPageEnd}
           asrVisibleAyahs={asrVisibleAyahs}
-          asrPrevAyahs={asrPrevAyahs}
           asrExpandedAyah={asrExpandedAyah}
           setAsrExpandedAyah={setAsrExpandedAyah}
           asrTouchStartRef={asrTouchStartRef}
           setAsrPage={setAsrPage}
-          asrSlideDir={asrSlideDir}
-          setAsrSlideDir={setAsrSlideDir}
           translations={translations}
           fetchTranslations={fetchTranslations}
           playAyah={playAyah}
@@ -1617,9 +1571,9 @@ export default function RihlatAlHifz() {
                 {completedJuzOptions.map(j=>{
                   const isOpen=asrActiveJuzPanel===j.num;
                   const isSelected=asrSelectedJuz.includes(j.num);
-                  const juzSurahs=JUZ_SURAHS[j.num]||[];
+                  const juzSurahs=(JUZ_SURAHS[j.num]||[]).filter(s=>juzStatus[`s${s.s}`]==="complete"||juzStatus[j.num]==="complete");
 
-                  const selectedSurahsInJuz=juzSurahs.filter(s=>asrSelectedSurahs.includes(s.s));
+                  const selectedSurahsInJuz=juzSurahs.filter(s=>asrSelectedSurahs.includes(s.s)&&!isSelected);
                   const hasSelections=isSelected||selectedSurahsInJuz.length>0;
                   return (
                     <div key={j.num} style={{marginBottom:10}}>
@@ -1728,7 +1682,7 @@ export default function RihlatAlHifz() {
 
             {/* ── LOADING / ERROR STATES ── */}
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
-            {!sessLoading&&sessionVerses.length===0&&(
+            {!sessLoading&&sessionVerses.length===0&&juzStatus[sessionJuz]!=="complete"&&(
               <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
                 <div style={{width:74,height:74,borderRadius:"50%",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,boxShadow:"0 0 10px rgba(230,184,74,0.10)",fontSize:30}}>📖</div>
                 <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
