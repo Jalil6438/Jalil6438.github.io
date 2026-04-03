@@ -400,13 +400,10 @@ export default function RihlatAlHifz() {
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const [juzCompletedInSession,setJuzCompletedInSession]=useState(new Set());
   const asrTouchStartRef=useRef(null);
-  const sessionJuzRef=useRef(null);
-  useEffect(()=>{ if(sessionJuz!==null) sessionJuzRef.current=sessionJuz; },[sessionJuz]);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
 
   useEffect(()=>{
     if(!loaded) return;
-    if(sessionJuz!==null) return;
     const isJuzDone=(juzNum)=>{
       if(juzStatus[juzNum]==="complete") return true;
       const surahs=JUZ_SURAHS[juzNum]||[];
@@ -417,8 +414,8 @@ export default function RihlatAlHifz() {
       if(!isJuzDone(j)){ next=j; break; }
     }
     const target=next||30;
-    console.log('[INIT]', {target, sessionJuz, willUpdate: true});
-    setSessionJuz(target);
+    console.log('[INIT]', {target, sessionJuz, willUpdate: target!==sessionJuz});
+    if(target!==sessionJuz) setSessionJuz(target);
   },[loaded,juzStatus]);
 
 
@@ -486,8 +483,6 @@ export default function RihlatAlHifz() {
           const wasComplete=SESSIONS.every(s=>prev[s.id]);
           setStreak(wasComplete?(p.streak||0)+1:0);
           setDailyChecks({date:today});
-          setActiveSessionIndex(0);
-          setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
         }
       }
     } catch {}
@@ -606,6 +601,7 @@ export default function RihlatAlHifz() {
   const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
+    // Group by surah — one request per surah instead of one per ayah
     const surahSet=new Set(needed.map(v=>v.verse_key.split(":")[0]));
     const updated={};
     for(const surahNum of surahSet){
@@ -1825,20 +1821,19 @@ export default function RihlatAlHifz() {
                     setRepCounts({});
                     setOpenAyah(null);
                     if(activeSessionIndex>=SESSIONS.length-1){
-                      const juz=sessionJuz??sessionJuzRef.current;
                       setYesterdayBatch(fajrBatch);
-                      console.log('[ISHA CTA]', {bEnd, totalSV, sessionIdx, sessionJuz, juz, 'bEnd>=totalSV': bEnd>=totalSV, 'totalSV>0': totalSV>0});
+                      console.log('[ISHA CTA]', {bEnd, totalSV, sessionIdx, sessionJuz, 'bEnd>=totalSV': bEnd>=totalSV, 'totalSV>0': totalSV>0, activeSessionIndex, 'isIsha': activeSessionIndex>=SESSIONS.length-1});
                       if(bEnd>=totalSV&&totalSV>0){
                         console.log('[ISHA CTA] → COMPLETION BRANCH');
                         setSessionIdx(totalSV);
-                        setJuzProgress(prev=>({...prev,[juz]:totalSV}));
-                        setJuzStatus(prev=>markJuzAndSurahsComplete(prev,juz));
-                        setJuzCompletedInSession(prev=>new Set([...prev,juz]));
+                        setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
+                        setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
+                        setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
                         setSessionJuz(null);
                       } else {
                         console.log('[ISHA CTA] → ELSE BRANCH');
                         setSessionIdx(bEnd);
-                        setJuzProgress(prev=>({...prev,[juz]:bEnd}));
+                        setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
