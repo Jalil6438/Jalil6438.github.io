@@ -394,8 +394,10 @@ export default function RihlatAlHifz() {
   const AYAHS_PER_PAGE = 5;
   const [ayahPage, setAyahPage] = useState(0);
   const [asrStarted,setAsrStarted]=useState(false);
+  const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrPage,setAsrPage]=useState(0);
   const [asrSlideDir,setAsrSlideDir]=useState("left");
+  const [asrPrevAyahs,setAsrPrevAyahs]=useState([]);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const asrTouchStartRef=useRef(null);
   const [dailyChecks,setDailyChecks]=useState({date:TODAY()});
@@ -589,28 +591,34 @@ export default function RihlatAlHifz() {
     }
   },[sessLoading,sessionVerses.length,sessionJuz,juzStatus]);
 
-  // Auto-fix: if juz marked complete but not all surahs are done, unmark juz and reset progress
+  // Auto-fix: if juz marked complete but not all surahs are done, unmark juz but seed juzProgress from completed surahs
   useEffect(()=>{
     if(!loaded) return;
-    const fixes=[];
+    const juzToUnmark=[];
+    const progressUpdates={};
     JUZ_META.forEach(j=>{
+      const surahs=JUZ_SURAHS[j.num]||[];
       if(juzStatus[j.num]==="complete"){
-        const surahs=JUZ_SURAHS[j.num]||[];
         const allDone=surahs.length>0&&surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
-        if(!allDone) fixes.push(j.num);
+        if(!allDone) juzToUnmark.push(j.num);
+      }
+      // Seed juzProgress from completed surahs for any partial Juz
+      if(juzStatus[j.num]!=="complete"){
+        const completedAyahs=surahs.reduce((sum,s)=>juzStatus[`s${s.s}`]==="complete"?sum+s.a:sum,0);
+        if(completedAyahs>0&&(juzProgress[j.num]||0)<completedAyahs){
+          progressUpdates[j.num]=completedAyahs;
+        }
       }
     });
-    if(fixes.length>0){
+    if(juzToUnmark.length>0){
       setJuzStatus(prev=>{
         const next={...prev};
-        fixes.forEach(n=>delete next[n]);
+        juzToUnmark.forEach(n=>delete next[n]);
         return next;
       });
-      setJuzProgress(prev=>{
-        const next={...prev};
-        fixes.forEach(n=>{next[n]=0;});
-        return next;
-      });
+    }
+    if(Object.keys(progressUpdates).length>0){
+      setJuzProgress(prev=>({...prev,...progressUpdates}));
     }
   },[loaded,juzStatus]);
 
@@ -793,11 +801,37 @@ export default function RihlatAlHifz() {
   function markBatchDone(){
     setSessionDone(d=>[...d,bKey]);
     if(bEnd>=totalSV){
-      setJuzStatus(p=>({...p,[sessionJuz]:"complete"}));
+      setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
       setJuzProgress(p=>({...p,[sessionJuz]:totalSV}));
     } else {
       setSessionIdx(bEnd);
       setJuzProgress(p=>({...p,[sessionJuz]:bEnd}));
+      // Mark individual surahs complete as their ayahs are fully covered
+      // sessionVerses is ordered by surah — find surahs fully within 0..bEnd
+      setJuzStatus(prev=>{
+        const next={...prev};
+        let changed=false;
+        const surahsInJuz=JUZ_SURAHS[sessionJuz]||[];
+        // Build a map of surah -> verse count in sessionVerses
+        const surahVerseCount={};
+        sessionVerses.forEach(v=>{
+          const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+          surahVerseCount[sn]=(surahVerseCount[sn]||0)+1;
+        });
+        // Check each surah — if all its verses in sessionVerses are before bEnd
+        let cursor=0;
+        for(const surahEntry of surahsInJuz){
+          const sn=surahEntry.s;
+          if(next[`s${sn}`]==="complete") continue;
+          const count=surahVerseCount[sn]||0;
+          if(count===0) continue;
+          if(cursor+count<=bEnd){
+            next[`s${sn}`]="complete"; changed=true;
+          }
+          cursor+=count;
+        }
+        return changed?next:prev;
+      });
     }
   }
 
@@ -905,7 +939,6 @@ export default function RihlatAlHifz() {
   async function toggleAsrSurahReview(surahNum){
     try {
       setSessLoading(true);
-      setAsrSelectedJuz([]);
       if(asrSelectedSurahs.includes(surahNum)){
         const nextSelected=asrSelectedSurahs.filter(n=>n!==surahNum);
         setAsrSelectedSurahs(nextSelected);
@@ -931,7 +964,17 @@ export default function RihlatAlHifz() {
 
   async function loadAsrJuzReview(juzNum){
     try {
-      setSessLoading(true); setAsrSelectedSurahs([]); setAsrSelectedJuz([juzNum]);
+      setSessLoading(true);
+      if(asrSelectedJuz.includes(juzNum)){
+        // Deselect — remove Juz and its verses from batch
+        setAsrSelectedJuz(prev=>prev.filter(n=>n!==juzNum));
+        const juzSurahNums=(JUZ_SURAHS[juzNum]||[]).map(s=>s.s);
+        setAsrReviewBatch(prev=>prev.filter(v=>{
+          const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+          return !juzSurahNums.includes(sNum);
+        }));
+        return;
+      }
       let page=1,all=[],tp=1;
       do {
         const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
@@ -939,8 +982,21 @@ export default function RihlatAlHifz() {
         const data=await res.json();
         all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
       } while(page<=tp);
-      setAsrReviewBatch(all);
-    } catch { setAsrReviewBatch([]); }
+      const juzSurahNums=(JUZ_SURAHS[juzNum]||[]).map(s=>s.s);
+      // Remove individually selected surahs from this Juz before adding whole Juz
+      setAsrSelectedSurahs(prev=>prev.filter(n=>!juzSurahNums.includes(n)));
+      setAsrSelectedJuz(prev=>[...prev,juzNum]);
+      setAsrReviewBatch(prev=>{
+        // Remove any verses from this Juz's surahs already in batch (from individual selections)
+        const withoutJuz=prev.filter(v=>{
+          const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+          return !juzSurahNums.includes(sNum);
+        });
+        const merged=[...withoutJuz,...all];
+        const seen=new Set();
+        return merged.filter(v=>{ if(seen.has(v.verse_key)) return false; seen.add(v.verse_key); return true; });
+      });
+    } catch {}
     finally { setSessLoading(false); }
   }
 
@@ -971,7 +1027,7 @@ export default function RihlatAlHifz() {
   // ── ASR SESSION VIEW (dedicated full-screen Asr review) ─────────────────────
   function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
-    asrVisibleAyahs,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
+    asrVisibleAyahs,asrPrevAyahs,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,
   }) {
@@ -1003,17 +1059,42 @@ export default function RihlatAlHifz() {
               const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
               asrTouchStartRef.current=null;
               if(Math.abs(delta)<40) return;
-              if(delta<0&&asrSafePage<asrPages-1){setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}
-              else if(delta>0&&asrSafePage>0){setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}
+              if(delta<0&&asrSafePage<asrPages-1){setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}
+              else if(delta>0&&asrSafePage>0){setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}
             }}
           >
-            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
-            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
+            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
+            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrPrevAyahs(asrVisibleAyahs);setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
 
-            {/* Sliding content — CSS animation only, no remount */}
-            <div style={{animation:`${asrSlideDir==="left"?"asrSlideInLeft":"asrSlideInRight"} 0.20s ease forwards`}}>
-
-            {asrVisibleAyahs.map((v,idx)=>{
+            {/* Dual-page track — old page + new page slide together, no opacity */}
+            <div className="asr-track-viewport">
+              <div className="asr-track" style={{transform:asrSlideDir==="left"?"translateX(-50%)":"translateX(0)"}}>
+                {/* Left slot: previous page when sliding left, current when sliding right */}
+                <div className="asr-track-page">
+                  {(asrSlideDir==="left"?asrPrevAyahs:asrVisibleAyahs).map((v,idx)=>{
+                    const vKey=v.verse_key;
+                    const vNum=v.verse_key?.split(":")?.[1];
+                    const expanded=false;
+                    const isPlaying=playingKey===vKey;
+                    const isLoading=audioLoading===vKey;
+                    return (
+                      <div key={vKey}>
+                        <div className="asr-row">
+                          <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.65,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>
+                            {v.text_uthmani}
+                          </div>
+                          <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}>
+                            <div className="asr-num">{vNum}</div>
+                          </div>
+                        </div>
+                        {idx<(asrSlideDir==="left"?asrPrevAyahs:asrVisibleAyahs).length-1&&<div className="asr-row-divider"/>}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Right slot: current page when sliding left, previous when sliding right */}
+                <div className="asr-track-page">
+                {asrVisibleAyahs.map((v,idx)=>{
               const vKey=v.verse_key;
               const vNum=v.verse_key?.split(":")?.[1];
               const expanded=asrExpandedAyah===vKey;
@@ -1023,7 +1104,7 @@ export default function RihlatAlHifz() {
               return (
                 <div key={vKey}>
                   <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:18,lineHeight:expanded?1.8:1.65,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6}}>
+                    <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:18,lineHeight:expanded?1.8:1.65,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>
                       {v.text_uthmani}
                     </div>
                     <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}>
@@ -1047,13 +1128,9 @@ export default function RihlatAlHifz() {
                 </div>
               );
             })}
-            </div>{/* end sliding content */}
-          </div>
-
-          {/* Swipe indicator — below panel border */}
-          <div style={{textAlign:"center",padding:"8px 0 4px",opacity:0.35}}>
-            <div style={{fontSize:10,color:"rgba(226,188,114,0.8)",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Swipe</div>
-            <div style={{fontSize:13,color:"rgba(226,188,114,0.6)",letterSpacing:"2px"}}>←──────→</div>
+                </div>{/* end right track page */}
+              </div>{/* end track */}
+            </div>{/* end viewport */}
           </div>
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
@@ -1089,7 +1166,7 @@ export default function RihlatAlHifz() {
               Change Selection
             </div>
           </div>
-        </div>
+        </div>{/* end flex column wrapper */}
       </div>
     );
   }
@@ -1108,10 +1185,9 @@ export default function RihlatAlHifz() {
         @keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}.fi{animation:fi .2s ease;}
         @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
-        @keyframes asrSlideInLeft{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        @keyframes asrSlideInRight{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .asr-slide-left{animation:asrSlideInLeft 0.22s ease forwards;}
-        .asr-slide-right{animation:asrSlideInRight 0.22s ease forwards;}
+        .asr-track-viewport{overflow:hidden;position:relative;}
+        .asr-track{display:flex;width:200%;transition:transform 0.22s ease;will-change:transform;}
+        .asr-track-page{width:50%;flex-shrink:0;}
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
         .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
@@ -1120,11 +1196,11 @@ export default function RihlatAlHifz() {
         .asr-title-line{position:relative;height:1px;margin:8px 0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.04) 18%,rgba(232,200,120,0.42) 50%,rgba(217,177,95,0.04) 82%,rgba(217,177,95,0) 100%);}
         .asr-ayah-panel{position:relative;border-radius:0;padding:6px 20px;overflow:visible;background:rgba(8,16,34,0.30);}
         .asr-ayah-panel::before{display:none;}
-        .asr-row{display:flex;align-items:center;gap:4px;min-height:56px;padding:10px 6px;}
+        .asr-row{display:flex;align-items:center;gap:4px;min-height:56px;padding:10px 6px 14px;}
         .asr-row-divider{height:1px;margin:0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.15) 15%,rgba(232,200,120,0.55) 50%,rgba(217,177,95,0.15) 85%,rgba(217,177,95,0) 100%);box-shadow:0 0 6px rgba(217,177,95,0.18),0 1px 3px rgba(217,177,95,0.10);}
         .asr-num{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.72);font-size:11px;font-weight:500;background:transparent;box-shadow:inset 0 0 0 1px rgba(217,177,95,0.18);}
         .asr-arw{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;color:rgba(226,188,114,0.52);font-size:28px;font-weight:300;background:transparent;cursor:pointer;user-select:none;transition:all .15s;z-index:5;}
-        .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.80);} .asr-arw.left{left:-16px;} .asr-arw.right{right:-12px;}
+        .asr-arw:hover{opacity:1;color:rgba(226,188,114,0.80);} .asr-arw.left{left:6px;} .asr-arw.right{right:6px;}
         .asr-progress-rule{height:1px;margin:18px 0 16px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.05) 20%,rgba(243,231,200,0.08) 50%,rgba(217,177,95,0.05) 80%,rgba(217,177,95,0) 100%);}
 
         input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:${T.accent};cursor:pointer;}
@@ -1140,6 +1216,7 @@ export default function RihlatAlHifz() {
           asrPageStart={asrPageStart}
           asrPageEnd={asrPageEnd}
           asrVisibleAyahs={asrVisibleAyahs}
+          asrPrevAyahs={asrPrevAyahs}
           asrExpandedAyah={asrExpandedAyah}
           setAsrExpandedAyah={setAsrExpandedAyah}
           asrTouchStartRef={asrTouchStartRef}
@@ -1501,35 +1578,103 @@ export default function RihlatAlHifz() {
 
             {/* ── ASR PICKER ── */}
             {SESSIONS[activeSessionIndex]?.id==="asr"&&(
-              <div style={{marginBottom:12,padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10}}>
-                <div style={{fontSize:11,fontWeight:700,color:T.text,marginBottom:10}}>Choose material for Asr review</div>
-                <div style={{fontSize:9,color:T.dim,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Completed Surahs</div>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
-                  {completedSurahOptions.length===0&&<div style={{fontSize:11,color:T.dim}}>No completed surahs yet</div>}
-                  {completedSurahOptions.map(s=>{
-                    const selected=asrSelectedSurahs.includes(s.num);
-                    return (<div key={s.num} className="sbtn" onClick={()=>{ toggleAsrSurahReview(s.num); }} style={{padding:"6px 10px",borderRadius:20,background:selected?T.accentDim:T.surface2,border:`1px solid ${selected?T.accent+"50":T.border}`,color:selected?T.accent:T.sub,fontSize:11}}>{s.en}</div>);
-                  })}
+              <div style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)",overflowY:"auto",padding:"28px 20px 40px"}}>
+
+                {/* Header */}
+                <div style={{textAlign:"center",marginBottom:6}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#F3E7C8",fontWeight:700,marginBottom:6}}>Choose Your Asr Review</div>
+                  <div style={{fontSize:13,color:"rgba(243,231,200,0.50)"}}>Cycle through your completed memorization.</div>
                 </div>
-                <div style={{fontSize:9,color:T.dim,letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>Completed Juz</div>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                  {completedJuzOptions.length===0&&<div style={{fontSize:11,color:T.dim}}>No completed juz yet</div>}
-                  {completedJuzOptions.map(j=>{
-                    const selected=asrSelectedJuz.includes(j.num);
-                    return (<div key={j.num} className="sbtn" onClick={()=>{ if(asrSelectedJuz.includes(j.num)){setAsrSelectedJuz([]);setAsrReviewBatch([]);}else{loadAsrJuzReview(j.num);} }} style={{padding:"6px 10px",borderRadius:20,background:selected?T.accentDim:T.surface2,border:`1px solid ${selected?T.accent+"50":T.border}`,color:selected?T.accent:T.sub,fontSize:11}}>Juz {j.num}</div>);
-                  })}
+                <div style={{height:1,margin:"16px 0",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.40) 50%,rgba(217,177,95,0) 100%)"}}/>
+
+                {/* Juz accordion */}
+                <div style={{fontSize:9,color:"rgba(217,177,95,0.65)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:12,textAlign:"center"}}>Select Juz</div>
+
+                {completedJuzOptions.length===0&&(
+                  <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.40)",marginBottom:16}}>No completed Juz yet</div>
+                )}
+
+                {completedJuzOptions.map(j=>{
+                  const isOpen=asrActiveJuzPanel===j.num;
+                  const isSelected=asrSelectedJuz.includes(j.num);
+                  const juzSurahs=JUZ_SURAHS[j.num]||[];
+
+                  const selectedSurahsInJuz=juzSurahs.filter(s=>asrSelectedSurahs.includes(s.s));
+                  const hasSelections=isSelected||selectedSurahsInJuz.length>0;
+                  return (
+                    <div key={j.num} style={{marginBottom:10}}>
+                      {/* Juz button */}
+                      <div className="sbtn" onClick={()=>setAsrActiveJuzPanel(isOpen?null:j.num)}
+                        style={{width:"100%",padding:"14px 18px",borderRadius:16,display:"flex",justifyContent:"space-between",alignItems:"center",
+                          background:isOpen?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.03)",
+                          border:`1px solid ${hasSelections?"rgba(217,177,95,0.45)":isOpen?"rgba(217,177,95,0.25)":"rgba(217,177,95,0.12)"}`,
+                          boxShadow:hasSelections?"0 0 18px rgba(217,177,95,0.12)":"none"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          {hasSelections&&<div style={{width:8,height:8,borderRadius:"50%",background:"#D2A85A",boxShadow:"0 0 8px rgba(210,168,90,0.5)"}}/>}
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:hasSelections?"#F3E7C8":"rgba(243,231,200,0.80)",fontWeight:600}}>Juz {j.num}</div>
+                          {j.name&&<div style={{fontSize:11,color:"rgba(243,231,200,0.40)"}}>{j.name}</div>}
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          {hasSelections&&<div style={{fontSize:10,color:"rgba(217,177,95,0.75)",fontWeight:600}}>{isSelected?"All":`${selectedSurahsInJuz.length} selected`}</div>}
+                          <div style={{color:"rgba(217,177,95,0.50)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
+                        </div>
+                      </div>
+
+                      {/* Surah panel — expands when Juz is open */}
+                      {isOpen&&(
+                        <div style={{marginTop:6,padding:"14px 16px",borderRadius:14,background:"rgba(7,14,28,0.60)",border:"1px solid rgba(217,177,95,0.14)"}}>
+                          {/* Select whole Juz toggle */}
+                          <div className="sbtn" onClick={()=>loadAsrJuzReview(j.num)}
+                            style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,padding:"8px 10px",borderRadius:10,
+                              background:isSelected?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.02)",
+                              border:`1px solid ${isSelected?"rgba(217,177,95,0.30)":"rgba(217,177,95,0.12)"}`}}>
+                            <div style={{width:18,height:18,borderRadius:4,background:isSelected?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${isSelected?"#D4AF37":"rgba(212,175,55,0.35)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:isSelected?"0 0 8px rgba(212,175,55,0.40)":"none"}}>{isSelected?"✓":""}</div>
+                            <div style={{fontSize:12,color:isSelected?"#F6E27A":"rgba(212,175,55,0.75)",fontWeight:600}}>Select all surahs in Juz {j.num}</div>
+                          </div>
+
+                          {/* Individual surah grid — fixed height scrollable */}
+                          <div style={{maxHeight:220,overflowY:"auto",paddingRight:2}}>
+                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+                              {juzSurahs.map(s=>{
+                                const checked=asrSelectedSurahs.includes(s.s)||isSelected;
+                                return (
+                                  <div key={s.s} className="sbtn" onClick={()=>{ if(!isSelected) toggleAsrSurahReview(s.s); }}
+                                    style={{display:"flex",alignItems:"center",gap:7,padding:"9px 10px",borderRadius:10,
+                                      background:checked?"linear-gradient(180deg,rgba(212,175,55,0.08),rgba(12,16,26,0.96))":"rgba(255,255,255,0.02)",
+                                      border:`1px solid ${checked?"rgba(212,175,55,0.38)":"rgba(255,255,255,0.06)"}`,
+                                      boxShadow:checked?"0 0 12px rgba(212,175,55,0.12)":"none",
+                                      transform:checked?"scale(1.01)":"scale(1)",transition:"all .15s"}}>
+                                    <div style={{width:14,height:14,borderRadius:4,background:checked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${checked?"#D4AF37":"rgba(212,175,55,0.30)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:800,flexShrink:0,boxShadow:checked?"0 0 8px rgba(212,175,55,0.35)":"none"}}>{checked?"✓":""}</div>
+                                    <div style={{fontSize:11,color:checked?"#F6E27A":"rgba(255,255,255,0.65)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:checked?600:400}}>{s.name}</div>
+                                    <div style={{fontSize:9,color:"rgba(255,255,255,0.22)",flexShrink:0}}>{s.a}v</div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <div style={{height:1,margin:"16px 0",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.25) 50%,rgba(217,177,95,0) 100%)"}}/>
+
+                {/* Summary */}
+                <div style={{textAlign:"center",marginBottom:16,minHeight:20}}>
+                  {asrSelectionSummary
+                    ?<div style={{fontSize:13,color:"rgba(243,231,200,0.65)"}}><span style={{color:"rgba(243,231,200,0.40)"}}>Selected: </span><span style={{color:"#E2BC72",fontWeight:600}}>{asrSelectionSummary}</span></div>
+                    :<div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Select a Juz or individual surahs to begin</div>
+                  }
                 </div>
 
-                {/* Start button */}
-                <div style={{marginTop:12,fontSize:10,color:T.dim,marginBottom:6}}>
-                  {asrSelectionSummary?`Selected: ${asrSelectionSummary}`:"Select completed surahs or a completed Juz to begin"}
-                </div>
+                {/* CTA */}
                 <div className="sbtn" onClick={()=>{if(!asrCanStart)return;setAsrStarted(true);setAsrPage(0);setAsrExpandedAyah(null);}}
-                  style={{width:"100%",padding:"14px",borderRadius:12,textAlign:"center",fontSize:14,fontWeight:700,
-                    background:asrCanStart?"linear-gradient(180deg,#E6B84A,#D4A62A)":"rgba(255,255,255,0.06)",
-                    color:asrCanStart?"#0B1220":"rgba(255,255,255,0.35)",
-                    boxShadow:asrCanStart?"0 6px 14px rgba(230,184,74,0.2)":"none",
-                    border:asrCanStart?"none":"1px solid rgba(255,255,255,0.08)",
+                  style={{width:"100%",padding:"15px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".06em",textTransform:"uppercase",
+                    background:asrCanStart?"linear-gradient(180deg,#E3C07A 0%,#D1A659 100%)":"rgba(255,255,255,0.05)",
+                    color:asrCanStart?"#0A1020":"rgba(255,255,255,0.25)",
+                    boxShadow:asrCanStart?"0 10px 22px rgba(210,168,90,0.18),inset 0 1px 0 rgba(255,255,255,0.14)":"none",
+                    border:asrCanStart?"none":"1px solid rgba(255,255,255,0.06)",
                     pointerEvents:asrCanStart?"auto":"none"}}>
                   Start Asr Review
                 </div>
@@ -1754,7 +1899,7 @@ export default function RihlatAlHifz() {
               </div>
             )}
 
-            {!sessLoading&&currentSessionId==="fajr"&&batch.length===0&&totalSV>0&&(
+            {!sessLoading&&currentSessionId==="fajr"&&batch.length===0&&totalSV>0&&(juzProgress[sessionJuz]||0)>0&&(
               <div style={{textAlign:"center",paddingTop:40}}>
                 <div style={{fontSize:26,marginBottom:10}}>🎉</div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:T.accent,marginBottom:6}}>Juz {sessionJuz} Complete — Alhamdulillah!</div>
