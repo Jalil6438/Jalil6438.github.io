@@ -494,19 +494,6 @@ export default function RihlatAlHifz() {
     try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
   },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
-  // Sync sessionIdx into juzProgress for durable per-Juz progress
-  useEffect(()=>{
-    if(!loaded) return;
-    if(!sessionJuz) return; // don't write during transitions when sessionJuz=null
-    setJuzProgress(prev=>{
-      const current=prev[sessionJuz]||0;
-      if(current===sessionIdx) return prev;
-      // Only update if sessionIdx is a meaningful progress value (not 0 resetting active progress)
-      if(sessionIdx===0&&current>0) return prev;
-      return {...prev,[sessionJuz]:sessionIdx};
-    });
-  },[sessionJuz,sessionIdx,loaded]);
-
   // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
   useEffect(()=>{
     if(!sessionJuz) return;
