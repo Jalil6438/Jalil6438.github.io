@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 // ── QURAN RECITERS (Al-Quran Al-Karim tab) ────────────────────────────────────
 const QURAN_RECITERS = [
@@ -904,10 +904,33 @@ export default function RihlatAlHifz() {
   const currentMemorizationSurahNum=sessionVerses[0]?.surah_number||parseInt(sessionVerses[0]?.verse_key?.split(":")?.[0]||"0",10);
   const descendingSurahOrderForCurrentJuz=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
 
+  // Compute surahs fully passed in the current session (based on sessionIdx)
+  const asrPassedSurahs=useMemo(()=>{
+    const passed=new Set();
+    if(!sessionVerses.length||!sessionIdx) return passed;
+    const surahOrder=[];
+    const surahVerseCount={};
+    sessionVerses.forEach(v=>{
+      const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+      if(!surahOrder.includes(sn)) surahOrder.push(sn);
+      surahVerseCount[sn]=(surahVerseCount[sn]||0)+1;
+    });
+    let cursor=0;
+    for(const sn of surahOrder){
+      const count=surahVerseCount[sn]||0;
+      if(cursor+count<=sessionIdx) passed.add(sn);
+      cursor+=count;
+    }
+    return passed;
+  },[sessionVerses,sessionIdx]);
+
   const completedJuzOptions=JUZ_META.filter(j=>{
     if(juzStatus[j.num]==="complete") return true;
     const surahs=JUZ_SURAHS[j.num]||[];
-    return surahs.some(s=>juzStatus[`s${s.s}`]==="complete");
+    if(surahs.some(s=>juzStatus[`s${s.s}`]==="complete")) return true;
+    // Include current juz if any surahs have been passed through in session
+    if(j.num===sessionJuz&&asrPassedSurahs.size>0) return true;
+    return false;
   }).map(j=>({num:j.num,name:j.roman||`Juz ${j.num}`,arabic:j.arabic||""})).sort((a,b)=>b.num-a.num);
 
   useEffect(()=>{if(batch.length&&showTrans)fetchTranslations(batch);},[batch,showTrans]);
@@ -1577,7 +1600,7 @@ export default function RihlatAlHifz() {
                 {completedJuzOptions.map(j=>{
                   const isOpen=asrActiveJuzPanel===j.num;
                   const isSelected=asrSelectedJuz.includes(j.num);
-                  const juzSurahs=(JUZ_SURAHS[j.num]||[]).filter(s=>juzStatus[`s${s.s}`]==="complete"||juzStatus[j.num]==="complete");
+                  const juzSurahs=(JUZ_SURAHS[j.num]||[]).filter(s=>juzStatus[`s${s.s}`]==="complete"||juzStatus[j.num]==="complete"||asrPassedSurahs.has(s.s));
 
                   const selectedSurahsInJuz=juzSurahs.filter(s=>asrSelectedSurahs.includes(s.s)&&!isSelected);
                   const hasSelections=isSelected||selectedSurahsInJuz.length>0;
