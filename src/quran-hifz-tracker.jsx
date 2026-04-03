@@ -414,7 +414,7 @@ export default function RihlatAlHifz() {
       if(!isJuzDone(j)){ next=j; break; }
     }
     const target=next||30;
-    // Only update if different to avoid unnecessary re-renders and fetch triggers
+    console.log('[INIT]', {target, sessionJuz, willUpdate: target!==sessionJuz});
     if(target!==sessionJuz) setSessionJuz(target);
   },[loaded,juzStatus]);
 
@@ -503,6 +503,7 @@ export default function RihlatAlHifz() {
   // Fetch session verses
   useEffect(()=>{
     if(!sessionJuz) return;
+    console.log('[FETCH START]', {sessionJuz, 'juzProgress[sessionJuz]': juzProgress[sessionJuz]});
     let cancelled=false;
     (async()=>{
       setSessLoading(true); setSessionVerses([]); setSessError(false);
