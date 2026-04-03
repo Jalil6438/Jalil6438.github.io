@@ -1419,7 +1419,7 @@ export default function RihlatAlHifz() {
                 <div style={{flex:1}}/>
                 <div style={{display:"flex",gap:8}}>
                   <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:12,fontSize:14,color:"#A8B89A"}}>←</div>
-                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setSessionJuz(null);setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
+                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
                     Select your starting point
                   </div>
                 </div>
@@ -1831,14 +1831,14 @@ export default function RihlatAlHifz() {
                     if(activeSessionIndex>=SESSIONS.length-1){
                       setYesterdayBatch(fajrBatch);
                       console.log('[ISHA CTA]', {bEnd, totalSV, sessionIdx, sessionJuz, 'bEnd>=totalSV': bEnd>=totalSV, 'totalSV>0': totalSV>0, activeSessionIndex, 'isIsha': activeSessionIndex>=SESSIONS.length-1});
-                      if(bEnd>=totalSV&&totalSV>0){
+                      if(bEnd>=totalSV&&totalSV>0&&sessionJuz){
                         console.log('[ISHA CTA] → COMPLETION BRANCH');
                         setSessionIdx(totalSV);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
                         setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
                         setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
                         setSessionJuz(null);
-                      } else {
+                      } else if(sessionJuz) {
                         console.log('[ISHA CTA] → ELSE BRANCH');
                         setSessionIdx(bEnd);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
