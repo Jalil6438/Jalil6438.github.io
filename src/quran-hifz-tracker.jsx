@@ -599,7 +599,9 @@ export default function RihlatAlHifz() {
     if(Object.keys(progressUpdates).length>0){
       setJuzProgress(prev=>({...prev,...progressUpdates}));
     }
-  },[loaded,juzStatus,juzCompletedInSession]);=async(verses)=>{
+  },[loaded,juzStatus,juzCompletedInSession]);
+
+  const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
     const updated={};
