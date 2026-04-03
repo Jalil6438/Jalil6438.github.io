@@ -398,38 +398,59 @@ function AsrSessionView({
               {asrVisibleAyahs.map((v,idx)=>{
                 const vKey=v.verse_key;
                 const vNum=v.verse_key?.split(":")?.[1];
-                const expanded=asrExpandedAyah===vKey;
-                const trans=translations[vKey];
-                const isPlaying=playingKey===vKey;
-                const isLoading=audioLoading===vKey;
                 return (
                   <div key={vKey}>
-                    <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(expanded?null:vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                      <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:expanded?22:18,lineHeight:expanded?1.8:1.65,whiteSpace:expanded?"normal":"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>
+                    <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}>
+                      <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.65,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>
                         {v.text_uthmani}
                       </div>
                       <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}>
                         <div className="asr-num">{vNum}</div>
                       </div>
                     </div>
-                    {expanded&&(
-                      <div style={{margin:"4px 0 8px",padding:"14px 18px 16px",borderRadius:22,background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),rgba(20,28,46,0.78)",boxShadow:"0 14px 30px rgba(0,0,0,0.30),inset 0 1px 0 rgba(255,255,255,0.03)",border:"1px solid rgba(217,177,95,0.10)"}}>
-                        <div style={{color:"rgba(243,231,200,0.76)",fontSize:13,lineHeight:1.75,marginBottom:12}}>
-                          {trans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:trans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
-                        </div>
-                        <div style={{display:"flex",alignItems:"center",gap:10}}>
-                          <div className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{width:36,height:36,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:isPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${isPlaying?"rgba(217,177,95,0.22)":"rgba(255,255,255,0.06)"}`,color:isPlaying?T2.goldBright:"rgba(243,231,200,0.56)"}}>
-                            {isLoading?"…":isPlaying?"⏸":"▶"}
-                          </div>
-                          <div style={{fontSize:11,color:"rgba(243,231,200,0.34)"}}>Tap again to collapse</div>
-                        </div>
-                      </div>
-                    )}
                     {idx<asrVisibleAyahs.length-1&&<div className="asr-row-divider"/>}
                   </div>
                 );
               })}
             </div>
+
+            {/* Ayah popup modal */}
+            {asrExpandedAyah&&(()=>{
+              const ev=batch.find(v=>v.verse_key===asrExpandedAyah);
+              if(!ev) return null;
+              const evKey=ev.verse_key;
+              const evSurah=ev.surah_number||parseInt(evKey.split(":")[0],10);
+              const evAyah=evKey.split(":")[1];
+              const evTrans=translations[evKey];
+              const evPlaying=playingKey===evKey;
+              const evLoading=audioLoading===evKey;
+              return (
+                <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setAsrExpandedAyah(null)}>
+                  <div className="fi" style={{width:"100%",maxWidth:400,borderRadius:24,padding:"28px 24px 24px",background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.12) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
+                    {/* Close */}
+                    <div className="sbtn" onClick={()=>setAsrExpandedAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
+                    {/* Arabic */}
+                    <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
+                      {ev.text_uthmani}
+                    </div>
+                    {/* Reference */}
+                    <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:14}}>
+                      Ayah {evAyah} of Surah {SURAH_EN[evSurah]||evSurah}
+                    </div>
+                    {/* Translation */}
+                    <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
+                      {evTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:evTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
+                    </div>
+                    {/* Play button */}
+                    <div style={{display:"flex",justifyContent:"center"}}>
+                      <div className="sbtn" onClick={()=>playAyah(evKey,evKey)} style={{width:42,height:42,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:evPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${evPlaying?"rgba(217,177,95,0.30)":"rgba(255,255,255,0.08)"}`,color:evPlaying?T2.goldBright:"rgba(243,231,200,0.56)",fontSize:16}}>
+                        {evLoading?"…":evPlaying?"⏸":"▶"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
@@ -730,18 +751,17 @@ export default function RihlatAlHifz() {
   const fetchTranslations=async(verses)=>{
     const needed=verses.filter(v=>!translations[v.verse_key]);
     if(!needed.length) return;
-    // Group by surah — one request per surah instead of one per ayah
     const surahSet=new Set(needed.map(v=>v.verse_key.split(":")[0]));
     const updated={};
     for(const surahNum of surahSet){
       try{
-        const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahNum}?translations=131&fields=verse_key&per_page=300&page=1`);
+        const res=await fetch(`https://api.quran.com/api/v4/quran/translations/20?chapter_number=${surahNum}`);
         if(!res.ok) continue;
         const data=await res.json();
-        if(!data.verses?.length) continue;
-        data.verses.forEach(v=>{
-          const text=v.translations?.[0]?.text||"";
-          updated[v.verse_key]=text.replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").trim();
+        if(!data.translations?.length) continue;
+        data.translations.forEach((t,i)=>{
+          const key=`${surahNum}:${i+1}`;
+          updated[key]=(t.text||"").replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").trim();
         });
       }catch{}
     }
