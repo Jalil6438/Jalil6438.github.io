@@ -404,20 +404,18 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    // A Juz is "done" if fully complete OR all its surahs are individually marked
     const isJuzDone=(juzNum)=>{
       if(juzStatus[juzNum]==="complete") return true;
       const surahs=JUZ_SURAHS[juzNum]||[];
       return surahs.length>0&&surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
     };
-    // Skip recalculation if current sessionJuz is valid (not done, already set)
-    if(sessionJuz&&!isJuzDone(sessionJuz)) return;
-    // Find first incomplete Juz starting from 30 down
     let next=null;
     for(let j=30;j>=1;j--){
       if(!isJuzDone(j)){ next=j; break; }
     }
-    setSessionJuz(next||30);
+    const target=next||30;
+    // Only update if different to avoid unnecessary re-renders and fetch triggers
+    if(target!==sessionJuz) setSessionJuz(target);
   },[loaded,juzStatus]);
 
 
