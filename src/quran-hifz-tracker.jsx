@@ -540,6 +540,7 @@ export default function RihlatAlHifz() {
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrSurahShowCount,setAsrSurahShowCount]=useState(10);
+  const [memSections,setMemSections]=useState({completed:false,inprogress:true,upcoming:false});
   const [asrPage,setAsrPage]=useState(0);
   const [asrSlideDir,setAsrSlideDir]=useState(null);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
@@ -2312,8 +2313,8 @@ export default function RihlatAlHifz() {
         const inProgressJuz=JUZ_META.filter(j=>j.num!==currentJuz&&!isJDone(j.num)&&(juzStatus[`s${(JUZ_SURAHS[j.num]||[])[0]?.s}`]==="complete"||(juzProgress[j.num]||0)>0)).sort((a,b)=>b.num-a.num);
         const upcomingJuz=JUZ_META.filter(j=>j.num!==currentJuz&&!isJDone(j.num)&&!inProgressJuz.find(ip=>ip.num===j.num)).sort((a,b)=>b.num-a.num);
 
-        const [openSection,setOpenSection_]=useState(()=>({completed:false,inprogress:true,upcoming:false}));
-        const toggleSection=(key)=>setOpenSection_(p=>({...p,[key]:!p[key]}));
+        const openSection=memSections;
+        const toggleSection=(key)=>setMemSections(p=>({...p,[key]:!p[key]}));
 
         // Journey strip: show completed + current + next few
         const journeyItems=[];
