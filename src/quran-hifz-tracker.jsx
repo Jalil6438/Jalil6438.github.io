@@ -2552,13 +2552,13 @@ export default function RihlatAlHifz() {
               const LINES=15;
               const lineH=fontSize*2.2;
               const pageH=LINES*lineH;
-              const viewH=pageH+20; // 10px buffer top + bottom for tashkil/descenders
+              const viewH=pageH+48; // 24px top + 24px bottom breathing room
 
               return (
               <div style={{flex:1,display:"flex",flexDirection:"column"}}>
                 <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
                   style={{flex:1,padding:"4px 16px 0"}}>
-                  <div style={{height:viewH,overflow:"hidden",paddingLeft:2,paddingRight:2,paddingTop:10}}>
+                  <div style={{height:viewH,overflow:"hidden",padding:"24px 4px 24px"}}>
                     <div ref={quranContentRef} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
                       transform:`translateY(${-quranPage*pageH}px)`}}>
                       {surahGroups.map(({surahNum,verses},gi)=>{
