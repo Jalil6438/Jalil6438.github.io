@@ -521,6 +521,9 @@ export default function RihlatAlHifz() {
   const [loaded,setLoaded]=useState(false);
   const [fontSize,setFontSize]=useState(16);
   const [quranShowCount,setQuranShowCount]=useState(5);
+  const [quranPage,setQuranPage]=useState(0);
+  const [quranPageDir,setQuranPageDir]=useState(null);
+  const quranTouchRef=useRef(0);
   const [openSurah,setOpenSurah]=useState(null);
   const [goalYears,setGoalYears]=useState(3);
   const [goalMonths,setGoalMonths]=useState(1);
@@ -1224,6 +1227,10 @@ export default function RihlatAlHifz() {
         @keyframes asrSlideRight{from{transform:translateX(-40px);opacity:0}to{transform:translateX(0);opacity:1}}
         .asr-slide-left{animation:asrSlideLeft .2s ease-out}
         .asr-slide-right{animation:asrSlideRight .2s ease-out}
+        @keyframes pageTurnNext{0%{transform:perspective(1200px) rotateY(12deg);opacity:0}100%{transform:perspective(1200px) rotateY(0deg);opacity:1}}
+        @keyframes pageTurnPrev{0%{transform:perspective(1200px) rotateY(-12deg);opacity:0}100%{transform:perspective(1200px) rotateY(0deg);opacity:1}}
+        .page-next{animation:pageTurnNext .4s ease-out;transform-origin:left center;}
+        .page-prev{animation:pageTurnPrev .4s ease-out;transform-origin:right center;}
         .asr-surah-btn{transition:all .15s ease;transform:scale(1);}
         .asr-surah-btn:active{transform:scale(0.97);transition:transform .06s ease-out;}
         @keyframes goldPulse{0%,100%{box-shadow:0 0 12px rgba(230,184,74,0.15)}50%{box-shadow:0 0 24px rgba(230,184,74,0.35)}}
@@ -2513,7 +2520,7 @@ export default function RihlatAlHifz() {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
           {/* Minimal top bar */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px",background:"rgba(12,16,24,0.98)",borderBottom:"1px solid rgba(212,175,55,0.08)",flexShrink:0}}>
-            <select value={selectedJuz} onChange={e=>{setSelectedJuz(Number(e.target.value));setQuranShowCount(5);}} style={{background:"transparent",border:"none",color:"#E6B84A",fontSize:13,fontWeight:600,fontFamily:"'DM Sans',sans-serif",outline:"none",padding:"4px 0"}}>
+            <select value={selectedJuz} onChange={e=>{setSelectedJuz(Number(e.target.value));setQuranShowCount(5);setQuranPage(0);setQuranPageDir(null);}} style={{background:"transparent",border:"none",color:"#E6B84A",fontSize:13,fontWeight:600,fontFamily:"'DM Sans',sans-serif",outline:"none",padding:"4px 0"}}>
               {JUZ_META.map(j=><option key={j.num} value={j.num} style={{background:"#0C1018"}}>Juz {j.num} — {j.roman}</option>)}
             </select>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -2523,66 +2530,81 @@ export default function RihlatAlHifz() {
             </div>
           </div>
 
-          {/* Mushaf reading area */}
-          <div style={{flex:1,overflowY:"auto",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)",padding:"24px 20px 60px"}}>
+          {/* Mushaf reading area — paginated by lines */}
+          <div style={{flex:1,display:"flex",flexDirection:"column",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)",overflow:"hidden"}}
+            onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
+            onTouchEnd={e=>{
+              const dx=e.changedTouches[0].clientX-quranTouchRef.current;
+              if(Math.abs(dx)<50) return;
+              if(dx<0){setQuranPageDir("next");setQuranPage(p=>p+1);}
+              else if(quranPage>0){setQuranPageDir("prev");setQuranPage(p=>p-1);}
+            }}>
             {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:60,gap:12}}><div className="spin" style={{width:26,height:26,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Loading...</div></div>}
             {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Check your connection.</div></div>}
-            {!loading&&!fetchError&&surahGroups.length>0&&(
-              <div>
-                {surahGroups.map(({surahNum,verses},gi)=>{
-                  const startA=verses[0]?.verse_key?.split(":")?.[1];
-                  return (
-                    <div key={surahNum} style={{marginBottom:28}}>
-                      {/* Surah header — decorative */}
-                      <div style={{textAlign:"center",marginBottom:20,position:"relative"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
-                          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0) 0%,rgba(212,175,55,0.25) 100%)"}}/>
-                          <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"rgba(212,175,55,0.70)",direction:"rtl"}}>{SURAH_AR[surahNum]}</div>
-                          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.25) 0%,rgba(212,175,55,0) 100%)"}}/>
-                        </div>
-                        <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",letterSpacing:".06em"}}>{SURAH_EN[surahNum]} · {verses.length} Ayahs</div>
-                        {/* Play surah */}
-                        <div className="sbtn" onClick={()=>{
-                          const firstVerseKey=verses[0]?.verse_key||"";
-                          const firstAyahNum=parseInt(firstVerseKey.split(":")?.[1]||"1",10);
-                          const shouldUseAyahQueue=MID_SURAH_JUZ.has(selectedJuz)&&firstAyahNum>1;
-                          if(shouldUseAyahQueue){ playSurahQueue(verses,surahNum,0,quranReciter); } else { playQuranSurah(surahNum); }
-                        }} style={{display:"inline-flex",alignItems:"center",gap:5,marginTop:8,padding:"4px 12px",borderRadius:20,fontSize:11,color:playingSurah===surahNum?"#E6B84A":"rgba(243,231,200,0.25)",background:playingSurah===surahNum?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${playingSurah===surahNum?"rgba(230,184,74,0.25)":"rgba(255,255,255,0.06)"}`,transition:"all .15s"}}>
-                          {audioLoading===`surah-${surahNum}`||(audioLoading&&playingSurah===surahNum)
-                            ?<span className="spin" style={{display:"inline-block",width:10,height:10,border:"1.5px solid rgba(212,175,55,0.3)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
-                            :<span>{playingSurah===surahNum?"\u23F8":"\u25B6"}</span>
-                          }
-                          <span>{playingSurah===surahNum?"Playing":"Play"}</span>
-                        </div>
-                      </div>
-
-                      {/* Bismillah */}
-                      {surahNum!==9&&startA==="1"&&(
-                        <div style={{textAlign:"center",marginBottom:18}}>
-                          <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:fontSize+4,color:"rgba(212,175,55,0.55)"}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
-                        </div>
-                      )}
-
-                      {/* Continuous flowing text */}
-                      <p style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:3.2,color:"rgba(243,231,200,0.88)",margin:0}}>
-                        {verses.map(v=>{
-                          const vNum=v.verse_key?.split(":")?.[1];
-                          const vKey=v.verse_key;
-                          const isPlaying=playingKey===vKey;
-                          return (
-                            <span key={vKey} className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{background:isPlaying?"rgba(212,175,55,0.12)":"transparent",borderRadius:4,padding:isPlaying?"2px 4px":0,transition:"background .3s"}}>
-                              <span style={{color:isPlaying?"#E6B84A":"rgba(243,231,200,0.88)"}}>{v.text_uthmani}</span>
-                              <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.4em",height:"1.4em",borderRadius:"50%",color:isPlaying?"#E6B84A":"rgba(212,175,55,0.35)",fontSize:"0.38em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 3px",verticalAlign:"middle"}}>{vNum}</span>
-                              {" "}
-                            </span>
-                          );
+            {!loading&&!fetchError&&surahGroups.length>0&&(()=>{
+              // Flatten all content into a single verse stream with surah headers
+              const LINES_PER_PAGE=11;
+              const lineH=fontSize*2.2;
+              const pageH=lineH*LINES_PER_PAGE;
+              const allVerses=[];
+              surahGroups.forEach(({surahNum,verses},gi)=>{
+                const startA=verses[0]?.verse_key?.split(":")?.[1];
+                if(gi>0) allVerses.push({type:"break"});
+                allVerses.push({type:"header",surahNum,startA});
+                if(surahNum!==9&&startA==="1") allVerses.push({type:"bismillah"});
+                verses.forEach(v=>allVerses.push({type:"ayah",v,surahNum}));
+              });
+              return (
+              <div style={{flex:1,display:"flex",flexDirection:"column"}}>
+                {/* Page content */}
+                <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
+                  style={{flex:1,overflow:"hidden",padding:"20px 18px 0"}}>
+                  <div style={{background:"linear-gradient(180deg,rgba(28,24,18,0.50) 0%,rgba(22,19,14,0.45) 50%,rgba(28,24,18,0.50) 100%)",borderRadius:12,padding:"16px 14px",border:"1px solid rgba(212,175,55,0.06)",boxShadow:"inset 0 1px 0 rgba(255,245,220,0.03),inset 0 -1px 0 rgba(0,0,0,0.15),0 2px 12px rgba(0,0,0,0.20)",height:pageH,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+                    <div style={{flex:1,overflow:"hidden"}}>
+                      <div style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
+                        marginTop:`${-quranPage*pageH}px`,transition:"none"}}>
+                        {allVerses.map((item,i)=>{
+                          if(item.type==="break") return <div key={`b${i}`} style={{direction:"ltr",padding:"14px 0",display:"flex",alignItems:"center",gap:16}}><div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent 0%,rgba(212,175,55,0.12) 30%,rgba(212,175,55,0.12) 70%,transparent 100%)"}}/>
+                            <div style={{width:4,height:4,borderRadius:"50%",background:"rgba(212,175,55,0.18)"}}/>
+                            <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent 0%,rgba(212,175,55,0.12) 30%,rgba(212,175,55,0.12) 70%,transparent 100%)"}}/>
+                          </div>;
+                          if(item.type==="header") return <div key={`h${item.surahNum}`} style={{direction:"ltr",textAlign:"center",marginBottom:8,position:"relative"}}>
+                            <div className="sbtn" onClick={()=>{
+                              const sg=surahGroups.find(g=>g.surahNum===item.surahNum);if(!sg)return;
+                              const fvk=sg.verses[0]?.verse_key||"";const fan=parseInt(fvk.split(":")?.[1]||"1",10);
+                              if(MID_SURAH_JUZ.has(selectedJuz)&&fan>1){playSurahQueue(sg.verses,item.surahNum,0,quranReciter);}else{playQuranSurah(item.surahNum);}
+                            }} style={{position:"absolute",top:0,right:0,padding:"3px 8px",borderRadius:12,fontSize:10,color:playingSurah===item.surahNum?"#E6B84A":"rgba(243,231,200,0.22)",background:playingSurah===item.surahNum?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${playingSurah===item.surahNum?"rgba(230,184,74,0.20)":"rgba(255,255,255,0.05)"}`,zIndex:1}}>
+                              {playingSurah===item.surahNum?"\u23F8":"\u25B6"}
+                            </div>
+                            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
+                              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0) 0%,rgba(212,175,55,0.25) 100%)"}}/>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(212,175,55,0.70)",direction:"rtl"}}>{SURAH_AR[item.surahNum]}</div>
+                              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.25) 0%,rgba(212,175,55,0) 100%)"}}/>
+                            </div>
+                            <div style={{fontSize:10,color:"rgba(243,231,200,0.30)"}}>{SURAH_EN[item.surahNum]}</div>
+                          </div>;
+                          if(item.type==="bismillah") return <div key={`bis${i}`} style={{direction:"ltr",textAlign:"center",padding:"12px 0 14px"}}>
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:fontSize+2,color:"rgba(212,175,55,0.65)",textShadow:"0 0 14px rgba(212,175,55,0.20)"}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
+                          </div>;
+                          const v=item.v,vNum=v.verse_key?.split(":")?.[1],vKey=v.verse_key,isP=playingKey===vKey;
+                          return <span key={vKey} className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{background:isP?"rgba(212,175,55,0.12)":"transparent",borderRadius:4,padding:isP?"2px 4px":0,transition:"background .3s"}}>
+                            <span style={{color:isP?"#E6B84A":"rgba(243,231,200,0.88)"}}>{v.text_uthmani}</span>
+                            <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.2em",height:"1.2em",borderRadius:"50%",color:isP?"#E6B84A":"rgba(212,175,55,0.20)",fontSize:"0.32em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 2px",verticalAlign:"middle"}}>{vNum}</span>{" "}
+                          </span>;
                         })}
-                      </p>
+                      </div>
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
+                {/* Page number */}
+                <div style={{padding:"10px 0 14px",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:16}}>
+                  <div style={{height:1,width:40,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.15))"}}/>
+                  <div style={{fontSize:10,color:"rgba(212,175,55,0.30)",fontFamily:"'IBM Plex Mono',monospace"}}>{quranPage+1}</div>
+                  <div style={{height:1,width:40,background:"linear-gradient(90deg,rgba(212,175,55,0.15),transparent)"}}/>
+                </div>
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}
