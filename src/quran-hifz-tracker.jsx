@@ -2622,12 +2622,14 @@ export default function RihlatAlHifz() {
             <div style={{fontSize:12,color:"rgba(230,184,74,0.40)",marginTop:6}}>
               You are on track — Alhamdulillah
             </div>
-            <div style={{marginTop:12}}>
-              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
+            <div style={{marginTop:12,position:"relative"}}>
+              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:5}}>
                 <div style={{fontSize:11,color:"rgba(230,184,74,0.55)",fontFamily:"'IBM Plex Mono',monospace"}}>{pct}% · Juz {sessionJuz||"\u2014"}</div>
               </div>
-              <div style={{height:8,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                <div className="pbfill" style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,#8B7030,#D4AF37 ${Math.max(40,pct)}%,#F6E27A)`,borderRadius:999,boxShadow:`0 0 ${6+Math.round(pct*0.14)}px rgba(212,175,55,${(0.15+pct*0.005).toFixed(2)})`}}/>
+              {/* Gold dust glow behind bar */}
+              <div style={{position:"absolute",top:"50%",left:`${Math.max(5,pct/2)}%`,width:`${Math.max(30,pct)}%`,height:60,transform:"translateY(-40%)",background:`radial-gradient(ellipse at center,rgba(212,175,55,${(0.06+pct*0.002).toFixed(3)}) 0%,transparent 70%)`,pointerEvents:"none",zIndex:0}}/>
+              <div style={{position:"relative",zIndex:1,height:10,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                <div className="pbfill" style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,#8B7030,#D4AF37 ${Math.max(40,pct)}%,#F6E27A)`,borderRadius:999,boxShadow:`0 0 ${8+Math.round(pct*0.18)}px rgba(212,175,55,${(0.20+pct*0.006).toFixed(2)}), 0 0 ${3+Math.round(pct*0.08)}px rgba(246,226,122,${(0.10+pct*0.004).toFixed(2)})`}}/>
               </div>
             </div>
           </div>
