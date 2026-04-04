@@ -2624,48 +2624,50 @@ export default function RihlatAlHifz() {
             </div>
             <div style={{marginTop:12}}>
               <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
-                <div style={{fontSize:11,color:"rgba(230,184,74,0.55)",fontFamily:"'IBM Plex Mono',monospace"}}>{pct}% · Juz {sessionJuz||"—"}</div>
+                <div style={{fontSize:11,color:"rgba(230,184,74,0.55)",fontFamily:"'IBM Plex Mono',monospace"}}>{pct}% · Juz {sessionJuz||"\u2014"}</div>
               </div>
-              <div style={{height:6,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                <div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",borderRadius:999,boxShadow:"0 0 8px rgba(212,175,55,0.30)"}}/>
+              <div style={{height:8,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                <div className="pbfill" style={{height:"100%",width:`${pct}%`,background:`linear-gradient(90deg,#8B7030,#D4AF37 ${Math.max(40,pct)}%,#F6E27A)`,borderRadius:999,boxShadow:`0 0 ${6+Math.round(pct*0.14)}px rgba(212,175,55,${(0.15+pct*0.005).toFixed(2)})`}}/>
               </div>
             </div>
           </div>
 
           {/* ── YOUR PACE ── */}
           <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
-            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>📅 Your Pace</div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <span style={{fontSize:14}}>📖</span>
-                <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{dailyNew} ayahs / day</span>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <span style={{fontSize:14}}>📆</span>
-                <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{timeline.juzPerMonth} juz / month</span>
-              </div>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Your Pace</div>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
+              <span style={{fontSize:14}}>📖</span>
+              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{dailyNew} ayahs / day</span>
+            </div>
+            <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.35) 50%,rgba(217,177,95,0) 100%)"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
+              <span style={{fontSize:14}}>📆</span>
+              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{timeline.juzPerMonth} juz / month</span>
             </div>
           </div>
 
           {/* ── TODAY'S FLOW ── */}
           <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
-            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:14}}>📋 Your Daily Plan</div>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:14}}>Your Daily Plan</div>
             <div style={{display:"flex",flexDirection:"column",gap:0}}>
               {[
-                {icon:"🌅",name:"Fajr",label:"Start your new ayahs",desc:`Memorize ${dailyNew} new ayahs — repeat each until it sticks`},
-                {icon:"☀️",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier"},
-                {icon:"🌤️",name:"Asr",label:"Strengthen your memorization",desc:"Cycle through completed sections"},
-                {icon:"🌆",name:"Maghrib",label:"Listen carefully and follow along",desc:"Listen and follow along (15–20 min)"},
-                {icon:"🌙",name:"Isha",label:"Lock in today's memorization",desc:"Recite everything one final time"},
+                {icon:"\u{1F305}",name:"Fajr",label:"Start your new ayahs",desc:`Memorize ${dailyNew} new ayahs \u2014 repeat each until it sticks`},
+                {icon:"\u2600\uFE0F",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier"},
+                {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Cycle through completed sections"},
+                {icon:"\u{1F306}",name:"Maghrib",label:"Listen carefully and follow along",desc:"Listen and follow along (15\u201320 min)"},
+                {icon:"\u{1F319}",name:"Isha",label:"Lock in today's memorization",desc:"Recite everything one final time"},
               ].map((s,i,arr)=>(
-                <div key={s.name} style={{padding:"12px 0",borderBottom:i<arr.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10}}>
-                    <span style={{fontSize:14,width:22,textAlign:"center"}}>{s.icon}</span>
-                    <div>
-                      <div style={{fontSize:13,color:"#F3E7C8",fontWeight:600}}>{s.name} — <span style={{fontWeight:400,color:"rgba(243,231,200,0.55)"}}>{s.label}</span></div>
-                      <div style={{fontSize:11,color:"rgba(243,231,200,0.30)",marginTop:2}}>{s.desc}</div>
+                <div key={s.name}>
+                  <div style={{padding:"12px 0"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontSize:14,width:22,textAlign:"center"}}>{s.icon}</span>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600}}><span style={{color:"#E6B84A",textShadow:"0 0 8px rgba(230,184,74,0.20)"}}>{s.name}</span> <span style={{fontWeight:400,color:"rgba(243,231,200,0.55)"}}>{"\u2014"} {s.label}</span></div>
+                        <div style={{fontSize:11,color:"rgba(243,231,200,0.30)",marginTop:2}}>{s.desc}</div>
+                      </div>
                     </div>
                   </div>
+                  {i<arr.length-1&&<div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>}
                 </div>
               ))}
             </div>
@@ -2690,12 +2692,27 @@ export default function RihlatAlHifz() {
             <div style={{fontSize:12,color:"rgba(243,231,200,0.22)",fontStyle:"italic"}}>Stay consistent. Small daily progress builds lasting memorization.</div>
           </div>
 
-          {/* ── QURAN VERSE ── */}
+          {/* ── QURAN VERSE (rotates daily) ── */}
+          {(()=>{
+            const verses=[
+              {ar:"\u0648\u064E\u0644\u064E\u0642\u064E\u062F\u0652 \u064A\u064E\u0633\u0651\u064E\u0631\u0652\u0646\u064E\u0627 \u0627\u0644\u0652\u0642\u064F\u0631\u0652\u0622\u0646\u064E \u0644\u0650\u0644\u0630\u0651\u0650\u0643\u0652\u0631\u0650",en:"\"And We have certainly made the Quran easy for remembrance\"",ref:"Al-Qamar 54:17"},
+              {ar:"\u0625\u0650\u0646\u0651\u064E\u0627 \u0646\u064E\u062D\u0652\u0646\u064F \u0646\u064E\u0632\u0651\u064E\u0644\u0652\u0646\u064E\u0627 \u0627\u0644\u0630\u0651\u0650\u0643\u0652\u0631\u064E \u0648\u064E\u0625\u0650\u0646\u0651\u064E\u0627 \u0644\u064E\u0647\u064F \u0644\u064E\u062D\u064E\u0627\u0641\u0650\u0638\u064F\u0648\u0646\u064E",en:"\"Indeed, it is We who sent down the reminder and We will be its guardian\"",ref:"Al-Hijr 15:9"},
+              {ar:"\u0641\u064E\u0627\u0630\u0652\u0643\u064F\u0631\u064F\u0648\u0646\u0650\u064A \u0623\u064E\u0630\u0652\u0643\u064F\u0631\u0652\u0643\u064F\u0645\u0652",en:"\"So remember Me; I will remember you\"",ref:"Al-Baqarah 2:152"},
+              {ar:"\u0631\u064E\u0628\u0651\u0650 \u0632\u0650\u062F\u0652\u0646\u0650\u064A \u0639\u0650\u0644\u0652\u0645\u064B\u0627",en:"\"My Lord, increase me in knowledge\"",ref:"Ta-Ha 20:114"},
+              {ar:"\u0648\u064E\u0631\u064E\u062A\u0651\u0650\u0644\u0650 \u0627\u0644\u0652\u0642\u064F\u0631\u0652\u0622\u0646\u064E \u062A\u064E\u0631\u0652\u062A\u0650\u064A\u0644\u064B\u0627",en:"\"And recite the Quran with measured recitation\"",ref:"Al-Muzzammil 73:4"},
+              {ar:"\u0648\u064E\u0627\u0635\u0652\u0628\u0650\u0631\u0652 \u0641\u064E\u0625\u0650\u0646\u0651\u064E \u0627\u0644\u0644\u0651\u064E\u0647\u064E \u0644\u064E\u0627 \u064A\u064F\u0636\u0650\u064A\u0639\u064F \u0623\u064E\u062C\u0652\u0631\u064E \u0627\u0644\u0652\u0645\u064F\u062D\u0652\u0633\u0650\u0646\u0650\u064A\u0646\u064E",en:"\"Be patient, for Allah does not let the reward of the good be lost\"",ref:"Hud 11:115"},
+              {ar:"\u0625\u0650\u0646\u0651\u064E \u0645\u064E\u0639\u064E \u0627\u0644\u0652\u0639\u064F\u0633\u0652\u0631\u0650 \u064A\u064F\u0633\u0652\u0631\u064B\u0627",en:"\"Indeed, with hardship comes ease\"",ref:"Ash-Sharh 94:6"},
+            ];
+            const dayIdx=Math.floor(Date.now()/86400000)%verses.length;
+            const v=verses[dayIdx];
+            return (
           <div style={{padding:"18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",textAlign:"center",marginBottom:18}}>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#E6B84A",direction:"rtl",marginBottom:8}}>وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ</div>
-            <div style={{fontSize:12,color:"rgba(243,231,200,0.45)",fontStyle:"italic",marginBottom:3}}>"And We have certainly made the Quran easy for remembrance"</div>
-            <div style={{fontSize:10,color:"rgba(243,231,200,0.22)"}}>Al-Qamar 54:17</div>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#E6B84A",direction:"rtl",marginBottom:8}}>{v.ar}</div>
+            <div style={{fontSize:12,color:"rgba(243,231,200,0.45)",fontStyle:"italic",marginBottom:3}}>{v.en}</div>
+            <div style={{fontSize:10,color:"rgba(243,231,200,0.22)"}}>{v.ref}</div>
           </div>
+            );
+          })()}
 
           {/* ── ADJUST PLAN CTA ── */}
           <div className="sbtn" onClick={()=>setRihlahTab("adjust")}
