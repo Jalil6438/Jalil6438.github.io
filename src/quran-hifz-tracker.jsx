@@ -1602,17 +1602,44 @@ export default function RihlatAlHifz() {
             {(()=>{
               const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
               if(!sess) return null;
+              const sid=sess.id;
+              const isDone=sessionsCompleted[sid];
+              const hasStarted=batch.some(v=>(repCounts[v.verse_key]||0)>0);
+              const dhuhrLocked=sid==="dhuhr"&&yesterdayBatch.length===0;
+
+              const sessionLabel=(()=>{
+                if(sid==="fajr") return isDone?"Fajr — Completed · Alhamdulillah":hasStarted?"Fajr — Continue your memorization":"Fajr — Start your new ayahs";
+                if(sid==="dhuhr") return dhuhrLocked?"Complete Fajr to unlock review":"Dhuhr — Review what you learned";
+                if(sid==="asr") return "Asr — Strengthen your memorization";
+                if(sid==="maghrib") return "Maghrib — Review again for retention";
+                if(sid==="isha") return "Isha — Lock in today's memorization";
+                return `${sess.time} — ${sess.title}`;
+              })();
+
+              const microGuide=(()=>{
+                if(isDone) return null;
+                if(sid==="fajr") return "Repeat each ayah until it sticks";
+                if(sid==="dhuhr") return dhuhrLocked?null:"Go over what you memorized earlier";
+                if(sid==="asr") return "Cycle through completed sections";
+                if(sid==="maghrib") return "Listen and follow along quietly";
+                if(sid==="isha") return "Recite everything one final time";
+                return null;
+              })();
+
               return (
                 <div style={{marginBottom:10}}>
                   <div style={{fontSize:8,color:"rgba(230,184,74,0.40)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>
-                  <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",
+                  <div style={{padding:"11px 14px",
                     background:"linear-gradient(180deg,rgba(15,26,43,0.95) 0%,rgba(12,21,38,0.98) 100%)",
-                    border:"1px solid rgba(230,184,74,0.18)",borderLeft:"3px solid #E6B84A",borderRadius:"0 10px 10px 0",
+                    border:`1px solid ${isDone?"rgba(74,222,128,0.20)":"rgba(230,184,74,0.18)"}`,borderLeft:`3px solid ${isDone?"#4ADE80":"#E6B84A"}`,borderRadius:"0 10px 10px 0",
                     boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 12px rgba(230,184,74,0.06)"}}>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:14,fontWeight:700,color:"#F0E6D0"}}>{sess.time} — {sess.title}</div>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:14,fontWeight:700,color:isDone?"#4ADE80":"#F0E6D0"}}>{sessionLabel}</div>
+                      </div>
+                      <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length} of {batch.length||dailyNew}</div>
                     </div>
-                    <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length} of {batch.length||dailyNew}</div>
+                    {microGuide&&<div style={{fontSize:11,color:"rgba(243,231,200,0.35)",marginTop:5}}>{microGuide}</div>}
                   </div>
                 </div>
               );
