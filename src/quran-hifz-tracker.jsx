@@ -2588,7 +2588,7 @@ export default function RihlatAlHifz() {
                           const v=item.v,vNum=v.verse_key?.split(":")?.[1],vKey=v.verse_key,isP=playingKey===vKey;
                           return <span key={vKey} className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{background:isP?"rgba(212,175,55,0.12)":"transparent",borderRadius:4,padding:isP?"2px 4px":0,transition:"background .3s"}}>
                             <span style={{color:isP?"#E6B84A":"rgba(243,231,200,0.88)"}}>{v.text_uthmani}</span>
-                            <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.2em",height:"1.2em",borderRadius:"50%",color:isP?"#E6B84A":"rgba(212,175,55,0.20)",fontSize:"0.32em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 2px",verticalAlign:"middle"}}>{vNum}</span>{" "}
+                            <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.4em",height:"1.4em",borderRadius:"50%",border:"1px solid rgba(212,175,55,0.15)",color:isP?"#E6B84A":"rgba(212,175,55,0.40)",fontSize:"0.35em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 3px",verticalAlign:"middle"}}>{vNum}</span>{" "}
                           </span>;
                         })}
                       </div>
