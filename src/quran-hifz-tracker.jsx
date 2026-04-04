@@ -1566,12 +1566,17 @@ export default function RihlatAlHifz() {
           <div style={{flex:1,padding:"10px 16px 48px"}}>
 
             {/* ── SESSION JUZ ROW ── */}
-            <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
-              <div>
-                <div style={{fontSize:14,fontWeight:700,color:T.text}}>Session Juz · {sessionVerses[0]?.verse_key||""}</div>
-                <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} / {totalSV} ayahs</div>
+            <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color:T.text}}>Session Juz · {sessionVerses[0]?.verse_key||""}</div>
+                  <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} / {totalSV} ayahs</div>
+                </div>
+                <div style={{color:T.dim,fontSize:14}}>›</div>
               </div>
-              <div style={{color:T.dim,fontSize:14}}>›</div>
+              <div style={{height:4,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                <div style={{height:"100%",width:`${totalSV>0?Math.round((sessionIdx/totalSV)*100):0}%`,background:"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .5s"}}/>
+              </div>
             </div>
 
             {/* ── CURRENT SESSION ── */}
@@ -1588,7 +1593,7 @@ export default function RihlatAlHifz() {
                     <div style={{flex:1}}>
                       <div style={{fontSize:14,fontWeight:700,color:"#F0E6D0"}}>{sess.time} — {sess.title}</div>
                     </div>
-                    <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":"0"}/{dailyNew}</div>
+                    <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length}/{batch.length||dailyNew}</div>
                     <div style={{color:"rgba(230,184,74,0.35)",fontSize:14}}>›</div>
                   </div>
                 </div>
