@@ -1214,7 +1214,7 @@ export default function RihlatAlHifz() {
   ];
 
   return (
-    <div style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s",...(activeTab==="quran"?{height:"100vh",maxHeight:"100vh",overflow:"hidden"}:{minHeight:"100vh"})}}>
+    <div style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,minHeight:"100vh",color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s"}}>
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:5px;}
@@ -2533,7 +2533,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Mushaf reading area — paginated by lines */}
-          <div style={{flex:1,display:"flex",flexDirection:"column",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)",overflow:"hidden",touchAction:"pan-x"}}
+          <div style={{flex:1,display:"flex",flexDirection:"column",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)",overflow:"hidden"}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2544,7 +2544,7 @@ export default function RihlatAlHifz() {
             {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:60,gap:12}}><div className="spin" style={{width:26,height:26,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Loading...</div></div>}
             {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Check your connection.</div></div>}
             {!loading&&!fetchError&&surahGroups.length>0&&(()=>{
-              const pageH=window.innerHeight-260;
+              const pageH=window.innerHeight-220;
               // After render, measure surah header positions and build page breaks
               const buildPageBreaks=()=>{
                 if(!quranContentRef.current) return;
@@ -2574,7 +2574,7 @@ export default function RihlatAlHifz() {
               <div style={{flex:1,display:"flex",flexDirection:"column"}}>
                 <div key={safePage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
                   style={{flex:1,minHeight:0,overflow:"hidden",padding:"14px 18px 0"}}>
-                  <div style={{height:pageH,overflow:"hidden"}}>
+                  <div style={{height:pageH,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
                     <div ref={quranContentRef} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
                       transform:`translateY(${-offset}px)`}}>
                       {surahGroups.map(({surahNum,verses},gi)=>{
