@@ -2531,7 +2531,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Mushaf reading area — paginated by lines */}
-          <div style={{flex:1,display:"flex",flexDirection:"column",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)",overflow:"hidden"}}
+          <div style={{flex:1,display:"flex",flexDirection:"column",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)",overflow:"hidden",touchAction:"pan-x"}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2558,9 +2558,9 @@ export default function RihlatAlHifz() {
               <div style={{flex:1,display:"flex",flexDirection:"column"}}>
                 {/* Page content */}
                 <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
-                  style={{flex:1,overflow:"hidden",padding:"12px 16px 0",display:"flex",flexDirection:"column"}}>
-                  <div style={{background:"linear-gradient(180deg,rgba(28,24,18,0.50) 0%,rgba(22,19,14,0.45) 50%,rgba(28,24,18,0.50) 100%)",borderRadius:12,padding:"16px 14px",border:"1px solid rgba(212,175,55,0.06)",boxShadow:"inset 0 1px 0 rgba(255,245,220,0.03),inset 0 -1px 0 rgba(0,0,0,0.15),0 2px 12px rgba(0,0,0,0.20)",flex:1,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-                    <div style={{flex:1,overflow:"hidden"}}>
+                  style={{flex:1,minHeight:0,overflow:"hidden",padding:"12px 16px 0",display:"flex",flexDirection:"column"}}>
+                  <div style={{background:"linear-gradient(180deg,rgba(28,24,18,0.50) 0%,rgba(22,19,14,0.45) 50%,rgba(28,24,18,0.50) 100%)",borderRadius:12,padding:"16px 14px",border:"1px solid rgba(212,175,55,0.06)",boxShadow:"inset 0 1px 0 rgba(255,245,220,0.03),inset 0 -1px 0 rgba(0,0,0,0.15),0 2px 12px rgba(0,0,0,0.20)",flex:1,minHeight:0,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+                    <div style={{flex:1,minHeight:0,overflow:"hidden"}}>
                       <div style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
                         marginTop:`${-quranPage*pageH}px`,transition:"none"}}>
                         {allVerses.map((item,i)=>{
