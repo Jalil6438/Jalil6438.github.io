@@ -576,7 +576,9 @@ export default function RihlatAlHifz() {
   const [showJuzModal,setShowJuzModal]=useState(false);
   const [activeStream,setActiveStream]=useState(0);
   const [masjidaynTab, setMasjidaynTab]=useState("live");
-  const [rihlahTab, setRihlahTab]=useState("juz");
+  const [rihlahTab, setRihlahTab_]=useState("juz");
+  const rihlahScrollRef=useRef(null);
+  const setRihlahTab=(tab)=>{setRihlahTab_(tab);setTimeout(()=>{if(rihlahScrollRef.current)rihlahScrollRef.current.scrollTop=0;},0);};
   const [haramainMosque,setHaramainMosque]=useState("makkah");
   const [openImam,setOpenImam]=useState(null);
   const [haramainPlaying,setHaramainPlaying]=useState(null);
@@ -2047,7 +2049,7 @@ export default function RihlatAlHifz() {
         );
 
         return (
-          <div style={{flex:1,overflowY:"auto",background:"radial-gradient(circle at top, rgba(32,44,90,0.35) 0%, rgba(8,12,24,1) 45%, rgba(4,7,15,1) 100%)"}} className="fi">
+          <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"radial-gradient(circle at top, rgba(32,44,90,0.35) 0%, rgba(8,12,24,1) 45%, rgba(4,7,15,1) 100%)"}} className="fi">
 
             {/* ── AMBIENT GLOW ── */}
             <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -2333,7 +2335,7 @@ export default function RihlatAlHifz() {
         }));
 
         return (
-        <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"14px 16px 48px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"14px 16px 48px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:20}}>
@@ -2603,7 +2605,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TIMELINE ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="timeline"&&(
-        <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:22}}>
@@ -2724,34 +2726,25 @@ export default function RihlatAlHifz() {
 
       {/* ═══ ADJUST PLAN ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
-        <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi gold-particles">
           {/* Header */}
           <div style={{marginBottom:20}}>
             <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back to My Plan</div>
           </div>
 
           {/* ── HERO CARD ── */}
-          {(()=>{
-            const t=calcTimeline(goalYears,completedCount,goalMonths);
-            const apd=Math.round(parseFloat(t.ayahsPerDay));
-            return (
           <div style={{padding:"22px 18px",borderRadius:20,marginBottom:16,textAlign:"center",position:"relative",overflow:"hidden",
             background:"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)",
             border:"1px solid rgba(217,177,95,0.22)",boxShadow:"0 10px 40px rgba(0,0,0,0.40),0 0 20px rgba(217,177,95,0.08)"}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 20%,rgba(212,175,55,0.08) 0%,transparent 50%)"}}/>
             <div style={{position:"relative",zIndex:1}}>
               <div style={{fontSize:13,color:"rgba(243,231,200,0.50)",marginBottom:8}}>Complete Your Hifz In</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:32,color:"#F6E27A",fontWeight:700,marginBottom:14,textShadow:"0 0 18px rgba(246,226,122,0.15)"}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:32,color:"#F6E27A",fontWeight:700,marginBottom:10,textShadow:"0 0 18px rgba(246,226,122,0.15)"}}>
                 {goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?<span style={{fontSize:24,marginLeft:8}}>{goalMonths} Month{goalMonths!==1?"s":""}</span>:""}
               </div>
-              <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"center"}}>
-                <div style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>You will memorize ~<span style={{color:"#E6B84A",fontWeight:700}}>{apd} ayahs</span> per day</div>
-                <div style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>You will finish 1 Juz every ~<span style={{color:"#E6B84A",fontWeight:700}}>{t.daysPerJuz} days</span></div>
-              </div>
+              <div style={{fontSize:11,color:"rgba(243,231,200,0.35)"}}>Your daily commitment</div>
             </div>
           </div>
-            );
-          })()}
 
           {/* ── SLIDERS ── */}
           <div style={{padding:"16px 18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:16,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)"}}>
@@ -2769,14 +2762,19 @@ export default function RihlatAlHifz() {
 
           {/* ── STATS ── */}
           <div style={{padding:"16px 18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:16,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14}}>📖</span><span style={{fontSize:13,color:"#F3E7C8"}}>{dailyNew} ayahs / day</span></div>
-              <span style={{fontSize:13,color:"rgba(243,231,200,0.45)",fontFamily:"'IBM Plex Mono',monospace"}}>{timeline.juzPerMonth} / month</span>
-            </div>
-            <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14}}>📆</span><span style={{fontSize:13,color:"#F3E7C8"}}>~{timeline.daysPerJuz} days per juz</span></div>
-            </div>
+            {[
+              {icon:"\uD83D\uDCD6",text:`${dailyNew} ayahs per day`},
+              {icon:"\uD83D\uDCC6",text:`~${timeline.daysPerJuz} days per juz`},
+              {icon:"\uD83D\uDCCA",text:`${timeline.juzPerMonth} juz per month`},
+            ].map((s,i,arr)=>(
+              <div key={i}>
+                <div style={{display:"flex",alignItems:"center",gap:8,padding:"9px 0"}}>
+                  <span style={{fontSize:14}}>{s.icon}</span>
+                  <span style={{fontSize:13,color:"#F3E7C8"}}>{s.text}</span>
+                </div>
+                {i<arr.length-1&&<div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>}
+              </div>
+            ))}
           </div>
 
           {/* ── CHOOSE YOUR PACE ── */}
