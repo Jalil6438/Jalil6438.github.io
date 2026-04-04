@@ -2543,9 +2543,8 @@ export default function RihlatAlHifz() {
             {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Check your connection.</div></div>}
             {!loading&&!fetchError&&surahGroups.length>0&&(()=>{
               // Flatten all content into a single verse stream with surah headers
-              const LINES_PER_PAGE=10;
-              const lineH=fontSize*2.2;
-              const pageH=lineH*LINES_PER_PAGE;
+              const parchmentPad=20+24; // top + bottom padding inside parchment
+              const pageH=window.innerHeight-210-parchmentPad;
               const allVerses=[];
               surahGroups.forEach(({surahNum,verses},gi)=>{
                 const startA=verses[0]?.verse_key?.split(":")?.[1];
