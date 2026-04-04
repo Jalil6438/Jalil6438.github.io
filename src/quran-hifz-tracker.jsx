@@ -1376,13 +1376,11 @@ export default function RihlatAlHifz() {
 
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
           {onboardStep===4&&(()=>{
-            const juzDone=Object.entries(juzStatus).filter(([key,value])=>!String(key).startsWith("s")&&value==="complete").length;
+            const juzDone=Object.keys(JUZ_SURAHS).filter(k=>{const n=Number(k);if(juzStatus[n]==="complete")return true;const ss=JUZ_SURAHS[n]||[];return ss.length>0&&ss.every(s=>juzStatus[`s${s.s}`]==="complete");}).length;
+            const tl=calcTimeline(goalYears,juzDone,goalMonths);
             const remainingJuz=30-juzDone;
-            const totalMonths=(goalYears*12)+goalMonths;
-            const totalAyahs=6236;
-            const remainingAyahs=Math.round(totalAyahs*(remainingJuz/30));
-            const apd=totalMonths>0?Math.max(1,Math.round(remainingAyahs/(totalMonths*30))):0;
-            const daysPerJuz=apd>0?Math.round((6236/30)/apd):0;
+            const apd=Math.round(parseFloat(tl.ayahsPerDay));
+            const daysPerJuz=tl.daysPerJuz;
             const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
             return (
               <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
