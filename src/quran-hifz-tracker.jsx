@@ -2533,7 +2533,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Mushaf reading area — paginated by lines */}
-          <div style={{flex:1,display:"flex",flexDirection:"column",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)",overflow:"hidden"}}
+          <div style={{flex:1,display:"flex",flexDirection:"column",background:"radial-gradient(ellipse at 50% 0%,rgba(30,25,18,0.40) 0%,rgba(10,14,22,1) 60%)"}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2555,9 +2555,9 @@ export default function RihlatAlHifz() {
               const viewH=pageH+20; // 10px buffer top + bottom for tashkil/descenders
 
               return (
-              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column"}}>
                 <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
-                  style={{flex:1,overflow:"hidden",padding:"4px 16px 0"}}>
+                  style={{flex:1,padding:"4px 16px 0"}}>
                   <div style={{height:viewH,overflow:"hidden",paddingLeft:2,paddingRight:2,paddingTop:10}}>
                     <div ref={quranContentRef} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
                       transform:`translateY(${-quranPage*pageH}px)`}}>
