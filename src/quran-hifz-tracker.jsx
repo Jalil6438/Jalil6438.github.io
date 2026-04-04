@@ -1212,7 +1212,7 @@ export default function RihlatAlHifz() {
   ];
 
   return (
-    <div style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,minHeight:"100vh",color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s"}}>
+    <div style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s",...(activeTab==="quran"?{height:"100vh",maxHeight:"100vh",overflow:"hidden"}:{minHeight:"100vh"})}}>
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:5px;}
