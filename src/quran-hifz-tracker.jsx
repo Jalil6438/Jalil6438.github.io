@@ -2340,7 +2340,7 @@ export default function RihlatAlHifz() {
             <div style={{position:"relative",zIndex:1}}>
               <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginBottom:8}}>Juz {currentJuz} <span style={{color:"rgba(243,231,200,0.28)"}}>(Current)</span></div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:"#F3E7C8",fontWeight:700,marginBottom:8,lineHeight:1.2}}>{currentMeta.roman||currentMeta.arabic}</div>
-              {currentSurah&&<div style={{fontSize:13,color:"rgba(243,231,200,0.45)",marginBottom:12}}>Surah {currentSurah.name}</div>}
+              {(()=>{const nv=sessionVerses[sessionIdx];const sn=nv?.surah_number||parseInt(nv?.verse_key?.split(":")[0]||"0",10);const name=SURAH_EN[sn]||currentSurah?.name;return name?<div style={{fontSize:13,color:"rgba(243,231,200,0.45)",marginBottom:12}}>Surah {name}</div>:null;})()}
               <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginBottom:8}}><span style={{color:"#E6B84A"}}>In Progress</span></div>
               <div style={{marginBottom:12}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
@@ -2352,7 +2352,7 @@ export default function RihlatAlHifz() {
                 </div>
               </div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                <div style={{fontSize:11,color:"rgba(243,231,200,0.28)"}}>Next: Ayah {curProg+1}</div>
+                <div style={{fontSize:11,color:"rgba(243,231,200,0.28)"}}>Next: {(()=>{const nv=sessionVerses[sessionIdx];if(!nv) return "—";const sn=nv.surah_number||parseInt(nv.verse_key?.split(":")[0],10);return `${SURAH_EN[sn]||""} ${nv.verse_key}`;})()}</div>
                 <div style={{fontSize:10,color:"rgba(243,231,200,0.22)"}}>Last session: Today</div>
               </div>
               <div className="sbtn" onClick={()=>{setActiveTab("myhifz");}} style={{display:"inline-block",padding:"11px 22px",borderRadius:12,fontSize:13,fontWeight:700,color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.12)"}}>
