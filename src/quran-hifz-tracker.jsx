@@ -2538,55 +2538,37 @@ export default function RihlatAlHifz() {
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
               if(Math.abs(dx)<50) return;
-              if(dx<0){setQuranPageDir("next");setQuranPage(p=>p+1);}
+              if(dx<0){setQuranPageDir("next");setQuranPage(p=>{
+                const totalH=quranContentRef.current?.scrollHeight||0;
+                const pageH_=15*fontSize*2.2;
+                const maxPage=Math.max(0,Math.ceil(totalH/pageH_)-1);
+                return Math.min(maxPage,p+1);
+              });}
               else if(dx>0&&quranPage>0){setQuranPageDir("prev");setQuranPage(p=>p-1);}
             }}>
             {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:60,gap:12}}><div className="spin" style={{width:26,height:26,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Loading...</div></div>}
             {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Check your connection.</div></div>}
             {!loading&&!fetchError&&surahGroups.length>0&&(()=>{
-              const pageH=window.innerHeight-220;
-              // After render, measure surah header positions and build page breaks
-              const buildPageBreaks=()=>{
-                if(!quranContentRef.current) return;
-                const headers=quranContentRef.current.querySelectorAll("[data-surah-header]");
-                const breaks=[0];
-                let nextBreak=pageH;
-                headers.forEach((el,i)=>{
-                  if(i===0) return; // first surah starts at 0
-                  const pos=el.offsetTop;
-                  // Add page breaks for content before this header
-                  while(nextBreak<pos){ breaks.push(nextBreak); nextBreak+=pageH; }
-                  // Snap this header to a page boundary
-                  breaks.push(pos);
-                  nextBreak=pos+pageH;
-                });
-                // Add remaining pages for content after last header
-                const totalH=quranContentRef.current.scrollHeight;
-                while(nextBreak<totalH){ breaks.push(nextBreak); nextBreak+=pageH; }
-                setQuranPageBreaks(breaks);
-              };
-              setTimeout(buildPageBreaks,100);
-
-              const safePage=Math.min(quranPage,quranPageBreaks.length-1);
-              const offset=quranPageBreaks[safePage]||0;
+              const LINES=15;
+              const lineH=fontSize*2.2;
+              const pageH=LINES*lineH;
 
               return (
-              <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-                <div key={safePage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
-                  style={{flex:1,minHeight:0,overflow:"hidden",padding:"14px 18px 0"}}>
-                  <div style={{height:pageH,overflowY:"auto",WebkitOverflowScrolling:"touch"}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+                <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
+                  style={{flex:1,overflow:"hidden",padding:"10px 18px 0"}}>
+                  <div style={{height:pageH,overflow:"hidden",paddingLeft:2,paddingRight:2}}>
                     <div ref={quranContentRef} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
-                      transform:`translateY(${-offset}px)`}}>
+                      transform:`translateY(${-quranPage*pageH}px)`}}>
                       {surahGroups.map(({surahNum,verses},gi)=>{
                         const startA=verses[0]?.verse_key?.split(":")?.[1];
                         return (
                           <div key={surahNum}>
-                            {/* Surah header */}
-                            <div data-surah-header={surahNum} style={{direction:"ltr",textAlign:"center",paddingTop:gi>0?20:10,paddingBottom:10,position:"relative"}}>
+                            <div style={{direction:"ltr",textAlign:"center",paddingTop:gi>0?20:6,paddingBottom:8,position:"relative"}}>
                               <div className="sbtn" onClick={()=>{
                                 const fvk=verses[0]?.verse_key||"";const fan=parseInt(fvk.split(":")?.[1]||"1",10);
                                 if(MID_SURAH_JUZ.has(selectedJuz)&&fan>1){playSurahQueue(verses,surahNum,0,quranReciter);}else{playQuranSurah(surahNum);}
-                              }} style={{position:"absolute",top:gi>0?20:10,right:0,padding:"3px 8px",borderRadius:12,fontSize:10,color:playingSurah===surahNum?"#E6B84A":"rgba(243,231,200,0.22)",background:playingSurah===surahNum?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${playingSurah===surahNum?"rgba(230,184,74,0.20)":"rgba(255,255,255,0.05)"}`,zIndex:1}}>
+                              }} style={{position:"absolute",top:gi>0?20:6,right:0,padding:"3px 8px",borderRadius:12,fontSize:10,color:playingSurah===surahNum?"#E6B84A":"rgba(243,231,200,0.22)",background:playingSurah===surahNum?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${playingSurah===surahNum?"rgba(230,184,74,0.20)":"rgba(255,255,255,0.05)"}`,zIndex:1}}>
                                 {playingSurah===surahNum?"\u23F8":"\u25B6"}
                               </div>
                               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
@@ -2596,13 +2578,11 @@ export default function RihlatAlHifz() {
                               </div>
                               <div style={{fontSize:10,color:"rgba(243,231,200,0.30)"}}>{SURAH_EN[surahNum]}</div>
                             </div>
-                            {/* Bismillah */}
                             {surahNum!==9&&startA==="1"&&(
-                              <div style={{direction:"ltr",textAlign:"center",padding:"10px 0 14px"}}>
+                              <div style={{direction:"ltr",textAlign:"center",padding:"8px 0 12px"}}>
                                 <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:fontSize+2,color:"rgba(212,175,55,0.65)",textShadow:"0 0 14px rgba(212,175,55,0.20)"}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
                               </div>
                             )}
-                            {/* Ayahs */}
                             <p style={{margin:0}}>
                               {verses.map(v=>{
                                 const vNum=v.verse_key?.split(":")?.[1];
@@ -2620,10 +2600,9 @@ export default function RihlatAlHifz() {
                     </div>
                   </div>
                 </div>
-                {/* Page number */}
-                <div style={{padding:"10px 0 14px",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:16}}>
+                <div style={{padding:"8px 0 12px",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:16,flexShrink:0}}>
                   <div style={{height:1,width:40,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.15))"}}/>
-                  <div style={{fontSize:10,color:"rgba(212,175,55,0.30)",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} / {quranPageBreaks.length}</div>
+                  <div style={{fontSize:10,color:"rgba(212,175,55,0.30)",fontFamily:"'IBM Plex Mono',monospace"}}>{quranPage+1}</div>
                   <div style={{height:1,width:40,background:"linear-gradient(90deg,rgba(212,175,55,0.15),transparent)"}}/>
                 </div>
               </div>
