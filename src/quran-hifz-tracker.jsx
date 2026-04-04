@@ -44,23 +44,23 @@ const SESSIONS = [
   { id:"fajr",    time:"Fajr",    arabic:"الفجر",  icon:"🌅", color:"#F0C040",
     title:"New Memorization",
     desc:"Your peak retention window. Memorize new ayahs right after salah while the mind is completely fresh.",
-    steps:["Read with translation to understand the meaning","Recite aloud 10x looking at the text","Cover and recite from memory — fix mistakes immediately","Repeat until 3 times without looking","Write from memory once to cement them"] },
+    steps:["Read each ayah with its translation first","Recite aloud until the words feel natural","Cover the text and recite from memory","Repeat until you can recite without hesitation","Write it once to solidify the connection"] },
   { id:"dhuhr",   time:"Dhuhr",   arabic:"الظهر",  icon:"☀️", color:"#F6A623",
     title:"Review Yesterday's Ayahs",
     desc:"New ayahs fade fastest in 24 hours. Revision only — no new memorization.",
-    steps:["Recite everything from yesterday from memory","For stumbling ayahs — look, re-read 5x, cover and retry","Connect yesterday to today as one continuous passage"] },
+    steps:["Recite yesterday's ayahs from memory","If you stumble, revisit and repeat until smooth","Connect yesterday's ayahs to today's as one passage"] },
   { id:"asr",     time:"Asr",     arabic:"العصر",  icon:"🌤️", color:"#4ECDC4",
     title:"Review Previous Juz",
     desc:"Cycle through completed Juz. Every Juz should be touched every 7-10 days.",
-    steps:["Pick the Juz you have not revised most recently","Recite a full page from memory","Mark which Juz you revised in your tracker"] },
+    steps:["Choose a Juz you haven't reviewed recently","Recite a full page and notice what needs attention","This keeps older memorization strong and accessible"] },
   { id:"maghrib", time:"Maghrib", arabic:"المغرب", icon:"🌆", color:"#B794F4",
     title:"Listening",
     desc:"Follow along with your chosen reciter. Your ear reinforces what your tongue is learning.",
-    steps:["Select a reciter and press play on each ayah","Follow along in the mushaf — listen, do not recite yet","Trains correct pronunciation and rhythm passively"] },
+    steps:["Listen to each ayah with full attention","Follow along in the mushaf without reciting","This strengthens your ear and pronunciation"] },
   { id:"isha",    time:"Isha",    arabic:"العشاء", icon:"🌙", color:"#68D391",
     title:"Full Day Review",
     desc:"Recite everything from today before sleep. Sleep consolidates what you review right before it.",
-    steps:["Recite today's new Fajr ayahs from memory","Then yesterday's ayahs","End with dua asking Allah to keep the Quran in your heart"] },
+    steps:["Recite today's new ayahs one final time","Go over yesterday's ayahs to keep them fresh","End with dua — ask Allah to preserve the Quran in your heart"] },
 ];
 
 const SURAH_EN = {
@@ -1986,7 +1986,7 @@ export default function RihlatAlHifz() {
 
         // ── Enhanced Badge Components ──
         const JuzBadge=({count,earned})=>(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.3,filter:earned?"none":"grayscale(0.6)",background:earned?"rgba(34,197,94,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(34,197,94,0.22)":"none"}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)",background:earned?"rgba(212,175,55,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(212,175,55,0.22)":"none"}}>
             <div style={{position:"relative",width:52,height:52,marginBottom:6,display:"flex",alignItems:"center",justifyContent:"center"}}>
               {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(52,211,153,0.2)",filter:"blur(6px)"}}/>}
               <div style={{position:"relative",width:52,height:52,borderRadius:"50%",background:"linear-gradient(180deg,#34D399 0%,#059669 50%,#064E3B 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"1.5px solid rgba(110,231,183,0.4)"}}>
@@ -1994,11 +1994,11 @@ export default function RihlatAlHifz() {
                 <span style={{fontSize:8,fontWeight:600,color:"rgba(167,243,208,0.9)",position:"relative",zIndex:1}}>Juz</span>
               </div>
             </div>
-            <div style={{fontSize:9,fontWeight:700,color:earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.28)",textAlign:"center"}}>{count} Juz</div>
+            <div style={{fontSize:9,fontWeight:700,color:earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.18)",textAlign:"center"}}>{count} Juz Memorized</div>
           </div>
         );
         const HabituatedBadge=({earned})=>(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.3,filter:earned?"none":"grayscale(0.6)",background:earned?"rgba(245,158,11,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(245,158,11,0.2)":"none"}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)",background:earned?"rgba(245,158,11,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(245,158,11,0.2)":"none"}}>
             <svg viewBox="0 0 64 64" style={{width:48,height:48,filter:earned?"drop-shadow(0 2px 8px rgba(245,158,11,0.4))":"none"}}>
               <defs><linearGradient id="hg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FCD34D"/><stop offset="50%" stopColor="#F59E0B"/><stop offset="100%" stopColor="#B45309"/></linearGradient></defs>
               <path d="M20 50 Q15 40 18 32 Q12 35 10 28 Q15 28 18 25 Q12 22 12 15 Q18 18 22 18 Q20 12 24 8 Q26 14 28 18 Q28 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
@@ -2009,7 +2009,7 @@ export default function RihlatAlHifz() {
           </div>
         );
         const StreakBadge=({earned})=>(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.3,filter:earned?"none":"grayscale(0.6)",background:earned?"rgba(249,115,22,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(249,115,22,0.2)":"none"}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)",background:earned?"rgba(249,115,22,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(249,115,22,0.2)":"none"}}>
             <svg viewBox="0 0 24 24" style={{width:48,height:48,filter:earned?"drop-shadow(0 2px 10px rgba(249,115,22,0.5))":"none"}}>
               <defs><linearGradient id="fg1" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stopColor="#DC2626"/><stop offset="40%" stopColor="#F97316"/><stop offset="80%" stopColor="#FBBF24"/><stop offset="100%" stopColor="#FEF08A"/></linearGradient></defs>
               <path d="M12 2C10 6 6 8 6 13C6 16.5 8.5 19 12 19C15.5 19 18 16.5 18 13C18 8 14 6 12 2ZM12 17C10.5 17 9 15.5 9 14C9 12 10 11 12 9C14 11 15 12 15 14C15 15.5 13.5 17 12 17Z" fill="url(#fg1)"/>
@@ -2018,7 +2018,7 @@ export default function RihlatAlHifz() {
           </div>
         );
         const HifzGoalBadge=({earned})=>(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.35}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)"}}>
             <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
               {earned&&<div style={{position:"absolute",inset:0,background:"rgba(245,158,11,0.2)",filter:"blur(8px)"}}/>}
               <svg viewBox="0 0 64 64" style={{width:56,height:56,position:"relative",zIndex:1,filter:earned?"drop-shadow(0 2px 10px rgba(245,158,11,0.5))":"none"}}>
@@ -2236,7 +2236,7 @@ export default function RihlatAlHifz() {
                     ))}
                   </div>
                   <div className="sbtn" onClick={()=>toggleCheck(activeSess.id)} style={{fontSize:9,padding:"5px 14px",background:activeDone?"#4ADE80":"rgba(255,255,255,0.06)",border:activeDone?"1px solid rgba(74,222,128,0.4)":"1px solid rgba(255,255,255,0.1)",borderRadius:20,color:activeDone?"#052e16":"rgba(255,255,255,0.5)",fontWeight:700,boxShadow:activeDone?"0 0 12px rgba(74,222,128,0.3)":"none",transition:"all .2s"}}>
-                    {activeDone?"✓ Done":"Mark Done"}
+                    {activeDone?"✓ Done":`Complete ${activeSess.time}`}
                   </div>
                 </div>
               </div>
@@ -2283,13 +2283,13 @@ export default function RihlatAlHifz() {
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:"linear-gradient(145deg,#0B1020,#111A33)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>📖</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Juz</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Track memorization</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Memorization</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Track your progress</div>
               </div>
               <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:"linear-gradient(145deg,#0B1020,#111A33)",border:"1px solid rgba(240,192,64,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>Timeline</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Goal calculator</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Plan</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Your hifz timeline</div>
               </div>
             </div>
 
