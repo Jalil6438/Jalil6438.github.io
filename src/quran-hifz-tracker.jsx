@@ -468,7 +468,7 @@ function AsrSessionView({
                 <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
                   {ev.text_uthmani}
                 </div>
-                <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:14}}>
+                <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:20}}>
                   Ayah {evAyah} of Surah {SURAH_EN[evSurah]||evSurah}
                 </div>
                 <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
