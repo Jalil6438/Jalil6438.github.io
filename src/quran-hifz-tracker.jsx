@@ -2556,7 +2556,7 @@ export default function RihlatAlHifz() {
               return (
               <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
                 <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
-                  style={{flex:1,overflow:"hidden",padding:"10px 18px 0"}}>
+                  style={{flex:1,overflow:"hidden",padding:"4px 16px 0"}}>
                   <div style={{height:pageH,overflow:"hidden",paddingLeft:2,paddingRight:2}}>
                     <div ref={quranContentRef} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
                       transform:`translateY(${-quranPage*pageH}px)`}}>
