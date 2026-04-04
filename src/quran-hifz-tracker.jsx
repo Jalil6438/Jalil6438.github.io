@@ -354,7 +354,7 @@ function HlsPlayer({ src, T }) {
 // ── ASR SESSION VIEW (must be outside parent to avoid remount on every render) ─
 function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
-    asrVisibleAyahs,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
+    asrVisibleAyahs,asrBatch,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,
   }) {
@@ -414,43 +414,6 @@ function AsrSessionView({
               })}
             </div>
 
-            {/* Ayah popup modal */}
-            {asrExpandedAyah&&(()=>{
-              const ev=batch.find(v=>v.verse_key===asrExpandedAyah);
-              if(!ev) return null;
-              const evKey=ev.verse_key;
-              const evSurah=ev.surah_number||parseInt(evKey.split(":")[0],10);
-              const evAyah=evKey.split(":")[1];
-              const evTrans=translations[evKey];
-              const evPlaying=playingKey===evKey;
-              const evLoading=audioLoading===evKey;
-              return (
-                <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setAsrExpandedAyah(null)}>
-                  <div className="fi" style={{width:"100%",maxWidth:400,borderRadius:24,padding:"28px 24px 24px",background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.12) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
-                    {/* Close */}
-                    <div className="sbtn" onClick={()=>setAsrExpandedAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
-                    {/* Arabic */}
-                    <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
-                      {ev.text_uthmani}
-                    </div>
-                    {/* Reference */}
-                    <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:14}}>
-                      Ayah {evAyah} of Surah {SURAH_EN[evSurah]||evSurah}
-                    </div>
-                    {/* Translation */}
-                    <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
-                      {evTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:evTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
-                    </div>
-                    {/* Play button */}
-                    <div style={{display:"flex",justifyContent:"center"}}>
-                      <div className="sbtn" onClick={()=>playAyah(evKey,evKey)} style={{width:42,height:42,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:evPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${evPlaying?"rgba(217,177,95,0.30)":"rgba(255,255,255,0.08)"}`,color:evPlaying?T2.goldBright:"rgba(243,231,200,0.56)",fontSize:16}}>
-                        {evLoading?"…":evPlaying?"⏸":"▶"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
           </div>
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
@@ -487,6 +450,39 @@ function AsrSessionView({
             </div>
           </div>
         </div>{/* end flex column wrapper */}
+
+        {/* Ayah popup modal — outside scroll container */}
+        {asrExpandedAyah&&(()=>{
+          const ev=asrBatch.find(v=>v.verse_key===asrExpandedAyah);
+          if(!ev) return null;
+          const evKey=ev.verse_key;
+          const evSurah=ev.surah_number||parseInt(evKey.split(":")[0],10);
+          const evAyah=evKey.split(":")[1];
+          const evTrans=translations[evKey];
+          const evPlaying=playingKey===evKey;
+          const evLoading=audioLoading===evKey;
+          return (
+            <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setAsrExpandedAyah(null)}>
+              <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,borderRadius:24,padding:"28px 24px 24px",background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.12) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
+                <div className="sbtn" onClick={()=>setAsrExpandedAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
+                <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
+                  {ev.text_uthmani}
+                </div>
+                <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:14}}>
+                  Ayah {evAyah} of Surah {SURAH_EN[evSurah]||evSurah}
+                </div>
+                <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
+                  {evTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:evTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
+                </div>
+                <div style={{display:"flex",justifyContent:"center"}}>
+                  <div className="sbtn" onClick={()=>playAyah(evKey,evKey)} style={{width:42,height:42,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:evPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${evPlaying?"rgba(217,177,95,0.30)":"rgba(255,255,255,0.08)"}`,color:evPlaying?T2.goldBright:"rgba(243,231,200,0.56)",fontSize:16}}>
+                    {evLoading?"…":evPlaying?"⏸":"▶"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
@@ -1242,6 +1238,7 @@ export default function RihlatAlHifz() {
           asrPageStart={asrPageStart}
           asrPageEnd={asrPageEnd}
           asrVisibleAyahs={asrVisibleAyahs}
+          asrBatch={batch}
           asrExpandedAyah={asrExpandedAyah}
           setAsrExpandedAyah={setAsrExpandedAyah}
           asrTouchStartRef={asrTouchStartRef}
