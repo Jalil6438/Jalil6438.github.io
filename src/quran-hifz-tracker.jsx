@@ -540,7 +540,7 @@ export default function RihlatAlHifz() {
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrSurahShowCount,setAsrSurahShowCount]=useState(10);
-  const [memSections,setMemSections]=useState({completed:false,inprogress:true,upcoming:false});
+  const [memSections,setMemSections]=useState({completed:false,inprogress:true,upcoming:false,upcomingAll:false});
   const [asrPage,setAsrPage]=useState(0);
   const [asrSlideDir,setAsrSlideDir]=useState(null);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
@@ -2326,28 +2326,28 @@ export default function RihlatAlHifz() {
         <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"14px 16px 48px"}} className="fi gold-particles">
 
           {/* Header */}
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-            <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)"}}>← Back</div>
+          <div style={{marginBottom:16}}>
+            <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back</div>
             <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>My Memorization</div>
           </div>
 
           {/* ── 1. CURRENT FOCUS CARD ── */}
           <div style={{padding:"20px 18px",borderRadius:18,marginBottom:18,position:"relative",overflow:"hidden",
             background:"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)",
-            border:"1px solid rgba(230,184,74,0.22)",
-            boxShadow:"0 8px 32px rgba(0,0,0,0.35),0 0 20px rgba(230,184,74,0.08)"}}>
-            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 20% 30%,rgba(212,175,55,0.06) 0%,transparent 50%)"}}/>
+            border:"1px solid rgba(230,184,74,0.28)",
+            boxShadow:"0 10px 40px rgba(0,0,0,0.40),0 0 24px rgba(230,184,74,0.10),inset 0 1px 0 rgba(255,255,255,0.03)"}}>
+            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 20% 30%,rgba(212,175,55,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(212,175,55,0.03) 0%,transparent 40%)"}}/>
             <div style={{position:"relative",zIndex:1}}>
               <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginBottom:8}}>Juz {currentJuz} <span style={{color:"rgba(243,231,200,0.28)"}}>(Current)</span></div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:"#F3E7C8",fontWeight:700,marginBottom:8,lineHeight:1.2}}>{currentMeta.roman||currentMeta.arabic}</div>
               {currentSurah&&<div style={{fontSize:13,color:"rgba(243,231,200,0.45)",marginBottom:12}}>Surah {currentSurah.name}</div>}
-              <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginBottom:6}}>Status: <span style={{color:"#E6B84A"}}>In Progress</span></div>
+              <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginBottom:6}}><span style={{color:"#E6B84A"}}>In Progress</span></div>
               <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
                 <div style={{fontSize:11,color:"rgba(243,231,200,0.40)"}}>Progress:</div>
                 <div style={{flex:1,height:6,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                   <div className="pbfill" style={{height:"100%",width:`${curTotal>0?Math.round((curProg/curTotal)*100):0}%`,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",borderRadius:999,boxShadow:"0 0 8px rgba(212,175,55,0.30)"}}/>
                 </div>
-                <div style={{fontSize:12,color:"rgba(230,184,74,0.65)",fontFamily:"'IBM Plex Mono',monospace"}}>{curProg} / {curTotal} ayahs</div>
+                <div style={{fontSize:12,color:"rgba(230,184,74,0.65)",fontFamily:"'IBM Plex Mono',monospace"}}>{curProg} of {curTotal} Ayahs</div>
               </div>
               <div className="sbtn" onClick={()=>{setActiveTab("myhifz");}} style={{display:"inline-block",padding:"11px 22px",borderRadius:12,fontSize:13,fontWeight:700,color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.12)"}}>
                 Continue Memorization
@@ -2441,7 +2441,7 @@ export default function RihlatAlHifz() {
                           <div style={{flex:1,height:4,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                             <div style={{height:"100%",width:`${jTotal>0?Math.round((jp/jTotal)*100):0}%`,background:"linear-gradient(90deg,#D4AF37,#E6B84A)",borderRadius:999}}/>
                           </div>
-                          <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontFamily:"'IBM Plex Mono',monospace"}}>{jp} / {jTotal}</div>
+                          <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontFamily:"'IBM Plex Mono',monospace"}}>{jp} of {jTotal}</div>
                         </div>
                       </div>
                     );
@@ -2452,24 +2452,41 @@ export default function RihlatAlHifz() {
           )}
 
           {/* ── 5. UPCOMING JUZ ── */}
+          {upcomingJuz.length>0&&(
           <div style={{marginBottom:12}}>
             <div className="sbtn" onClick={()=>toggleSection("upcoming")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
               <div style={{fontSize:12,color:"rgba(243,231,200,0.55)",fontWeight:600}}>Upcoming Juz</div>
               <div style={{color:"rgba(217,177,95,0.40)",fontSize:14,transition:"transform .2s",transform:openSection.upcoming?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
             </div>
-            {openSection.upcoming&&(
+            {openSection.upcoming&&(<>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {upcomingJuz.slice(0,8).map(j=>(
+                {upcomingJuz.slice(0,3).map(j=>(
                   <div key={j.num} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.015)",border:"1px solid rgba(255,255,255,0.04)"}}>
-                    <div>
-                      <div style={{fontSize:13,color:"rgba(243,231,200,0.40)",fontWeight:500}}>Juz {j.num}</div>
-                    </div>
+                    <div style={{fontSize:13,color:"rgba(243,231,200,0.40)",fontWeight:500}}>Juz {j.num}</div>
                     <div style={{fontSize:11,color:"rgba(243,231,200,0.20)"}}>Ready to start</div>
                   </div>
                 ))}
               </div>
-            )}
+              {upcomingJuz.length>3&&(
+                <div className="sbtn" onClick={()=>toggleSection("upcomingAll")}
+                  style={{textAlign:"center",padding:"10px",marginTop:8,borderRadius:10,fontSize:11,fontWeight:600,
+                    color:"rgba(217,177,95,0.45)",border:"1px dashed rgba(217,177,95,0.10)",background:"transparent"}}>
+                  {openSection.upcomingAll?"Show less":"View all "+upcomingJuz.length+" upcoming"}
+                </div>
+              )}
+              {openSection.upcomingAll&&upcomingJuz.length>3&&(
+                <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:6}}>
+                  {upcomingJuz.slice(3).map(j=>(
+                    <div key={j.num} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.015)",border:"1px solid rgba(255,255,255,0.04)"}}>
+                      <div style={{fontSize:13,color:"rgba(243,231,200,0.40)",fontWeight:500}}>Juz {j.num}</div>
+                      <div style={{fontSize:11,color:"rgba(243,231,200,0.20)"}}>Ready to start</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>)}
           </div>
+          )}
 
         </div>
         );
