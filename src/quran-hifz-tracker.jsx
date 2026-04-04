@@ -2607,7 +2607,10 @@ export default function RihlatAlHifz() {
 
           {/* Header */}
           <div style={{marginBottom:22}}>
-            <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)"}}>← Back</div>
+              <div className="sbtn" onClick={()=>setRihlahTab("adjust")} style={{padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)"}}>⚙️ Adjust</div>
+            </div>
             <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>My Plan</div>
           </div>
 
@@ -2635,7 +2638,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ── YOUR PACE ── */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.04)"}}>
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Your Pace</div>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
               <span style={{fontSize:14}}>📖</span>
@@ -2649,22 +2652,22 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ── TODAY'S FLOW ── */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.04)"}}>
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:14}}>Your Daily Plan</div>
             <div style={{display:"flex",flexDirection:"column",gap:0}}>
               {[
-                {icon:"\u{1F305}",name:"Fajr",label:"Start your new ayahs",desc:`Memorize ${dailyNew} new ayahs \u2014 repeat each until it sticks`},
-                {icon:"\u2600\uFE0F",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier"},
-                {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Cycle through completed sections"},
-                {icon:"\u{1F306}",name:"Maghrib",label:"Listen carefully and follow along",desc:"Listen and follow along (15\u201320 min)"},
-                {icon:"\u{1F319}",name:"Isha",label:"Lock in today's memorization",desc:"Recite everything one final time"},
+                {icon:"\u{1F305}",name:"Fajr",label:"Begin your memorization",desc:`Memorize ${dailyNew} new ayahs \u2014 repeat each until it sticks`,glow:"rgba(240,192,64,0.35)"},
+                {icon:"\u2600\uFE0F",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier",glow:"rgba(246,166,35,0.30)"},
+                {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Cycle through completed sections",glow:"rgba(78,205,196,0.25)"},
+                {icon:"\u{1F306}",name:"Maghrib",label:"Listen carefully and follow along",desc:"Listen and follow along (15\u201320 min)",glow:"rgba(183,148,244,0.25)"},
+                {icon:"\u{1F319}",name:"Isha",label:"Complete today's journey",desc:"Recite everything one final time",glow:"rgba(104,211,145,0.25)"},
               ].map((s,i,arr)=>(
                 <div key={s.name}>
                   <div style={{padding:"12px 0"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <span style={{fontSize:14,width:22,textAlign:"center"}}>{s.icon}</span>
+                      <div style={{width:30,height:30,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0,background:`radial-gradient(circle,${s.glow} 0%,transparent 70%)`,filter:`drop-shadow(0 0 6px ${s.glow})`}}>{s.icon}</div>
                       <div>
-                        <div style={{fontSize:13,fontWeight:600}}><span style={{color:"#E6B84A",textShadow:"0 0 8px rgba(230,184,74,0.20)"}}>{s.name}</span> <span style={{fontWeight:400,color:"rgba(243,231,200,0.55)"}}>{"\u2014"} {s.label}</span></div>
+                        <div style={{fontSize:13,fontWeight:600}}><span style={{color:"#E6B84A",textShadow:"0 0 10px rgba(230,184,74,0.25)"}}>{s.name}</span> <span style={{fontWeight:400,color:"rgba(243,231,200,0.55)"}}>{"\u2014"} {s.label}</span></div>
                         <div style={{fontSize:11,color:"rgba(243,231,200,0.30)",marginTop:2}}>{s.desc}</div>
                       </div>
                     </div>
@@ -2676,7 +2679,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ── WHY THIS WORKS ── */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",marginBottom:14}}>
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 6px rgba(217,177,95,0.03)"}}>
             <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Why This Works</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {[
@@ -2705,10 +2708,10 @@ export default function RihlatAlHifz() {
               {ar:"\u0648\u064E\u0627\u0635\u0652\u0628\u0650\u0631\u0652 \u0641\u064E\u0625\u0650\u0646\u0651\u064E \u0627\u0644\u0644\u0651\u064E\u0647\u064E \u0644\u064E\u0627 \u064A\u064F\u0636\u0650\u064A\u0639\u064F \u0623\u064E\u062C\u0652\u0631\u064E \u0627\u0644\u0652\u0645\u064F\u062D\u0652\u0633\u0650\u0646\u0650\u064A\u0646\u064E",en:"\"Be patient, for Allah does not let the reward of the good be lost\"",ref:"Hud 11:115"},
               {ar:"\u0625\u0650\u0646\u0651\u064E \u0645\u064E\u0639\u064E \u0627\u0644\u0652\u0639\u064F\u0633\u0652\u0631\u0650 \u064A\u064F\u0633\u0652\u0631\u064B\u0627",en:"\"Indeed, with hardship comes ease\"",ref:"Ash-Sharh 94:6"},
             ];
-            const dayIdx=Math.floor(Date.now()/86400000)%verses.length;
+            const dayIdx=Math.floor(Date.now()/3600000)%verses.length;
             const v=verses[dayIdx];
             return (
-          <div style={{padding:"18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",textAlign:"center",marginBottom:18}}>
+          <div style={{padding:"18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)",textAlign:"center",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.04)"}}>
             <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#E6B84A",direction:"rtl",marginBottom:8}}>{v.ar}</div>
             <div style={{fontSize:12,color:"rgba(243,231,200,0.45)",fontStyle:"italic",marginBottom:3}}>{v.en}</div>
             <div style={{fontSize:10,color:"rgba(243,231,200,0.22)"}}>{v.ref}</div>
@@ -2716,12 +2719,6 @@ export default function RihlatAlHifz() {
             );
           })()}
 
-          {/* ── ADJUST PLAN CTA ── */}
-          <div className="sbtn" onClick={()=>setRihlahTab("adjust")}
-            style={{width:"100%",padding:"13px",borderRadius:14,textAlign:"center",fontSize:13,fontWeight:600,
-              color:"rgba(243,231,200,0.45)",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(217,177,95,0.12)"}}>
-            ⚙️ Adjust Plan
-          </div>
         </div>
       )}
 
@@ -2763,7 +2760,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Quick compare */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",marginBottom:14}}>
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 6px rgba(217,177,95,0.03)"}}>
             <div style={{fontSize:10,color:"rgba(243,231,200,0.35)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Compare Timelines</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
               {[1,2,3,5,7,10].map(y=>{const t=calcTimeline(y,completedCount,0),isA=y===goalYears;return (
