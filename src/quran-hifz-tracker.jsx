@@ -150,13 +150,16 @@ const STATUS_CFG = {
   in_progress:    {label:"In Progress",  color:"#F6A623"},
   needs_revision: {label:"Needs Revision",color:"#E5534B"},
   not_started:    {label:"Not Started",  color:"#3A8A50"},
-};function calcTimeline(years,juzDone) {
-  const juzLeft=Math.max(1,30-juzDone), ayahsLeft=juzLeft*208;
-  const active=Math.round(years*365*0.85), apd=Math.max(1,ayahsLeft/active);
-  return { ayahsPerDay:apd.toFixed(1), daysPerJuz:Math.round(active/juzLeft),
-           juzPerMonth:(juzLeft/(years*12)).toFixed(1),
+};function calcTimeline(years,juzDone,months) {
+  const juzLeft=Math.max(1,30-juzDone);
+  const totalMonths=(years*12)+(months||0);
+  const activeDays=Math.round(totalMonths*30*0.85);
+  const ayahsLeft=juzLeft*208;
+  const apd=Math.max(1,ayahsLeft/Math.max(1,activeDays));
+  return { ayahsPerDay:apd.toFixed(1), daysPerJuz:Math.round(activeDays/juzLeft),
+           juzPerMonth:(juzLeft/Math.max(1,totalMonths)).toFixed(1),
            revDuhr:Math.max(1,Math.round(apd*0.3)), revAsr:Math.max(1,Math.round(apd*0.2)),
-           activeDays:active, ayahsLeft, juzLeft };
+           activeDays, ayahsLeft, juzLeft };
 }
 
 const DARK  = {bg:"#04070A",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
@@ -599,6 +602,7 @@ export default function RihlatAlHifz() {
         setJuzStatus(p.juzStatus||{});
         setNotes(p.notes||{});
         setGoalYears(p.goalYears||3);
+        if(p.goalMonths!==undefined) setGoalMonths(p.goalMonths);
         setSessionJuz(p.sessionJuz ?? null);
         setSessionIdx(p.sessionIdx||0);
         setJuzProgress(p.juzProgress||{});
@@ -629,8 +633,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+  },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
   useEffect(()=>{
@@ -816,7 +820,7 @@ export default function RihlatAlHifz() {
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
   const curCfg=STATUS_CFG[curStatus];
-  const timeline=calcTimeline(goalYears,completedCount,5);
+  const timeline=calcTimeline(goalYears,completedCount,goalMonths);
   const dailyNew=Math.ceil(parseFloat(timeline.ayahsPerDay));
 
     const totalSV=sessionVerses.length;
