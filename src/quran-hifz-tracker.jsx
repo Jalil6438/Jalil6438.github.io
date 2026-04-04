@@ -2316,11 +2316,11 @@ export default function RihlatAlHifz() {
         const openSection=memSections;
         const toggleSection=(key)=>setMemSections(p=>({...p,[key]:!p[key]}));
 
-        // Journey strip: show completed + current + next few
-        const journeyItems=[];
-        completedJuz.slice(0,3).reverse().forEach(j=>journeyItems.push({num:j.num,state:"completed"}));
-        journeyItems.push({num:currentJuz,state:"current"});
-        upcomingJuz.slice(0,2).forEach(j=>journeyItems.push({num:j.num,state:"upcoming"}));
+        // Journey strip: sorted descending 30→29→28→27
+        const allJourneyNums=new Set([...completedJuz.map(j=>j.num),currentJuz,...upcomingJuz.slice(0,2).map(j=>j.num)]);
+        const journeyItems=[...allJourneyNums].sort((a,b)=>b-a).slice(0,6).map(num=>({
+          num,state:num===currentJuz?"current":isJDone(num)?"completed":"upcoming"
+        }));
 
         return (
         <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"14px 16px 48px"}} className="fi gold-particles">
@@ -2338,18 +2338,18 @@ export default function RihlatAlHifz() {
             boxShadow:"0 8px 32px rgba(0,0,0,0.35),0 0 20px rgba(230,184,74,0.08)"}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 20% 30%,rgba(212,175,55,0.06) 0%,transparent 50%)"}}/>
             <div style={{position:"relative",zIndex:1}}>
-              <div style={{fontSize:11,color:"rgba(230,184,74,0.55)",marginBottom:4}}>Juz {currentJuz} <span style={{color:"rgba(243,231,200,0.35)"}}>(Current)</span></div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#F3E7C8",fontWeight:700,marginBottom:4}}>{currentMeta.roman||currentMeta.arabic}</div>
-              {currentSurah&&<div style={{fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:10}}>Surah {currentSurah.name}</div>}
-              <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginBottom:4}}>Status: <span style={{color:"#E6B84A"}}>In Progress</span></div>
-              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+              <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginBottom:8}}>Juz {currentJuz} <span style={{color:"rgba(243,231,200,0.28)"}}>(Current)</span></div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:"#F3E7C8",fontWeight:700,marginBottom:8,lineHeight:1.2}}>{currentMeta.roman||currentMeta.arabic}</div>
+              {currentSurah&&<div style={{fontSize:13,color:"rgba(243,231,200,0.45)",marginBottom:12}}>Surah {currentSurah.name}</div>}
+              <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginBottom:6}}>Status: <span style={{color:"#E6B84A"}}>In Progress</span></div>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
                 <div style={{fontSize:11,color:"rgba(243,231,200,0.40)"}}>Progress:</div>
-                <div style={{flex:1,height:4,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                  <div style={{height:"100%",width:`${curTotal>0?Math.round((curProg/curTotal)*100):0}%`,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",borderRadius:999,transition:"width .5s"}}/>
+                <div style={{flex:1,height:6,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                  <div className="pbfill" style={{height:"100%",width:`${curTotal>0?Math.round((curProg/curTotal)*100):0}%`,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",borderRadius:999,boxShadow:"0 0 8px rgba(212,175,55,0.30)"}}/>
                 </div>
                 <div style={{fontSize:12,color:"rgba(230,184,74,0.65)",fontFamily:"'IBM Plex Mono',monospace"}}>{curProg} / {curTotal} ayahs</div>
               </div>
-              <div className="sbtn" onClick={()=>{setActiveTab("myhifz");}} style={{display:"inline-block",padding:"10px 20px",borderRadius:12,fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.75)",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.20)"}}>
+              <div className="sbtn" onClick={()=>{setActiveTab("myhifz");}} style={{display:"inline-block",padding:"11px 22px",borderRadius:12,fontSize:13,fontWeight:700,color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.12)"}}>
                 Continue Memorization
               </div>
             </div>
@@ -2371,7 +2371,7 @@ export default function RihlatAlHifz() {
                       boxShadow:isCur?"0 0 20px rgba(230,184,74,0.20)":"none"}}>
                       <div style={{fontSize:isCur?15:12,fontWeight:isCur?700:400,color:isCur?"#F6E27A":isDone?"rgba(230,184,74,0.55)":"rgba(255,255,255,0.25)"}}>{`Juz ${item.num}`}</div>
                       <div style={{fontSize:9,color:isCur?"rgba(230,184,74,0.65)":isDone?"rgba(230,184,74,0.35)":"rgba(255,255,255,0.15)",marginTop:2}}>
-                        {isCur?"In Progress":isDone?"Completed":""}
+                        {isCur?"Current":isDone?"Completed":"Next"}
                       </div>
                     </div>
                   </div>
@@ -2388,21 +2388,21 @@ export default function RihlatAlHifz() {
                 <div style={{color:"rgba(217,177,95,0.40)",fontSize:14,transition:"transform .2s",transform:openSection.completed?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
               </div>
               {openSection.completed&&(
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{display:"flex",flexDirection:"column",gap:12}}>
                   {completedJuz.map(j=>{
                     const jMeta=JUZ_META.find(m=>m.num===j.num);
                     return (
-                      <div key={j.num} style={{padding:"14px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)"}}>
+                      <div key={j.num} style={{padding:"16px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                           <div>
                             <div style={{fontSize:14,fontWeight:600,color:"rgba(243,231,200,0.75)"}}>Juz {j.num} <span style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontWeight:400}}>({jMeta?.roman?.split(" ")[0]||""})</span></div>
-                            <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginTop:3,textShadow:"0 0 6px rgba(230,184,74,0.10)"}}>Complete — Alhamdulillah</div>
+                            <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginTop:4,textShadow:"0 0 6px rgba(230,184,74,0.10)"}}>Complete — Alhamdulillah</div>
                           </div>
-                          <div className="sbtn" onClick={()=>{setSessionJuz(j.num);setActiveTab("myhifz");}} style={{padding:"7px 14px",borderRadius:10,fontSize:11,fontWeight:600,color:"rgba(243,231,200,0.50)",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(217,177,95,0.12)"}}>
-                            Continue
+                          <div className="sbtn" onClick={()=>{setSessionJuz(j.num);setActiveTab("myhifz");}} style={{padding:"7px 14px",borderRadius:10,fontSize:11,fontWeight:600,color:"rgba(243,231,200,0.45)",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(217,177,95,0.10)"}}>
+                            Review
                           </div>
                         </div>
-                        <div style={{height:3,borderRadius:999,background:"rgba(255,255,255,0.06)",marginTop:10,overflow:"hidden"}}>
+                        <div style={{height:3,borderRadius:999,background:"rgba(255,255,255,0.06)",marginTop:12,overflow:"hidden"}}>
                           <div style={{height:"100%",width:"100%",background:"linear-gradient(90deg,rgba(212,175,55,0.40),rgba(246,226,122,0.30))",borderRadius:999}}/>
                         </div>
                       </div>
