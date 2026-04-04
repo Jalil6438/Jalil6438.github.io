@@ -1565,36 +1565,48 @@ export default function RihlatAlHifz() {
 
           <div style={{flex:1,padding:"10px 16px 48px"}}>
 
-            {/* ── SESSION SELECTOR ── */}
-            <div style={{marginBottom:12}}>
-              <div style={{fontSize:8,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:7}}>Today's Sessions</div>
-              <div style={{display:"flex",gap:5,overflowX:"auto",paddingBottom:2}}>
-                {SESSIONS.map((s,idx)=>{
-                  const isCompleted=sessionsCompleted[s.id];
-                  const isActive=idx===activeSessionIndex;
-                  return (
-                    <div key={s.id} style={{flexShrink:0,padding:"10px 16px",borderRadius:999,display:"flex",alignItems:"center",gap:8,fontWeight:600,fontSize:13,transition:"all .15s",...(isActive?{background:"linear-gradient(135deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 14px rgba(230,184,74,0.25)"}:isCompleted?{background:"rgba(46,204,113,0.15)",border:"1px solid rgba(46,204,113,0.3)",color:"#7EE2A8"}:{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.55)"})}}>
-                      <span style={{fontSize:13}}>{s.icon}</span>
-                      <span style={{fontSize:12,whiteSpace:"nowrap"}}>{s.time}</span>
-                    </div>
-                  );
-                })}
+            {/* ── SESSION JUZ ROW ── */}
+            <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:700,color:T.text}}>Session Juz · {sessionVerses[0]?.verse_key||""}</div>
+                <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} / {totalSV} ayahs</div>
               </div>
+              <div style={{color:T.dim,fontSize:14}}>›</div>
             </div>
 
-            {/* ── SESSION INFO CARD ── */}
+            {/* ── TODAY'S SESSION PILLS ── */}
+            <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2,marginBottom:10}}>
+              {SESSIONS.map((s,idx)=>{
+                const isCompleted=dailyChecks[s.id]||sessionsCompleted[s.id];
+                const isActive=idx===activeSessionIndex;
+                const isPast=idx<activeSessionIndex;
+                const canTap=isActive||isCompleted||isPast;
+                return (
+                  <div key={s.id} className={canTap?"sbtn":""} onClick={()=>{if(canTap&&!isActive)setActiveSessionIndex(idx);}}
+                    style={{flexShrink:0,padding:"7px 14px",borderRadius:999,fontSize:12,fontWeight:600,transition:"all .15s",
+                      ...(isActive
+                        ?{background:"linear-gradient(135deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 4px 12px rgba(230,184,74,0.25)"}
+                        :isCompleted
+                        ?{background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.20)",color:"rgba(230,184,74,0.65)"}
+                        :{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.30)",opacity:0.6,pointerEvents:"none"}
+                      )}}>
+                    {isCompleted&&!isActive?"✓ ":""}{s.time}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── CURRENT SESSION ROW ── */}
             {(()=>{
               const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
               if(!sess) return null;
               return (
-                <div style={{marginBottom:12,padding:"11px 14px",background:T.surface,border:`1px solid ${T.accent}25`,borderLeft:"2px solid #F0C040",borderRadius:"0 8px 8px 0"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                    <div style={{fontSize:13,fontWeight:700,color:T.text,letterSpacing:"-0.01em"}}>{sess.icon} {sess.title}</div>
-                    <div style={{fontSize:9,padding:"3px 9px",background:sessionsCompleted[sess.id]?"rgba(46,204,113,0.15)":"rgba(255,255,255,0.05)",border:sessionsCompleted[sess.id]?"1px solid rgba(46,204,113,0.3)":"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:sessionsCompleted[sess.id]?"#7EE2A8":"rgba(255,255,255,0.35)",fontWeight:600}}>
-                      {sessionsCompleted[sess.id]?"✓ Done":"Pending"}
-                    </div>
+                <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderLeft:"3px solid #E6B84A",borderRadius:"0 10px 10px 0",marginBottom:10}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:700,color:T.text}}>{sess.title}</div>
                   </div>
-                  <div style={{fontSize:11,color:T.sub,lineHeight:1.7}}>{sess.desc}</div>
+                  <div style={{fontSize:12,color:T.sub,fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":"0"}/{dailyNew}</div>
+                  <div style={{color:T.dim,fontSize:14}}>›</div>
                 </div>
               );
             })()}
@@ -1706,30 +1718,6 @@ export default function RihlatAlHifz() {
               );
             })()}
 
-            {/* ── JUZ SELECTOR ── */}
-            <div style={{marginTop:16,marginBottom:16}}>
-              <div style={{fontSize:11,color:"#6B7280",marginBottom:6,letterSpacing:"1.2px",textTransform:"uppercase"}}>Session Juz</div>
-              <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"20px 18px",marginBottom:0,display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer",transition:"all 0.2s ease"}}>
-                <div>
-                  <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:4}}>Juz {sessionJuz}</div>
-                  <div style={{fontSize:14,color:"rgba(255,255,255,0.62)"}}>{sessM?.roman||sessM?.arabic}</div>
-                </div>
-                <div style={{color:"#E6B84A",fontSize:16}}>▼</div>
-              </div>
-            </div>
-
-            {/* ── PROGRESS CARD ── */}
-            <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:18,marginBottom:18}}>
-              <div style={{width:42,height:4,borderRadius:999,background:"#E6B84A",marginBottom:14}}/>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <div style={{fontSize:17,fontWeight:600,color:"#F8FAFC"}}>Juz {sessionJuz} Progress</div>
-                {totalSV===0?(<div style={{fontSize:14,color:"rgba(255,255,255,0.48)",fontStyle:"italic"}}>Loading...</div>):(<span style={{fontSize:14,color:"#E6B84A",fontWeight:600,fontFamily:"'IBM Plex Mono',monospace"}}>{sessionIdx} / {totalSV}</span>)}
-              </div>
-              <div style={{fontSize:14,color:"rgba(255,255,255,0.58)",marginBottom:14}}>{dailyNew} ayahs/session · {Math.ceil((totalSV-sessionIdx)/Math.max(1,dailyNew))} sessions remaining</div>
-              <div style={{height:8,borderRadius:999,background:"rgba(255,255,255,0.08)",overflow:"hidden"}}>
-                <div className="pbfill" style={{height:"100%",width:`${sessPct}%`,background:"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .5s"}}/>
-              </div>
-            </div>
 
             {/* ── LOADING / ERROR STATES ── */}
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
@@ -2497,7 +2485,17 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ── Juz Selector Modal ── */}
-      {showJuzModal&&(
+      {showJuzModal&&(()=>{
+        const sessionJuzOrder=(JUZ_META.find(j=>j.num===sessionJuz)||{}).order||1;
+        const isJuzUnlocked=(juzNum)=>{
+          if(juzNum===sessionJuz) return true;
+          if(juzStatus[juzNum]==="complete") return true;
+          const surahs=JUZ_SURAHS[juzNum]||[];
+          if(surahs.some(s=>juzStatus[`s${s.s}`]==="complete")) return true;
+          const jOrder=(JUZ_META.find(j=>j.num===juzNum)||{}).order||99;
+          return jOrder<=sessionJuzOrder;
+        };
+        return (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowJuzModal(false)}>
           <div style={{background:"#0F1115",borderRadius:"16px 16px 0 0",padding:"20px 16px 36px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:40,height:4,background:"rgba(255,255,255,0.1)",borderRadius:2,margin:"0 auto 16px"}}/>
@@ -2505,18 +2503,27 @@ export default function RihlatAlHifz() {
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,paddingBottom:8}}>
               {JUZ_META.slice().reverse().map(j=>{
                 const isSel=sessionJuz===j.num;
-                const isDone=juzStatus[j.num]==="complete";
+                const isDone=juzStatus[j.num]==="complete"||(JUZ_SURAHS[j.num]||[]).every(s=>juzStatus[`s${s.s}`]==="complete");
+                const unlocked=isJuzUnlocked(j.num);
                 return (
-                  <div key={j.num} className="sbtn" onClick={()=>{ setJuzProgress(prev=>({...prev,[sessionJuz]:sessionIdx})); setSessionJuz(j.num); setSessionIdx(juzProgress[j.num]||0); setRepCounts({}); setOpenAyah(null); setShowJuzModal(false); }} style={{paddingTop:18,paddingBottom:18,borderRadius:16,background:isDone?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:isSel?"1.5px solid #E6B84A":"1px solid rgba(255,255,255,0.06)",boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",textAlign:"center",transition:"all .15s"}}>
-                    <div style={{fontSize:12,color:isSel?"#E6B84A":isDone?"#E6B84A":"#888",fontWeight:isSel?700:400,marginBottom:4}}>{j.num}</div>
-                    <div style={{fontSize:12,color:isSel?"#F8FAFC":isDone?"rgba(230,184,74,0.8)":"#ccc",fontWeight:isSel?600:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:4,paddingRight:4}}>{j.roman?.split(" ")[0]||""}</div>
+                  <div key={j.num} className={unlocked?"sbtn":""} onClick={()=>{ if(!unlocked)return; setJuzProgress(prev=>({...prev,[sessionJuz]:sessionIdx})); setSessionJuz(j.num); setSessionIdx(juzProgress[j.num]||0); setRepCounts({}); setOpenAyah(null); setShowJuzModal(false); }}
+                    style={{paddingTop:18,paddingBottom:18,borderRadius:16,textAlign:"center",transition:"all .15s",
+                      background:isDone?"rgba(230,184,74,0.12)":unlocked?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.02)",
+                      border:isSel?"1.5px solid #E6B84A":`1px solid ${unlocked?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)"}`,
+                      boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",
+                      opacity:unlocked?1:0.3,
+                      pointerEvents:unlocked?"auto":"none",
+                      cursor:unlocked?"pointer":"default"}}>
+                    <div style={{fontSize:12,color:isSel?"#E6B84A":isDone?"#E6B84A":unlocked?"#888":"#555",fontWeight:isSel?700:400,marginBottom:4}}>{j.num}</div>
+                    <div style={{fontSize:12,color:isSel?"#F8FAFC":isDone?"rgba(230,184,74,0.8)":unlocked?"#ccc":"#444",fontWeight:isSel?600:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:4,paddingRight:4}}>{j.roman?.split(" ")[0]||""}</div>
                   </div>
                 );
               })}
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Quran Reciter Modal */}
 {showReciterModal&&(
