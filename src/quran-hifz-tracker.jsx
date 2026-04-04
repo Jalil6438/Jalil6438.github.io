@@ -2543,7 +2543,7 @@ export default function RihlatAlHifz() {
             {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Check your connection.</div></div>}
             {!loading&&!fetchError&&surahGroups.length>0&&(()=>{
               // Flatten all content into a single verse stream with surah headers
-              const LINES_PER_PAGE=9;
+              const LINES_PER_PAGE=10;
               const lineH=fontSize*2.2;
               const pageH=lineH*LINES_PER_PAGE;
               const allVerses=[];
@@ -2560,7 +2560,7 @@ export default function RihlatAlHifz() {
                 <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
                   style={{flex:1,minHeight:0,overflow:"hidden",padding:"12px 16px 0",display:"flex",flexDirection:"column"}}>
                   <div style={{background:"linear-gradient(180deg,rgba(28,24,18,0.50) 0%,rgba(22,19,14,0.45) 50%,rgba(28,24,18,0.50) 100%)",borderRadius:12,padding:"16px 14px 24px",border:"1px solid rgba(212,175,55,0.06)",boxShadow:"inset 0 1px 0 rgba(255,245,220,0.03),inset 0 -1px 0 rgba(0,0,0,0.15),0 2px 12px rgba(0,0,0,0.20)",flex:1,minHeight:0,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-                    <div style={{flex:1,minHeight:0,overflow:"hidden",position:"relative"}}>
+                    <div style={{height:pageH,maxHeight:pageH,overflow:"hidden",position:"relative"}}>
                       {/* Bottom fade mask */}
                       <div style={{position:"absolute",bottom:0,left:0,right:0,height:40,background:"linear-gradient(transparent,rgba(22,19,14,0.95))",zIndex:2,pointerEvents:"none"}}/>
                       <div style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
