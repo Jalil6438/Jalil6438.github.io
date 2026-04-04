@@ -519,7 +519,8 @@ export default function RihlatAlHifz() {
   const [juzStatus,setJuzStatus]=useState({});
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
-  const [fontSize,setFontSize]=useState(24);
+  const [fontSize,setFontSize]=useState(16);
+  const [quranShowCount,setQuranShowCount]=useState(5);
   const [openSurah,setOpenSurah]=useState(null);
   const [goalYears,setGoalYears]=useState(3);
   const [goalMonths,setGoalMonths]=useState(1);
@@ -2513,7 +2514,7 @@ export default function RihlatAlHifz() {
           <div style={{padding:"10px 14px",borderBottom:`1px solid ${T.border}`,background:T.surface,flexShrink:0}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-                <select value={selectedJuz} onChange={e=>setSelectedJuz(Number(e.target.value))} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontSize:13,padding:"6px 10px",borderRadius:6,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
+                <select value={selectedJuz} onChange={e=>{setSelectedJuz(Number(e.target.value));setQuranShowCount(5);}} style={{background:T.surface2,border:`1px solid ${T.border}`,color:T.text,fontSize:13,padding:"6px 10px",borderRadius:6,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
                   {JUZ_META.map(j=><option key={j.num} value={j.num}>Juz {j.num} — {j.roman}</option>)}
                 </select>
                 <span style={{fontSize:10,color:curCfg.color,background:curCfg.color+"18",padding:"3px 9px",borderRadius:10}}>{curCfg.label}</span>
@@ -2539,7 +2540,7 @@ export default function RihlatAlHifz() {
               {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:T.dim}}>Check your internet connection.</div></div>}
               {!loading&&!fetchError&&surahGroups.length>0&&(
                 <div className="fi">
-                  {surahGroups.map(({surahNum,verses})=>{
+                  {surahGroups.slice(0,quranShowCount).map(({surahNum,verses})=>{
                     const isOpen=openSurah===surahNum;
                     const startA=verses[0]?.verse_key?.split(":")?.[1];
                     const endA=verses[verses.length-1]?.verse_key?.split(":")?.[1];
@@ -2594,6 +2595,13 @@ export default function RihlatAlHifz() {
                       </div>
                     );
                   })}
+                  {quranShowCount<surahGroups.length&&(
+                    <div className="sbtn" onClick={()=>setQuranShowCount(c=>c+5)}
+                      style={{textAlign:"center",padding:"12px",marginTop:8,borderRadius:10,fontSize:12,fontWeight:600,
+                        color:"rgba(230,184,74,0.55)",border:"1px dashed rgba(230,184,74,0.12)",background:"transparent"}}>
+                      Load More ({surahGroups.length-quranShowCount} remaining)
+                    </div>
+                  )}
                 </div>
               )}
             </div>
