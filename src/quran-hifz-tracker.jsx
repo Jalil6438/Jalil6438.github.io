@@ -524,6 +524,8 @@ export default function RihlatAlHifz() {
   const [quranPage,setQuranPage]=useState(0);
   const [quranPageDir,setQuranPageDir]=useState(null);
   const quranTouchRef=useRef(0);
+  const quranContentRef=useRef(null);
+  const [quranPageBreaks,setQuranPageBreaks]=useState([0]);
   const [openSurah,setOpenSurah]=useState(null);
   const [goalYears,setGoalYears]=useState(3);
   const [goalMonths,setGoalMonths]=useState(1);
@@ -2542,54 +2544,78 @@ export default function RihlatAlHifz() {
             {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:60,gap:12}}><div className="spin" style={{width:26,height:26,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Loading...</div></div>}
             {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Check your connection.</div></div>}
             {!loading&&!fetchError&&surahGroups.length>0&&(()=>{
-              // Continuous flow with page breaks at surah boundaries
               const pageH=window.innerHeight-210;
-              // Build flat stream, mark surah starts with their pixel offset (estimated)
-              const allItems=[];
-              surahGroups.forEach(({surahNum,verses},gi)=>{
-                const startA=verses[0]?.verse_key?.split(":")?.[1];
-                allItems.push({type:"surahStart"});
-                allItems.push({type:"header",surahNum,startA});
-                if(surahNum!==9&&startA==="1") allItems.push({type:"bismillah"});
-                verses.forEach(v=>allItems.push({type:"ayah",v,surahNum}));
-              });
+              // After render, measure surah header positions and build page breaks
+              const buildPageBreaks=()=>{
+                if(!quranContentRef.current) return;
+                const headers=quranContentRef.current.querySelectorAll("[data-surah-header]");
+                const breaks=[0];
+                let nextBreak=pageH;
+                headers.forEach((el,i)=>{
+                  if(i===0) return; // first surah starts at 0
+                  const pos=el.offsetTop;
+                  // Add page breaks for content before this header
+                  while(nextBreak<pos){ breaks.push(nextBreak); nextBreak+=pageH; }
+                  // Snap this header to a page boundary
+                  breaks.push(pos);
+                  nextBreak=pos+pageH;
+                });
+                // Add remaining pages for content after last header
+                const totalH=quranContentRef.current.scrollHeight;
+                while(nextBreak<totalH){ breaks.push(nextBreak); nextBreak+=pageH; }
+                setQuranPageBreaks(breaks);
+              };
+              setTimeout(buildPageBreaks,100);
+
+              const safePage=Math.min(quranPage,quranPageBreaks.length-1);
+              const offset=quranPageBreaks[safePage]||0;
 
               return (
               <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-                <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
+                <div key={safePage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
                   style={{flex:1,minHeight:0,overflow:"hidden",padding:"14px 18px 0"}}>
-                  <div style={{height:"calc(100vh - 210px)",overflow:"hidden"}}>
-                    <div style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
-                      transform:`translateY(${-quranPage*pageH}px)`}}>
-                      {allItems.map((item,i)=>{
-                        if(item.type==="surahStart"&&i>0){
-                          // Calculate padding to push to next page boundary
-                          return <div key={`ps${i}`} style={{direction:"ltr",height:pageH,maxHeight:pageH,display:"block"}}/>
-                        }
-                        if(item.type==="surahStart") return null;
-                        if(item.type==="header") return <div key={`h${item.surahNum}`} style={{direction:"ltr",textAlign:"center",paddingTop:10,paddingBottom:10,position:"relative"}}>
-                          <div className="sbtn" onClick={()=>{
-                            const sg=surahGroups.find(g=>g.surahNum===item.surahNum);if(!sg)return;
-                            const fvk=sg.verses[0]?.verse_key||"";const fan=parseInt(fvk.split(":")?.[1]||"1",10);
-                            if(MID_SURAH_JUZ.has(selectedJuz)&&fan>1){playSurahQueue(sg.verses,item.surahNum,0,quranReciter);}else{playQuranSurah(item.surahNum);}
-                          }} style={{position:"absolute",top:10,right:0,padding:"3px 8px",borderRadius:12,fontSize:10,color:playingSurah===item.surahNum?"#E6B84A":"rgba(243,231,200,0.22)",background:playingSurah===item.surahNum?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${playingSurah===item.surahNum?"rgba(230,184,74,0.20)":"rgba(255,255,255,0.05)"}`,zIndex:1}}>
-                            {playingSurah===item.surahNum?"\u23F8":"\u25B6"}
+                  <div style={{height:pageH,overflow:"hidden"}}>
+                    <div ref={quranContentRef} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
+                      transform:`translateY(${-offset}px)`}}>
+                      {surahGroups.map(({surahNum,verses},gi)=>{
+                        const startA=verses[0]?.verse_key?.split(":")?.[1];
+                        return (
+                          <div key={surahNum}>
+                            {/* Surah header */}
+                            <div data-surah-header={surahNum} style={{direction:"ltr",textAlign:"center",paddingTop:gi>0?20:10,paddingBottom:10,position:"relative"}}>
+                              <div className="sbtn" onClick={()=>{
+                                const fvk=verses[0]?.verse_key||"";const fan=parseInt(fvk.split(":")?.[1]||"1",10);
+                                if(MID_SURAH_JUZ.has(selectedJuz)&&fan>1){playSurahQueue(verses,surahNum,0,quranReciter);}else{playQuranSurah(surahNum);}
+                              }} style={{position:"absolute",top:gi>0?20:10,right:0,padding:"3px 8px",borderRadius:12,fontSize:10,color:playingSurah===surahNum?"#E6B84A":"rgba(243,231,200,0.22)",background:playingSurah===surahNum?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${playingSurah===surahNum?"rgba(230,184,74,0.20)":"rgba(255,255,255,0.05)"}`,zIndex:1}}>
+                                {playingSurah===surahNum?"\u23F8":"\u25B6"}
+                              </div>
+                              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
+                                <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0) 0%,rgba(212,175,55,0.25) 100%)"}}/>
+                                <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(212,175,55,0.70)",direction:"rtl"}}>{SURAH_AR[surahNum]}</div>
+                                <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.25) 0%,rgba(212,175,55,0) 100%)"}}/>
+                              </div>
+                              <div style={{fontSize:10,color:"rgba(243,231,200,0.30)"}}>{SURAH_EN[surahNum]}</div>
+                            </div>
+                            {/* Bismillah */}
+                            {surahNum!==9&&startA==="1"&&(
+                              <div style={{direction:"ltr",textAlign:"center",padding:"10px 0 14px"}}>
+                                <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:fontSize+2,color:"rgba(212,175,55,0.65)",textShadow:"0 0 14px rgba(212,175,55,0.20)"}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
+                              </div>
+                            )}
+                            {/* Ayahs */}
+                            <p style={{margin:0}}>
+                              {verses.map(v=>{
+                                const vNum=v.verse_key?.split(":")?.[1];
+                                const vKey=v.verse_key;
+                                const isP=playingKey===vKey;
+                                return <span key={vKey} className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{background:isP?"rgba(212,175,55,0.12)":"transparent",borderRadius:4,padding:isP?"2px 4px":0,transition:"background .3s"}}>
+                                  <span style={{color:isP?"#E6B84A":"rgba(243,231,200,0.88)"}}>{v.text_uthmani}</span>
+                                  <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.4em",height:"1.4em",borderRadius:"50%",border:"1px solid rgba(212,175,55,0.15)",color:isP?"#E6B84A":"rgba(212,175,55,0.40)",fontSize:"0.35em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 3px",verticalAlign:"middle"}}>{vNum}</span>{" "}
+                                </span>;
+                              })}
+                            </p>
                           </div>
-                          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
-                            <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0) 0%,rgba(212,175,55,0.25) 100%)"}}/>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(212,175,55,0.70)",direction:"rtl"}}>{SURAH_AR[item.surahNum]}</div>
-                            <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.25) 0%,rgba(212,175,55,0) 100%)"}}/>
-                          </div>
-                          <div style={{fontSize:10,color:"rgba(243,231,200,0.30)"}}>{SURAH_EN[item.surahNum]}</div>
-                        </div>;
-                        if(item.type==="bismillah") return <div key={`bis${i}`} style={{direction:"ltr",textAlign:"center",padding:"10px 0 14px"}}>
-                          <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:fontSize+2,color:"rgba(212,175,55,0.65)",textShadow:"0 0 14px rgba(212,175,55,0.20)"}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</span>
-                        </div>;
-                        const v=item.v,vNum=v.verse_key?.split(":")?.[1],vKey=v.verse_key,isP=playingKey===vKey;
-                        return <span key={vKey} className="sbtn" onClick={()=>playAyah(vKey,vKey)} style={{background:isP?"rgba(212,175,55,0.12)":"transparent",borderRadius:4,padding:isP?"2px 4px":0,transition:"background .3s"}}>
-                          <span style={{color:isP?"#E6B84A":"rgba(243,231,200,0.88)"}}>{v.text_uthmani}</span>
-                          <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.4em",height:"1.4em",borderRadius:"50%",border:"1px solid rgba(212,175,55,0.15)",color:isP?"#E6B84A":"rgba(212,175,55,0.40)",fontSize:"0.35em",fontFamily:"'IBM Plex Mono',monospace",margin:"0 3px",verticalAlign:"middle"}}>{vNum}</span>{" "}
-                        </span>;
+                        );
                       })}
                     </div>
                   </div>
@@ -2597,7 +2623,7 @@ export default function RihlatAlHifz() {
                 {/* Page number */}
                 <div style={{padding:"10px 0 14px",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:16}}>
                   <div style={{height:1,width:40,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.15))"}}/>
-                  <div style={{fontSize:10,color:"rgba(212,175,55,0.30)",fontFamily:"'IBM Plex Mono',monospace"}}>{quranPage+1}</div>
+                  <div style={{fontSize:10,color:"rgba(212,175,55,0.30)",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} / {quranPageBreaks.length}</div>
                   <div style={{height:1,width:40,background:"linear-gradient(90deg,rgba(212,175,55,0.15),transparent)"}}/>
                 </div>
               </div>
