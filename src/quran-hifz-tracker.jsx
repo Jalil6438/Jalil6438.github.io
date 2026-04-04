@@ -1751,101 +1751,93 @@ export default function RihlatAlHifz() {
                   </div>
                 )}
 
-                {/* ── PAGE CONTROLS ── */}
-                {batch.length>AYAHS_PER_PAGE&&(
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,padding:"8px 4px"}}>
-                    <div className="sbtn" onClick={()=>setAyahPage(p=>Math.max(0,p-1))} style={{width:32,height:32,borderRadius:"50%",background:safePage===0?"rgba(255,255,255,0.03)":"rgba(230,184,74,0.12)",border:`1px solid ${safePage===0?"rgba(255,255,255,0.06)":"rgba(230,184,74,0.3)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:safePage===0?"rgba(255,255,255,0.15)":"#E6B84A",fontSize:14,opacity:safePage===0?0.4:1}}>◂</div>
-                    <div style={{textAlign:"center"}}>
-                      <div style={{fontSize:12,color:T.accent,fontWeight:600,fontFamily:"'IBM Plex Mono',monospace"}}>Page {safePage+1} of {totalPages}</div>
-                      <div style={{fontSize:10,color:T.dim,marginTop:2}}>Showing ayahs {pageStart+1}–{pageEnd} of {batch.length}</div>
-                    </div>
-                    <div className="sbtn" onClick={()=>setAyahPage(p=>Math.min(totalPages-1,p+1))} style={{width:32,height:32,borderRadius:"50%",background:safePage>=totalPages-1?"rgba(255,255,255,0.03)":"rgba(230,184,74,0.12)",border:`1px solid ${safePage>=totalPages-1?"rgba(255,255,255,0.06)":"rgba(230,184,74,0.3)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:safePage>=totalPages-1?"rgba(255,255,255,0.15)":"#E6B84A",fontSize:14,opacity:safePage>=totalPages-1?0.4:1}}>▸</div>
-                  </div>
-                )}
-
-                {/* ── COLLAPSIBLE AYAH ROWS ── */}
-                <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}} onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}} onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx<-40)setAyahPage(p=>Math.min(totalPages-1,p+1));else if(dx>40)setAyahPage(p=>Math.max(0,p-1));}}>
-                  {visibleAyahs.map((v,i)=>{
-                    const realIndex=pageStart+i;
+                {/* ── AYAH ROWS (compact, tap to open modal for Fajr) ── */}
+                <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+                  {batch.map((v,i)=>{
                     const vNum=v.verse_key?.split(":")?.[1];
                     const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
                     const vKey=v.verse_key;
-                    const isPlaying=playingKey===vKey;
-                    const isLoading=audioLoading===vKey;
-                    const trans=translations[vKey];
                     const reps=repCounts[vKey]||0;
                     const repsDone=reps>=20;
-                    const isOpen=openAyah===vKey;
-                    const pct=Math.min((reps/20)*100,100);
 
                     return (
-                      <div key={vKey} style={{borderRadius:18,marginBottom:16,background:"#0F1A2B",border:`1px solid ${repsDone?"rgba(230,184,74,0.4)":"rgba(230,184,74,0.12)"}`,overflow:"hidden",transition:"all .2s",boxShadow:repsDone?"0 0 20px rgba(230,184,74,0.15)":"0 4px 12px rgba(0,0,0,0.3)"}}>
-
-                        {/* ── COLLAPSED: header + arabic preview + rep bar ── */}
-                        <div className="sbtn" onClick={()=>setOpenAyah(isOpen?null:vKey)} style={{padding:16}}>
-                          {/* Header row */}
-                          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                            <div style={{display:"flex",alignItems:"center",gap:10}}>
-                              <div style={{width:30,height:30,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.05)",border:`1px solid ${repsDone?"rgba(230,184,74,0.5)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600,color:repsDone?"#E6B84A":"#aaa",flexShrink:0,boxShadow:repsDone?"0 0 10px rgba(230,184,74,0.2)":"none"}}>
-                                {repsDone?"✓":realIndex+1}
-                              </div>
-                              <span style={{fontSize:12,color:"#9CA3AF",fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[sNum]} · {vKey}</span>
-                            </div>
-                            <div style={{display:"flex",alignItems:"center",gap:8}}>
-                              <span style={{fontSize:12,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
-                              <span style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>{isOpen?"▾":"›"}</span>
-                            </div>
+                      <div key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
+                        style={{borderRadius:14,padding:"12px 14px",background:"#0F1A2B",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
+                        {/* Header: number + surah·verse + reps + chevron */}
+                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                          <div style={{width:28,height:28,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${repsDone?"rgba(230,184,74,0.45)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:repsDone?"#E6B84A":"#888",flexShrink:0}}>
+                            {repsDone?"✓":i+1}
                           </div>
-                          {/* Arabic — HERO */}
-                          <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"rgba(255,255,255,0.92)",direction:"rtl",textAlign:"right",lineHeight:1.8,marginBottom:10,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:isOpen?"normal":"nowrap"}}>
-                            {v.text_uthmani}
-                          </div>
-                          {/* Rep progress bar */}
-                          <div style={{width:"100%",height:4,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                            <div style={{width:`${pct}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.35s ease"}}/>
-                          </div>
+                          <span style={{flex:1,fontSize:12,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
+                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
+                          <span style={{fontSize:12,color:"rgba(255,255,255,0.18)"}}>›</span>
                         </div>
-
-                        {/* ── EXPANDED ── */}
-                        {isOpen&&(
-                          <div style={{borderTop:"1px solid rgba(255,255,255,0.05)",padding:"0 16px 16px",background:"#0F1A2B"}}>
-                            {/* Translation */}
-                            {showTrans&&(
-                              <div style={{fontSize:13,color:"#9CA3AF",fontStyle:"italic",lineHeight:1.7,marginBottom:14,marginTop:12}}>
-                                {trans===undefined?<span style={{color:"rgba(255,255,255,0.2)"}}>Loading...</span>:trans||<span style={{color:"rgba(255,255,255,0.2)"}}>Translation unavailable</span>}
-                              </div>
-                            )}
-                            {/* Audio controls */}
-                            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-                              <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(vKey,vKey):null} style={{width:36,height:36,borderRadius:"50%",background:isPlaying?"rgba(240,192,64,0.2)":"rgba(255,255,255,0.05)",border:`1px solid ${isPlaying?"rgba(240,192,64,0.6)":"rgba(255,255,255,0.1)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:isPlaying?"#F0C040":"rgba(255,255,255,0.5)",opacity:hasPerAyah(reciter)?1:0.4}}>
-                                {isLoading?<div className="spin" style={{width:14,height:14,border:"2px solid rgba(240,192,64,0.3)",borderTopColor:"#F0C040",borderRadius:"50%"}}/>:(isPlaying?"⏸":"▶")}
-                              </div>
-                              <div style={{flex:1,height:4,background:"rgba(255,255,255,0.06)",borderRadius:999}}>
-                                <div style={{height:"100%",width:isPlaying?"40%":"0%",background:"#F0C040",borderRadius:999,transition:"width .5s"}}/>
-                              </div>
-                              <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:30,height:30,borderRadius:"50%",background:looping?"rgba(240,192,64,0.15)":"rgba(255,255,255,0.05)",border:`1px solid ${looping?"rgba(240,192,64,0.4)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:looping?"#F0C040":"rgba(255,255,255,0.4)"}}>🔁</div>
-                              <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:30,height:30,borderRadius:"50%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"rgba(255,255,255,0.4)"}}>↩</div>
-                            </div>
-                            {/* Tap to rep */}
-                            <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:Math.min(20,(prev[vKey]||0)+1)}))} style={{width:"100%",padding:"12px",background:repsDone?"rgba(74,222,128,0.08)":"rgba(230,184,74,0.08)",border:`1px solid ${repsDone?"rgba(74,222,128,0.25)":"rgba(230,184,74,0.2)"}`,borderRadius:12,textAlign:"center",transition:"all .2s"}}>
-                              {repsDone?(
-                                <div style={{fontSize:13,fontWeight:700,color:"#4ADE80"}}>✓ 20 Reps Complete — MashaAllah!</div>
-                              ):(
-                                <div>
-                                  <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Tap after each recitation · <span style={{color:"#F0C040",fontWeight:700}}>{reps}/20</span></div>
-                                  <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                                    <div style={{width:`${pct}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.35s ease"}}/>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                            {reps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[vKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Reset reps</div>}
-                          </div>
-                        )}
+                        {/* Arabic preview */}
+                        <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(255,255,255,0.88)",direction:"rtl",textAlign:"right",lineHeight:1.7,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                          {v.text_uthmani}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {/* ── FAJR AYAH POPUP MODAL ── */}
+                {currentSessionId==="fajr"&&openAyah&&(()=>{
+                  const mv=batch.find(v=>v.verse_key===openAyah);
+                  if(!mv) return null;
+                  const mvKey=mv.verse_key;
+                  const mvSurah=mv.surah_number||parseInt(mvKey.split(":")[0],10);
+                  const mvAyah=mvKey.split(":")[1];
+                  const mvTrans=translations[mvKey];
+                  const mvPlaying=playingKey===mvKey;
+                  const mvLoading=audioLoading===mvKey;
+                  const mvReps=repCounts[mvKey]||0;
+                  const mvRepsDone=mvReps>=20;
+                  const mvPct=Math.min((mvReps/20)*100,100);
+                  return (
+                    <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setOpenAyah(null)}>
+                      <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
+                        <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
+                        {/* Arabic */}
+                        <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
+                          {mv.text_uthmani}
+                        </div>
+                        {/* Reference */}
+                        <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:20}}>
+                          Ayah {mvAyah} of Surah {SURAH_EN[mvSurah]||mvSurah}
+                        </div>
+                        {/* Translation */}
+                        {showTrans&&(
+                          <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
+                            {mvTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:mvTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
+                          </div>
+                        )}
+                        {/* Audio controls */}
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:16}}>
+                          <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(mvKey,mvKey):null} style={{width:40,height:40,borderRadius:"50%",background:mvPlaying?"rgba(240,192,64,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${mvPlaying?"rgba(240,192,64,0.40)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color:mvPlaying?"#F0C040":"rgba(243,231,200,0.56)",opacity:hasPerAyah(reciter)?1:0.4}}>
+                            {mvLoading?<div className="spin" style={{width:14,height:14,border:"2px solid rgba(240,192,64,0.3)",borderTopColor:"#F0C040",borderRadius:"50%"}}/>:(mvPlaying?"⏸":"▶")}
+                          </div>
+                          <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:34,height:34,borderRadius:"50%",background:looping?"rgba(240,192,64,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${looping?"rgba(240,192,64,0.30)":"rgba(255,255,255,0.06)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:looping?"#F0C040":"rgba(255,255,255,0.35)"}}>🔁</div>
+                          <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"rgba(255,255,255,0.35)"}}>↩</div>
+                        </div>
+                        {/* Tap to rep */}
+                        <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:Math.min(20,(prev[mvKey]||0)+1)}))} style={{width:"100%",padding:"14px",background:mvRepsDone?"rgba(74,222,128,0.08)":"rgba(230,184,74,0.06)",border:`1px solid ${mvRepsDone?"rgba(74,222,128,0.25)":"rgba(230,184,74,0.15)"}`,borderRadius:14,textAlign:"center",transition:"all .2s"}}>
+                          {mvRepsDone?(
+                            <div style={{fontSize:13,fontWeight:700,color:"#4ADE80"}}>✓ 20 Reps Complete — MashaAllah!</div>
+                          ):(
+                            <div>
+                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Tap after each recitation · <span style={{color:"#F0C040",fontWeight:700}}>{mvReps}/20</span></div>
+                              <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                                <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.35s ease"}}/>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Reset reps</div>}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* ── BATCH DONE ── */}
                 {bDone?(
