@@ -2348,9 +2348,8 @@ export default function RihlatAlHifz() {
             boxShadow:"0 10px 40px rgba(0,0,0,0.40),0 0 24px rgba(230,184,74,0.10),inset 0 1px 0 rgba(255,255,255,0.03)"}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 20% 30%,rgba(212,175,55,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(212,175,55,0.03) 0%,transparent 40%)"}}/>
             <div style={{position:"relative",zIndex:1}}>
-              <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginBottom:8}}>Juz {currentJuz} <span style={{color:"rgba(243,231,200,0.28)"}}>(Current)</span></div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:"#F3E7C8",fontWeight:700,marginBottom:8,lineHeight:1.2}}>{currentMeta.roman||currentMeta.arabic}</div>
-              {(()=>{const nv=sessionVerses[sessionIdx];const sn=nv?.surah_number||parseInt(nv?.verse_key?.split(":")[0]||"0",10);const name=SURAH_EN[sn]||currentSurah?.name;return name?<div style={{fontSize:13,color:"rgba(243,231,200,0.45)",marginBottom:12}}>Surah {name}</div>:null;})()}
+              <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginBottom:4}}>Juz {currentJuz} · {currentMeta.roman||currentMeta.arabic}</div>
+              {(()=>{const nv=sessionVerses[sessionIdx];const sn=nv?.surah_number||parseInt(nv?.verse_key?.split(":")[0]||"0",10);const name=SURAH_EN[sn]||currentSurah?.name;return name?<div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:"#F3E7C8",fontWeight:700,marginBottom:12,lineHeight:1.2}}>Surah {name}</div>:null;})()}
               <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginBottom:8}}><span style={{color:"#E6B84A"}}>In Progress</span></div>
               <div style={{marginBottom:12}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
