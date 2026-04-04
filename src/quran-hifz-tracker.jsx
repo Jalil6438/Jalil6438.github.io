@@ -1012,10 +1012,17 @@ export default function RihlatAlHifz() {
 
     function playDirect(url){
       const audio=new Audio(url);
-      audio.loop = looping;
       audioRef.current=audio;
       audio.oncanplay=()=>{setAudioLoading(null);setPlayingKey(key);};
-      audio.onended=()=>setPlayingKey(null);
+      audio.onended=()=>{
+        setRepCounts(prev=>({...prev,[verseKey]:Math.min(20,(prev[verseKey]||0)+1)}));
+        if(looping){
+          audio.currentTime=0;
+          audio.play().catch(()=>{setPlayingKey(null);});
+        } else {
+          setPlayingKey(null);
+        }
+      };
       audio.onerror=()=>{setAudioLoading(null);setPlayingKey(null);};
       audio.play().catch(()=>{setAudioLoading(null);setPlayingKey(null);});
     }
@@ -1751,19 +1758,24 @@ export default function RihlatAlHifz() {
                   </div>
                 )}
 
-                {/* ── AYAH ROWS (compact, tap to open modal for Fajr) ── */}
-                <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
-                  {batch.map((v,i)=>{
-                    const vNum=v.verse_key?.split(":")?.[1];
+                {/* ── AYAH ROWS (5 per view, swipeable) ── */}
+                {(()=>{
+                  const AYAH_VIEW_SIZE=5;
+                  const viewAyahs=batch.slice(0,ayahPage*AYAH_VIEW_SIZE+AYAH_VIEW_SIZE);
+                  const hasMore=viewAyahs.length<batch.length;
+                  return (
+                <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}
+                  onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}}
+                  onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx<-40&&hasMore)setAyahPage(p=>p+1);}}>
+                  {viewAyahs.map((v,i)=>{
                     const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
                     const vKey=v.verse_key;
                     const reps=repCounts[vKey]||0;
                     const repsDone=reps>=20;
 
                     return (
-                      <div key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
+                      <div key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
                         style={{borderRadius:14,padding:"12px 14px",background:"#0F1A2B",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
-                        {/* Header: number + surah·verse + reps + chevron */}
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                           <div style={{width:28,height:28,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${repsDone?"rgba(230,184,74,0.45)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:repsDone?"#E6B84A":"#888",flexShrink:0}}>
                             {repsDone?"✓":i+1}
@@ -1772,14 +1784,19 @@ export default function RihlatAlHifz() {
                           <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
                           <span style={{fontSize:12,color:"rgba(255,255,255,0.18)"}}>›</span>
                         </div>
-                        {/* Arabic preview */}
                         <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(255,255,255,0.88)",direction:"rtl",textAlign:"right",lineHeight:1.7,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                           {v.text_uthmani}
                         </div>
                       </div>
                     );
                   })}
-                </div>
+                  {hasMore&&(
+                    <div className="sbtn" onClick={()=>setAyahPage(p=>p+1)}
+                      style={{textAlign:"center",padding:"10px",borderRadius:10,fontSize:12,fontWeight:600,color:"rgba(230,184,74,0.55)",border:"1px dashed rgba(230,184,74,0.12)",background:"transparent",marginTop:4}}>
+                      Load More ↓
+                    </div>
+                  )}
+                </div>);})()}
 
                 {/* ── FAJR AYAH POPUP MODAL ── */}
                 {currentSessionId==="fajr"&&openAyah&&(()=>{
@@ -1807,11 +1824,9 @@ export default function RihlatAlHifz() {
                           Ayah {mvAyah} of Surah {SURAH_EN[mvSurah]||mvSurah}
                         </div>
                         {/* Translation */}
-                        {showTrans&&(
-                          <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
-                            {mvTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:mvTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
-                          </div>
-                        )}
+                        <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
+                          {mvTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:mvTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
+                        </div>
                         {/* Audio controls */}
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:16}}>
                           <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(mvKey,mvKey):null} style={{width:40,height:40,borderRadius:"50%",background:mvPlaying?"rgba(240,192,64,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${mvPlaying?"rgba(240,192,64,0.40)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color:mvPlaying?"#F0C040":"rgba(243,231,200,0.56)",opacity:hasPerAyah(reciter)?1:0.4}}>
@@ -1820,13 +1835,13 @@ export default function RihlatAlHifz() {
                           <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:34,height:34,borderRadius:"50%",background:looping?"rgba(240,192,64,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${looping?"rgba(240,192,64,0.30)":"rgba(255,255,255,0.06)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:looping?"#F0C040":"rgba(255,255,255,0.35)"}}>🔁</div>
                           <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"rgba(255,255,255,0.35)"}}>↩</div>
                         </div>
-                        {/* Tap to rep */}
+                        {/* Rep counter */}
                         <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:Math.min(20,(prev[mvKey]||0)+1)}))} style={{width:"100%",padding:"14px",background:mvRepsDone?"rgba(74,222,128,0.08)":"rgba(230,184,74,0.06)",border:`1px solid ${mvRepsDone?"rgba(74,222,128,0.25)":"rgba(230,184,74,0.15)"}`,borderRadius:14,textAlign:"center",transition:"all .2s"}}>
                           {mvRepsDone?(
                             <div style={{fontSize:13,fontWeight:700,color:"#4ADE80"}}>✓ 20 Reps Complete — MashaAllah!</div>
                           ):(
                             <div>
-                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Tap after each recitation · <span style={{color:"#F0C040",fontWeight:700}}>{mvReps}/20</span></div>
+                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Repeat <span style={{color:"#F0C040",fontWeight:700}}>{mvReps}/20</span></div>
                               <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                                 <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.35s ease"}}/>
                               </div>
