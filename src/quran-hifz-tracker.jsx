@@ -1220,6 +1220,12 @@ export default function RihlatAlHifz() {
         .asr-slide-right{animation:asrSlideRight .2s ease-out}
         .asr-surah-btn{transition:all .15s ease;transform:scale(1);}
         .asr-surah-btn:active{transform:scale(0.97);transition:transform .06s ease-out;}
+        @keyframes goldPulse{0%,100%{box-shadow:0 0 12px rgba(230,184,74,0.15)}50%{box-shadow:0 0 24px rgba(230,184,74,0.35)}}
+        .rep-done-glow{animation:goldPulse 2s ease-in-out infinite;}
+        @keyframes goldParticle{0%{transform:translateY(0) scale(1);opacity:0.08}50%{opacity:0.05}100%{transform:translateY(-100vh) scale(0.3);opacity:0}}
+        .gold-particles::before,.gold-particles::after{content:"";position:fixed;width:3px;height:3px;border-radius:50%;background:#D4AF37;pointer-events:none;z-index:0;}
+        .gold-particles::before{left:15%;bottom:-10px;animation:goldParticle 12s linear infinite;opacity:0.07;}
+        .gold-particles::after{left:75%;bottom:-10px;animation:goldParticle 18s linear 4s infinite;opacity:0.05;width:2px;height:2px;}
         @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
 
@@ -1561,7 +1567,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&(
-        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:"linear-gradient(180deg,#0B1220,#0E1628)"}} className="fi">
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:"linear-gradient(180deg,#0B1220,#0E1628)",position:"relative"}} className="fi gold-particles">
 
           {/* ── STICKY RECITER BUTTON ── */}
           <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,paddingBottom:2}}>
@@ -1583,11 +1589,11 @@ export default function RihlatAlHifz() {
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div>
                   <div style={{fontSize:14,fontWeight:700,color:T.text}}>Session Juz · {sessionVerses[0]?.verse_key||""}</div>
-                  <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} / {totalSV} ayahs</div>
+                  <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} of {totalSV} ayahs</div>
                 </div>
                 <div style={{color:T.dim,fontSize:14}}>›</div>
               </div>
-              <div style={{height:4,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+              <div style={{height:4,marginTop:14,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                 <div style={{height:"100%",width:`${totalSV>0?Math.round((sessionIdx/totalSV)*100):0}%`,background:"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .5s"}}/>
               </div>
             </div>
@@ -1606,8 +1612,7 @@ export default function RihlatAlHifz() {
                     <div style={{flex:1}}>
                       <div style={{fontSize:14,fontWeight:700,color:"#F0E6D0"}}>{sess.time} — {sess.title}</div>
                     </div>
-                    <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length}/{batch.length||dailyNew}</div>
-                    <div style={{color:"rgba(230,184,74,0.35)",fontSize:14}}>›</div>
+                    <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length} of {batch.length||dailyNew}</div>
                   </div>
                 </div>
               );
@@ -1783,7 +1788,7 @@ export default function RihlatAlHifz() {
                             {repsDone?"✓":i+1}
                           </div>
                           <span style={{flex:1,fontSize:12,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
-                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
+                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>Repeat {reps}/20</span>
                           <span style={{fontSize:12,color:"rgba(255,255,255,0.18)"}}>›</span>
                         </div>
                         <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(255,255,255,0.88)",direction:"rtl",textAlign:"right",lineHeight:1.7,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
@@ -1835,22 +1840,25 @@ export default function RihlatAlHifz() {
                             {mvLoading?<div className="spin" style={{width:14,height:14,border:"2px solid rgba(240,192,64,0.3)",borderTopColor:"#F0C040",borderRadius:"50%"}}/>:(mvPlaying?"⏸":"▶")}
                           </div>
                           <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:34,height:34,borderRadius:"50%",background:looping?"rgba(240,192,64,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${looping?"rgba(240,192,64,0.30)":"rgba(255,255,255,0.06)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:looping?"#F0C040":"rgba(255,255,255,0.35)"}}>🔁</div>
-                          <div className="sbtn" onClick={()=>{if(audioRef.current){audioRef.current.pause();audioRef.current.currentTime=0;setPlayingKey(null);}}} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"rgba(255,255,255,0.35)"}}>↩</div>
                         </div>
                         {/* Rep counter */}
-                        <div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:Math.min(20,(prev[mvKey]||0)+1)}))} style={{width:"100%",padding:"14px",background:mvRepsDone?"rgba(74,222,128,0.08)":"rgba(230,184,74,0.06)",border:`1px solid ${mvRepsDone?"rgba(74,222,128,0.25)":"rgba(230,184,74,0.15)"}`,borderRadius:14,textAlign:"center",transition:"all .2s"}}>
+                        <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:Math.min(20,(prev[mvKey]||0)+1)}))}
+                          style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .3s ease",
+                            background:mvRepsDone?"rgba(230,184,74,0.10)":"rgba(230,184,74,0.06)",
+                            border:`1px solid ${mvRepsDone?"rgba(230,184,74,0.45)":"rgba(230,184,74,0.15)"}`,
+                            boxShadow:mvRepsDone?"0 0 20px rgba(230,184,74,0.25)":"none"}}>
                           {mvRepsDone?(
-                            <div style={{fontSize:13,fontWeight:700,color:"#4ADE80"}}>✓ 20 Reps Complete — MashaAllah!</div>
+                            <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ 20/20 Complete — MashaAllah!</div>
                           ):(
                             <div>
-                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Repeat <span style={{color:"#F0C040",fontWeight:700}}>{mvReps}/20</span></div>
+                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Repeat <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/20</span></div>
                               <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                                <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.35s ease"}}/>
+                                <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:mvPct>=100?"linear-gradient(90deg,#D4AF37,#F6E27A)":"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.4s cubic-bezier(.4,0,.2,1)"}}/>
                               </div>
                             </div>
                           )}
                         </div>
-                        {mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Reset reps</div>}
+                        {mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Restart</div>}
                       </div>
                     </div>
                   );
