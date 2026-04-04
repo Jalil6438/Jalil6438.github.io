@@ -1574,39 +1574,23 @@ export default function RihlatAlHifz() {
               <div style={{color:T.dim,fontSize:14}}>›</div>
             </div>
 
-            {/* ── TODAY'S SESSION PILLS ── */}
-            <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2,marginBottom:10}}>
-              {SESSIONS.map((s,idx)=>{
-                const isCompleted=dailyChecks[s.id]||sessionsCompleted[s.id];
-                const isActive=idx===activeSessionIndex;
-                const isPast=idx<activeSessionIndex;
-                const canTap=isActive||isCompleted||isPast;
-                return (
-                  <div key={s.id} className={canTap?"sbtn":""} onClick={()=>{if(canTap&&!isActive)setActiveSessionIndex(idx);}}
-                    style={{flexShrink:0,padding:"7px 14px",borderRadius:999,fontSize:12,fontWeight:600,transition:"all .15s",
-                      ...(isActive
-                        ?{background:"linear-gradient(135deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 4px 12px rgba(230,184,74,0.25)"}
-                        :isCompleted
-                        ?{background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.20)",color:"rgba(230,184,74,0.65)"}
-                        :{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.30)",opacity:0.6,pointerEvents:"none"}
-                      )}}>
-                    {isCompleted&&!isActive?"✓ ":""}{s.time}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* ── CURRENT SESSION ROW ── */}
+            {/* ── CURRENT SESSION ── */}
             {(()=>{
               const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
               if(!sess) return null;
               return (
-                <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderLeft:"3px solid #E6B84A",borderRadius:"0 10px 10px 0",marginBottom:10}}>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:13,fontWeight:700,color:T.text}}>{sess.title}</div>
+                <div style={{marginBottom:10}}>
+                  <div style={{fontSize:8,color:"rgba(230,184,74,0.40)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>
+                  <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",
+                    background:"linear-gradient(180deg,rgba(15,26,43,0.95) 0%,rgba(12,21,38,0.98) 100%)",
+                    border:"1px solid rgba(230,184,74,0.18)",borderLeft:"3px solid #E6B84A",borderRadius:"0 10px 10px 0",
+                    boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 12px rgba(230,184,74,0.06)"}}>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:14,fontWeight:700,color:"#F0E6D0"}}>{sess.time} — {sess.title}</div>
+                    </div>
+                    <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":"0"}/{dailyNew}</div>
+                    <div style={{color:"rgba(230,184,74,0.35)",fontSize:14}}>›</div>
                   </div>
-                  <div style={{fontSize:12,color:T.sub,fontFamily:"'IBM Plex Mono',monospace"}}>{sessionsCompleted[sess.id]?"✓":"0"}/{dailyNew}</div>
-                  <div style={{color:T.dim,fontSize:14}}>›</div>
                 </div>
               );
             })()}
