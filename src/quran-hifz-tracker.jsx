@@ -1898,7 +1898,9 @@ export default function RihlatAlHifz() {
                     <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>Session complete — MashaAllah! 🤲</div>
                   </div>
                 ):(()=>{
-                  const isFinal=bEnd>=totalSV;
+                  const batchPages=Math.max(1,Math.ceil(batch.length/5));
+                  const onLastPage=ayahPage>=batchPages-1;
+                  const isFinal=onLastPage;
                   return (<div>
                   <div className="sbtn" onClick={()=>{
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
