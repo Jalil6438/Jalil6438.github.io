@@ -2528,14 +2528,18 @@ export default function RihlatAlHifz() {
 
       {/* ── Juz Selector Modal ── */}
       {showJuzModal&&(()=>{
-        const sessionJuzOrder=(JUZ_META.find(j=>j.num===sessionJuz)||{}).order||1;
+        // Find the furthest juz the user has reached (first incomplete in hifz order 30→1)
+        const isJuzDone=(n)=>juzStatus[n]==="complete"||(JUZ_SURAHS[n]||[]).every(s=>juzStatus[`s${s.s}`]==="complete");
+        let furthestJuz=30;
+        for(let j=30;j>=1;j--){ if(!isJuzDone(j)){ furthestJuz=j; break; } }
+        const furthestOrder=(JUZ_META.find(j=>j.num===furthestJuz)||{}).order||1;
         const isJuzUnlocked=(juzNum)=>{
           if(juzNum===sessionJuz) return true;
           if(juzStatus[juzNum]==="complete") return true;
           const surahs=JUZ_SURAHS[juzNum]||[];
           if(surahs.some(s=>juzStatus[`s${s.s}`]==="complete")) return true;
           const jOrder=(JUZ_META.find(j=>j.num===juzNum)||{}).order||99;
-          return jOrder<=sessionJuzOrder;
+          return jOrder<=furthestOrder;
         };
         return (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowJuzModal(false)}>
