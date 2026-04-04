@@ -1868,7 +1868,9 @@ export default function RihlatAlHifz() {
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
                     <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>Session complete — MashaAllah! 🤲</div>
                   </div>
-                ):(
+                ):(()=>{
+                  const isFinal=bEnd>=totalSV;
+                  return (<div>
                   <div className="sbtn" onClick={()=>{
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
@@ -1896,10 +1898,16 @@ export default function RihlatAlHifz() {
                       console.log('[NON-ISHA CTA]', {activeSessionIndex, 'SESSIONS.length-1': SESSIONS.length-1});
                       setActiveSessionIndex(i=>i+1);
                     }
-                  }} style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
-                    {SESSION_CTA[activeSessionIndex]||"Finish & Continue →"}
+                  }} style={{width:"100%",padding:"14px",borderRadius:12,fontSize:14,fontWeight:700,textAlign:"center",transition:"all .2s",
+                    ...(isFinal
+                      ?{background:"linear-gradient(180deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 18px rgba(230,184,74,0.30),0 0 14px rgba(230,184,74,0.15)"}
+                      :{background:"rgba(230,184,74,0.12)",color:"rgba(230,184,74,0.65)",border:"1px solid rgba(230,184,74,0.18)",boxShadow:"none"}
+                    )}}>
+                    {isFinal?"Complete Session":"Continue"}
                   </div>
-                )}
+                  {!isFinal&&<div style={{textAlign:"center",fontSize:10,color:"rgba(243,231,200,0.28)",marginTop:6}}>Keep going — you're building strong foundations</div>}
+                  </div>);
+                })()}
               </div>
             )}
 
