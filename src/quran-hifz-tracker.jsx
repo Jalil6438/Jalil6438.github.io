@@ -1588,7 +1588,7 @@ export default function RihlatAlHifz() {
             <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div>
-                  <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:14}}>Session Juz · {sessionVerses[0]?.verse_key||""}</div>
+                  <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:14}}>Session Juz · Juz {sessionJuz||""}</div>
                   <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} of {totalSV} ayahs</div>
                 </div>
                 <div style={{color:T.dim,fontSize:14}}>›</div>
@@ -2503,26 +2503,34 @@ export default function RihlatAlHifz() {
           return jOrder<=sessionJuzOrder;
         };
         return (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowJuzModal(false)}>
-          <div style={{background:"#0F1115",borderRadius:"16px 16px 0 0",padding:"20px 16px 36px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
-            <div style={{width:40,height:4,background:"rgba(255,255,255,0.1)",borderRadius:2,margin:"0 auto 16px"}}/>
-            <div style={{fontSize:12,color:"#6B7280",letterSpacing:"1px",textTransform:"uppercase",marginBottom:14,textAlign:"center"}}>Select Juz</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,paddingBottom:8}}>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowJuzModal(false)}>
+          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+            <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
+
+            {/* Header divider */}
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
+              <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>Select Juz</div>
+              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,paddingBottom:8}}>
               {JUZ_META.slice().reverse().map(j=>{
                 const isSel=sessionJuz===j.num;
                 const isDone=juzStatus[j.num]==="complete"||(JUZ_SURAHS[j.num]||[]).every(s=>juzStatus[`s${s.s}`]==="complete");
                 const unlocked=isJuzUnlocked(j.num);
                 return (
                   <div key={j.num} className={unlocked?"sbtn":""} onClick={()=>{ if(!unlocked)return; setJuzProgress(prev=>({...prev,[sessionJuz]:sessionIdx})); setSessionJuz(j.num); setSessionIdx(juzProgress[j.num]||0); setRepCounts({}); setOpenAyah(null); setShowJuzModal(false); }}
-                    style={{paddingTop:18,paddingBottom:18,borderRadius:16,textAlign:"center",transition:"all .15s",
-                      background:isDone?"rgba(230,184,74,0.12)":unlocked?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.02)",
-                      border:isSel?"1.5px solid #E6B84A":`1px solid ${unlocked?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)"}`,
-                      boxShadow:isSel?"0 0 14px rgba(230,184,74,0.28)":"none",
+                    style={{padding:"13px 16px",borderRadius:14,textAlign:"center",transition:"all .18s",
+                      background:isSel?"rgba(217,177,95,0.12)":isDone?"rgba(217,177,95,0.06)":unlocked?"rgba(255,255,255,0.03)":"rgba(255,255,255,0.02)",
+                      border:`1px solid ${isSel?"rgba(232,200,120,0.65)":isDone?"rgba(217,177,95,0.25)":unlocked?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)"}`,
+                      boxShadow:isSel?"0 0 28px rgba(232,200,120,0.30),0 0 8px rgba(217,177,95,0.20),inset 0 0 14px rgba(217,177,95,0.08)":"none",
                       opacity:unlocked?1:0.3,
-                      pointerEvents:unlocked?"auto":"none",
-                      cursor:unlocked?"pointer":"default"}}>
-                    <div style={{fontSize:12,color:isSel?"#E6B84A":isDone?"#E6B84A":unlocked?"#888":"#555",fontWeight:isSel?700:400,marginBottom:4}}>{j.num}</div>
-                    <div style={{fontSize:12,color:isSel?"#F8FAFC":isDone?"rgba(230,184,74,0.8)":unlocked?"#ccc":"#444",fontWeight:isSel?600:400,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:4,paddingRight:4}}>{j.roman?.split(" ")[0]||""}</div>
+                      pointerEvents:unlocked?"auto":"none"}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F6E27A":isDone?"#E2BC72":unlocked?"rgba(243,231,200,0.70)":"rgba(243,231,200,0.30)",fontWeight:600}}>Juz {j.num}</div>
+                    {isDone&&!isSel&&(
+                      <div style={{fontSize:10,color:"rgba(230,184,74,0.55)",marginTop:4,textShadow:"0 0 8px rgba(230,184,74,0.15)"}}>Completed · Alhamdulillah</div>
+                    )}
                   </div>
                 );
               })}
