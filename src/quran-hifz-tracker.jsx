@@ -2544,7 +2544,7 @@ export default function RihlatAlHifz() {
             {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:60,gap:12}}><div className="spin" style={{width:26,height:26,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Loading...</div></div>}
             {fetchError&&!loading&&<div style={{textAlign:"center",paddingTop:60}}><div style={{fontSize:14,color:"#E5534B",marginBottom:8}}>Could not load text</div><div style={{fontSize:12,color:"rgba(243,231,200,0.30)"}}>Check your connection.</div></div>}
             {!loading&&!fetchError&&surahGroups.length>0&&(()=>{
-              const pageH=window.innerHeight-210;
+              const pageH=window.innerHeight-260;
               // After render, measure surah header positions and build page breaks
               const buildPageBreaks=()=>{
                 if(!quranContentRef.current) return;
