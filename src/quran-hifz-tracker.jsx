@@ -2534,25 +2534,22 @@ export default function RihlatAlHifz() {
 
       {/* Quran Reciter Modal */}
 {showReciterModal&&(
-  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
-    <div style={{background:"#F5F0E8",borderRadius:"16px 16px 0 0",width:"100%",maxWidth:500,maxHeight:"82vh",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
+    <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"68vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
 
-      {/* ── Header ── */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 18px 0"}}>
-        <div className="sbtn" onClick={()=>setShowReciterModal(false)} style={{fontSize:14,color:"#5A6A7A",fontWeight:500,padding:"4px 0"}}>Cancel</div>
-        <div style={{fontSize:14,fontWeight:700,color:"#1A2A35"}}>Select Reciter</div>
-        <div className="sbtn" onClick={()=>setShowReciterModal(false)} style={{fontSize:14,color:"#C9A84C",fontWeight:700,padding:"4px 0"}}>Done</div>
-      </div>
-
-      {/* ── Currently playing ── */}
-      <div style={{fontSize:11,color:"#7A8A9A",textAlign:"center",padding:"6px 18px 12px"}}>
-        Currently playing: <span style={{color:"#1A2A35",fontWeight:600}}>{reciterMode==="quran"?(QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Unknown"):currentReciter.name}</span>
+      {/* ── Handle + Header ── */}
+      <div style={{padding:"12px 18px 0",textAlign:"center"}}>
+        <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
+        <div style={{fontSize:13,fontWeight:700,color:"#F3E7C8",letterSpacing:".03em"}}>Select Reciter</div>
+        <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginTop:4,marginBottom:10}}>
+          Currently: <span style={{color:"rgba(230,184,74,0.75)",fontWeight:600}}>{reciterMode==="quran"?(QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Unknown"):currentReciter.name}</span>
+        </div>
       </div>
 
       {/* ── Reciter list ── */}
-      <div style={{overflowY:"auto",padding:"0 14px 32px"}}>
-        <div style={{display:"flex",flexDirection:"column",gap:1,borderRadius:12,overflow:"hidden",border:"1px solid #DDD4C0"}}>
-          {QURAN_RECITERS.map((r,i,arr)=>{
+      <div style={{overflowY:"auto",padding:"0 12px 28px"}}>
+        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+          {QURAN_RECITERS.map(r=>{
             const isSelected=(reciterMode==="quran"?quranReciter:reciter)===r.id;
             return (
               <div key={r.id} className="sbtn" onClick={()=>{
@@ -2562,13 +2559,16 @@ export default function RihlatAlHifz() {
                   if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
                 } else { setReciter(r.id); }
                 setShowReciterModal(false);
-              }} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",background:isSelected?"#FFF8E8":"#FFFFFF",borderBottom:i<arr.length-1?"1px solid #EDE8DC":"none",transition:"background .1s"}}>
-                <div style={{width:32,height:32,borderRadius:"50%",background:"#EEE8D8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:14}}>🔊</div>
+              }} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,transition:"all .15s",
+                background:isSelected?"rgba(230,184,74,0.08)":"rgba(255,255,255,0.02)",
+                border:`1px solid ${isSelected?"rgba(230,184,74,0.30)":"rgba(255,255,255,0.04)"}`,
+                boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08)":"none"}}>
+                <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${isSelected?"rgba(230,184,74,0.25)":"rgba(255,255,255,0.06)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12}}>🎙️</div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13,fontWeight:isSelected?700:500,color:"#1A2A35"}}>{r.name}</div>
-                  <div style={{fontFamily:"Amiri, serif",fontSize:12,color:"#7A8A9A",marginTop:2}}>{r.arabic}</div>
+                  <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?"#F3E7C8":"rgba(243,231,200,0.65)"}}>{r.name}</div>
+                  <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:isSelected?"rgba(230,184,74,0.55)":"rgba(243,231,200,0.30)",marginTop:1}}>{r.arabic}</div>
                 </div>
-                {isSelected&&<div style={{marginLeft:"auto",fontSize:16,color:"#C9A84C",fontWeight:700,flexShrink:0}}>✓</div>}
+                {isSelected&&<div style={{fontSize:14,color:"#E6B84A",fontWeight:700,flexShrink:0}}>✓</div>}
               </div>
             );
           })}
