@@ -2742,19 +2742,19 @@ export default function RihlatAlHifz() {
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:32,color:"#F6E27A",fontWeight:700,marginBottom:10,textShadow:"0 0 18px rgba(246,226,122,0.15)"}}>
                 {goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?<span style={{fontSize:24,marginLeft:8}}>{goalMonths} Month{goalMonths!==1?"s":""}</span>:""}
               </div>
-              <div style={{fontSize:11,color:"rgba(243,231,200,0.35)"}}>Your daily commitment</div>
+              <div style={{fontSize:11,color:"rgba(243,231,200,0.35)"}}>Your path to completion</div>
             </div>
           </div>
 
           {/* ── SLIDERS ── */}
           <div style={{padding:"16px 18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:16,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Timeline</span>
+              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Base Timeline</span>
               <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:"#E6B84A",fontWeight:600}}>{goalYears} Year{goalYears!==1?"s":""}</span>
             </div>
             <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:16}}/>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Additional Time</span>
+              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Extra Buffer</span>
               <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:"#E6B84A",fontWeight:600}}>+{goalMonths} Month{goalMonths!==1?"s":""}</span>
             </div>
             <input type="range" min={0} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
@@ -2762,19 +2762,22 @@ export default function RihlatAlHifz() {
 
           {/* ── STATS ── */}
           <div style={{padding:"16px 18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:16,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)"}}>
-            {[
-              {icon:"\uD83D\uDCD6",text:`${dailyNew} ayahs per day`},
-              {icon:"\uD83D\uDCC6",text:`~${timeline.daysPerJuz} days per juz`},
-              {icon:"\uD83D\uDCCA",text:`${timeline.juzPerMonth} juz per month`},
-            ].map((s,i,arr)=>(
-              <div key={i}>
-                <div style={{display:"flex",alignItems:"center",gap:8,padding:"9px 0"}}>
-                  <span style={{fontSize:14}}>{s.icon}</span>
-                  <span style={{fontSize:13,color:"#F3E7C8"}}>{s.text}</span>
-                </div>
-                {i<arr.length-1&&<div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>}
-              </div>
-            ))}
+            {/* Star stat */}
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",position:"relative"}}>
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(ellipse at 30% 50%,rgba(212,175,55,0.06) 0%,transparent 60%)"}}/>
+              <span style={{fontSize:16,position:"relative",zIndex:1}}>{"\uD83D\uDCC6"}</span>
+              <span style={{fontSize:16,color:"#F6E27A",fontWeight:700,position:"relative",zIndex:1,textShadow:"0 0 10px rgba(246,226,122,0.20)"}}>~{timeline.daysPerJuz} days per juz</span>
+            </div>
+            <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0"}}>
+              <span style={{fontSize:14}}>{"\uD83D\uDCD6"}</span>
+              <span style={{fontSize:13,color:"rgba(243,231,200,0.60)"}}>{dailyNew} ayahs per day</span>
+            </div>
+            <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.20) 50%,rgba(217,177,95,0) 100%)"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0"}}>
+              <span style={{fontSize:14}}>{"\uD83D\uDCCA"}</span>
+              <span style={{fontSize:13,color:"rgba(243,231,200,0.45)"}}>{timeline.juzPerMonth} juz per month</span>
+            </div>
           </div>
 
           {/* ── CHOOSE YOUR PACE ── */}
@@ -2797,7 +2800,7 @@ export default function RihlatAlHifz() {
                       border:`1px solid ${isA?"rgba(232,200,120,0.50)":"rgba(255,255,255,0.05)"}`,
                       boxShadow:isA?"0 0 16px rgba(230,184,74,0.15)":"none",transition:"all .18s"}}>
                     <div style={{fontSize:13,color:isA?"#F6E27A":"rgba(243,231,200,0.50)",fontWeight:700}}>{p.y} Year{p.y!==1?"s":""}</div>
-                    <div style={{fontSize:11,color:isA?"#E6B84A":"rgba(243,231,200,0.30)",fontWeight:600,marginTop:2}}>{t.ayahsPerDay}/day</div>
+                    <div style={{fontSize:11,color:isA?"#E6B84A":"rgba(243,231,200,0.30)",fontWeight:600,marginTop:2}}>{Math.round(parseFloat(t.ayahsPerDay))} ayahs/day</div>
                     <div style={{fontSize:9,color:isA?"rgba(230,184,74,0.65)":"rgba(243,231,200,0.22)",marginTop:4}}>{p.icon} {p.label}</div>
                   </div>
                 );
