@@ -46,11 +46,11 @@ const SESSIONS = [
     desc:"Your peak retention window. Memorize new ayahs right after salah while the mind is completely fresh.",
     steps:["Read with translation to understand the meaning","Recite aloud 10x looking at the text","Cover and recite from memory — fix mistakes immediately","Repeat until 3 times without looking","Write from memory once to cement them"] },
   { id:"dhuhr",   time:"Dhuhr",   arabic:"الظهر",  icon:"☀️", color:"#F6A623",
-    title:"Revise Yesterday",
+    title:"Review Yesterday's Ayahs",
     desc:"New ayahs fade fastest in 24 hours. Revision only — no new memorization.",
     steps:["Recite everything from yesterday from memory","For stumbling ayahs — look, re-read 5x, cover and retry","Connect yesterday to today as one continuous passage"] },
   { id:"asr",     time:"Asr",     arabic:"العصر",  icon:"🌤️", color:"#4ECDC4",
-    title:"Older Juz Revision",
+    title:"Review Previous Juz",
     desc:"Cycle through completed Juz. Every Juz should be touched every 7-10 days.",
     steps:["Pick the Juz you have not revised most recently","Recite a full page from memory","Mark which Juz you revised in your tracker"] },
   { id:"maghrib", time:"Maghrib", arabic:"المغرب", icon:"🌆", color:"#B794F4",
@@ -2050,30 +2050,30 @@ export default function RihlatAlHifz() {
 
             {/* ── AMBIENT GLOW ── */}
             <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
-              <div style={{position:"absolute",top:"10%",left:"15%",width:300,height:300,background:"rgba(52,211,153,0.08)",borderRadius:"50%",filter:"blur(60px)"}}/>
-              <div style={{position:"absolute",bottom:"25%",right:"10%",width:250,height:250,background:"rgba(251,191,36,0.06)",borderRadius:"50%",filter:"blur(60px)"}}/>
+              <div style={{position:"absolute",top:"10%",left:"15%",width:300,height:300,background:"rgba(14,40,60,0.12)",borderRadius:"50%",filter:"blur(60px)"}}/>
+              <div style={{position:"absolute",bottom:"25%",right:"10%",width:250,height:250,background:"rgba(212,175,55,0.05)",borderRadius:"50%",filter:"blur(60px)"}}/>
             </div>
 
             {/* ── 1. PROFILE HEADER ── */}
-            <div style={{background:"linear-gradient(160deg,#0D2E18 0%,#1A4A28 50%,#0A1F10 100%)",padding:"20px 16px 24px",position:"relative",overflow:"hidden",zIndex:1}}>
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.10) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.06) 0, transparent 14%)"}}/>
+            <div style={{background:"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)",padding:"20px 16px 24px",position:"relative",overflow:"hidden",zIndex:1}}>
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
               <div style={{display:"flex",alignItems:"center",gap:14,position:"relative",zIndex:1}}>
                 <div style={{position:"relative"}}>
-                  <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#1A4A28,#2E7D46)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(240,192,64,0.5)",boxShadow:"0 0 20px rgba(240,192,64,0.2)"}}>
-                    <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#F0C040"}}>{initials}</span>
+                  <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#0E1E3A,#162D50)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 20px rgba(212,175,55,0.15)"}}>
+                    <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
                   </div>
-                  <div style={{position:"absolute",bottom:-2,right:-2,width:20,height:20,background:"linear-gradient(135deg,#34D399,#059669)",borderRadius:"50%",border:"2px solid #0D1020",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <span style={{fontSize:9,fontWeight:700,color:"#fff"}}>1</span>
+                  <div style={{position:"absolute",bottom:-2,right:-2,width:20,height:20,background:"linear-gradient(135deg,#D4AF37,#E6B84A)",borderRadius:"50%",border:"2px solid #0D1020",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <span style={{fontSize:9,fontWeight:700,color:"#0B1220"}}>1</span>
                   </div>
                 </div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:19,fontWeight:700,color:"#EDE8DC",fontFamily:"'Playfair Display',serif",marginBottom:2}}>{username}</div>
-                  <div style={{fontSize:11,color:"#F0C040",marginBottom:8,letterSpacing:".06em"}}>Memorizer · طالب الحفظ</div>
+                  <div style={{fontSize:11,color:"#E6B84A",marginBottom:8,letterSpacing:".06em"}}>Hifz Journey · رحلة الحفظ</div>
                   <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
                     {[
                       {label:"📅 Joined "+joinYear, bg:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.6)", border:"rgba(255,255,255,0.1)"},
                       {label:"🎯 "+goalLabel, bg:"rgba(56,189,248,0.12)", color:"#38BDF8", border:"rgba(56,189,248,0.25)"},
-                      {label:"🔥 "+streak+" day streak", bg:"rgba(246,166,35,0.12)", color:"#F6A623", border:"rgba(246,166,35,0.25)"},
+                      {label:"🔥 "+streak+"-Day Streak", bg:"rgba(246,166,35,0.12)", color:"#F6A623", border:"rgba(246,166,35,0.25)"},
                     ].map((pill,i)=>(
                       <div key={i} style={{fontSize:10,color:pill.color,background:pill.bg,padding:"3px 9px",borderRadius:20,border:`1px solid ${pill.border}`}}>{pill.label}</div>
                     ))}
@@ -2093,8 +2093,8 @@ export default function RihlatAlHifz() {
                 <svg width={100} height={100} style={{flexShrink:0,overflow:"visible"}}>
                   <defs>
                     <linearGradient id="ringgrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#4ADE80"/>
-                      <stop offset="100%" stopColor="#22C55E"/>
+                      <stop offset="0%" stopColor="#F6E27A"/>
+                      <stop offset="100%" stopColor="#D4AF37"/>
                     </linearGradient>
                     <filter id="glow2"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
@@ -2102,12 +2102,12 @@ export default function RihlatAlHifz() {
                   <circle cx={50} cy={50} r={40} fill="none" stroke="url(#ringgrad)" strokeWidth={9}
                     strokeDasharray={`${2*Math.PI*40*(pct/100)} ${2*Math.PI*40}`} strokeLinecap="round"
                     transform="rotate(-90 50 50)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease"}}/>
-                  <text x={50} y={46} textAnchor="middle" fill="#4ADE80" fontSize={18} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={50} y={61} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount}/30 Juz</text>
+                  <text x={50} y={46} textAnchor="middle" fill="#E6B84A" fontSize={18} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
+                  <text x={50} y={61} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount} of 30 Juz</text>
                 </svg>
                 <div style={{flex:1}}>
-                  {[{label:"Memorized",val:completedCount,color:"#4ADE80"},{label:"In Progress",val:Object.values(juzStatus).filter(s=>s==="in_progress").length,color:"#F6A623"},{label:"Remaining",val:30-completedCount,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.06)":"none"}}>
+                  {[{label:"Memorized",val:`${completedCount} Juz`,color:"#E6B84A"},{label:"Remaining",val:`${30-completedCount} Juz`,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:i<1?"1px solid rgba(255,255,255,0.06)":"none"}}>
                       <span style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
                       <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:s.color,fontWeight:700}}>{s.val}</span>
                     </div>
@@ -2125,12 +2125,12 @@ export default function RihlatAlHifz() {
                 <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700}}>Daily Goals</div>
                 <div style={{display:"flex",alignItems:"baseline",gap:4}}>
                   <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:24,color:"#F0C040",fontWeight:700,lineHeight:1}}>{checkedCount}</span>
-                  <span style={{fontSize:13,color:"rgba(255,255,255,0.35)"}}> / {SESSIONS.length}</span>
-                  <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginLeft:4}}>Sessions</span>
+                  <span style={{fontSize:13,color:"rgba(255,255,255,0.35)"}}> of {SESSIONS.length}</span>
+                  <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginLeft:4}}>Sessions Completed</span>
                 </div>
               </div>
               <div style={{height:5,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden",marginBottom:12}}>
-                <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#4ADE80,#22C55E)",borderRadius:999,boxShadow:"0 0 10px rgba(74,222,128,0.4)",transition:"width .5s"}}/>
+                <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#D4AF37,#E6B84A)",borderRadius:999,boxShadow:"0 0 10px rgba(212,175,55,0.3)",transition:"width .5s"}}/>
               </div>
               <div style={{background:"rgba(255,255,255,0.02)",padding:"12px",borderRadius:16,boxShadow:"inset 0 0 10px rgba(255,255,255,0.02)"}}>
                 {SESSIONS.map((s,i)=>{
@@ -2152,7 +2152,10 @@ export default function RihlatAlHifz() {
             {/* ── 4. HIFZ JOURNEY ── */}
             <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 10% 20%, rgba(46,230,197,0.05) 0, transparent 40%), radial-gradient(circle at 85% 75%, rgba(230,184,74,0.05) 0, transparent 40%)"}}/>
-              <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.5)",fontWeight:700,marginBottom:12,position:"relative",zIndex:1}}>Hifz Journey</div>
+              <div style={{position:"relative",zIndex:1,marginBottom:12}}>
+                <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.5)",fontWeight:700}}>Your Hifz Journey</div>
+                <div style={{fontSize:10,color:"rgba(230,184,74,0.45)",marginTop:3}}>You are currently on Juz {sessionJuz||"—"}</div>
+              </div>
               {(()=>{
                 const journeyPct=Math.round((completedCount/30)*100);
                 const pathD="M20 110 C 55 105, 78 78, 110 72 S 175 45, 210 42 S 265 28, 300 18";
@@ -2208,7 +2211,7 @@ export default function RihlatAlHifz() {
                 );
               })()}
               <div style={{display:"flex",justifyContent:"space-between",position:"relative",zIndex:1,marginTop:4}}>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Goal: {goalYears}-Year Plan</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Goal: Complete Qur'an in {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths} month${goalMonths!==1?"s":""}`:""}</div>
                 <div style={{fontSize:10,color:"rgba(230,184,74,0.6)",fontWeight:600}}>{timeline.juzLeft} Juz remaining</div>
               </div>
             </div>
