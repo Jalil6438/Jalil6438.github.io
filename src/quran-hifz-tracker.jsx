@@ -2540,8 +2540,8 @@ export default function RihlatAlHifz() {
               if(Math.abs(dx)<50) return;
               if(dx<0){setQuranPageDir("next");setQuranPage(p=>{
                 const totalH=quranContentRef.current?.scrollHeight||0;
-                const pageH_=15*fontSize*2.2;
-                const maxPage=Math.max(0,Math.ceil(totalH/pageH_)-1);
+                const viewH_=15*fontSize*2.2+48;
+                const maxPage=Math.max(0,Math.ceil(totalH/viewH_)-1);
                 return Math.min(maxPage,p+1);
               });}
               else if(dx>0&&quranPage>0){setQuranPageDir("prev");setQuranPage(p=>p-1);}
@@ -2560,7 +2560,7 @@ export default function RihlatAlHifz() {
                   style={{flex:1,padding:"4px 16px 0"}}>
                   <div style={{height:viewH,overflow:"hidden",padding:"24px 4px 24px"}}>
                     <div ref={quranContentRef} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
-                      transform:`translateY(${-quranPage*pageH}px)`}}>
+                      transform:`translateY(${-quranPage*viewH}px)`}}>
                       {surahGroups.map(({surahNum,verses},gi)=>{
                         const startA=verses[0]?.verse_key?.split(":")?.[1];
                         return (
