@@ -430,7 +430,7 @@ function AsrSessionView({
             <div style={{color:T2.goldBright,fontSize:12,fontWeight:800,marginBottom:8}}>Progress</div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
               <div style={{padding:"6px 12px",borderRadius:999,background:T2.greenSoft,border:"1px solid rgba(89,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
-                {asrSurahProgress.filter(s=>s.state==="complete").length} completed
+                {asrSurahProgress.filter(s=>s.state==="complete").length} Memorized
               </div>
               {asrSurahProgress.find(s=>s.state==="current")&&(
                 <div style={{padding:"6px 12px",borderRadius:999,background:"transparent",border:"1px solid rgba(210,168,90,0.18)",color:"rgba(226,188,114,0.65)",fontSize:11,fontWeight:400}}>
@@ -449,7 +449,7 @@ function AsrSessionView({
 
           {/* Buttons */}
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 20px"}}>
-            <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E3C07A 0%,#D1A659 100%)",color:"#0A1020",boxShadow:"0 10px 22px rgba(210,168,90,0.14),inset 0 1px 0 rgba(255,255,255,0.14)"}}>
+            <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E0BD78 0%,#CEAA60 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.10),inset 0 1px 0 rgba(255,255,255,0.10)"}}>
               Complete Asr Session
             </div>
             <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:18,textAlign:"center",fontSize:13,fontWeight:600,color:"rgba(226,188,114,0.82)",border:"1px solid rgba(210,170,95,0.14)",background:"rgba(8,16,30,0.22)"}}>
@@ -1623,7 +1623,7 @@ export default function RihlatAlHifz() {
                 if(sid==="fajr") return "Repeat each ayah until it sticks";
                 if(sid==="dhuhr") return dhuhrLocked?null:"Go over what you memorized earlier";
                 if(sid==="asr") return "Cycle through completed sections";
-                if(sid==="maghrib") return "Listen and follow along quietly";
+                if(sid==="maghrib") return "Listen carefully and follow along";
                 if(sid==="isha") return "Recite everything one final time";
                 return null;
               })();
@@ -1815,7 +1815,7 @@ export default function RihlatAlHifz() {
                             {repsDone?"✓":aStart+i+1}
                           </div>
                           <span style={{flex:1,fontSize:12,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
-                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>Repeat {reps}/20</span>
+                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>
                           <span style={{fontSize:12,color:"rgba(255,255,255,0.18)"}}>›</span>
                         </div>
                         <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(255,255,255,0.88)",direction:"rtl",textAlign:"right",lineHeight:1.7,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
@@ -1826,13 +1826,13 @@ export default function RihlatAlHifz() {
                   })}
                   {aPages>1&&(
                     <div style={{textAlign:"center",fontSize:10,color:"rgba(230,184,74,0.35)",marginTop:4}}>
-                      {aSafe+1} / {aPages}
+                      Page {aSafe+1} of {aPages}
                     </div>
                   )}
                 </div>);})()}
 
-                {/* ── FAJR AYAH POPUP MODAL ── */}
-                {currentSessionId==="fajr"&&openAyah&&(()=>{
+                {/* ── AYAH POPUP MODAL (all non-ASR sessions) ── */}
+                {currentSessionId!=="asr"&&openAyah&&(()=>{
                   const mv=batch.find(v=>v.verse_key===openAyah);
                   if(!mv) return null;
                   const mvKey=mv.verse_key;
@@ -2572,7 +2572,7 @@ export default function RihlatAlHifz() {
                       pointerEvents:unlocked?"auto":"none"}}>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F6E27A":isDone?"#E2BC72":unlocked?"rgba(243,231,200,0.70)":"rgba(243,231,200,0.30)",fontWeight:600}}>Juz {j.num}</div>
                     {isDone&&(
-                      <div style={{fontSize:10,color:isSel?"rgba(246,226,122,0.60)":"rgba(230,184,74,0.55)",marginTop:4,textShadow:"0 0 8px rgba(230,184,74,0.15)"}}>Completed · Alhamdulillah</div>
+                      <div style={{fontSize:10,color:isSel?"rgba(246,226,122,0.60)":"rgba(230,184,74,0.55)",marginTop:4,textShadow:"0 0 8px rgba(230,184,74,0.15)"}}>Complete — Alhamdulillah</div>
                     )}
                   </div>
                 );
@@ -2610,10 +2610,10 @@ export default function RihlatAlHifz() {
                   if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
                 } else { setReciter(r.id); }
                 setShowReciterModal(false);
-              }} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,transition:"all .15s",
+              }} style={{display:"flex",alignItems:"center",gap:10,padding:"13px 12px",borderRadius:12,transition:"all .15s",
                 background:isSelected?"rgba(230,184,74,0.08)":"rgba(255,255,255,0.02)",
                 border:`1px solid ${isSelected?"rgba(230,184,74,0.30)":"rgba(255,255,255,0.04)"}`,
-                boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08)":"none"}}>
+                boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
                 <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${isSelected?"rgba(230,184,74,0.25)":"rgba(255,255,255,0.06)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12}}>🎙️</div>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?"#F3E7C8":"rgba(243,231,200,0.65)"}}>{r.name}</div>
