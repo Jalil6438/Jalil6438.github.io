@@ -956,7 +956,7 @@ export default function RihlatAlHifz() {
     return false;
   }).map(j=>({num:j.num,name:j.roman||`Juz ${j.num}`,arabic:j.arabic||""})).sort((a,b)=>b.num-a.num);
 
-  useEffect(()=>{if(batch.length&&showTrans)fetchTranslations(batch);},[batch,showTrans]);
+  useEffect(()=>{if(batch.length)fetchTranslations(batch);},[batch]);
 
   function toggleCheck(id){
     const updated={...dailyChecks,[id]:!dailyChecks[id]};
@@ -1588,12 +1588,12 @@ export default function RihlatAlHifz() {
             <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div>
-                  <div style={{fontSize:14,fontWeight:700,color:T.text}}>Session Juz · {sessionVerses[0]?.verse_key||""}</div>
+                  <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:14}}>Session Juz · {sessionVerses[0]?.verse_key||""}</div>
                   <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} of {totalSV} ayahs</div>
                 </div>
                 <div style={{color:T.dim,fontSize:14}}>›</div>
               </div>
-              <div style={{height:4,marginTop:14,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+              <div style={{height:4,marginTop:6,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                 <div style={{height:"100%",width:`${totalSV>0?Math.round((sessionIdx/totalSV)*100):0}%`,background:"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .5s"}}/>
               </div>
             </div>
@@ -1749,13 +1749,8 @@ export default function RihlatAlHifz() {
             {!sessLoading&&batch.length>0&&!isAsr&&(
               <div>
                 {/* Batch header */}
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{marginBottom:10}}>
                   <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{currentSessionId==="fajr"?"Fajr":currentSessionId==="dhuhr"?"Dhuhr Review":currentSessionId==="asr"?"Asr Review":currentSessionId==="maghrib"?"Listening":"Isha Review"} — Ayah Batch</div>
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                    <div className="sbtn" onClick={()=>setShowTrans(s=>!s)} style={{fontSize:10,padding:"3px 8px",background:showTrans?T.accentDim:T.surface2,border:`1px solid ${showTrans?T.accent+"50":T.border}`,borderRadius:5,color:showTrans?T.accent:T.dim}}>
-                      {showTrans?"Hide Trans":"Translation"}
-                    </div>
-                  </div>
                 </div>
 
                 {/* No per-ayah audio warning */}
@@ -1765,16 +1760,19 @@ export default function RihlatAlHifz() {
                   </div>
                 )}
 
-                {/* ── AYAH ROWS (5 per view, swipeable) ── */}
+                {/* ── AYAH ROWS (5 per page, swipeable) ── */}
                 {(()=>{
-                  const AYAH_VIEW_SIZE=5;
-                  const viewAyahs=batch.slice(0,ayahPage*AYAH_VIEW_SIZE+AYAH_VIEW_SIZE);
-                  const hasMore=viewAyahs.length<batch.length;
+                  const APS=5;
+                  const aPages=Math.max(1,Math.ceil(batch.length/APS));
+                  const aSafe=Math.min(ayahPage,aPages-1);
+                  const aStart=aSafe*APS;
+                  const aEnd=Math.min(aStart+APS,batch.length);
+                  const pageAyahs=batch.slice(aStart,aEnd);
                   return (
                 <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}
                   onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}}
-                  onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx<-40&&hasMore)setAyahPage(p=>p+1);}}>
-                  {viewAyahs.map((v,i)=>{
+                  onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx<-40&&aSafe<aPages-1)setAyahPage(p=>p+1);else if(dx>40&&aSafe>0)setAyahPage(p=>p-1);}}>
+                  {pageAyahs.map((v,i)=>{
                     const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
                     const vKey=v.verse_key;
                     const reps=repCounts[vKey]||0;
@@ -1785,7 +1783,7 @@ export default function RihlatAlHifz() {
                         style={{borderRadius:14,padding:"12px 14px",background:"#0F1A2B",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                           <div style={{width:28,height:28,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${repsDone?"rgba(230,184,74,0.45)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:repsDone?"#E6B84A":"#888",flexShrink:0}}>
-                            {repsDone?"✓":i+1}
+                            {repsDone?"✓":aStart+i+1}
                           </div>
                           <span style={{flex:1,fontSize:12,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
                           <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>Repeat {reps}/20</span>
@@ -1797,10 +1795,9 @@ export default function RihlatAlHifz() {
                       </div>
                     );
                   })}
-                  {hasMore&&(
-                    <div className="sbtn" onClick={()=>setAyahPage(p=>p+1)}
-                      style={{textAlign:"center",padding:"10px",borderRadius:10,fontSize:12,fontWeight:600,color:"rgba(230,184,74,0.55)",border:"1px dashed rgba(230,184,74,0.12)",background:"transparent",marginTop:4}}>
-                      Load More ↓
+                  {aPages>1&&(
+                    <div style={{textAlign:"center",fontSize:10,color:"rgba(230,184,74,0.35)",marginTop:4}}>
+                      {aSafe+1} / {aPages}
                     </div>
                   )}
                 </div>);})()}
