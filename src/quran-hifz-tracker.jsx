@@ -153,13 +153,15 @@ const STATUS_CFG = {
 };function calcTimeline(years,juzDone,months) {
   const juzLeft=Math.max(1,30-juzDone);
   const totalMonths=(years*12)+(months||0);
-  const activeDays=Math.round(totalMonths*30*0.85);
-  const ayahsLeft=juzLeft*208;
-  const apd=Math.max(1,ayahsLeft/Math.max(1,activeDays));
-  return { ayahsPerDay:apd.toFixed(1), daysPerJuz:Math.round(activeDays/juzLeft),
+  const totalDays=totalMonths*30;
+  const totalAyahs=6236;
+  const remainingAyahs=Math.round(totalAyahs*(juzLeft/30));
+  const apd=totalMonths>0?Math.max(1,Math.round(remainingAyahs/totalDays)):1;
+  const daysPerJuz=apd>0?Math.round((totalAyahs/30)/apd):0;
+  return { ayahsPerDay:apd.toFixed(1), daysPerJuz,
            juzPerMonth:(juzLeft/Math.max(1,totalMonths)).toFixed(1),
            revDuhr:Math.max(1,Math.round(apd*0.3)), revAsr:Math.max(1,Math.round(apd*0.2)),
-           activeDays, ayahsLeft, juzLeft };
+           activeDays:totalDays, ayahsLeft:remainingAyahs, juzLeft };
 }
 
 const DARK  = {bg:"#04070A",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
@@ -821,7 +823,7 @@ export default function RihlatAlHifz() {
   const curStatus=juzStatus[selectedJuz]||"not_started";
   const curCfg=STATUS_CFG[curStatus];
   const timeline=calcTimeline(goalYears,completedCount,goalMonths);
-  const dailyNew=Math.ceil(parseFloat(timeline.ayahsPerDay));
+  const dailyNew=Math.round(parseFloat(timeline.ayahsPerDay));
 
     const totalSV=sessionVerses.length;
   const bStart=sessionIdx;
