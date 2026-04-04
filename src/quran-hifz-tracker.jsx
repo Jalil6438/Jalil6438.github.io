@@ -2603,97 +2603,165 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TIMELINE ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="timeline"&&(
-        <div style={{flex:1,overflowY:"auto",padding:"16px 20px 48px"}} className="fi">
-         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{padding:"6px 12px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,fontSize:11,color:T.sub,cursor:"pointer"}}>← Back</div>
-              <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>Timeline</div>
-            </div> 
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:T.text,marginBottom:14}}>Memorization Timeline Calculator</div>
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"14px 18px",marginBottom:14}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:8}}>
-              <span style={{fontSize:12,color:T.sub}}>I want to complete my Hifz in:</span>
-              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:T.accent,fontWeight:600}}>{goalYears} {goalYears===1?"year":"years"}</span>
-            </div>
-            <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:7}}/>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10,marginBottom:4}}>
-              <span style={{fontSize:12,color:T.sub}}>Additional months:</span>
-              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:T.accent,fontWeight:600}}>{goalMonths} {goalMonths===1?"month":"months"}</span>
-            </div>
-            <input type="range" min={1} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%",marginBottom:7}}/>
-            <div style={{display:"none",justifyContent:"space-between",fontSize:9,color:T.vdim}}>
-              {[0,1,2,3,4,5,6,7,8,9,10,11].map(m=><span key={m} style={{color:m===goalMonths?T.accent:T.vdim,fontWeight:m===goalMonths?600:400}}>{m}m</span>)}
-            </div>
-            <div style={{display:"none",justifyContent:"space-between",fontSize:9,color:T.vdim}}>
-              {[1,2,3,4,5,6,7,8,9,10].map(y=><span key={y} style={{color:y===goalYears?T.accent:T.vdim,fontWeight:y===goalYears?600:400}}>{y}y</span>)}
-            </div>
+        <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi gold-particles">
+
+          {/* Header */}
+          <div style={{marginBottom:22}}>
+            <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back</div>
+            <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>My Plan</div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(148px,1fr))",gap:8,marginBottom:14}}>
-            {[
-              {label:"Juz Remaining", val:`${timeline.juzLeft}`,     color:"#F0C040",sub:"to memorize"},
-              {label:"Ayahs Per Day", val:timeline.ayahsPerDay,       color:"#F0C040",sub:"daily minimum"},
-              {label:"Days Per Juz",  val:`~${timeline.daysPerJuz}d`, color:"#F6A623",sub:"per juz"},
-              {label:"Juz Per Month", val:timeline.juzPerMonth,       color:"#B794F4",sub:"monthly pace"},
-            ].map(s=>(
-              <div key={s.label} style={{padding:"11px 13px",background:T.surface,border:`1px solid ${s.color}20`,borderTop:`3px solid ${s.color}`,borderRadius:7}}>
-                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,color:s.color,lineHeight:1,marginBottom:3}}>{s.val}</div>
-                <div style={{fontSize:11,color:T.sub,marginBottom:2}}>{s.label}</div>
-                <div style={{fontSize:9,color:T.dim}}>{s.sub}</div>
+
+          {/* ── GOAL SECTION ── */}
+          <div style={{marginBottom:24}}>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F3E7C8",fontWeight:700,lineHeight:1.2,marginBottom:6}}>
+              {goalYears}-Year{goalMonths>0?` ${goalMonths}-Month`:""} Hifz Plan
+            </div>
+            <div style={{fontSize:13,color:"rgba(243,231,200,0.45)"}}>
+              {dailyNew} ayahs per day · {timeline.juzLeft} juz remaining
+            </div>
+            <div style={{fontSize:12,color:"rgba(230,184,74,0.40)",marginTop:6}}>
+              You are on track — Alhamdulillah
+            </div>
+            <div style={{marginTop:12}}>
+              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
+                <div style={{fontSize:11,color:"rgba(230,184,74,0.55)",fontFamily:"'IBM Plex Mono',monospace"}}>{pct}% · Juz {sessionJuz||"—"}</div>
               </div>
-            ))}
+              <div style={{height:6,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                <div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",borderRadius:999,boxShadow:"0 0 8px rgba(212,175,55,0.30)"}}/>
+              </div>
+            </div>
           </div>
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"12px 16px",marginBottom:14}}>
-            <div style={{fontSize:9,color:T.dim,letterSpacing:".15em",textTransform:"uppercase",marginBottom:10}}>Daily Breakdown — {goalYears}-Year Goal</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(168px,1fr))",gap:7}}>
-              {SESSIONS.map(s=>(
-                <div key={s.id} style={{padding:"9px 11px",background:T.surface2,border:`1px solid ${s.color}18`,borderLeft:`3px solid ${s.color}`,borderRadius:"0 6px 6px 0"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}><span style={{fontSize:13}}>{s.icon}</span><span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:s.color}}>{s.time}</span></div>
-                  <div style={{fontSize:11,color:T.sub,marginBottom:2}}>{s.title}</div>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:s.color,fontWeight:600}}>
-                    {s.id==="fajr"&&`${dailyNew} new ayahs`}{s.id==="dhuhr"&&`~${timeline.revDuhr} ayahs`}{s.id==="asr"&&`~${timeline.revAsr} ayahs`}{s.id==="maghrib"&&"Passive 15-20 min"}{s.id==="isha"&&"All of today"}
+
+          {/* ── YOUR PACE ── */}
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>📅 Your Pace</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:14}}>📖</span>
+                <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{dailyNew} ayahs / day</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontSize:14}}>📆</span>
+                <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{timeline.juzPerMonth} juz / month</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── TODAY'S FLOW ── */}
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:14}}>📋 Your Daily Plan</div>
+            <div style={{display:"flex",flexDirection:"column",gap:0}}>
+              {[
+                {icon:"🌅",name:"Fajr",label:"Start your new ayahs",desc:`Memorize ${dailyNew} new ayahs — repeat each until it sticks`},
+                {icon:"☀️",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier"},
+                {icon:"🌤️",name:"Asr",label:"Strengthen your memorization",desc:"Cycle through completed sections"},
+                {icon:"🌆",name:"Maghrib",label:"Listen carefully and follow along",desc:"Listen and follow along (15–20 min)"},
+                {icon:"🌙",name:"Isha",label:"Lock in today's memorization",desc:"Recite everything one final time"},
+              ].map((s,i,arr)=>(
+                <div key={s.name} style={{padding:"12px 0",borderBottom:i<arr.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontSize:14,width:22,textAlign:"center"}}>{s.icon}</span>
+                    <div>
+                      <div style={{fontSize:13,color:"#F3E7C8",fontWeight:600}}>{s.name} — <span style={{fontWeight:400,color:"rgba(243,231,200,0.55)"}}>{s.label}</span></div>
+                      <div style={{fontSize:11,color:"rgba(243,231,200,0.30)",marginTop:2}}>{s.desc}</div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"10px 14px",marginBottom:24}}>
-            <div style={{fontSize:9,color:T.dim,letterSpacing:".15em",textTransform:"uppercase",marginBottom:8}}>Compare Timelines</div>
-            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-              {[1,2,3,5,7,10].map(y=>{const t=calcTimeline(y,completedCount),isA=y===goalYears;return <div key={y} className="sbtn" onClick={()=>setGoalYears(y)} style={{flex:1,minWidth:75,padding:"9px",background:isA?T.surface2:T.surface,border:`1px solid ${isA?T.accent+"40":T.border}`,borderRadius:5,textAlign:"center"}}><div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:isA?T.accent:T.dim,fontWeight:isA?600:400,marginBottom:2}}>{y}{y===1?"yr":"yrs"}</div><div style={{fontSize:10,color:isA?T.sub:T.vdim}}>{t.ayahsPerDay}/day</div></div>;})}
+
+          {/* ── WHY THIS WORKS ── */}
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",marginBottom:14}}>
+            <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Why This Works</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[
+                "New memorization is strongest in the morning",
+                "Review prevents fast forgetting",
+                "Daily repetition builds long-term retention",
+              ].map((t,i)=>(
+                <div key={i} style={{fontSize:12,color:"rgba(243,231,200,0.35)",lineHeight:1.5}}>· {t}</div>
+              ))}
             </div>
           </div>
-          {/* Method steps */}
-          <div style={{marginBottom:14}}>
-            <div style={{fontSize:9,color:T.dim,letterSpacing:".15em",textTransform:"uppercase",marginBottom:8}}>How To Memorize — Step By Step</div>
-            {SESSIONS.map(s=>(
-              <div key={s.id} style={{marginBottom:6,background:T.surface,border:`1px solid ${openMethod===s.id?s.color+"50":T.border}`,borderLeft:`3px solid ${s.color}`,borderRadius:"0 7px 7px 0",overflow:"hidden"}}>
-                <div className="sbtn" onClick={()=>setOpenMethod(openMethod===s.id?null:s.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px"}}>
-                  <span style={{fontSize:16}}>{s.icon}</span>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:12,fontWeight:600,color:openMethod===s.id?s.color:T.text}}>{s.time} — {s.title}</div>
-                    <div style={{fontSize:10,color:T.dim,marginTop:1}}>{s.desc}</div>
-                  </div>
-                  <span style={{fontSize:12,color:T.dim,transform:openMethod===s.id?"rotate(90deg)":"none",transition:"transform .2s"}}>›</span>
-                </div>
-                {openMethod===s.id&&(
-                  <div style={{padding:"0 14px 12px 14px",borderTop:`1px solid ${T.border}`}}>
-                    {s.steps.map((step,i)=>(
-                      <div key={i} style={{display:"flex",gap:10,padding:"7px 0",borderBottom:i<s.steps.length-1?`1px solid ${T.border}`:"none"}}>
-                        <div style={{width:20,height:20,borderRadius:"50%",background:s.color+"20",border:`1px solid ${s.color}40`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                          <span style={{fontSize:9,color:s.color,fontWeight:700}}>{i+1}</span>
-                        </div>
-                        <span style={{fontSize:11,color:T.sub,lineHeight:1.5}}>{step}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+
+          {/* ── MOTIVATION ── */}
+          <div style={{textAlign:"center",padding:"12px 0",marginBottom:18}}>
+            <div style={{fontSize:12,color:"rgba(243,231,200,0.22)",fontStyle:"italic"}}>Stay consistent. Small daily progress builds lasting memorization.</div>
+          </div>
+
+          {/* ── QURAN VERSE ── */}
+          <div style={{padding:"18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",textAlign:"center",marginBottom:18}}>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#E6B84A",direction:"rtl",marginBottom:8}}>وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ</div>
+            <div style={{fontSize:12,color:"rgba(243,231,200,0.45)",fontStyle:"italic",marginBottom:3}}>"And We have certainly made the Quran easy for remembrance"</div>
+            <div style={{fontSize:10,color:"rgba(243,231,200,0.22)"}}>Al-Qamar 54:17</div>
+          </div>
+
+          {/* ── ADJUST PLAN CTA ── */}
+          <div className="sbtn" onClick={()=>setRihlahTab("adjust")}
+            style={{width:"100%",padding:"13px",borderRadius:14,textAlign:"center",fontSize:13,fontWeight:600,
+              color:"rgba(243,231,200,0.45)",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(217,177,95,0.12)"}}>
+            ⚙️ Adjust Plan
+          </div>
+        </div>
+      )}
+
+      {/* ═══ ADJUST PLAN ═══ */}
+      {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
+        <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi">
+          <div style={{marginBottom:20}}>
+            <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back to My Plan</div>
+            <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>Adjust Plan</div>
+          </div>
+
+          {/* Goal slider */}
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Complete Hifz in:</span>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:18,color:"#E6B84A",fontWeight:600}}>{goalYears} {goalYears===1?"year":"years"}</span>
+            </div>
+            <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:12}}/>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Additional months:</span>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:"#E6B84A",fontWeight:600}}>{goalMonths} {goalMonths===1?"month":"months"}</span>
+            </div>
+            <input type="range" min={0} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
+          </div>
+
+          {/* Stats */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+            {[
+              {label:"Ayahs / Day",val:dailyNew,color:"#E6B84A"},
+              {label:"Juz / Month",val:timeline.juzPerMonth,color:"#E6B84A"},
+              {label:"Days / Juz",val:`~${timeline.daysPerJuz}`,color:"rgba(243,231,200,0.55)"},
+              {label:"Juz Left",val:timeline.juzLeft,color:"rgba(243,231,200,0.55)"},
+            ].map(s=>(
+              <div key={s.label} style={{padding:"14px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.08)",textAlign:"center"}}>
+                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:s.color,fontWeight:700,marginBottom:2}}>{s.val}</div>
+                <div style={{fontSize:10,color:"rgba(243,231,200,0.35)"}}>{s.label}</div>
               </div>
             ))}
           </div>
 
-          <div style={{padding:"14px 18px",background:T.surface,border:`1px solid ${T.accent}20`,borderRadius:8,textAlign:"center"}}>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:T.accent,direction:"rtl",marginBottom:6}}>وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ</div>
-            <div style={{fontSize:12,color:T.sub,fontStyle:"italic",marginBottom:3}}>"And We have certainly made the Quran easy for remembrance"</div>
-            <div style={{fontSize:10,color:T.dim}}>Al-Qamar 54:17</div>
+          {/* Quick compare */}
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",marginBottom:14}}>
+            <div style={{fontSize:10,color:"rgba(243,231,200,0.35)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Compare Timelines</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {[1,2,3,5,7,10].map(y=>{const t=calcTimeline(y,completedCount,0),isA=y===goalYears;return (
+                <div key={y} className="sbtn" onClick={()=>setGoalYears(y)} style={{flex:1,minWidth:50,padding:"10px 4px",borderRadius:10,textAlign:"center",
+                  background:isA?"rgba(230,184,74,0.10)":"rgba(255,255,255,0.02)",
+                  border:`1px solid ${isA?"rgba(230,184,74,0.35)":"rgba(255,255,255,0.04)"}`}}>
+                  <div style={{fontSize:12,color:isA?"#E6B84A":"rgba(243,231,200,0.40)",fontWeight:isA?700:400}}>{y}yr</div>
+                  <div style={{fontSize:9,color:isA?"rgba(230,184,74,0.55)":"rgba(243,231,200,0.22)",marginTop:2}}>{t.ayahsPerDay}/day</div>
+                </div>
+              );})}
+            </div>
+          </div>
+
+          <div className="sbtn" onClick={()=>setRihlahTab("timeline")}
+            style={{width:"100%",padding:"13px",borderRadius:14,textAlign:"center",fontSize:13,fontWeight:700,
+              color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.20)"}}>
+            Save & Return
           </div>
         </div>
       )}
