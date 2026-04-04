@@ -2724,59 +2724,101 @@ export default function RihlatAlHifz() {
 
       {/* ═══ ADJUST PLAN ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
-        <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi">
+        <div style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 48px"}} className="fi gold-particles">
+          {/* Header */}
           <div style={{marginBottom:20}}>
             <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back to My Plan</div>
-            <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>Adjust Plan</div>
           </div>
 
-          {/* Goal slider */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)",marginBottom:14}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Complete Hifz in:</span>
-              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:18,color:"#E6B84A",fontWeight:600}}>{goalYears} {goalYears===1?"year":"years"}</span>
+          {/* ── HERO CARD ── */}
+          {(()=>{
+            const t=calcTimeline(goalYears,completedCount,goalMonths);
+            const apd=Math.round(parseFloat(t.ayahsPerDay));
+            return (
+          <div style={{padding:"22px 18px",borderRadius:20,marginBottom:16,textAlign:"center",position:"relative",overflow:"hidden",
+            background:"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)",
+            border:"1px solid rgba(217,177,95,0.22)",boxShadow:"0 10px 40px rgba(0,0,0,0.40),0 0 20px rgba(217,177,95,0.08)"}}>
+            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 20%,rgba(212,175,55,0.08) 0%,transparent 50%)"}}/>
+            <div style={{position:"relative",zIndex:1}}>
+              <div style={{fontSize:13,color:"rgba(243,231,200,0.50)",marginBottom:8}}>Complete Your Hifz In</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:32,color:"#F6E27A",fontWeight:700,marginBottom:14,textShadow:"0 0 18px rgba(246,226,122,0.15)"}}>
+                {goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?<span style={{fontSize:24,marginLeft:8}}>{goalMonths} Month{goalMonths!==1?"s":""}</span>:""}
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"center"}}>
+                <div style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>You will memorize ~<span style={{color:"#E6B84A",fontWeight:700}}>{apd} ayahs</span> per day</div>
+                <div style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>You will finish 1 Juz every ~<span style={{color:"#E6B84A",fontWeight:700}}>{t.daysPerJuz} days</span></div>
+              </div>
             </div>
-            <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:12}}/>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Additional months:</span>
-              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:"#E6B84A",fontWeight:600}}>{goalMonths} {goalMonths===1?"month":"months"}</span>
+          </div>
+            );
+          })()}
+
+          {/* ── SLIDERS ── */}
+          <div style={{padding:"16px 18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:16,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Timeline</span>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:"#E6B84A",fontWeight:600}}>{goalYears} Year{goalYears!==1?"s":""}</span>
+            </div>
+            <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:16}}/>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <span style={{fontSize:12,color:"rgba(243,231,200,0.50)"}}>Additional Time</span>
+              <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:"#E6B84A",fontWeight:600}}>+{goalMonths} Month{goalMonths!==1?"s":""}</span>
             </div>
             <input type="range" min={0} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
           </div>
 
-          {/* Stats */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
-            {[
-              {label:"Ayahs / Day",val:dailyNew,color:"#E6B84A"},
-              {label:"Juz / Month",val:timeline.juzPerMonth,color:"#E6B84A"},
-              {label:"Days / Juz",val:`~${timeline.daysPerJuz}`,color:"rgba(243,231,200,0.55)"},
-              {label:"Juz Left",val:timeline.juzLeft,color:"rgba(243,231,200,0.55)"},
-            ].map(s=>(
-              <div key={s.label} style={{padding:"14px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.08)",textAlign:"center"}}>
-                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:20,color:s.color,fontWeight:700,marginBottom:2}}>{s.val}</div>
-                <div style={{fontSize:10,color:"rgba(243,231,200,0.35)"}}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Quick compare */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 6px rgba(217,177,95,0.03)"}}>
-            <div style={{fontSize:10,color:"rgba(243,231,200,0.35)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Compare Timelines</div>
-            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {[1,2,3,5,7,10].map(y=>{const t=calcTimeline(y,completedCount,0),isA=y===goalYears;return (
-                <div key={y} className="sbtn" onClick={()=>setGoalYears(y)} style={{flex:1,minWidth:50,padding:"10px 4px",borderRadius:10,textAlign:"center",
-                  background:isA?"rgba(230,184,74,0.10)":"rgba(255,255,255,0.02)",
-                  border:`1px solid ${isA?"rgba(230,184,74,0.35)":"rgba(255,255,255,0.04)"}`}}>
-                  <div style={{fontSize:12,color:isA?"#E6B84A":"rgba(243,231,200,0.40)",fontWeight:isA?700:400}}>{y}yr</div>
-                  <div style={{fontSize:9,color:isA?"rgba(230,184,74,0.55)":"rgba(243,231,200,0.22)",marginTop:2}}>{t.ayahsPerDay}/day</div>
-                </div>
-              );})}
+          {/* ── STATS ── */}
+          <div style={{padding:"16px 18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:16,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14}}>📖</span><span style={{fontSize:13,color:"#F3E7C8"}}>{dailyNew} ayahs / day</span></div>
+              <span style={{fontSize:13,color:"rgba(243,231,200,0.45)",fontFamily:"'IBM Plex Mono',monospace"}}>{timeline.juzPerMonth} / month</span>
+            </div>
+            <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:14}}>📆</span><span style={{fontSize:13,color:"#F3E7C8"}}>~{timeline.daysPerJuz} days per juz</span></div>
             </div>
           </div>
 
+          {/* ── CHOOSE YOUR PACE ── */}
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Choose Your Pace</div>
+            <div style={{display:"flex",gap:8}}>
+              {[
+                {y:1,label:"Intense",icon:"\u26A1"},
+                {y:2,label:"Focused",icon:"\uD83D\uDD25"},
+                {y:3,label:"Balanced",icon:"\u2705"},
+                {y:5,label:"Light",icon:"\uD83E\uDDD8"},
+                {y:7,label:"Gentle",icon:"\uD83C\uDF19"},
+              ].map(p=>{
+                const t=calcTimeline(p.y,completedCount,0);
+                const isA=p.y===goalYears;
+                return (
+                  <div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}}
+                    style={{flex:1,padding:"12px 4px",borderRadius:14,textAlign:"center",
+                      background:isA?"rgba(230,184,74,0.10)":"rgba(255,255,255,0.02)",
+                      border:`1px solid ${isA?"rgba(232,200,120,0.50)":"rgba(255,255,255,0.05)"}`,
+                      boxShadow:isA?"0 0 16px rgba(230,184,74,0.15)":"none",transition:"all .18s"}}>
+                    <div style={{fontSize:13,color:isA?"#F6E27A":"rgba(243,231,200,0.50)",fontWeight:700}}>{p.y} Year{p.y!==1?"s":""}</div>
+                    <div style={{fontSize:11,color:isA?"#E6B84A":"rgba(243,231,200,0.30)",fontWeight:600,marginTop:2}}>{t.ayahsPerDay}/day</div>
+                    <div style={{fontSize:9,color:isA?"rgba(230,184,74,0.65)":"rgba(243,231,200,0.22)",marginTop:4}}>{p.icon} {p.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── MOTIVATIONAL LINE ── */}
+          <div style={{textAlign:"center",padding:"14px 10px",marginBottom:20}}>
+            <div style={{fontSize:12,color:"rgba(243,231,200,0.35)",lineHeight:1.7}}>
+              This plan requires consistency, not perfection.<br/>
+              Small daily effort leads to completion — <span style={{fontFamily:"'Amiri',serif",fontSize:14,color:"rgba(230,184,74,0.50)"}}>{"\u0628\u0650\u0625\u0630\u0652\u0646\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650"}</span>
+            </div>
+          </div>
+
+          {/* ── SAVE CTA ── */}
           <div className="sbtn" onClick={()=>setRihlahTab("timeline")}
-            style={{width:"100%",padding:"13px",borderRadius:14,textAlign:"center",fontSize:13,fontWeight:700,
-              color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.20)"}}>
+            style={{width:"100%",padding:"15px",borderRadius:16,textAlign:"center",fontSize:15,fontWeight:700,
+              color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 8px 22px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.10)"}}>
             Save & Return
           </div>
         </div>
