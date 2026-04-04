@@ -2638,7 +2638,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ── YOUR PACE ── */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.04)"}}>
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Your Pace</div>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
               <span style={{fontSize:14}}>📖</span>
@@ -2652,7 +2652,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ── TODAY'S FLOW ── */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.04)"}}>
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:14}}>Your Daily Plan</div>
             <div style={{display:"flex",flexDirection:"column",gap:0}}>
               {[
@@ -2679,14 +2679,14 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ── GUIDANCE ── */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 6px rgba(217,177,95,0.03)"}}>
-            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Guidance for Memorization</div>
+          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.15)",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.05)"}}>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.70)",fontWeight:700,letterSpacing:".08em",marginBottom:12}}>Principles of Memorization</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {[
-                "Memorization becomes firm through constant repetition",
+                "Memorization becomes firm with constant repetition",
                 "Reviewing what you have memorized is more important than taking on new material",
                 "Do not move forward until what you have memorized is solid",
-                "Small, consistent memorization leads to great results",
+                "Small, consistent efforts leads to great results",
               ].map((t,i)=>(
                 <div key={i} style={{display:"flex",gap:8,fontSize:12,color:"rgba(243,231,200,0.55)",lineHeight:1.6}}>
                   <span style={{flexShrink:0,color:"rgba(217,177,95,0.45)"}}>·</span>
@@ -2694,7 +2694,7 @@ export default function RihlatAlHifz() {
                 </div>
               ))}
             </div>
-            <div style={{marginTop:12,fontSize:10,color:"rgba(217,177,95,0.30)",fontStyle:"italic"}}>Based on the methodology of Sheikh Abdul Muhsin al-Qasim</div>
+            <div style={{marginTop:12,fontSize:10,color:"rgba(217,177,95,0.30)",fontStyle:"italic"}}>Based on the methodology of Shaykh Abdul Muhsin al-Qasim</div>
           </div>
 
           {/* ── QURAN VERSE (rotates daily) ── */}
@@ -2711,7 +2711,7 @@ export default function RihlatAlHifz() {
             const dayIdx=Math.floor(Date.now()/3600000)%verses.length;
             const v=verses[dayIdx];
             return (
-          <div style={{padding:"18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)",textAlign:"center",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.04)"}}>
+          <div style={{padding:"18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",textAlign:"center",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
             <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#E6B84A",direction:"rtl",marginBottom:8}}>{v.ar}</div>
             <div style={{fontSize:12,color:"rgba(243,231,200,0.45)",fontStyle:"italic",marginBottom:3}}>{v.en}</div>
             <div style={{fontSize:10,color:"rgba(243,231,200,0.22)"}}>{v.ref}</div>
