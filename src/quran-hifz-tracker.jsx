@@ -2560,7 +2560,7 @@ export default function RihlatAlHifz() {
                 <div key={quranPage} className={quranPageDir==="next"?"page-next":quranPageDir==="prev"?"page-prev":""}
                   style={{flex:1,minHeight:0,overflow:"hidden",padding:"12px 16px 0",display:"flex",flexDirection:"column"}}>
                   <div style={{background:"linear-gradient(180deg,rgba(28,24,18,0.50) 0%,rgba(22,19,14,0.45) 50%,rgba(28,24,18,0.50) 100%)",borderRadius:12,padding:"16px 14px 24px",border:"1px solid rgba(212,175,55,0.06)",boxShadow:"inset 0 1px 0 rgba(255,245,220,0.03),inset 0 -1px 0 rgba(0,0,0,0.15),0 2px 12px rgba(0,0,0,0.20)",flex:1,minHeight:0,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-                    <div style={{flex:1,minHeight:0,overflow:"hidden"}}>
+                    <div style={{height:pageH,maxHeight:pageH,overflow:"hidden"}}>
                       <div style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:`${fontSize}px`,lineHeight:2.2,color:"rgba(243,231,200,0.88)",
                         marginTop:`${-quranPage*pageH}px`,transition:"none"}}>
                         {allVerses.map((item,i)=>{
