@@ -2163,7 +2163,17 @@ export default function RihlatAlHifz() {
                 const pathLength=320;
                 const revealed=(journeyPct/100)*pathLength;
                 const hidden=pathLength-revealed;
-                const cp=journeyPct<=5?{x:28,y:105}:journeyPct<=25?{x:95,y:77}:journeyPct<=50?{x:160,y:56}:journeyPct<=75?{x:230,y:38}:{x:286,y:23};
+                // Interpolate position along the path curve using sampled points
+                const pathPoints=[{p:0,x:20,y:110},{p:10,x:50,y:102},{p:20,x:75,y:85},{p:33,x:110,y:72},{p:50,x:160,y:52},{p:67,x:210,y:42},{p:80,x:245,y:32},{p:90,x:275,y:24},{p:100,x:300,y:18}];
+                let cp={x:20,y:110};
+                for(let i=0;i<pathPoints.length-1;i++){
+                  if(journeyPct>=pathPoints[i].p&&journeyPct<=pathPoints[i+1].p){
+                    const t=(journeyPct-pathPoints[i].p)/(pathPoints[i+1].p-pathPoints[i].p);
+                    cp={x:pathPoints[i].x+(pathPoints[i+1].x-pathPoints[i].x)*t,y:pathPoints[i].y+(pathPoints[i+1].y-pathPoints[i].y)*t};
+                    break;
+                  }
+                }
+                if(journeyPct>=100) cp={x:300,y:18};
                 return (
                   <svg width="100%" viewBox="0 0 320 140" style={{display:"block",marginBottom:8}}>
                     <defs>
@@ -2198,9 +2208,9 @@ export default function RihlatAlHifz() {
                     })}
                     {completedCount>0&&(
                       <g>
-                        <circle cx={cp.x} cy={cp.y} r="9" fill="#2EE6C5" filter="url(#currentGlow)"/>
-                        <circle cx={cp.x} cy={cp.y} r="5.5" fill="#C8FFF4"/>
-                        <text x={cp.x} y={cp.y-13} textAnchor="middle" fontSize="8" fontWeight="700" fill="#2EE6C5">{completedCount}</text>
+                        <circle cx={cp.x} cy={cp.y} r="9" fill="#E6B84A" filter="url(#currentGlow)"/>
+                        <circle cx={cp.x} cy={cp.y} r="5.5" fill="#FFF6D6"/>
+                        <text x={cp.x} y={cp.y-13} textAnchor="middle" fontSize="8" fontWeight="700" fill="#E6B84A">{completedCount}</text>
                       </g>
                     )}
                     <g transform="translate(300 18)">
