@@ -399,21 +399,23 @@ function AsrSessionView({
             <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
 
             {/* Ayah list — slides on page change */}
-            <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""}>
+            <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{display:"flex",flexDirection:"column",gap:8,padding:"4px 0"}}>
               {asrVisibleAyahs.map((v,idx)=>{
                 const vKey=v.verse_key;
-                const vNum=v.verse_key?.split(":")?.[1];
+                const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
                 return (
-                  <div key={vKey}>
-                    <div className="asr-row sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}>
-                      <div style={{flex:1,minWidth:0,direction:"rtl",textAlign:"right",unicodeBidi:"plaintext",color:"#F3E7C8",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.65,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",paddingLeft:6,paddingBottom:4}}>
-                        {v.text_uthmani}
+                  <div key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
+                    style={{borderRadius:14,padding:"12px 14px",background:"rgba(14,22,40,0.80)",border:"1px solid rgba(217,177,95,0.08)",boxShadow:"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                      <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:"rgba(217,177,95,0.60)",flexShrink:0}}>
+                        {asrPageStart+idx+1}
                       </div>
-                      <div style={{width:42,display:"flex",justifyContent:"flex-end",alignItems:"center",flexShrink:0,paddingRight:4}}>
-                        <div className="asr-num">{vNum}</div>
-                      </div>
+                      <span style={{flex:1,fontSize:12,color:"rgba(243,231,200,0.50)"}}>{SURAH_EN[sNum]||`Surah ${sNum}`} · {vKey}</span>
+                      <span style={{fontSize:12,color:"rgba(243,231,200,0.20)"}}>›</span>
                     </div>
-                    {idx<asrVisibleAyahs.length-1&&<div className="asr-row-divider"/>}
+                    <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(243,231,200,0.88)",direction:"rtl",textAlign:"right",lineHeight:1.7,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {v.text_uthmani}
+                    </div>
                   </div>
                 );
               })}
@@ -2567,8 +2569,8 @@ export default function RihlatAlHifz() {
                       opacity:unlocked?1:0.3,
                       pointerEvents:unlocked?"auto":"none"}}>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F6E27A":isDone?"#E2BC72":unlocked?"rgba(243,231,200,0.70)":"rgba(243,231,200,0.30)",fontWeight:600}}>Juz {j.num}</div>
-                    {isDone&&!isSel&&(
-                      <div style={{fontSize:10,color:"rgba(230,184,74,0.55)",marginTop:4,textShadow:"0 0 8px rgba(230,184,74,0.15)"}}>Completed · Alhamdulillah</div>
+                    {isDone&&(
+                      <div style={{fontSize:10,color:isSel?"rgba(246,226,122,0.60)":"rgba(230,184,74,0.55)",marginTop:4,textShadow:"0 0 8px rgba(230,184,74,0.15)"}}>Completed · Alhamdulillah</div>
                     )}
                   </div>
                 );
