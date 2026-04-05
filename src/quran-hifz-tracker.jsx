@@ -2628,8 +2628,10 @@ export default function RihlatAlHifz() {
               style={{flex:1,margin:"4px 8px 0",overflow:"hidden",display:"flex",flexDirection:"column",position:"relative",borderRadius:2,
                 border:"2px solid rgba(212,175,55,0.22)",
                 boxShadow:"0 0 16px rgba(212,175,55,0.08),inset 0 0 30px rgba(212,175,55,0.04)",
-                background:"linear-gradient(180deg,rgba(24,20,14,0.65) 0%,rgba(18,15,10,0.60) 50%,rgba(24,20,14,0.65) 100%)"}}>
+                background:"linear-gradient(180deg,#0B1220 0%,#0E1628 50%,#0B1220 100%)"}}>
 
+              {/* Gold dust overlay */}
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 30% 20%,rgba(212,175,55,0.05) 0%,transparent 40%),radial-gradient(circle at 70% 80%,rgba(212,175,55,0.03) 0%,transparent 40%)",zIndex:0}}/>
               {/* Double border effect */}
               <div style={{position:"absolute",inset:5,border:"1px solid rgba(212,175,55,0.12)",borderRadius:1,pointerEvents:"none",zIndex:1}}/>
 
