@@ -573,7 +573,7 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&fields=text_uthmani,verse_key,juz_number,page_number&per_page=50`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=code_v2,line_number,position,char_type_name&per_page=50`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         if(cancelled) return;
@@ -2644,50 +2644,45 @@ export default function RihlatAlHifz() {
                 </div>
               </div>
 
-              {/* Verse content */}
-              <div style={{flex:1,overflow:"auto",WebkitOverflowScrolling:"touch",padding:"10px 12px 6px",zIndex:2}}>
+              {/* Verse content — mushaf font rendering */}
+              <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"6px 10px 2px",zIndex:2}}>
+                <style>{`@font-face{font-family:'QCF_P${String(mushafPage).padStart(3,"0")}';src:url('https://static.qurancdn.com/fonts/quran/hafs/v2/woff2/p${mushafPage}.woff2') format('woff2');font-display:swap;}`}</style>
                 {mushafLoading?(
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100%"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
                     <div className="spin" style={{width:22,height:22,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
                   </div>
-                ):(
-                  <p style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:"22px",lineHeight:2.4,color:"rgba(243,231,200,0.92)",margin:0}}>
-                    {mushafVerses.map(v=>{
-                      const vNum=v.verse_key?.split(":")?.[1];
-                      const vKey=v.verse_key;
-                      const isP=playingKey===vKey;
-                      const surahNum=parseInt(vKey.split(":")[0]);
-                      const isFirstAyah=vNum==="1";
-                      return <span key={vKey}>
-                        {isFirstAyah&&surahNum!==1&&surahNum!==9&&(
-                          <span style={{display:"block",direction:"ltr",textAlign:"center",padding:"6px 0 10px"}}>
-                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:24,color:"rgba(212,175,55,0.65)",textShadow:"0 0 12px rgba(212,175,55,0.18)"}}>
-                              {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u064E\u0647\u0650 \u0671\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
-                            </span>
-                          </span>
-                        )}
-                        {isFirstAyah&&surahNum!==1&&(
-                          <span style={{display:"block",direction:"ltr",textAlign:"center",padding:"0 0 8px"}}>
-                            <span style={{display:"inline-flex",alignItems:"center",gap:10}}>
-                              <span style={{width:40,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.25))"}}/>
-                              <span style={{fontFamily:"'Amiri',serif",fontSize:16,color:"rgba(212,175,55,0.55)"}}>{SURAH_AR[surahNum]||""}</span>
-                              <span style={{width:40,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.25),transparent)"}}/>
-                            </span>
-                          </span>
-                        )}
-                        <span className="sbtn" onClick={()=>{if(tafsirOn){fetchTafsir(vKey);}else{playAyah(vKey,vKey);}}} style={{background:isP?"rgba(212,175,55,0.12)":tafsirAyah===vKey&&tafsirOn?"rgba(212,175,55,0.08)":"transparent",borderRadius:4,padding:isP||tafsirAyah===vKey?"2px 3px":0,transition:"background .3s"}}>
-                          <span style={{color:isP?"#E6B84A":"rgba(243,231,200,0.92)"}}>{v.text_uthmani}</span>
-                          <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"1.8em",height:"1.8em",margin:"0 2px",verticalAlign:"middle",position:"relative"}}>
-                            <svg viewBox="0 0 40 40" style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
-                              <polygon points="20,2 26,8 38,8 32,16 34,28 24,24 20,36 16,24 6,28 8,16 2,8 14,8" fill="none" stroke={isP?"#E6B84A":"rgba(212,175,55,0.30)"} strokeWidth="1.5"/>
-                            </svg>
-                            <span style={{position:"relative",zIndex:1,fontSize:"0.38em",color:isP?"#E6B84A":"rgba(212,175,55,0.50)",fontFamily:"'Amiri',serif"}}>{toArabicNum(vNum)}</span>
-                          </span>
-                        </span>{" "}
-                      </span>;
-                    })}
-                  </p>
-                )}
+                ):(()=>{
+                  // Group all words by line number
+                  const lineMap={};
+                  const wordVerseMap={};
+                  mushafVerses.forEach(v=>{
+                    const vKey=v.verse_key;
+                    (v.words||[]).forEach(w=>{
+                      const ln=w.line_number||0;
+                      if(!lineMap[ln]) lineMap[ln]=[];
+                      lineMap[ln].push({code:w.code_v2||"",charType:w.char_type_name||"word",pos:w.position,vKey});
+                      wordVerseMap[`${ln}-${w.position}`]=vKey;
+                    });
+                  });
+                  const lineNums=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
+                  const fontFamily=`QCF_P${String(mushafPage).padStart(3,"0")}`;
+                  return (
+                    <div style={{display:"flex",flexDirection:"column",justifyContent:"space-between",flex:1}}>
+                      {lineNums.map(ln=>(
+                        <div key={ln} style={{direction:"rtl",textAlign:"center",lineHeight:1,whiteSpace:"nowrap"}}>
+                          {lineMap[ln].map((w,wi)=>{
+                            const wKey=`${ln}-${w.pos}`;
+                            const vKey=wordVerseMap[wKey];
+                            const isP=playingKey===vKey;
+                            const isTaf=tafsirAyah===vKey&&tafsirOn;
+                            return <span key={wi} className={w.charType==="end"?"":"sbtn"} onClick={()=>{if(w.charType==="end")return;if(tafsirOn){fetchTafsir(vKey);}else{playAyah(vKey,vKey);}}}
+                              style={{fontFamily,fontSize:"clamp(22px,5.5vw,32px)",color:isP?"#E6B84A":isTaf?"rgba(230,184,74,0.80)":"rgba(243,231,200,0.92)",background:isP?"rgba(212,175,55,0.10)":isTaf?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP||isTaf?3:0,transition:"color .2s,background .2s"}}>{w.code}</span>;
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Page number bottom */}
