@@ -519,7 +519,7 @@ export default function RihlatAlHifz() {
   const [juzStatus,setJuzStatus]=useState({});
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
-  const [fontSize,setFontSize]=useState(22);
+  const [fontSize,setFontSize]=useState(20);
   const [quranShowCount,setQuranShowCount]=useState(5);
   const [quranPage,setQuranPage]=useState(0);
   const [quranPageDir,setQuranPageDir]=useState(null);
@@ -2601,8 +2601,6 @@ export default function RihlatAlHifz() {
               {Object.entries(SURAH_PAGES).map(([num,pg])=><option key={num} value={pg} style={{background:"#0C1018"}}>{SURAH_EN[Number(num)]}</option>)}
             </select>
             <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"6px 10px",background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.15)",borderRadius:20,fontSize:11,color:"rgba(243,231,200,0.35)",whiteSpace:"nowrap"}}>🎙️ {QURAN_RECITERS.find(r=>r.id===quranReciter)?.name?.split(" ")[0]||""}</div>
-            <div className="sbtn" onClick={()=>setFontSize(f=>Math.max(18,f-2))} style={{fontSize:12,color:"rgba(243,231,200,0.25)"}}>A-</div>
-            <div className="sbtn" onClick={()=>setFontSize(f=>Math.min(36,f+2))} style={{fontSize:12,color:"rgba(243,231,200,0.25)"}}>A+</div>
           </div>
 
           {/* Tafsir toggle */}
@@ -2638,7 +2636,7 @@ export default function RihlatAlHifz() {
                           <div style={{textAlign:"center",margin:gi>0?"28px 0 16px":"0 0 16px"}}>
                             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
                               <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.18))"}}/>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"rgba(212,175,55,0.60)"}}>{SURAH_AR[sg.surahNum]}</div>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:24,color:"rgba(212,175,55,0.70)",textShadow:"0 0 12px rgba(212,175,55,0.20)"}}>{SURAH_AR[sg.surahNum]}</div>
                               <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.18),transparent)"}}/>
                             </div>
                             <div style={{fontSize:10,color:"rgba(243,231,200,0.30)",marginBottom:12}}>{SURAH_EN[sg.surahNum]}</div>
@@ -2673,6 +2671,17 @@ export default function RihlatAlHifz() {
                 })()}
               </div>
             )}
+          </div>
+
+          {/* Page navigation */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 14px 8px",borderTop:"1px solid rgba(212,175,55,0.08)",flexShrink:0}}>
+            <div className="sbtn" onClick={()=>{if(mushafPage>1)setMushafPage(p=>p-1);}} style={{padding:"8px 14px",fontSize:13,color:mushafPage>1?"rgba(243,231,200,0.45)":"rgba(243,231,200,0.10)"}}>‹ Prev</div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{fontSize:10,color:"rgba(212,175,55,0.35)"}}>Page {mushafPage}</div>
+              <div style={{width:1,height:10,background:"rgba(212,175,55,0.10)"}}/>
+              <div style={{fontSize:10,color:"rgba(212,175,55,0.35)"}}>Juz {mushafJuzNum}</div>
+            </div>
+            <div className="sbtn" onClick={()=>{if(mushafPage<604)setMushafPage(p=>p+1);}} style={{padding:"8px 14px",fontSize:13,color:mushafPage<604?"rgba(243,231,200,0.45)":"rgba(243,231,200,0.10)"}}>Next ›</div>
           </div>
 
           {/* Tafsir drawer */}
