@@ -2645,7 +2645,7 @@ export default function RihlatAlHifz() {
               </div>
 
               {/* Verse content — mushaf font rendering */}
-              <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"6px 10px 2px",zIndex:2}}>
+              <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"14px 10px 10px",zIndex:2}}>
                 <style>{`@font-face{font-family:'QCF_P${String(mushafPage).padStart(3,"0")}';src:url('https://static.qurancdn.com/fonts/quran/hafs/v2/woff2/p${mushafPage}.woff2') format('woff2');font-display:swap;}`}</style>
                 {mushafLoading?(
                   <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
@@ -2667,7 +2667,7 @@ export default function RihlatAlHifz() {
                   const lineNums=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
                   const fontFamily=`QCF_P${String(mushafPage).padStart(3,"0")}`;
                   return (
-                    <div style={{display:"flex",flexDirection:"column",justifyContent:"space-between",flex:1}}>
+                    <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",flex:1,gap:2}}>
                       {lineNums.map(ln=>(
                         <div key={ln} style={{direction:"rtl",textAlign:"center",lineHeight:1,whiteSpace:"nowrap"}}>
                           {lineMap[ln].map((w,wi)=>{
