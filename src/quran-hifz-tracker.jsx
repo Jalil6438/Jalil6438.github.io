@@ -532,6 +532,7 @@ export default function RihlatAlHifz() {
   const [tafsirTab,setTafsirTab]=useState("sadi");
   const [mushafVerses,setMushafVerses]=useState([]);
   const [mushafLoading,setMushafLoading]=useState(false);
+  const [mushafControls,setMushafControls]=useState(false);
   const [mushafSurahInfo,setMushafSurahInfo]=useState("");
   const [mushafJuzNum,setMushafJuzNum]=useState(1);
   const [quranPageBreaks,setQuranPageBreaks]=useState([0]);
@@ -2581,32 +2582,34 @@ export default function RihlatAlHifz() {
         const toArabicNum=(n)=>String(n).replace(/[0-9]/g,d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]);
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"#080C14"}}>
-          {/* Header */}
-          <div style={{padding:"10px 16px 6px",display:"flex",alignItems:"center",justifyContent:"center",borderBottom:"1px solid rgba(212,175,55,0.10)"}}>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"#E6B84A",fontWeight:700,letterSpacing:".02em"}}>Al-Qur'an Al-Karim</div>
+          {/* Minimal top bar — surah name centered, settings icon right */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px",borderBottom:"1px solid rgba(212,175,55,0.08)"}}>
+            <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{padding:"3px 8px",borderRadius:8,fontSize:9,fontWeight:600,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.22)",background:tafsirOn?"rgba(230,184,74,0.08)":"transparent",border:`1px solid ${tafsirOn?"rgba(230,184,74,0.20)":"rgba(255,255,255,0.04)"}`}}>
+              Tafsir
+            </div>
+            <div style={{textAlign:"center"}}>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:15,color:"rgba(212,175,55,0.60)"}}>{mushafSurahInfo||"Al-Qur'an Al-Karim"}</div>
+            </div>
+            <div className="sbtn" onClick={()=>setMushafControls(c=>!c)} style={{fontSize:16,color:"rgba(243,231,200,0.30)",padding:"2px 4px"}}>{mushafControls?"×":"⋮"}</div>
           </div>
 
-          {/* Filter row */}
-          <div style={{display:"flex",alignItems:"center",gap:6,padding:"7px 12px",borderBottom:"1px solid rgba(212,175,55,0.08)"}}>
-            <select value={mushafJuzNum} onChange={e=>{const j=Number(e.target.value);const pg=JUZ_PAGES[j-1]||1;setMushafPage(pg);setQuranPageDir(null);}} style={{flex:1,background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.20)",color:"#E6B84A",fontSize:11,fontWeight:600,padding:"7px 10px",borderRadius:20,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
-              {Array.from({length:30},(_,i)=><option key={i+1} value={i+1} style={{background:"#0C1018"}}>Juz {i+1}</option>)}
-            </select>
-            <select onChange={e=>{const pg=Number(e.target.value);if(pg)setMushafPage(pg);}} value="" style={{flex:1,background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.20)",color:"rgba(243,231,200,0.55)",fontSize:11,padding:"7px 10px",borderRadius:20,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
-              <option value="" style={{background:"#0C1018"}}>Surah</option>
-              {Object.entries(SURAH_PAGES).map(([num,pg])=><option key={num} value={pg} style={{background:"#0C1018"}}>{SURAH_EN[Number(num)]}</option>)}
-            </select>
-            <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"7px 10px",background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:20,fontSize:11,color:"rgba(243,231,200,0.45)",whiteSpace:"nowrap"}}>
-              🎙️ {QURAN_RECITERS.find(r=>r.id===quranReciter)?.name?.split(" ")[0]||"Reciter"}
+          {/* Expandable controls panel */}
+          {mushafControls&&(
+            <div className="fi" style={{padding:"8px 12px 10px",borderBottom:"1px solid rgba(212,175,55,0.08)",background:"rgba(212,175,55,0.02)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <select value={mushafJuzNum} onChange={e=>{const j=Number(e.target.value);const pg=JUZ_PAGES[j-1]||1;setMushafPage(pg);setQuranPageDir(null);setMushafControls(false);}} style={{flex:1,background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.18)",color:"#E6B84A",fontSize:11,fontWeight:600,padding:"7px 10px",borderRadius:20,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
+                  {Array.from({length:30},(_,i)=><option key={i+1} value={i+1} style={{background:"#0C1018"}}>Juz {i+1}</option>)}
+                </select>
+                <select onChange={e=>{const pg=Number(e.target.value);if(pg){setMushafPage(pg);setMushafControls(false);}}} value="" style={{flex:1,background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.18)",color:"rgba(243,231,200,0.50)",fontSize:11,padding:"7px 10px",borderRadius:20,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
+                  <option value="" style={{background:"#0C1018"}}>Surah</option>
+                  {Object.entries(SURAH_PAGES).map(([num,pg])=><option key={num} value={pg} style={{background:"#0C1018"}}>{SURAH_EN[Number(num)]}</option>)}
+                </select>
+                <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);setMushafControls(false);}} style={{padding:"7px 10px",background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,fontSize:11,color:"rgba(243,231,200,0.40)",whiteSpace:"nowrap"}}>
+                  🎙️ {QURAN_RECITERS.find(r=>r.id===quranReciter)?.name?.split(" ")[0]||"Reciter"}
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Tafsir toggle */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 14px"}}>
-            <div style={{fontSize:10,color:"rgba(212,175,55,0.35)"}}>{mushafSurahInfo}</div>
-            <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{padding:"3px 10px",borderRadius:10,fontSize:10,fontWeight:600,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.28)",background:tafsirOn?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${tafsirOn?"rgba(230,184,74,0.25)":"rgba(255,255,255,0.05)"}`}}>
-              Tafsir · {tafsirOn?"On":"Off"}
-            </div>
-          </div>
+          )}
 
           {/* Mushaf page */}
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}
