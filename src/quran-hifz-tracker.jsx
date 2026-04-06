@@ -528,6 +528,7 @@ export default function RihlatAlHifz() {
   const mushafScrollRef=useRef(null);
   const mushafLinesRef=useRef(null);
   const [mushafScale,setMushafScale]=useState(1);
+  const [mushafLineHeight,setMushafLineHeight]=useState(1.65);
   const [mushafPage,setMushafPage]=useState(1);
   const [tafsirOn,setTafsirOn]=useState(false);
   const [tafsirAyah,setTafsirAyah]=useState(null);
@@ -615,15 +616,21 @@ export default function RihlatAlHifz() {
     return ()=>{cancelled=true;};
   },[mushafPage,activeTab,mushafLayout]);
 
-  // Set font scale based on container width — no measurement race condition
+  // Set font scale and line height to fill page without clipping
   useEffect(()=>{
     if(!mushafScrollRef.current) return;
     const cw=mushafScrollRef.current.offsetWidth;
-    if(!cw) return;
-    // KFGQPC at 22px renders a standard 15-line Mushaf page at ~420px wide
-    // Scale proportionally to actual container width
+    const ch=mushafScrollRef.current.offsetHeight;
+    if(!cw||!ch) return;
     const scale=(cw-20)/420;
-    setMushafScale(Math.min(scale,1.1)); // cap at 1.1x to avoid too large
+    const clampedScale=Math.min(scale,1.1);
+    setMushafScale(clampedScale);
+    // Calculate line height so 15 lines fill the available height
+    // Available height minus top/bottom padding (40px) divided by 15 lines divided by font size
+    const fontSize=Math.round(18*clampedScale);
+    const availH=ch-40;
+    const lh=availH/(15*fontSize);
+    setMushafLineHeight(Math.max(1.4,Math.min(lh,2.2)));
   },[activeTab,mushafPage]);
 
   async function fetchTafsir(verseKey){
@@ -2691,7 +2698,7 @@ export default function RihlatAlHifz() {
                 return <div key={li} className={mainVk?"sbtn":""}
                   onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
                   onContextMenu={e=>{if(!mainVk)return;e.preventDefault();fetchTafsir(mainVk);setTafsirOn(true);}}
-                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:1.65,color:isP?goldColor:inkColor,background:isP?"rgba(139,105,20,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,...qCSS}}>{lineText}</div>;
+                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:mushafLineHeight,color:isP?goldColor:inkColor,background:isP?"rgba(139,105,20,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,...qCSS}}>{lineText}</div>;
               })}
               </div>
             )}
