@@ -575,7 +575,7 @@ export default function RihlatAlHifz() {
   },[]);
 
   useEffect(()=>{
-    if(activeTab!=="quran") return;
+    if(activeTab!=="quran"||!mushafLayout) return;
     let cancelled=false;
     (async()=>{
       setMushafLoading(true);
@@ -586,14 +586,19 @@ export default function RihlatAlHifz() {
         if(cancelled) return;
         const vs=data.verses||[];
         setMushafVerses(vs);
-        // Build flat word array (sequential index matches layout word IDs)
-        const flatWords=[];
+        // Build word map keyed by global sequential word index
+        const pgLayout=mushafLayout[String(mushafPage)]||[];
+        const firstAyahLine=pgLayout.find(l=>l.type==="ayah"&&l.fw);
+        const startIdx=firstAyahLine?firstAyahLine.fw:1;
+        const wordMap={};
+        let idx=startIdx;
         vs.forEach(v=>{
           (v.words||[]).forEach(w=>{
-            flatWords.push({text:w.text_uthmani||"",type:w.char_type_name||"word",vk:v.verse_key});
+            wordMap[idx]={text:(w.text_uthmani||"").replace(/\u06DF/g,"\u0652"),type:w.char_type_name||"word",vk:v.verse_key};
+            idx++;
           });
         });
-        setMushafWords(flatWords);
+        setMushafWords(wordMap);
         if(vs.length>0){
           const jn=vs[0].juz_number||1;
           setMushafJuzNum(jn);
@@ -605,7 +610,7 @@ export default function RihlatAlHifz() {
       if(!cancelled) setMushafLoading(false);
     })();
     return ()=>{cancelled=true;};
-  },[mushafPage,activeTab]);
+  },[mushafPage,activeTab,mushafLayout]);
 
   async function fetchTafsir(verseKey){
     setTafsirAyah(verseKey);
@@ -2658,9 +2663,10 @@ export default function RihlatAlHifz() {
                 // ayah line — get words from flat array
                 const fw=line.fw;const lw=line.lw;
                 if(!fw||!lw) return <div key={li}/>;
-                const lineWords=mushafWords.slice(fw-1,lw);
+                const lineWords=[];
+                for(let i=fw;i<=lw;i++){if(mushafWords[i])lineWords.push(mushafWords[i]);}
+                if(!lineWords.length) return <div key={li}/>;
                 const lineText=lineWords.map(w=>w.text).join(" ");
-                // Find verse keys in this line for tap interaction
                 const lineVks=[...new Set(lineWords.filter(w=>w.type!=="end").map(w=>w.vk))];
                 const mainVk=lineVks[0];
                 const isP=lineVks.some(vk=>playingKey===vk);
