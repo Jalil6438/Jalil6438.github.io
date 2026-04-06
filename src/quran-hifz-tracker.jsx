@@ -2665,7 +2665,7 @@ export default function RihlatAlHifz() {
                               }}>
                               <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{v.text_uthmani}</span>
                             </span>
-                            <span style={{color:"rgba(212,175,55,0.40)",fontSize:"0.55em",margin:"0 2px"}}>{" \uFD3F"}{vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{"\uFD3E "}</span>
+                            <span style={{color:"rgba(212,175,55,0.40)",fontSize:"0.65em",margin:"0 3px"}}>{" \u06DD"}{vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{" "}</span>
                           </span>;
                         })}
                       </p>
