@@ -2602,9 +2602,9 @@ export default function RihlatAlHifz() {
         const isShort=mushafPage<=2;
 
         // Responsive sizing
-        const fSize=isShort?"clamp(24px,7vw,36px)":density==="dense"?"clamp(21px,6vw,30px)":"clamp(22px,6.5vw,32px)";
+        const fSize=isShort?"clamp(22px,6vw,32px)":density==="dense"?"clamp(19px,5.2vw,27px)":"clamp(20px,5.5vw,28px)";
         const lHeight=isShort?2.2:density==="dense"?1.7:1.85;
-        const sidePad=density==="dense"?"2.5%":"3.5%";
+        const sidePad=isShort?"4%":"1%";
 
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"#0B1220",paddingBottom:52}}>
@@ -2624,7 +2624,14 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ── QURAN TEXT AREA ── */}
-          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:`12px ${sidePad} 40px`,width:"100%",display:"flex",flexDirection:"column",...(isShort?{justifyContent:"center"}:{})}}>
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:`12px ${sidePad} 40px`,width:"100%",display:"flex",flexDirection:"column",...(isShort?{justifyContent:"center"}:{})}}
+            onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
+            onTouchEnd={e=>{
+              const dx=e.changedTouches[0].clientX-quranTouchRef.current;
+              if(Math.abs(dx)<60) return;
+              if(dx<0&&mushafPage<604)setMushafPage(p=>p+1);
+              else if(dx>0&&mushafPage>1)setMushafPage(p=>p-1);
+            }}>
             {mushafLoading?(
               <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
                 <div className="spin" style={{width:20,height:20,border:"2px solid rgba(212,175,55,0.12)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
@@ -2666,7 +2673,7 @@ export default function RihlatAlHifz() {
                         </div>
                       ):(
                         /* All other surahs: inline tappable ayahs in one flowing container */
-                        <div style={{direction:"rtl",textAlign:"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                        <div style={{direction:"rtl",textAlign:"justify",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
                           {sg.vs.map(v=>{
                             const vk=v.verse_key;
                             const vn=vk.split(":")[1];
