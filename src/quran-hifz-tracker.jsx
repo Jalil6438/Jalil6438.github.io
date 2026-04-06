@@ -2602,7 +2602,7 @@ export default function RihlatAlHifz() {
         const isShort=mushafPage<=2;
 
         // Responsive sizing
-        const fSize=isShort?"clamp(22px,6vw,32px)":density==="dense"?"clamp(19px,5.2vw,27px)":"clamp(20px,5.5vw,28px)";
+        const fSize=isShort?"clamp(24px,7vw,36px)":density==="dense"?"clamp(21px,6vw,30px)":"clamp(22px,6.5vw,32px)";
         const lHeight=isShort?2.2:density==="dense"?1.7:1.85;
         const sidePad=density==="dense"?"2.5%":"3.5%";
 
