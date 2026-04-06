@@ -2647,14 +2647,14 @@ export default function RihlatAlHifz() {
                       )}
 
                       {/* ── AYAH FLOW (continuous, inline, KFGQPC glyphs) ── */}
-                      <p style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                      <div style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,whiteSpace:"normal",...qCSS}}>
                         {sg.vs.map(v=>{
                           const vk=v.verse_key;
                           const isP=playingKey===vk;
                           const isHL=tafsirAyah===vk;
                           return (v.words||[]).map((w,wi)=>{
                             const isEnd=w.char_type_name==="end";
-                            return <span key={`${vk}-${wi}`}
+                            return <span key={`${vk}-${wi}`} style={{display:"inline"}}>{wi>0?" ":""}<span
                               className={isEnd?"":"sbtn"}
                               onClick={()=>{if(!isEnd)playAyah(vk,vk);}}
                               onContextMenu={e=>{if(isEnd)return;e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
@@ -2663,10 +2663,10 @@ export default function RihlatAlHifz() {
                                 background:isP&&!isEnd?"rgba(212,175,55,0.08)":isHL&&!isEnd?"rgba(212,175,55,0.04)":"transparent",
                                 borderRadius:isP||isHL?3:0,
                                 transition:"color .15s,background .15s"
-                              }}>{w.code_v2||""}</span>;
+                              }}>{w.code_v2||""}</span></span>;
                           });
                         })}
-                      </p>
+                      </div>
                     </div>
                   );
                 })}
