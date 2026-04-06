@@ -2646,13 +2646,13 @@ export default function RihlatAlHifz() {
                 const isCentered=!!line.center;
                 if(line.type==="surah_name"){
                   const sn=line.sn;
-                  return <div key={li} style={{textAlign:"center",padding:"4px 0",margin:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10,justifyContent:"center"}}>
-                      <div style={{flex:1,maxWidth:80,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.18))"}}/>
-                      <div style={{fontFamily:"'Amiri',serif",fontSize:24,color:"rgba(212,175,55,0.70)",textShadow:"0 0 8px rgba(212,175,55,0.12)"}}>{SURAH_AR[sn]||""}</div>
-                      <div style={{flex:1,maxWidth:80,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.18),transparent)"}}/>
+                  return <div key={li} style={{textAlign:"center",padding:mushafPage<=2?"10px 0 14px":"6px 0 8px",margin:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:12,justifyContent:"center",marginBottom:4}}>
+                      <div style={{flex:1,maxWidth:80,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.20))"}}/>
+                      <div style={{fontFamily:"'Amiri',serif",fontSize:mushafPage<=2?28:22,color:"rgba(212,175,55,0.75)",textShadow:"0 0 10px rgba(212,175,55,0.15)"}}>{SURAH_AR[sn]||""}</div>
+                      <div style={{flex:1,maxWidth:80,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.20),transparent)"}}/>
                     </div>
-                    <div style={{fontSize:10,color:"rgba(243,231,200,0.25)"}}>{SURAH_EN[sn]||""}</div>
+                    <div style={{fontSize:mushafPage<=2?11:9,color:"rgba(243,231,200,0.28)"}}>{SURAH_EN[sn]||""}</div>
                   </div>;
                 }
                 if(line.type==="basmallah"){
