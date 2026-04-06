@@ -2587,11 +2587,9 @@ export default function RihlatAlHifz() {
         // Font: UthmanicHafs with text_uthmani (clean Arabic, no private-use glyphs)
         // Strip unsupported annotation marks that render as white circles
         // Replace U+06DF (large circle) with U+0652 (standard sukun) which KFGQPC renders correctly
-        // Fix Quranic marks that KFGQPC renders as circles:
-        // U+06DF (small high rounded zero) → replace with standard sukun
-        // U+06E2 (small high meem) → remove (ikhfa mark, shows as circle)
-        // U+06ED (small low meem) → remove (shows as circle)
-        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652").replace(/[\u06E2\u06ED]/g,"");
+        // Fix U+06DF (renders as large circle) → standard sukun
+        // Keep U+06E2 and U+06ED (small meems — tajweed marks)
+        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652");
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased"};
 
