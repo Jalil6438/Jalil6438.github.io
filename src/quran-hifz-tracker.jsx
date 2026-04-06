@@ -2673,7 +2673,7 @@ export default function RihlatAlHifz() {
                 return <div key={li} className={mainVk?"sbtn":""}
                   onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
                   onContextMenu={e=>{if(!mainVk)return;e.preventDefault();fetchTafsir(mainVk);setTafsirOn(true);}}
-                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:1.6,color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,whiteSpace:"nowrap",...qCSS}}>{lineText}</div>;
+                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:1.6,color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,...qCSS}}>{lineText}</div>;
               })
             )}
           </div>
