@@ -2598,7 +2598,7 @@ export default function RihlatAlHifz() {
         // Fix U+06DF (renders as large circle) → standard sukun
         // Keep U+06E2 and U+06ED (small meems — tajweed marks)
         const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652");
-        const qFont="'KFGQPC','Amiri Quran',serif";
+        const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased",fontWeight:500};
 
         // Surah grouping
@@ -2702,7 +2702,7 @@ export default function RihlatAlHifz() {
                         {sg.vs.map(v=>{
                           const vk=v.verse_key;
                           const isP=playingKey===vk;
-                          const html=v.tajweed||cleanUthmani(v.text_uthmani);
+                          const html=v.tajweed&&v.tajweed.length>0?v.tajweed:cleanUthmani(v.text_uthmani);
                           return <span key={vk} className="sbtn"
                             onClick={()=>playAyah(vk,vk)}
                             onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
