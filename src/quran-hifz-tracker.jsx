@@ -2629,8 +2629,8 @@ export default function RihlatAlHifz() {
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
               if(Math.abs(dx)<60) return;
-              if(dx<0&&mushafPage<604)setMushafPage(p=>p+1);
-              else if(dx>0&&mushafPage>1)setMushafPage(p=>p-1);
+              if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
+              else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
             }}>
             {mushafLoading?(
               <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
