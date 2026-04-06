@@ -2598,8 +2598,8 @@ export default function RihlatAlHifz() {
         // Fix U+06DF (renders as large circle) → standard sukun
         // Keep U+06E2 and U+06ED (small meems — tajweed marks)
         const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652");
-        const qFont="'KFGQPC',serif";
-        const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased"};
+        const qFont="'KFGQPC','Amiri Quran',serif";
+        const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased",fontWeight:500};
 
         // Surah grouping
         const sGroups=[];let cg=null;
@@ -2612,9 +2612,9 @@ export default function RihlatAlHifz() {
         const isShort=mushafPage<=2;
 
         // Responsive sizing
-        const fSize=isShort?"clamp(23px,6.5vw,35px)":density==="dense"?"clamp(20px,5.5vw,29px)":"clamp(21px,6vw,31px)";
+        const fSize=isShort?"clamp(28px,8vw,36px)":density==="dense"?"clamp(26px,7vw,32px)":"clamp(28px,7.5vw,34px)";
         const lHeight=isShort?2.2:1.8;
-        const sidePad=isShort?"4%":"1%";
+        const sidePad=isShort?"20px":"18px";
 
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"#0B1220",paddingBottom:52}}>
@@ -2638,7 +2638,7 @@ export default function RihlatAlHifz() {
             .idgham_mutajanisayn{color:#9B59B6;}
             .idgham_mutaqaribayn{color:#9B59B6;}
             .lpizkfa{color:#D2B48C;}
-            span.end{color:rgba(212,175,55,0.50);font-size:0.85em;margin:0 2px;}
+            span.end{color:rgba(212,175,55,0.45);font-size:0.75em;margin:0 4px;}
           `}</style>
 
           {/* ── HEADER: Juz + Surah + Reciter + Tafsir ── */}
@@ -2698,16 +2698,15 @@ export default function RihlatAlHifz() {
                       )}
 
                       {/* ── AYAH FLOW — tajweed colored, inline tappable ── */}
-                      <div style={{direction:"rtl",textAlign:sg.s===1||(sg.s===2&&mushafPage===2)?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                      <div style={{direction:"rtl",textAlign:"center",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
                         {sg.vs.map(v=>{
                           const vk=v.verse_key;
                           const isP=playingKey===vk;
-                          // Use tajweed HTML if available, fallback to text_uthmani
                           const html=v.tajweed||cleanUthmani(v.text_uthmani);
                           return <span key={vk} className="sbtn"
                             onClick={()=>playAyah(vk,vk)}
                             onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
-                            style={{background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"background .15s"}}
+                            style={{background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"background .15s",marginBottom:10,display:"inline"}}
                             dangerouslySetInnerHTML={{__html:html+" "}}/>
                         })}
                       </div>
