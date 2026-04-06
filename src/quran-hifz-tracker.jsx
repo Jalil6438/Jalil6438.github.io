@@ -2620,7 +2620,6 @@ export default function RihlatAlHifz() {
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
         const pageLines=mushafLayout?mushafLayout[String(mushafPage)]||[]:[];
-        const isShortPage=pageLines.filter(l=>l.type==="ayah").length<=8;
         const parchment="#F5EFE0";
         const inkColor="#1C1008";
         const goldColor="#8B6914";
@@ -2644,7 +2643,7 @@ export default function RihlatAlHifz() {
 
           {/* Mushaf reading area */}
           <div ref={mushafScrollRef}
-            style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",display:"flex",flexDirection:"column",justifyContent:isShortPage?"center":"flex-start",padding:"0 10px",background:parchment}}
+            style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",display:"flex",flexDirection:"column",justifyContent:"flex-start",padding:"0 10px",background:parchment}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2657,7 +2656,7 @@ export default function RihlatAlHifz() {
                 <div className="spin" style={{width:18,height:18,border:"2px solid rgba(139,105,20,0.15)",borderTopColor:goldColor,borderRadius:"50%"}}/>
               </div>
             ):(
-              <div ref={mushafLinesRef} style={{transformOrigin:"right top",transform:`scaleX(${mushafScale})`,transition:"transform .15s",padding:isShortPage?"20px 0 16px":"16px 0 20px"}}>
+              <div ref={mushafLinesRef} style={{direction:"ltr",transformOrigin:"left top",transform:`scaleX(${mushafScale})`,transition:"transform .15s",padding:"20px 0 24px"}}>
               {pageLines.map((line,li)=>{
                 const isCentered=!!line.center;
                 if(line.type==="surah_name"){
@@ -2665,14 +2664,14 @@ export default function RihlatAlHifz() {
                   return <div key={li} style={{textAlign:"center",padding:"14px 0 8px",margin:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,justifyContent:"center",marginBottom:3}}>
                       <div style={{flex:1,maxWidth:60,height:1,background:`linear-gradient(90deg,transparent,rgba(139,105,20,0.25))`}}/>
-                      <div style={{fontFamily:"'Amiri',serif",fontSize:isShortPage?30:24,color:goldColor,letterSpacing:"0.5px"}}>{SURAH_AR[sn]||""}</div>
+                      <div style={{fontFamily:"'Amiri',serif",fontSize:28,color:goldColor,letterSpacing:"0.5px"}}>{SURAH_AR[sn]||""}</div>
                       <div style={{flex:1,maxWidth:60,height:1,background:`linear-gradient(90deg,rgba(139,105,20,0.25),transparent)`}}/>
                     </div>
                     <div style={{fontSize:10,color:"rgba(28,16,8,0.35)",fontFamily:"'DM Sans',sans-serif",letterSpacing:".06em"}}>{SURAH_EN[sn]||""}</div>
                   </div>;
                 }
                 if(line.type==="basmallah"){
-                  return <div key={li} style={{textAlign:"center",fontFamily:qFont,fontSize:isShortPage?fSize:"clamp(14px,3.8vw,20px)",lineHeight:1.8,color:goldColor,padding:"4px 0 8px",margin:0,...qCSS}}>
+                  return <div key={li} style={{textAlign:"center",fontFamily:qFont,fontSize:fSize,lineHeight:1.8,color:goldColor,padding:"4px 0 8px",margin:0,...qCSS}}>
                     {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
                   </div>;
                 }
@@ -2688,7 +2687,7 @@ export default function RihlatAlHifz() {
                 return <div key={li} className={mainVk?"sbtn":""}
                   onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
                   onContextMenu={e=>{if(!mainVk)return;e.preventDefault();fetchTafsir(mainVk);setTafsirOn(true);}}
-                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:isShortPage?1.85:1.55,color:isP?goldColor:inkColor,background:isP?"rgba(139,105,20,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,whiteSpace:"nowrap",...qCSS}}>{lineText}</div>;
+                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:1.65,color:isP?goldColor:inkColor,background:isP?"rgba(139,105,20,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,whiteSpace:"nowrap",...qCSS}}>{lineText}</div>;
               })}
               </div>
             )}
