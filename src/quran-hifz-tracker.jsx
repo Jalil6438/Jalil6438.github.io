@@ -616,22 +616,25 @@ export default function RihlatAlHifz() {
     return ()=>{cancelled=true;};
   },[mushafPage,activeTab,mushafLayout]);
 
-  // Set font scale and line height to fill page without clipping
+  // ResizeObserver — fires when container has real dimensions on any device
   useEffect(()=>{
     if(!mushafScrollRef.current) return;
-    const cw=mushafScrollRef.current.offsetWidth;
-    const ch=mushafScrollRef.current.offsetHeight;
-    if(!cw||!ch) return;
-    const scale=(cw-20)/420;
-    const clampedScale=Math.min(scale,1.1);
-    setMushafScale(clampedScale);
-    // Calculate line height so 15 lines fill the available height
-    // Available height minus top/bottom padding (40px) divided by 15 lines divided by font size
-    const fontSize=Math.round(18*clampedScale);
-    const availH=ch-40;
-    const lh=availH/(15*fontSize);
-    setMushafLineHeight(Math.max(1.4,Math.min(lh,2.2)));
-  },[activeTab,mushafPage]);
+    const obs=new ResizeObserver(entries=>{
+      for(const entry of entries){
+        const cw=entry.contentRect.width;
+        const ch=entry.contentRect.height;
+        if(!cw||!ch) continue;
+        const scale=Math.min(cw/420,1.1);
+        setMushafScale(scale);
+        const fontSize=Math.round(18*scale);
+        const availH=ch-40;
+        const lh=availH/(15*fontSize);
+        setMushafLineHeight(Math.max(1.4,Math.min(lh,2.4)));
+      }
+    });
+    obs.observe(mushafScrollRef.current);
+    return()=>obs.disconnect();
+  },[activeTab]);
 
   async function fetchTafsir(verseKey){
     setTafsirAyah(verseKey);
@@ -2667,7 +2670,7 @@ export default function RihlatAlHifz() {
                 <div className="spin" style={{width:18,height:18,border:"2px solid rgba(139,105,20,0.15)",borderTopColor:goldColor,borderRadius:"50%"}}/>
               </div>
             ):(
-              <div style={{direction:"ltr",padding:"20px 0 24px"}}>
+              <div style={{direction:"ltr",padding:"20px 0 24px",width:"100%"}}>
               {pageLines.map((line,li)=>{
                 const isCentered=!!line.center;
                 if(line.type==="surah_name"){
