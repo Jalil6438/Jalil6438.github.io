@@ -573,11 +573,19 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,line_number,position&per_page=50`);
+        const [res,tajRes]=await Promise.all([
+          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&fields=text_uthmani,verse_key,juz_number,page_number&per_page=50`),
+          fetch(`https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?page_number=${mushafPage}`)
+        ]);
         if(!res.ok) throw new Error();
         const data=await res.json();
+        const tajData=tajRes.ok?await tajRes.json():{};
         if(cancelled) return;
-        const vs=data.verses||[];
+        // Merge tajweed text into verse data
+        const tajVerses=tajData.verses||[];
+        const tajMap={};
+        tajVerses.forEach(tv=>{tajMap[tv.verse_key]=tv.text_uthmani_tajweed;});
+        const vs=(data.verses||[]).map(v=>({...v,tajweed:tajMap[v.verse_key]||""}));
         setMushafVerses(vs);
         if(vs.length>0){
           const jn=vs[0].juz_number||1;
@@ -2612,7 +2620,26 @@ export default function RihlatAlHifz() {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"#0B1220",paddingBottom:52}}>
           {/* KFGQPC Uthmanic Script HAFS — block display, preloaded */}
           <link rel="preload" href="/fonts/KFGQPC.otf" as="font" type="font/otf" crossOrigin="anonymous"/>
-          <style>{`@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:block;}`}</style>
+          <style>{`@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:block;}
+            tajweed{font-style:normal;}
+            .ham_wasl{color:#AAAAAA;}
+            .madda_normal{color:#FF7F50;}
+            .madda_obligatory{color:#FF4500;}
+            .madda_necessary{color:#FF0000;}
+            .madda_permissible{color:#FF6347;}
+            .qalaqah{color:#5B9BD5;}
+            .ghunnah{color:#2ECC71;}
+            .ikhafa_shafawi{color:#D2B48C;}
+            .ikhafa{color:#D2B48C;}
+            .iqlab{color:#2ECC71;}
+            .idgham_shafawi{color:#2ECC71;}
+            .idgham_ghunnah{color:#2ECC71;}
+            .idgham_no_ghunnah{color:#9B59B6;}
+            .idgham_mutajanisayn{color:#9B59B6;}
+            .idgham_mutaqaribayn{color:#9B59B6;}
+            .lpizkfa{color:#D2B48C;}
+            span.end{color:rgba(212,175,55,0.50);font-size:0.85em;margin:0 2px;}
+          `}</style>
 
           {/* ── HEADER: Juz + Surah + Reciter + Tafsir ── */}
           {(()=>{
@@ -2670,17 +2697,18 @@ export default function RihlatAlHifz() {
                         </div>
                       )}
 
-                      {/* ── AYAH FLOW — inline tappable, natural wrapping ── */}
+                      {/* ── AYAH FLOW — tajweed colored, inline tappable ── */}
                       <div style={{direction:"rtl",textAlign:sg.s===1||(sg.s===2&&mushafPage===2)?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
                         {sg.vs.map(v=>{
                           const vk=v.verse_key;
-                          const vn=vk.split(":")[1];
-                          const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
                           const isP=playingKey===vk;
+                          // Use tajweed HTML if available, fallback to text_uthmani
+                          const html=v.tajweed||cleanUthmani(v.text_uthmani);
                           return <span key={vk} className="sbtn"
                             onClick={()=>playAyah(vk,vk)}
                             onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
-                            style={{color:isP?"#E6B84A":"inherit",background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s"}}>{cleanUthmani(v.text_uthmani)+"\u00A0"+arNum+" "}</span>;
+                            style={{background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"background .15s"}}
+                            dangerouslySetInnerHTML={{__html:html+" "}}/>
                         })}
                       </div>
                     </div>
