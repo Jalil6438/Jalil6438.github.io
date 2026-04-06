@@ -573,19 +573,23 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const [res,tajRes]=await Promise.all([
-          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&fields=text_uthmani,verse_key,juz_number,page_number&per_page=50`),
-          fetch(`https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?page_number=${mushafPage}`)
-        ]);
+        const res=await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?page_number=${mushafPage}`);
         if(!res.ok) throw new Error();
-        const data=await res.json();
-        const tajData=tajRes.ok?await tajRes.json():{};
+        const tajData=await res.json();
         if(cancelled) return;
-        // Merge tajweed text into verse data
+        // Also fetch verse metadata for juz/surah info
+        const metaRes=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?fields=verse_key,juz_number,page_number&per_page=50`);
+        const metaData=metaRes.ok?await metaRes.json():{};
+        const metaVerses=metaData.verses||[];
+        // Build verses with tajweed text (stripped of color tags) + metadata
         const tajVerses=tajData.verses||[];
-        const tajMap={};
-        tajVerses.forEach(tv=>{tajMap[tv.verse_key]=tv.text_uthmani_tajweed;});
-        const vs=(data.verses||[]).map(v=>({...v,tajweed:tajMap[v.verse_key]||""}));
+        const metaMap={};metaVerses.forEach(v=>{metaMap[v.verse_key]=v;});
+        const vs=tajVerses.map(tv=>{
+          // Strip tajweed HTML tags but keep the clean text
+          const cleanText=tv.text_uthmani_tajweed.replace(/<\/?tajweed[^>]*>/g,"");
+          const meta=metaMap[tv.verse_key]||{};
+          return {...meta,verse_key:tv.verse_key,text_uthmani:cleanText};
+        });
         setMushafVerses(vs);
         if(vs.length>0){
           const jn=vs[0].juz_number||1;
@@ -2621,23 +2625,6 @@ export default function RihlatAlHifz() {
           {/* KFGQPC Uthmanic Script HAFS — block display, preloaded */}
           <link rel="preload" href="/fonts/KFGQPC.otf" as="font" type="font/otf" crossOrigin="anonymous"/>
           <style>{`@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:block;}
-            tajweed{font-style:normal;}
-            .ham_wasl{color:#AAAAAA;}
-            .madda_normal{color:#FF7F50;}
-            .madda_obligatory{color:#FF4500;}
-            .madda_necessary{color:#FF0000;}
-            .madda_permissible{color:#FF6347;}
-            .qalaqah{color:#5B9BD5;}
-            .ghunnah{color:#2ECC71;}
-            .ikhafa_shafawi{color:#D2B48C;}
-            .ikhafa{color:#D2B48C;}
-            .iqlab{color:#2ECC71;}
-            .idgham_shafawi{color:#2ECC71;}
-            .idgham_ghunnah{color:#2ECC71;}
-            .idgham_no_ghunnah{color:#9B59B6;}
-            .idgham_mutajanisayn{color:#9B59B6;}
-            .idgham_mutaqaribayn{color:#9B59B6;}
-            .lpizkfa{color:#D2B48C;}
             span.end{color:rgba(212,175,55,0.45);font-size:0.75em;margin:0 4px;}
           `}</style>
 
@@ -2702,12 +2689,11 @@ export default function RihlatAlHifz() {
                         {sg.vs.map(v=>{
                           const vk=v.verse_key;
                           const isP=playingKey===vk;
-                          const html=v.tajweed&&v.tajweed.length>0?v.tajweed:cleanUthmani(v.text_uthmani);
                           return <span key={vk} className="sbtn"
                             onClick={()=>playAyah(vk,vk)}
                             onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
-                            style={{background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"background .15s",marginBottom:10,display:"inline"}}
-                            dangerouslySetInnerHTML={{__html:html+" "}}/>
+                            style={{color:isP?"#E6B84A":"inherit",background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s"}}
+                            dangerouslySetInnerHTML={{__html:v.text_uthmani+" "}}/>
                         })}
                       </div>
                     </div>
