@@ -2620,16 +2620,23 @@ export default function RihlatAlHifz() {
           <link rel="preload" href="/fonts/KFGQPC.otf" as="font" type="font/otf" crossOrigin="anonymous"/>
           <style>{`@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:block;}`}</style>
 
-          {/* ── MINIMAL HEADER ── */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 12px",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
-            <select value={mushafJuzNum} onChange={e=>{const pg=JUZ_PAGES[Number(e.target.value)-1]||1;setMushafPage(pg);}} style={{background:"transparent",border:"none",color:"#E6B84A",fontSize:12,fontWeight:600,outline:"none",fontFamily:"'DM Sans',sans-serif",padding:0}}>
+          {/* ── HEADER: Juz + Surah + Reciter + Tafsir ── */}
+          {(()=>{
+            const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
+            const curSurahPage=SURAH_PAGES[curSurahNum]||1;
+            return (<>
+          <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 10px",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+            <select value={mushafJuzNum} onChange={e=>{const pg=JUZ_PAGES[Number(e.target.value)-1]||1;setMushafPage(pg);}} style={{background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.12)",color:"#E6B84A",fontSize:11,fontWeight:600,padding:"5px 8px",borderRadius:16,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
               {Array.from({length:30},(_,i)=><option key={i+1} value={i+1} style={{background:"#0B1220"}}>Juz {i+1}</option>)}
             </select>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{fontSize:13,color:"rgba(243,231,200,0.22)",transition:"opacity .2s"}}>🎙️</div>
-              <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{fontSize:9,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.18)",fontWeight:600,padding:"2px 6px",borderRadius:6,background:tafsirOn?"rgba(230,184,74,0.08)":"transparent",transition:"all .15s"}}>Tafsir</div>
-            </div>
+            <select value={curSurahPage} onChange={e=>{const pg=Number(e.target.value);if(pg)setMushafPage(pg);}} style={{flex:1,background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.12)",color:"rgba(243,231,200,0.45)",fontSize:11,padding:"5px 8px",borderRadius:16,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
+              {Object.entries(SURAH_PAGES).map(([num,pg])=><option key={num} value={pg} style={{background:"#0B1220"}}>{SURAH_EN[Number(num)]}</option>)}
+            </select>
+            <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"5px 8px",background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.12)",borderRadius:16,fontSize:11,color:"rgba(243,231,200,0.30)",whiteSpace:"nowrap"}}>🎙️</div>
+            <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{padding:"5px 8px",borderRadius:16,fontSize:10,fontWeight:600,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.25)",background:tafsirOn?"rgba(230,184,74,0.10)":"rgba(212,175,55,0.05)",border:`1px solid ${tafsirOn?"rgba(230,184,74,0.25)":"rgba(212,175,55,0.12)"}`,whiteSpace:"nowrap"}}>Tafsir</div>
           </div>
+            </>);
+          })()}
 
           {/* ── QURAN TEXT AREA ── */}
           <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:`12px ${sidePad} 40px`,width:"100%",display:"flex",flexDirection:"column",...(isShort?{justifyContent:"center"}:{})}}
