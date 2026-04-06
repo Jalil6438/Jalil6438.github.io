@@ -533,6 +533,8 @@ export default function RihlatAlHifz() {
   const [mushafVerses,setMushafVerses]=useState([]);
   const [mushafLoading,setMushafLoading]=useState(false);
   const [mushafSurahInfo,setMushafSurahInfo]=useState("");
+  const [mushafLayout,setMushafLayout]=useState(null);
+  const [mushafWords,setMushafWords]=useState([]);
   const [mushafJuzNum,setMushafJuzNum]=useState(1);
   const [quranPageBreaks,setQuranPageBreaks]=useState([0]);
   const [openSurah,setOpenSurah]=useState(null);
@@ -567,30 +569,31 @@ export default function RihlatAlHifz() {
   const SURAH_PAGES={1:1,2:2,3:50,4:77,5:106,6:128,7:151,8:177,9:187,10:208,11:221,12:235,13:249,14:255,15:262,16:267,17:282,18:293,19:305,20:312,21:322,22:332,23:342,24:350,25:359,26:367,27:377,28:385,29:396,30:404,31:411,32:415,33:418,34:428,35:434,36:440,37:446,38:453,39:458,40:467,41:477,42:483,43:489,44:496,45:499,46:502,47:507,48:511,49:515,50:518,51:520,52:523,53:526,54:528,55:531,56:534,57:537,58:542,59:545,60:549,61:551,62:553,63:554,64:556,65:558,66:560,67:562,68:564,69:566,70:568,71:570,72:572,73:574,74:575,75:577,76:578,77:580,78:582,79:583,80:585,81:586,82:587,83:587,84:589,85:590,86:591,87:591,88:592,89:593,90:594,91:595,92:595,93:596,94:596,95:597,96:597,97:598,98:598,99:599,100:599,101:600,102:600,103:601,104:601,105:601,106:602,107:602,108:602,109:603,110:603,111:603,112:604,113:604,114:604};
   const TAFSIR_SOURCES=[{id:"sadi",apiId:91,name:"As-Sa'di",lang:"ar"},{id:"muyassar",apiId:16,name:"Al-Muyassar",lang:"ar"},{id:"kathir",apiId:169,name:"Ibn Kathir",lang:"en"}];
 
+  // Load mushaf layout once
+  useEffect(()=>{
+    fetch("/mushaf-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
+  },[]);
+
   useEffect(()=>{
     if(activeTab!=="quran") return;
     let cancelled=false;
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?page_number=${mushafPage}`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,position&per_page=50`);
         if(!res.ok) throw new Error();
-        const tajData=await res.json();
+        const data=await res.json();
         if(cancelled) return;
-        // Also fetch verse metadata for juz/surah info
-        const metaRes=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?fields=verse_key,juz_number,page_number&per_page=50`);
-        const metaData=metaRes.ok?await metaRes.json():{};
-        const metaVerses=metaData.verses||[];
-        // Build verses with tajweed text (stripped of color tags) + metadata
-        const tajVerses=tajData.verses||[];
-        const metaMap={};metaVerses.forEach(v=>{metaMap[v.verse_key]=v;});
-        const vs=tajVerses.map(tv=>{
-          // Strip tajweed HTML tags but keep the clean text
-          const cleanText=tv.text_uthmani_tajweed.replace(/<\/?tajweed[^>]*>/g,"");
-          const meta=metaMap[tv.verse_key]||{};
-          return {...meta,verse_key:tv.verse_key,text_uthmani:cleanText};
-        });
+        const vs=data.verses||[];
         setMushafVerses(vs);
+        // Build flat word array (sequential index matches layout word IDs)
+        const flatWords=[];
+        vs.forEach(v=>{
+          (v.words||[]).forEach(w=>{
+            flatWords.push({text:w.text_uthmani||"",type:w.char_type_name||"word",vk:v.verse_key});
+          });
+        });
+        setMushafWords(flatWords);
         if(vs.length>0){
           const jn=vs[0].juz_number||1;
           setMushafJuzNum(jn);
@@ -2595,44 +2598,20 @@ export default function RihlatAlHifz() {
 
       {/* ═══ QURAN TEXT ═══ */}
       {activeTab==="quran"&&(()=>{
-        // ── QURAN RENDERING SYSTEM ──
-        // Font: UthmanicHafs with text_uthmani (clean Arabic, no private-use glyphs)
-        // Strip unsupported annotation marks that render as white circles
-        // Replace U+06DF (large circle) with U+0652 (standard sukun) which KFGQPC renders correctly
-        // Fix U+06DF (renders as large circle) → standard sukun
-        // Keep U+06E2 and U+06ED (small meems — tajweed marks)
-        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652");
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased",fontWeight:500};
-
-        // Surah grouping
-        const sGroups=[];let cg=null;
-        mushafVerses.forEach(v=>{const sn=parseInt(v.verse_key.split(":")[0]);if(!cg||cg.s!==sn){cg={s:sn,vs:[]};sGroups.push(cg);}cg.vs.push(v);});
-
-        // Adaptive layout detection
-        const totalWords=mushafVerses.reduce((n,v)=>(v.words||[]).length+n,0);
-        const density=totalWords>80?"dense":totalWords<30?"sparse":"normal";
-        // Short surahs in Juz Amma or Fatihah-style pages
-        const isShort=mushafPage<=2;
-
-        // Responsive sizing
-        const fSize=isShort?"clamp(28px,8vw,36px)":density==="dense"?"clamp(26px,7vw,32px)":"clamp(28px,7.5vw,34px)";
-        const lHeight=isShort?2.2:1.8;
-        const sidePad=isShort?"20px":"18px";
+        const fSize="clamp(22px,6vw,30px)";
+        const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
+        const curSurahPage=SURAH_PAGES[curSurahNum]||1;
+        // Get layout lines for current page
+        const pageLines=mushafLayout?mushafLayout[String(mushafPage)]||[]:[];
 
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"#0B1220",paddingBottom:52}}>
-          {/* KFGQPC Uthmanic Script HAFS — block display, preloaded */}
           <link rel="preload" href="/fonts/KFGQPC.otf" as="font" type="font/otf" crossOrigin="anonymous"/>
-          <style>{`@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:block;}
-            span.end{color:rgba(212,175,55,0.45);font-size:0.75em;margin:0 4px;}
-          `}</style>
+          <style>{`@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:block;}`}</style>
 
-          {/* ── HEADER: Juz + Surah + Reciter + Tafsir ── */}
-          {(()=>{
-            const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
-            const curSurahPage=SURAH_PAGES[curSurahNum]||1;
-            return (<>
+          {/* Header */}
           <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 10px",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
             <select value={mushafJuzNum} onChange={e=>{const pg=JUZ_PAGES[Number(e.target.value)-1]||1;setMushafPage(pg);}} style={{background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.12)",color:"#E6B84A",fontSize:11,fontWeight:600,padding:"5px 8px",borderRadius:16,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
               {Array.from({length:30},(_,i)=><option key={i+1} value={i+1} style={{background:"#0B1220"}}>Juz {i+1}</option>)}
@@ -2640,14 +2619,12 @@ export default function RihlatAlHifz() {
             <select value={curSurahPage} onChange={e=>{const pg=Number(e.target.value);if(pg)setMushafPage(pg);}} style={{flex:1,background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.12)",color:"rgba(243,231,200,0.45)",fontSize:11,padding:"5px 8px",borderRadius:16,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
               {Object.entries(SURAH_PAGES).map(([num,pg])=><option key={num} value={pg} style={{background:"#0B1220"}}>{SURAH_EN[Number(num)]}</option>)}
             </select>
-            <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"5px 8px",background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.12)",borderRadius:16,fontSize:11,color:"rgba(243,231,200,0.30)",whiteSpace:"nowrap"}}>🎙️</div>
-            <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{padding:"5px 8px",borderRadius:16,fontSize:10,fontWeight:600,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.25)",background:tafsirOn?"rgba(230,184,74,0.10)":"rgba(212,175,55,0.05)",border:`1px solid ${tafsirOn?"rgba(230,184,74,0.25)":"rgba(212,175,55,0.12)"}`,whiteSpace:"nowrap"}}>Tafsir</div>
+            <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"5px 8px",background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.12)",borderRadius:16,fontSize:11,color:"rgba(243,231,200,0.30)"}}>🎙️</div>
+            <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{padding:"5px 8px",borderRadius:16,fontSize:10,fontWeight:600,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.25)",background:tafsirOn?"rgba(230,184,74,0.10)":"rgba(212,175,55,0.05)",border:`1px solid ${tafsirOn?"rgba(230,184,74,0.25)":"rgba(212,175,55,0.12)"}`}}>Tafsir</div>
           </div>
-            </>);
-          })()}
 
-          {/* ── QURAN TEXT AREA ── */}
-          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:`12px ${sidePad} 40px`,width:"100%",display:"flex",flexDirection:"column",...(isShort?{justifyContent:"center"}:{})}}
+          {/* Mushaf page — line by line from layout */}
+          <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"10px 8px 6px",overflow:"hidden"}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2655,51 +2632,43 @@ export default function RihlatAlHifz() {
               if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
               else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
             }}>
-            {mushafLoading?(
+            {mushafLoading||!mushafLayout?(
               <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
                 <div className="spin" style={{width:20,height:20,border:"2px solid rgba(212,175,55,0.12)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
               </div>
             ):(
-              <div>
-                {sGroups.map((sg,gi)=>{
-                  const a1=sg.vs[0]?.verse_key?.split(":")?.[1];
-                  const isSurahStart=a1==="1";
-
-                  return (
-                    <div key={sg.s+"-"+gi}>
-                      {/* ── SURAH HEADER ── */}
-                      {isSurahStart&&(
-                        <div style={{textAlign:"center",margin:gi>0?"32px 0 18px":"0 0 18px"}}>
-                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}>
-                            <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.15))"}}/>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:26,color:"rgba(212,175,55,0.70)",textShadow:"0 0 10px rgba(212,175,55,0.15)"}}>{SURAH_AR[sg.s]}</div>
-                            <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.15),transparent)"}}/>
-                          </div>
-                          <div style={{fontSize:10,color:"rgba(243,231,200,0.25)",marginBottom:sg.s!==1&&sg.s!==9?10:0}}>{SURAH_EN[sg.s]}</div>
-                          {sg.s!==1&&sg.s!==9&&(
-                            <div style={{fontFamily:qFont,fontSize:fSize,color:"rgba(212,175,55,0.50)",marginTop:8,...qCSS}}>
-                              {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* ── AYAH FLOW — tajweed colored, inline tappable ── */}
-                      <div style={{direction:"rtl",textAlign:"center",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
-                        {sg.vs.map(v=>{
-                          const vk=v.verse_key;
-                          const isP=playingKey===vk;
-                          return <span key={vk} className="sbtn"
-                            onClick={()=>playAyah(vk,vk)}
-                            onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
-                            style={{color:isP?"#E6B84A":"inherit",background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s"}}
-                            dangerouslySetInnerHTML={{__html:v.text_uthmani+" "}}/>
-                        })}
-                      </div>
+              pageLines.map((line,li)=>{
+                const isCentered=!!line.center;
+                if(line.type==="surah_name"){
+                  const sn=line.sn;
+                  return <div key={li} style={{textAlign:"center",padding:"2px 0"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}>
+                      <div style={{flex:1,maxWidth:60,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.15))"}}/>
+                      <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"rgba(212,175,55,0.65)"}}>{SURAH_AR[sn]||""}</div>
+                      <div style={{flex:1,maxWidth:60,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.15),transparent)"}}/>
                     </div>
-                  );
-                })}
-              </div>
+                    <div style={{fontSize:8,color:"rgba(243,231,200,0.20)"}}>{SURAH_EN[sn]||""}</div>
+                  </div>;
+                }
+                if(line.type==="basmallah"){
+                  return <div key={li} style={{textAlign:"center",fontFamily:qFont,fontSize:fSize,color:"rgba(212,175,55,0.50)",padding:"2px 0",...qCSS}}>
+                    {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
+                  </div>;
+                }
+                // ayah line — get words from flat array
+                const fw=line.fw;const lw=line.lw;
+                if(!fw||!lw) return <div key={li}/>;
+                const lineWords=mushafWords.slice(fw-1,lw);
+                const lineText=lineWords.map(w=>w.text).join(" ");
+                // Find verse keys in this line for tap interaction
+                const lineVks=[...new Set(lineWords.filter(w=>w.type!=="end").map(w=>w.vk))];
+                const mainVk=lineVks[0];
+                const isP=lineVks.some(vk=>playingKey===vk);
+                return <div key={li} className={mainVk?"sbtn":""}
+                  onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
+                  onContextMenu={e=>{if(!mainVk)return;e.preventDefault();fetchTafsir(mainVk);setTafsirOn(true);}}
+                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:"0 2px",...qCSS}}>{lineText}</div>;
+              })
             )}
           </div>
 
