@@ -573,7 +573,7 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&fields=text_uthmani,verse_key,juz_number,page_number&per_page=50`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,line_number,position&per_page=50`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         if(cancelled) return;
@@ -2587,7 +2587,11 @@ export default function RihlatAlHifz() {
         // Font: UthmanicHafs with text_uthmani (clean Arabic, no private-use glyphs)
         // Strip unsupported annotation marks that render as white circles
         // Replace U+06DF (large circle) with U+0652 (standard sukun) which KFGQPC renders correctly
-        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652");
+        // Fix Quranic marks that KFGQPC renders as circles:
+        // U+06DF (small high rounded zero) → replace with standard sukun
+        // U+06E2 (small high meem) → remove (ikhfa mark, shows as circle)
+        // U+06ED (small low meem) → remove (shows as circle)
+        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652").replace(/[\u06E2\u06ED]/g,"");
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased"};
 
@@ -2644,48 +2648,57 @@ export default function RihlatAlHifz() {
 
                   return (
                     <div key={sg.s+"-"+gi}>
-                      {/* ── SURAH HEADER (reusable) ── */}
+                      {/* ── SURAH HEADER ── */}
                       {isSurahStart&&(
-                        <div style={{textAlign:"center",margin:gi>0?"24px 0 12px":"0 0 12px"}}>
-                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:3}}>
+                        <div style={{textAlign:"center",margin:gi>0?"32px 0 18px":"0 0 18px"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}>
                             <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.15))"}}/>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(212,175,55,0.65)",textShadow:"0 0 8px rgba(212,175,55,0.12)"}}>{SURAH_AR[sg.s]}</div>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:26,color:"rgba(212,175,55,0.70)",textShadow:"0 0 10px rgba(212,175,55,0.15)"}}>{SURAH_AR[sg.s]}</div>
                             <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.15),transparent)"}}/>
                           </div>
-                          <div style={{fontSize:9,color:"rgba(243,231,200,0.22)",marginBottom:sg.s!==1&&sg.s!==9?8:0}}>{SURAH_EN[sg.s]}</div>
+                          <div style={{fontSize:10,color:"rgba(243,231,200,0.25)",marginBottom:sg.s!==1&&sg.s!==9?10:0}}>{SURAH_EN[sg.s]}</div>
                           {sg.s!==1&&sg.s!==9&&(
-                            <div style={{fontFamily:qFont,fontSize:fSize,color:"rgba(212,175,55,0.50)",marginTop:6,...qCSS}}>
+                            <div style={{fontFamily:qFont,fontSize:fSize,color:"rgba(212,175,55,0.50)",marginTop:8,...qCSS}}>
                               {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
                             </div>
                           )}
                         </div>
                       )}
 
-                      {/* ── AYAH FLOW ── */}
-                      {(sg.s===1||(sg.s===2&&mushafPage===2))?(
-                        /* Al-Fatiha + first page of Baqarah: centered, natural line flow */
-                        <div style={{direction:"rtl",textAlign:"center",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
-                          {sg.vs.map(v=>{
-                            const vn=v.verse_key.split(":")[1];
-                            const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
-                            return cleanUthmani(v.text_uthmani)+"\u00A0"+arNum+" ";
-                          }).join("")}
-                        </div>
-                      ):(
-                        /* All other surahs: inline tappable ayahs in one flowing container */
-                        <div style={{direction:"rtl",textAlign:"justify",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
-                          {sg.vs.map(v=>{
-                            const vk=v.verse_key;
-                            const vn=vk.split(":")[1];
-                            const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
-                            const isP=playingKey===vk;
-                            return <span key={vk} className="sbtn"
-                              onClick={()=>playAyah(vk,vk)}
-                              onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
-                              style={{color:isP?"#E6B84A":"inherit",background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s"}}>{cleanUthmani(v.text_uthmani)+"\u00A0"+arNum+" "}</span>;
+                      {/* ── AYAH FLOW — grouped by mushaf line_number ── */}
+                      {(()=>{
+                        // Build lines from word-level data
+                        const lineMap={};
+                        const wordToVerse={};
+                        sg.vs.forEach(v=>{
+                          const vk=v.verse_key;
+                          const vn=vk.split(":")[1];
+                          const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
+                          (v.words||[]).forEach(w=>{
+                            const ln=w.line_number||0;
+                            if(!lineMap[ln]) lineMap[ln]=[];
+                            const wText=w.char_type_name==="end"?arNum:cleanUthmani(w.text_uthmani||"");
+                            lineMap[ln].push({text:wText,vk,isEnd:w.char_type_name==="end"});
+                          });
+                        });
+                        const lineNums=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
+                        const isCentered=sg.s===1||(sg.s===2&&mushafPage===2);
+
+                        return <div style={{direction:"rtl",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",...qCSS}}>
+                          {lineNums.map(ln=>{
+                            // Join all words in this line as one string for proper shaping
+                            const lineText=lineMap[ln].map(w=>w.text).join(" ");
+                            // Find unique verse keys in this line for tap interaction
+                            const lineVerses=[...new Set(lineMap[ln].filter(w=>!w.isEnd).map(w=>w.vk))];
+                            const mainVk=lineVerses[0];
+                            const isP=lineVerses.some(vk=>playingKey===vk);
+                            return <div key={ln} className="sbtn"
+                              onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
+                              onContextMenu={e=>{e.preventDefault();if(mainVk){fetchTafsir(mainVk);setTafsirOn(true);}}}
+                              style={{textAlign:isCentered?"center":"justify",color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s",padding:"0 1px"}}>{lineText}</div>;
                           })}
-                        </div>
-                      )}
+                        </div>;
+                      })()}
                     </div>
                   );
                 })}
