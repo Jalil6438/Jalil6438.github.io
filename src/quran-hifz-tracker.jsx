@@ -2665,13 +2665,18 @@ export default function RihlatAlHifz() {
                           }).join("")}
                         </div>
                       ):(
-                        /* All other surahs: continuous flowing string */
-                        <div style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                        /* All other surahs: inline tappable ayahs in one flowing container */
+                        <div style={{direction:"rtl",textAlign:"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
                           {sg.vs.map(v=>{
-                            const vn=v.verse_key.split(":")[1];
+                            const vk=v.verse_key;
+                            const vn=vk.split(":")[1];
                             const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
-                            return cleanUthmani(v.text_uthmani)+" "+arNum+" ";
-                          }).join("")}
+                            const isP=playingKey===vk;
+                            return <span key={vk} className="sbtn"
+                              onClick={()=>playAyah(vk,vk)}
+                              onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
+                              style={{color:isP?"#E6B84A":"inherit",background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s"}}>{cleanUthmani(v.text_uthmani)+"\u00A0"+arNum+" "}</span>;
+                          })}
                         </div>
                       )}
                     </div>
