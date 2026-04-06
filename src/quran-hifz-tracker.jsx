@@ -615,19 +615,16 @@ export default function RihlatAlHifz() {
     return ()=>{cancelled=true;};
   },[mushafPage,activeTab,mushafLayout]);
 
-  // Adjust font size so widest line fits container — no distortion, no clipping
+  // Set font scale based on container width — no measurement race condition
   useEffect(()=>{
-    if(!mushafScrollRef.current||!mushafLinesRef.current) return;
-    // Reset scale to 1 first so we measure natural width
-    setMushafScale(1);
-    requestAnimationFrame(()=>{
-      if(!mushafScrollRef.current||!mushafLinesRef.current) return;
-      const cw=mushafScrollRef.current.offsetWidth - 20; // 20px for padding
-      const pw=mushafLinesRef.current.scrollWidth;
-      if(pw>cw) setMushafScale(cw/pw);
-      else setMushafScale(1);
-    });
-  },[mushafWords,mushafPage]);
+    if(!mushafScrollRef.current) return;
+    const cw=mushafScrollRef.current.offsetWidth;
+    if(!cw) return;
+    // KFGQPC at 22px renders a standard 15-line Mushaf page at ~420px wide
+    // Scale proportionally to actual container width
+    const scale=(cw-20)/420;
+    setMushafScale(Math.min(scale,1.1)); // cap at 1.1x to avoid too large
+  },[activeTab,mushafPage]);
 
   async function fetchTafsir(verseKey){
     setTafsirAyah(verseKey);
@@ -2622,7 +2619,7 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased",fontWeight:500};
-        const baseFontPx=22;
+        const baseFontPx=28;
         const fSize=`${Math.round(baseFontPx*mushafScale)}px`;
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
@@ -2663,7 +2660,7 @@ export default function RihlatAlHifz() {
                 <div className="spin" style={{width:18,height:18,border:"2px solid rgba(139,105,20,0.15)",borderTopColor:goldColor,borderRadius:"50%"}}/>
               </div>
             ):(
-              <div ref={mushafLinesRef} style={{direction:"ltr",padding:"20px 0 24px"}}>
+              <div style={{direction:"ltr",padding:"20px 0 24px"}}>
               {pageLines.map((line,li)=>{
                 const isCentered=!!line.center;
                 if(line.type==="surah_name"){
