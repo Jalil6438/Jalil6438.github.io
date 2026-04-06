@@ -580,7 +580,7 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_imlaei,verse_key,juz_number,page_number&word_fields=text,position&per_page=50`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,position&per_page=50`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         if(cancelled) return;
@@ -594,7 +594,7 @@ export default function RihlatAlHifz() {
         let idx=startIdx;
         vs.forEach(v=>{
           (v.words||[]).forEach(w=>{
-            wordMap[idx]={text:w.text||"",type:w.char_type_name||"word",vk:v.verse_key};
+            wordMap[idx]={text:(w.text_uthmani||"").replace(/[\u06DF\u06E2\u06ED]/g,""),type:w.char_type_name||"word",vk:v.verse_key};
             idx++;
           });
         });
