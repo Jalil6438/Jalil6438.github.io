@@ -2586,8 +2586,7 @@ export default function RihlatAlHifz() {
         // ── QURAN RENDERING SYSTEM ──
         // Font: UthmanicHafs with text_uthmani (clean Arabic, no private-use glyphs)
         // Strip unsupported annotation marks that render as white circles
-        // Strip U+06DF (small high rounded zero) which renders as white circle in KFGQPC
-        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"");
+        const cleanUthmani=(t)=>t;
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased"};
 
@@ -2602,7 +2601,7 @@ export default function RihlatAlHifz() {
         const isShort=density==="sparse"||mushafPage<=2;
 
         // Responsive sizing
-        const fSize=isShort?"clamp(18px,5vw,28px)":density==="dense"?"clamp(15px,4.2vw,22px)":"clamp(16px,4.5vw,24px)";
+        const fSize=isShort?"clamp(20px,5.5vw,30px)":density==="dense"?"clamp(17px,4.8vw,25px)":"clamp(18px,5vw,26px)";
         const lHeight=isShort?2.2:density==="dense"?1.7:1.85;
         const sidePad=density==="dense"?"2.5%":"3.5%";
 
@@ -2666,7 +2665,7 @@ export default function RihlatAlHifz() {
                                 padding:isP||isHL?"1px 2px":0,
                                 transition:"background .15s"
                               }}>
-                              <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{cleanUthmani(v.text_uthmani)}</span>
+                              <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{v.text_uthmani.split(/(\u06DF)/).map((part,pi)=>part==="\u06DF"?<span key={pi} style={{fontSize:"0.5em",opacity:0.6}}>{part}</span>:<span key={pi}>{part}</span>)}</span>
                             </span>
                             <span style={{color:"rgba(212,175,55,0.40)",fontSize:"0.50em",fontFamily:"'DM Sans',sans-serif",margin:"0 3px"}}>{" ("}{vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{") "}</span>
                           </span>;
