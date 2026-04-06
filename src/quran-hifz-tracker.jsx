@@ -2657,7 +2657,7 @@ export default function RihlatAlHifz() {
 
           {/* Mushaf reading area */}
           <div ref={mushafScrollRef}
-            style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",display:"flex",flexDirection:"column",justifyContent:"flex-start",padding:"0 10px",background:parchment}}
+            style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",display:"flex",flexDirection:"column",justifyContent:"flex-start",padding:"0 4px",background:parchment}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
