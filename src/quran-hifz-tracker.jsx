@@ -2597,7 +2597,7 @@ export default function RihlatAlHifz() {
         const totalWords=mushafVerses.reduce((n,v)=>(v.words||[]).length+n,0);
         const density=totalWords>80?"dense":totalWords<30?"sparse":"normal";
         // Short surahs in Juz Amma or Fatihah-style pages
-        const isShort=density==="sparse";
+        const isShort=density==="sparse"||mushafPage<=2;
 
         // Responsive sizing
         const fSize=isShort?"clamp(22px,6.2vw,34px)":density==="dense"?"clamp(18px,5vw,28px)":"clamp(20px,5.5vw,30px)";
