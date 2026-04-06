@@ -580,7 +580,7 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,position&per_page=50`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_imlaei,verse_key,juz_number,page_number&word_fields=text,position&per_page=50`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         if(cancelled) return;
@@ -594,7 +594,7 @@ export default function RihlatAlHifz() {
         let idx=startIdx;
         vs.forEach(v=>{
           (v.words||[]).forEach(w=>{
-            wordMap[idx]={text:(w.text_uthmani||"").replace(/\u06DF/g,"\u0652").replace(/[\u06E2\u06ED]/g,""),type:w.char_type_name||"word",vk:v.verse_key};
+            wordMap[idx]={text:w.text||"",type:w.char_type_name||"word",vk:v.verse_key};
             idx++;
           });
         });
@@ -2629,7 +2629,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Mushaf page — line by line from layout */}
-          <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"10px 8px 6px",overflow:"hidden"}}
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"10px 8px 40px"}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2646,7 +2646,7 @@ export default function RihlatAlHifz() {
                 const isCentered=!!line.center;
                 if(line.type==="surah_name"){
                   const sn=line.sn;
-                  return <div key={li} style={{textAlign:"center",padding:"2px 0"}}>
+                  return <div key={li} style={{textAlign:"center",padding:0,margin:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}>
                       <div style={{flex:1,maxWidth:60,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.15))"}}/>
                       <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"rgba(212,175,55,0.65)"}}>{SURAH_AR[sn]||""}</div>
@@ -2656,7 +2656,7 @@ export default function RihlatAlHifz() {
                   </div>;
                 }
                 if(line.type==="basmallah"){
-                  return <div key={li} style={{textAlign:"center",fontFamily:qFont,fontSize:fSize,color:"rgba(212,175,55,0.50)",padding:"2px 0",...qCSS}}>
+                  return <div key={li} style={{textAlign:"center",fontFamily:qFont,fontSize:fSize,lineHeight:1.6,color:"rgba(212,175,55,0.50)",padding:0,margin:0,...qCSS}}>
                     {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
                   </div>;
                 }
@@ -2673,7 +2673,7 @@ export default function RihlatAlHifz() {
                 return <div key={li} className={mainVk?"sbtn":""}
                   onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
                   onContextMenu={e=>{if(!mainVk)return;e.preventDefault();fetchTafsir(mainVk);setTafsirOn(true);}}
-                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:"0 2px",whiteSpace:"nowrap",overflow:"hidden",...qCSS}}>{lineText}</div>;
+                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:1.6,color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,whiteSpace:"nowrap",overflow:"hidden",...qCSS}}>{lineText}</div>;
               })
             )}
           </div>
