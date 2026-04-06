@@ -2586,7 +2586,8 @@ export default function RihlatAlHifz() {
         // ── QURAN RENDERING SYSTEM ──
         // Font: UthmanicHafs with text_uthmani (clean Arabic, no private-use glyphs)
         // Strip unsupported annotation marks that render as white circles
-        const cleanUthmani=(t)=>t;
+        // Strip U+06DF (small high rounded zero) which renders as white circle in KFGQPC
+        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"");
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased"};
 
@@ -2667,7 +2668,7 @@ export default function RihlatAlHifz() {
                               }}>
                               <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{cleanUthmani(v.text_uthmani)}</span>
                             </span>
-                            <span style={{color:"rgba(212,175,55,0.40)",fontSize:"0.65em",margin:"0 3px"}}>{" \u06DD"}{vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{" "}</span>
+                            <span style={{color:"rgba(212,175,55,0.40)",fontSize:"0.50em",fontFamily:"'DM Sans',sans-serif",margin:"0 3px"}}>{" ("}{vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{") "}</span>
                           </span>;
                         })}
                       </p>
