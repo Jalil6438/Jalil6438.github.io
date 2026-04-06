@@ -2665,40 +2665,19 @@ export default function RihlatAlHifz() {
                         </div>
                       )}
 
-                      {/* ── AYAH FLOW — grouped by mushaf line_number ── */}
-                      {(()=>{
-                        // Build lines from word-level data
-                        const lineMap={};
-                        const wordToVerse={};
-                        sg.vs.forEach(v=>{
+                      {/* ── AYAH FLOW — inline tappable, natural wrapping ── */}
+                      <div style={{direction:"rtl",textAlign:sg.s===1||(sg.s===2&&mushafPage===2)?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                        {sg.vs.map(v=>{
                           const vk=v.verse_key;
                           const vn=vk.split(":")[1];
                           const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
-                          (v.words||[]).forEach(w=>{
-                            const ln=w.line_number||0;
-                            if(!lineMap[ln]) lineMap[ln]=[];
-                            const wText=w.char_type_name==="end"?arNum:cleanUthmani(w.text_uthmani||"");
-                            lineMap[ln].push({text:wText,vk,isEnd:w.char_type_name==="end"});
-                          });
-                        });
-                        const lineNums=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
-                        const isCentered=sg.s===1||(sg.s===2&&mushafPage===2);
-
-                        return <div style={{direction:"rtl",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",...qCSS}}>
-                          {lineNums.map(ln=>{
-                            // Join all words in this line as one string for proper shaping
-                            const lineText=lineMap[ln].map(w=>w.text).join(" ");
-                            // Find unique verse keys in this line for tap interaction
-                            const lineVerses=[...new Set(lineMap[ln].filter(w=>!w.isEnd).map(w=>w.vk))];
-                            const mainVk=lineVerses[0];
-                            const isP=lineVerses.some(vk=>playingKey===vk);
-                            return <div key={ln} className="sbtn"
-                              onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
-                              onContextMenu={e=>{e.preventDefault();if(mainVk){fetchTafsir(mainVk);setTafsirOn(true);}}}
-                              style={{textAlign:isCentered?"center":"justify",color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s",padding:"0 1px"}}>{lineText}</div>;
-                          })}
-                        </div>;
-                      })()}
+                          const isP=playingKey===vk;
+                          return <span key={vk} className="sbtn"
+                            onClick={()=>playAyah(vk,vk)}
+                            onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
+                            style={{color:isP?"#E6B84A":"inherit",background:isP?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s,background .15s"}}>{cleanUthmani(v.text_uthmani)+"\u00A0"+arNum+" "}</span>;
+                        })}
+                      </div>
                     </div>
                   );
                 })}
