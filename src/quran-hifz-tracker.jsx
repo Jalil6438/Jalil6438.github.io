@@ -2629,7 +2629,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* Mushaf page — line by line from layout */}
-          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:mushafPage<=2?"10px 14px 40px":"20px 14px 40px",...(mushafPage<=2?{display:"flex",flexDirection:"column",justifyContent:"center"}:{})}}
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:mushafPage<=2?"10px 12px 40px":"30px 16px 40px",...(mushafPage<=2?{display:"flex",flexDirection:"column",justifyContent:"center"}:{})}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
