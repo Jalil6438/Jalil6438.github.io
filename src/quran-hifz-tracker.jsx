@@ -2586,7 +2586,8 @@ export default function RihlatAlHifz() {
         // ── QURAN RENDERING SYSTEM ──
         // Font: UthmanicHafs with text_uthmani (clean Arabic, no private-use glyphs)
         // Strip unsupported annotation marks that render as white circles
-        const cleanUthmani=(t)=>t;
+        // Replace U+06DF (large circle) with U+0652 (standard sukun) which KFGQPC renders correctly
+        const cleanUthmani=(t)=>t.replace(/\u06DF/g,"\u0652");
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased"};
 
@@ -2598,7 +2599,7 @@ export default function RihlatAlHifz() {
         const totalWords=mushafVerses.reduce((n,v)=>(v.words||[]).length+n,0);
         const density=totalWords>80?"dense":totalWords<30?"sparse":"normal";
         // Short surahs in Juz Amma or Fatihah-style pages
-        const isShort=density==="sparse"||mushafPage<=2;
+        const isShort=mushafPage<=2;
 
         // Responsive sizing
         const fSize=isShort?"clamp(20px,5.5vw,30px)":density==="dense"?"clamp(17px,4.8vw,25px)":"clamp(18px,5vw,26px)";
@@ -2648,29 +2649,15 @@ export default function RihlatAlHifz() {
                         </div>
                       )}
 
-                      {/* ── AYAH FLOW (continuous, inline, text_uthmani) ── */}
-                      <p style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                      {/* ── AYAH FLOW — single continuous string per ayah ── */}
+                      <div style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
                         {sg.vs.map(v=>{
                           const vk=v.verse_key;
                           const vn=vk.split(":")[1];
-                          const isP=playingKey===vk;
-                          const isHL=tafsirAyah===vk;
-                          return <span key={vk}>
-                            <span className="sbtn"
-                              onClick={()=>playAyah(vk,vk)}
-                              onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
-                              style={{
-                                background:isP?"rgba(212,175,55,0.08)":isHL?"rgba(212,175,55,0.04)":"transparent",
-                                borderRadius:isP||isHL?3:0,
-                                padding:isP||isHL?"1px 2px":0,
-                                transition:"background .15s"
-                              }}>
-                              <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{v.text_uthmani.split(/(\u06DF)/).map((part,pi)=>part==="\u06DF"?<span key={pi} style={{fontSize:"0.5em",opacity:0.6}}>{part}</span>:<span key={pi}>{part}</span>)}</span>
-                            </span>
-                            <span style={{color:"rgba(212,175,55,0.40)",fontSize:"0.50em",fontFamily:"'DM Sans',sans-serif",margin:"0 3px"}}>{" ("}{vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{") "}</span>
-                          </span>;
-                        })}
-                      </p>
+                          const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
+                          return cleanUthmani(v.text_uthmani)+" \uFD3F"+arNum+"\uFD3E ";
+                        }).join("")}
+                      </div>
                     </div>
                   );
                 })}
