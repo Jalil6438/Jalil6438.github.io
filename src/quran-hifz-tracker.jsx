@@ -2645,19 +2645,24 @@ export default function RihlatAlHifz() {
                             <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(212,175,55,0.65)",textShadow:"0 0 8px rgba(212,175,55,0.12)"}}>{SURAH_AR[sg.s]}</div>
                             <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.15),transparent)"}}/>
                           </div>
-                          <div style={{fontSize:9,color:"rgba(243,231,200,0.22)",marginBottom:0}}>{SURAH_EN[sg.s]}</div>
+                          <div style={{fontSize:9,color:"rgba(243,231,200,0.22)",marginBottom:sg.s!==1&&sg.s!==9?8:0}}>{SURAH_EN[sg.s]}</div>
+                          {sg.s!==1&&sg.s!==9&&(
+                            <div style={{fontFamily:qFont,fontSize:fSize,color:"rgba(212,175,55,0.50)",marginTop:6,...qCSS}}>
+                              {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0627\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
+                            </div>
+                          )}
                         </div>
                       )}
 
                       {/* ── AYAH FLOW ── */}
-                      {sg.s===1?(
-                        /* Al-Fatiha: each ayah on its own line, centered */
+                      {(sg.s===1||(sg.s===2&&mushafPage===2))?(
+                        /* Al-Fatiha + first page of Baqarah: centered, natural line flow */
                         <div style={{direction:"rtl",textAlign:"center",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
                           {sg.vs.map(v=>{
                             const vn=v.verse_key.split(":")[1];
                             const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
-                            return <div key={v.verse_key}>{cleanUthmani(v.text_uthmani)+"\u00A0"+arNum}</div>;
-                          })}
+                            return cleanUthmani(v.text_uthmani)+"\u00A0"+arNum+" ";
+                          }).join("")}
                         </div>
                       ):(
                         /* All other surahs: continuous flowing string */
