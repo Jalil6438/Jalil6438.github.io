@@ -2605,7 +2605,13 @@ export default function RihlatAlHifz() {
 
         // Responsive sizing
         const fSize=isShort?"clamp(23px,6.5vw,35px)":density==="dense"?"clamp(20px,5.5vw,29px)":"clamp(21px,6vw,31px)";
-        const lHeight=isShort?2.2:density==="dense"?1.7:1.85;
+        // Dynamic line height: fit 15 lines in available screen height
+        // Available = viewport - header(~36px) - footer(~36px) - bottomNav(52px) - padding(24px)
+        const availH=window.innerHeight-148;
+        const targetLines=15;
+        const computedFSize=parseInt(fSize.match(/clamp\((\d+)/)?.[1]||"20");
+        const dynamicLH=Math.max(1.6,Math.min(2.4,availH/(targetLines*computedFSize)));
+        const lHeight=isShort?2.2:dynamicLH;
         const sidePad=isShort?"4%":"1%";
 
         return (
