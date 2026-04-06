@@ -2649,15 +2649,26 @@ export default function RihlatAlHifz() {
                         </div>
                       )}
 
-                      {/* ── AYAH FLOW — single continuous string per ayah ── */}
-                      <div style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
-                        {sg.vs.map(v=>{
-                          const vk=v.verse_key;
-                          const vn=vk.split(":")[1];
-                          const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
-                          return cleanUthmani(v.text_uthmani)+" "+arNum+" ";
-                        }).join("")}
-                      </div>
+                      {/* ── AYAH FLOW ── */}
+                      {sg.s===1?(
+                        /* Al-Fatiha: each ayah on its own line, centered */
+                        <div style={{direction:"rtl",textAlign:"center",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                          {sg.vs.map(v=>{
+                            const vn=v.verse_key.split(":")[1];
+                            const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
+                            return <div key={v.verse_key}>{cleanUthmani(v.text_uthmani)+"\u00A0"+arNum}</div>;
+                          })}
+                        </div>
+                      ):(
+                        /* All other surahs: continuous flowing string */
+                        <div style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
+                          {sg.vs.map(v=>{
+                            const vn=v.verse_key.split(":")[1];
+                            const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
+                            return cleanUthmani(v.text_uthmani)+" "+arNum+" ";
+                          }).join("")}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
