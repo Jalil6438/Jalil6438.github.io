@@ -2602,7 +2602,7 @@ export default function RihlatAlHifz() {
         const isShort=mushafPage<=2;
 
         // Responsive sizing
-        const fSize=isShort?"clamp(20px,5.5vw,30px)":density==="dense"?"clamp(17px,4.8vw,25px)":"clamp(18px,5vw,26px)";
+        const fSize=isShort?"clamp(22px,6vw,32px)":density==="dense"?"clamp(19px,5.2vw,27px)":"clamp(20px,5.5vw,28px)";
         const lHeight=isShort?2.2:density==="dense"?1.7:1.85;
         const sidePad=density==="dense"?"2.5%":"3.5%";
 
@@ -2655,7 +2655,7 @@ export default function RihlatAlHifz() {
                           const vk=v.verse_key;
                           const vn=vk.split(":")[1];
                           const arNum=vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("");
-                          return cleanUthmani(v.text_uthmani)+" \uFD3F"+arNum+"\uFD3E ";
+                          return cleanUthmani(v.text_uthmani)+" "+arNum+" ";
                         }).join("")}
                       </div>
                     </div>
