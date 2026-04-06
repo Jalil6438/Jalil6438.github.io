@@ -2585,121 +2585,102 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
+        const isShortPage=mushafPage<=2;
+        const toAr=(n)=>String(n).replace(/[0-9]/g,d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]);
+        // Group verses by surah
+        const sGroups=[];let cg=null;
+        mushafVerses.forEach(v=>{const sn=parseInt(v.verse_key.split(":")[0]);if(!cg||cg.s!==sn){cg={s:sn,vs:[]};sGroups.push(cg);}cg.vs.push(v);});
+
+        const qFont="'Amiri Quran','Amiri',serif";
+        const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility"};
+
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"#0B1220",paddingBottom:52}}>
-          {/* Hero header */}
-          <div style={{textAlign:"center",padding:"10px 16px 6px",borderBottom:"1px solid rgba(212,175,55,0.08)"}}>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"#E6B84A",fontWeight:700}}>Al-Qur'an Al-Karim</div>
-          </div>
 
-          {/* Filter row */}
-          <div style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-            <select value={mushafJuzNum} onChange={e=>{const j=Number(e.target.value);const pg=JUZ_PAGES[j-1]||1;setMushafPage(pg);}} style={{background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.15)",color:"#E6B84A",fontSize:11,fontWeight:600,padding:"6px 10px",borderRadius:20,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
+          {/* Header — minimal */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 12px",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+            <select value={mushafJuzNum} onChange={e=>{const pg=JUZ_PAGES[Number(e.target.value)-1]||1;setMushafPage(pg);}} style={{background:"transparent",border:"none",color:"#E6B84A",fontSize:12,fontWeight:600,outline:"none",fontFamily:"'DM Sans',sans-serif",padding:0}}>
               {Array.from({length:30},(_,i)=><option key={i+1} value={i+1} style={{background:"#0C1018"}}>Juz {i+1}</option>)}
             </select>
-            <select value={curSurahPage} onChange={e=>{const pg=Number(e.target.value);if(pg)setMushafPage(pg);}} style={{background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.15)",color:"rgba(243,231,200,0.50)",fontSize:11,padding:"6px 10px",borderRadius:20,outline:"none",fontFamily:"'DM Sans',sans-serif",maxWidth:130}}>
-              {Object.entries(SURAH_PAGES).map(([num,pg])=><option key={num} value={pg} style={{background:"#0C1018"}}>{SURAH_EN[Number(num)]}</option>)}
-            </select>
-            <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"6px 10px",background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.15)",borderRadius:20,fontSize:11,color:"rgba(243,231,200,0.35)",whiteSpace:"nowrap"}}>🎙️ {QURAN_RECITERS.find(r=>r.id===quranReciter)?.name?.split(" ")[0]||""}</div>
-          </div>
-
-          {/* Tafsir toggle */}
-          <div style={{display:"flex",justifyContent:"flex-end",padding:"4px 14px",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
-            <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{padding:"3px 10px",borderRadius:10,fontSize:10,fontWeight:600,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.22)",background:tafsirOn?"rgba(230,184,74,0.08)":"transparent",border:`1px solid ${tafsirOn?"rgba(230,184,74,0.20)":"rgba(255,255,255,0.04)"}`}}>
-              Tafsir · {tafsirOn?"On":"Off"}
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{fontSize:13,color:"rgba(243,231,200,0.25)"}}>🎙️</div>
+              <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{fontSize:9,color:tafsirOn?"#E6B84A":"rgba(243,231,200,0.20)",fontWeight:600}}>Tafsir</div>
             </div>
           </div>
 
-          {/* Flowing Quran text */}
-          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:"16px 16px 40px",maxWidth:700,margin:"0 auto",width:"100%"}}>
+          {/* Quran text area */}
+          <div style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",padding:isShortPage?"0 5% 40px":"0 3% 40px",width:"100%",display:"flex",flexDirection:"column",...(isShortPage?{justifyContent:"center"}:{})}}>
             {mushafLoading?(
-              <div style={{display:"flex",alignItems:"center",justifyContent:"center",paddingTop:80}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>
                 <div className="spin" style={{width:22,height:22,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
               </div>
             ):(
               <div>
-                {(()=>{
-                  // Group verses by surah
-                  const surahGroups=[];
-                  let cur=null;
-                  mushafVerses.forEach(v=>{
-                    const sn=parseInt(v.verse_key.split(":")[0]);
-                    if(!cur||cur.surahNum!==sn){cur={surahNum:sn,verses:[]};surahGroups.push(cur);}
-                    cur.verses.push(v);
-                  });
-                  return surahGroups.map((sg,gi)=>{
-                    const startAyah=sg.verses[0]?.verse_key?.split(":")?.[1];
-                    return (
-                      <div key={sg.surahNum+"-"+gi}>
-                        {/* Surah divider — only if first ayah of surah */}
-                        {startAyah==="1"&&(
-                          <div style={{textAlign:"center",margin:gi>0?"28px 0 16px":"0 0 16px"}}>
-                            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
-                              <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.18))"}}/>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:24,color:"rgba(212,175,55,0.70)",textShadow:"0 0 12px rgba(212,175,55,0.20)"}}>{SURAH_AR[sg.surahNum]}</div>
-                              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.18),transparent)"}}/>
-                            </div>
-                            <div style={{fontSize:10,color:"rgba(243,231,200,0.30)",marginBottom:12}}>{SURAH_EN[sg.surahNum]}</div>
-                            {sg.surahNum!==1&&sg.surahNum!==9&&(
-                              <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:fontSize+4,color:"rgba(212,175,55,0.55)",marginBottom:14}}>
-                                {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u064E\u0647\u0650 \u0671\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
-                              </div>
-                            )}
+                {sGroups.map((sg,gi)=>{
+                  const a1=sg.vs[0]?.verse_key?.split(":")?.[1];
+                  return (
+                    <div key={sg.s+"-"+gi}>
+                      {/* Surah header */}
+                      {a1==="1"&&(
+                        <div style={{textAlign:"center",margin:gi>0?"30px 0 14px":"0 0 14px"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+                            <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.18))"}}/>
+                            <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"rgba(212,175,55,0.70)",textShadow:"0 0 10px rgba(212,175,55,0.15)"}}>{SURAH_AR[sg.s]}</div>
+                            <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(212,175,55,0.18),transparent)"}}/>
                           </div>
-                        )}
-                        {/* Flowing ayah text */}
-                        <p style={{direction:"rtl",textAlign:"right",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2.2,letterSpacing:"0.3px",color:"#F5F5F5",margin:"0 0 4px"}}>
-                          {sg.verses.map(v=>{
-                            const vKey=v.verse_key;
-                            const vNum=vKey.split(":")[1];
-                            const isP=playingKey===vKey;
-                            const isHL=tafsirAyah===vKey;
-                            return <span key={vKey}>
-                              <span className="sbtn"
-                                onClick={()=>playAyah(vKey,vKey)}
-                                onContextMenu={e=>{e.preventDefault();fetchTafsir(vKey);setTafsirOn(true);}}
-                                style={{background:isP?"rgba(212,175,55,0.12)":isHL?"rgba(212,175,55,0.08)":"transparent",borderRadius:isP||isHL?3:0,padding:isP||isHL?"1px 2px":0,transition:"background .2s"}}>
-                                <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{v.text_uthmani}</span>
-                              </span>
-                              <span style={{color:"rgba(212,175,55,0.45)",fontSize:fontSize*0.55,fontFamily:"'Amiri',serif",margin:"0 2px"}}>{" \uFD3F"}{vNum.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{"\uFD3E "}</span>
-                            </span>;
-                          })}
-                        </p>
-                      </div>
-                    );
-                  });
-                })()}
+                          <div style={{fontSize:9,color:"rgba(243,231,200,0.25)",marginBottom:10}}>{SURAH_EN[sg.s]}</div>
+                          {sg.s!==1&&sg.s!==9&&(
+                            <div style={{fontFamily:qFont,fontSize:fontSize+2,color:"rgba(212,175,55,0.50)",marginBottom:8,...qCSS}}>
+                              {"\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u064E\u0647\u0650 \u0671\u0644\u0631\u0651\u064E\u062D\u0652\u0645\u064E\u0640\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064E\u062D\u0650\u064A\u0645\u0650"}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Ayah text */}
+                      <p style={{direction:"rtl",textAlign:isShortPage?"center":"right",fontFamily:qFont,fontSize:isShortPage?fontSize+2:fontSize,lineHeight:isShortPage?2.6:2.1,color:"#F5F5F5",margin:0,...qCSS}}>
+                        {sg.vs.map(v=>{
+                          const vk=v.verse_key,vn=vk.split(":")[1];
+                          const isP=playingKey===vk,isHL=tafsirAyah===vk;
+                          return <span key={vk}>
+                            <span className="sbtn" onClick={()=>playAyah(vk,vk)} onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
+                              style={{background:isP?"rgba(212,175,55,0.10)":isHL?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP||isHL?3:0,padding:isP||isHL?"1px 2px":0,transition:"background .2s"}}>
+                              <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{v.text_uthmani}</span>
+                            </span>
+                            <span style={{color:isP?"#E6B84A":"rgba(212,175,55,0.40)",fontSize:fontSize*0.5,fontFamily:"'Amiri',serif",margin:"0 1px"}}>{" \uFD3F"}{toAr(vn)}{"\uFD3E "}</span>
+                          </span>;
+                        })}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* Page navigation */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 14px 8px",borderTop:"1px solid rgba(212,175,55,0.08)",flexShrink:0}}>
-            <div className="sbtn" onClick={()=>{if(mushafPage>1)setMushafPage(p=>p-1);}} style={{padding:"8px 14px",fontSize:13,color:mushafPage>1?"rgba(243,231,200,0.45)":"rgba(243,231,200,0.10)"}}>‹ Prev</div>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{fontSize:10,color:"rgba(212,175,55,0.35)"}}>Page {mushafPage}</div>
-              <div style={{width:1,height:10,background:"rgba(212,175,55,0.10)"}}/>
-              <div style={{fontSize:10,color:"rgba(212,175,55,0.35)"}}>Juz {mushafJuzNum}</div>
-            </div>
-            <div className="sbtn" onClick={()=>{if(mushafPage<604)setMushafPage(p=>p+1);}} style={{padding:"8px 14px",fontSize:13,color:mushafPage<604?"rgba(243,231,200,0.45)":"rgba(243,231,200,0.10)"}}>Next ›</div>
+          {/* Page nav — Arabic direction: next page is LEFT */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 14px 7px",borderTop:"1px solid rgba(255,255,255,0.04)",flexShrink:0}}>
+            <div className="sbtn" onClick={()=>{if(mushafPage<604)setMushafPage(p=>p+1);}} style={{padding:"6px 12px",fontSize:13,color:mushafPage<604?"rgba(243,231,200,0.40)":"rgba(243,231,200,0.08)"}}>‹</div>
+            <div style={{fontSize:9,color:"rgba(212,175,55,0.30)"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
+            <div className="sbtn" onClick={()=>{if(mushafPage>1)setMushafPage(p=>p-1);}} style={{padding:"6px 12px",fontSize:13,color:mushafPage>1?"rgba(243,231,200,0.40)":"rgba(243,231,200,0.08)"}}>›</div>
           </div>
 
           {/* Tafsir drawer */}
           {tafsirOn&&tafsirAyah&&(
-            <div style={{borderTop:"1px solid rgba(212,175,55,0.12)",background:"#0A0E16",maxHeight:"50vh",overflowY:"auto",flexShrink:0}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 16px 6px"}}>
-                <span style={{fontSize:11,color:"rgba(230,184,74,0.50)"}}>Tafsir · {tafsirAyah}</span>
-                <div className="sbtn" onClick={()=>{setTafsirAyah(null);setTafsirOn(false);}} style={{fontSize:14,color:"rgba(243,231,200,0.25)"}}>×</div>
+            <div style={{borderTop:"1px solid rgba(212,175,55,0.10)",background:"#080C14",maxHeight:"50vh",overflowY:"auto",flexShrink:0}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 16px 4px"}}>
+                <span style={{fontSize:10,color:"rgba(230,184,74,0.45)"}}>{tafsirAyah}</span>
+                <div className="sbtn" onClick={()=>{setTafsirAyah(null);setTafsirOn(false);}} style={{fontSize:13,color:"rgba(243,231,200,0.20)"}}>×</div>
               </div>
               <div style={{display:"flex",borderBottom:"1px solid rgba(212,175,55,0.06)",padding:"0 16px"}}>
                 {TAFSIR_SOURCES.map(src=>(
-                  <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,textAlign:"center",padding:"7px 4px",fontSize:10,fontWeight:tafsirTab===src.id?600:400,color:tafsirTab===src.id?"#E6B84A":"rgba(243,231,200,0.30)",borderBottom:`2px solid ${tafsirTab===src.id?"#E6B84A":"transparent"}`}}>
+                  <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,textAlign:"center",padding:"6px 4px",fontSize:10,fontWeight:tafsirTab===src.id?600:400,color:tafsirTab===src.id?"#E6B84A":"rgba(243,231,200,0.25)",borderBottom:`2px solid ${tafsirTab===src.id?"#E6B84A":"transparent"}`}}>
                     {src.name}
                   </div>
                 ))}
               </div>
-              <div style={{padding:"12px 16px 20px",fontSize:14,lineHeight:1.9,color:"rgba(243,231,200,0.70)",fontFamily:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"'Amiri',serif":"'DM Sans',sans-serif",direction:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"rtl":"ltr"}}>
-                {tafsirData[`${tafsirTab}-${tafsirAyah}`]||<span style={{color:"rgba(243,231,200,0.25)",fontSize:12}}>Loading tafsir...</span>}
+              <div style={{padding:"12px 16px 20px",fontSize:14,lineHeight:1.8,color:"rgba(243,231,200,0.65)",fontFamily:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"'Amiri',serif":"'DM Sans',sans-serif",direction:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"rtl":"ltr"}}>
+                {tafsirData[`${tafsirTab}-${tafsirAyah}`]||<span style={{color:"rgba(243,231,200,0.20)",fontSize:11}}>Loading...</span>}
               </div>
             </div>
           )}
