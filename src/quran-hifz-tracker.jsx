@@ -573,7 +573,7 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=code_v2,line_number,position,char_type_name&per_page=50`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&fields=text_uthmani,verse_key,juz_number,page_number&per_page=50`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         if(cancelled) return;
@@ -2584,9 +2584,8 @@ export default function RihlatAlHifz() {
       {/* ═══ QURAN TEXT ═══ */}
       {activeTab==="quran"&&(()=>{
         // ── QURAN RENDERING SYSTEM ──
-        // Font: KFGQPC per-page Uthmanic script with code_v2 glyphs
-        const pgPad=String(mushafPage).padStart(3,"0");
-        const qFont=`QCF_P${pgPad}`;
+        // Font: UthmanicHafs with text_uthmani (clean Arabic, no private-use glyphs)
+        const qFont="'UthmanicHafs',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased"};
 
         // Surah grouping
@@ -2606,8 +2605,9 @@ export default function RihlatAlHifz() {
 
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"#0B1220",paddingBottom:52}}>
-          {/* Font loader */}
-          <style>{`@font-face{font-family:'${qFont}';src:url('https://static.qurancdn.com/fonts/quran/hafs/v2/woff2/p${mushafPage}.woff2') format('woff2');font-display:swap;}`}</style>
+          {/* Uthmanic Hafs font — single file, block display */}
+          <link rel="preload" href="/fonts/UthmanicHafs.woff2" as="font" type="font/woff2" crossOrigin="anonymous"/>
+          <style>{`@font-face{font-family:'UthmanicHafs';src:url('/fonts/UthmanicHafs.woff2') format('woff2');font-display:block;unicode-range:U+0600-06FF,U+FB50-FDFF,U+FE70-FEFF;}`}</style>
 
           {/* ── MINIMAL HEADER ── */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 12px",flexShrink:0,borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
@@ -2646,27 +2646,29 @@ export default function RihlatAlHifz() {
                         </div>
                       )}
 
-                      {/* ── AYAH FLOW (continuous, inline, KFGQPC glyphs) ── */}
-                      <div style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,whiteSpace:"normal",...qCSS}}>
+                      {/* ── AYAH FLOW (continuous, inline, text_uthmani) ── */}
+                      <p style={{direction:"rtl",textAlign:isShort?"center":"right",fontFamily:qFont,fontSize:fSize,lineHeight:lHeight,color:"#F5F5F5",margin:0,...qCSS}}>
                         {sg.vs.map(v=>{
                           const vk=v.verse_key;
+                          const vn=vk.split(":")[1];
                           const isP=playingKey===vk;
                           const isHL=tafsirAyah===vk;
-                          return (v.words||[]).map((w,wi)=>{
-                            const isEnd=w.char_type_name==="end";
-                            return <span key={`${vk}-${wi}`} style={{display:"inline"}}>{wi>0?" ":""}<span
-                              className={isEnd?"":"sbtn"}
-                              onClick={()=>{if(!isEnd)playAyah(vk,vk);}}
-                              onContextMenu={e=>{if(isEnd)return;e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
+                          return <span key={vk}>
+                            <span className="sbtn"
+                              onClick={()=>playAyah(vk,vk)}
+                              onContextMenu={e=>{e.preventDefault();fetchTafsir(vk);setTafsirOn(true);}}
                               style={{
-                                color:isP?"#E6B84A":isEnd?"rgba(212,175,55,0.45)":"#F5F5F5",
-                                background:isP&&!isEnd?"rgba(212,175,55,0.08)":isHL&&!isEnd?"rgba(212,175,55,0.04)":"transparent",
+                                background:isP?"rgba(212,175,55,0.08)":isHL?"rgba(212,175,55,0.04)":"transparent",
                                 borderRadius:isP||isHL?3:0,
-                                transition:"color .15s,background .15s"
-                              }}>{w.code_v2||""}</span></span>;
-                          });
+                                padding:isP||isHL?"1px 2px":0,
+                                transition:"background .15s"
+                              }}>
+                              <span style={{color:isP?"#E6B84A":"#F5F5F5"}}>{v.text_uthmani}</span>
+                            </span>
+                            <span style={{color:"rgba(212,175,55,0.40)",fontSize:"0.55em",margin:"0 2px"}}>{" \uFD3F"}{vn.split("").map(d=>"\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]).join("")}{"\uFD3E "}</span>
+                          </span>;
                         })}
-                      </div>
+                      </p>
                     </div>
                   );
                 })}
