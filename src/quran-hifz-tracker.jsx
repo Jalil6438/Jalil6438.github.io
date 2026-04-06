@@ -594,7 +594,7 @@ export default function RihlatAlHifz() {
         let idx=startIdx;
         vs.forEach(v=>{
           (v.words||[]).forEach(w=>{
-            wordMap[idx]={text:(w.text_uthmani||"").replace(/\u06DF/g,"\u0652"),type:w.char_type_name||"word",vk:v.verse_key};
+            wordMap[idx]={text:(w.text_uthmani||"").replace(/\u06DF/g,"\u0652").replace(/[\u06E2\u06ED]/g,""),type:w.char_type_name||"word",vk:v.verse_key};
             idx++;
           });
         });
@@ -2605,7 +2605,7 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased",fontWeight:500};
-        const fSize="clamp(22px,6vw,30px)";
+        const fSize="clamp(16px,4.2vw,24px)";
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
         // Get layout lines for current page
@@ -2673,7 +2673,7 @@ export default function RihlatAlHifz() {
                 return <div key={li} className={mainVk?"sbtn":""}
                   onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
                   onContextMenu={e=>{if(!mainVk)return;e.preventDefault();fetchTafsir(mainVk);setTafsirOn(true);}}
-                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:"0 2px",...qCSS}}>{lineText}</div>;
+                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,color:isP?"#E6B84A":"#F5F5F5",background:isP?"rgba(212,175,55,0.06)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:"0 2px",whiteSpace:"nowrap",overflow:"hidden",...qCSS}}>{lineText}</div>;
               })
             )}
           </div>
