@@ -2683,9 +2683,9 @@ export default function RihlatAlHifz() {
               }}>
               <style>{`
                 [class*="ReadingView"] { background-color: transparent !important; }
-                [class*="ReadingView"] span { color: #E8D5A3 !important; font-size: 26px !important; line-height: 2.9 !important; }
+                [class*="ReadingView"] * { color: #E8D5A3 !important; font-size: 28px !important; line-height: 3.2 !important; }
                 [class*="surah"] { color: #E8D5A3 !important; }
-                [class*="bismillah"] { color: #E8D5A3 !important; font-size: 26px !important; }
+                [class*="bismillah"] { color: #E8D5A3 !important; font-size: 28px !important; }
                 [class*="ayah"] { color: #E8D5A3 !important; }
               `}</style>
               <ReadingView
