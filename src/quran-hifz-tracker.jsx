@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { ReadingView } from "react-quran";
-import "react-quran/fonts/index.css";
+// react-quran removed — custom renderer
+// Font via Google Fonts (injected in QuranPageView)
 // Mushaf images served from github.com/Jalil6438/mushaf-images
 function mushafImageUrl(page) {
   return `https://raw.githubusercontent.com/Jalil6438/mushaf-images/master/page-${String(page).padStart(3,"0")}.png`;
@@ -501,6 +501,89 @@ function AsrSessionView({
   }
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+
+// ── QURAN PAGE RENDERER ────────────────────────────────────────────────────
+function QuranPageView({ pageLines, wordMap, fontSize }) {
+  const gold = "#E8D5A3";
+  const goldDim = "rgba(232,213,163,0.5)";
+  if (!pageLines || pageLines.length === 0) return null;
+  return (
+    <div style={{width:"100%",height:"100%",display:"flex",flexDirection:"column",
+      justifyContent:"space-between",padding:"4px 10px",boxSizing:"border-box"}}>
+      {pageLines.map((line,i)=>{
+        // Surah name
+        if(line.t==="s"){
+          return(
+            <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"center",
+              flex:1,borderTop:"1px solid rgba(217,177,95,0.25)",
+              borderBottom:"1px solid rgba(217,177,95,0.25)",color:gold,
+              fontSize:fontSize*0.72,fontFamily:"'DM Sans',sans-serif",
+              letterSpacing:"0.08em",direction:"rtl"}}>
+              {({"1":"الفاتحة","2":"البقرة","3":"آل عمران","4":"النساء","5":"المائدة",
+                "6":"الأنعام","7":"الأعراف","8":"الأنفال","9":"التوبة","10":"يونس",
+                "11":"هود","12":"يوسف","13":"الرعد","14":"إبراهيم","15":"الحجر",
+                "16":"النحل","17":"الإسراء","18":"الكهف","19":"مريم","20":"طه",
+                "21":"الأنبياء","22":"الحج","23":"المؤمنون","24":"النور","25":"الفرقان",
+                "26":"الشعراء","27":"النمل","28":"القصص","29":"العنكبوت","30":"الروم",
+                "31":"لقمان","32":"السجدة","33":"الأحزاب","34":"سبأ","35":"فاطر",
+                "36":"يس","37":"الصافات","38":"ص","39":"الزمر","40":"غافر",
+                "41":"فصلت","42":"الشورى","43":"الزخرف","44":"الدخان","45":"الجاثية",
+                "46":"الأحقاف","47":"محمد","48":"الفتح","49":"الحجرات","50":"ق",
+                "51":"الذاريات","52":"الطور","53":"النجم","54":"القمر","55":"الرحمن",
+                "56":"الواقعة","57":"الحديد","58":"المجادلة","59":"الحشر","60":"الممتحنة",
+                "61":"الصف","62":"الجمعة","63":"المنافقون","64":"التغابن","65":"الطلاق",
+                "66":"التحريم","67":"الملك","68":"القلم","69":"الحاقة","70":"المعارج",
+                "71":"نوح","72":"الجن","73":"المزمل","74":"المدثر","75":"القيامة",
+                "76":"الإنسان","77":"المرسلات","78":"النبأ","79":"النازعات","80":"عبس",
+                "81":"التكوير","82":"الانفطار","83":"المطففين","84":"الانشقاق","85":"البروج",
+                "86":"الطارق","87":"الأعلى","88":"الغاشية","89":"الفجر","90":"البلد",
+                "91":"الشمس","92":"الليل","93":"الضحى","94":"الشرح","95":"التين",
+                "96":"العلق","97":"القدر","98":"البينة","99":"الزلزلة","100":"العاديات",
+                "101":"القارعة","102":"التكاثر","103":"العصر","104":"الهمزة","105":"الفيل",
+                "106":"قريش","107":"الماعون","108":"الكوثر","109":"الكافرون","110":"النصر",
+                "111":"المسد","112":"الإخلاص","113":"الفلق","114":"الناس"})[String(line.s)]||""}
+            </div>
+          );
+        }
+        // Basmallah
+        if(line.t==="b"){
+          return(
+            <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"center",
+              flex:1,color:gold,fontSize:fontSize,fontFamily:"'Scheherazade New',serif",
+              direction:"rtl",lineHeight:1.2}}>
+              بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+            </div>
+          );
+        }
+        // Ayah line
+        const words=[];
+        if(line.f&&line.l&&wordMap){
+          for(let wid=line.f;wid<=line.l;wid++){
+            const w=wordMap[wid];
+            if(w) words.push({id:wid,...w});
+          }
+        }
+        return(
+          <div key={i} style={{display:"flex",flexDirection:"row-reverse",
+            justifyContent:line.c?"center":"space-between",
+            alignItems:"center",flex:1,
+            gap:line.c?`${Math.round(fontSize*0.25)}px`:"0",
+            overflow:"hidden"}}>
+            {words.map(w=>(
+              <span key={w.id} style={{
+                color:w.type==="end"?goldDim:gold,
+                fontSize:w.type==="end"?fontSize*0.62:fontSize,
+                fontFamily:"'Scheherazade New',serif",
+                lineHeight:1,flexShrink:0,
+              }}>{w.text}</span>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showDua,setShowDua]=useState(true);
@@ -531,12 +614,8 @@ export default function RihlatAlHifz() {
   const [quranPageDir,setQuranPageDir]=useState(null);
   const quranTouchRef=useRef(0);
   const quranContentRef=useRef(null);
-  const quranViewRef=useRef(null);
-  const [quranViewWidth,setQuranViewWidth]=useState(null);
-  const mushafScrollRef=useRef(null);
-  const mushafLinesRef=useRef(null);
-  const [mushafScale,setMushafScale]=useState(1);
-  const [mushafLineHeight,setMushafLineHeight]=useState(1.65);
+  const quranPageRef=useRef(null);
+  const [quranContainerH,setQuranContainerH]=useState(0);
   const [mushafPage,setMushafPage]=useState(1);
   const [quranMode,setQuranMode]=useState("interactive"); // "mushaf" | "interactive"
   const [tafsirOn,setTafsirOn]=useState(false);
@@ -546,7 +625,7 @@ export default function RihlatAlHifz() {
   const [mushafVerses,setMushafVerses]=useState([]);
   const [mushafLoading,setMushafLoading]=useState(false);
   const [mushafSurahInfo,setMushafSurahInfo]=useState("");
-  const [mushafLayout,setMushafLayout]=useState(null);
+  const [mushafLayout,setMushafLayout]=useState(null); // loaded from /quran-layout.json
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafJuzNum,setMushafJuzNum]=useState(1);
   const [quranPageBreaks,setQuranPageBreaks]=useState([0]);
@@ -584,7 +663,7 @@ export default function RihlatAlHifz() {
 
   // Load mushaf layout once
   useEffect(()=>{
-    fetch("/mushaf-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
+    fetch("/quran-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
   },[]);
 
   useEffect(()=>{
@@ -593,22 +672,23 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,position&per_page=50`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,position,id,char_type_name&per_page=50`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         if(cancelled) return;
         const vs=data.verses||[];
         setMushafVerses(vs);
-        // Build word map keyed by global sequential word index
-        const pgLayout=mushafLayout[String(mushafPage)]||[];
-        const firstAyahLine=pgLayout.find(l=>l.type==="ayah"&&l.fw);
-        const startIdx=firstAyahLine?firstAyahLine.fw:1;
+        // Build word map keyed by global word ID (matches quran-layout.json)
         const wordMap={};
-        let idx=startIdx;
         vs.forEach(v=>{
           (v.words||[]).forEach(w=>{
-            wordMap[idx]={text:(w.text_uthmani||"").replace(/[\u06DF\u06E2\u06ED]/g,""),type:w.char_type_name||"word",vk:v.verse_key};
-            idx++;
+            if(w.id){
+              wordMap[w.id]={
+                text:(w.text_uthmani||"").replace(/[\u06DF\u06E2\u06ED]/g,""),
+                type:w.char_type_name||"word",
+                vk:v.verse_key
+              };
+            }
           });
         });
         setMushafWords(wordMap);
@@ -625,28 +705,14 @@ export default function RihlatAlHifz() {
     return ()=>{cancelled=true;};
   },[mushafPage,activeTab,mushafLayout]);
 
-  // Width-only scaling to prevent clipping — no dynamic line height
+  // Measure custom Quran page container for font size calculation
   useEffect(()=>{
-    if(!mushafScrollRef.current) return;
-    const obs=new ResizeObserver(entries=>{
-      for(const entry of entries){
-        const cw=entry.contentRect.width;
-        if(!cw) continue;
-        setMushafScale(Math.min(cw/420,1.05));
-      }
-    });
-    obs.observe(mushafScrollRef.current);
-    return()=>obs.disconnect();
-  },[activeTab]);
-
-  // Compute ReadingView width from container height so aspect-ratio fills edge-to-edge
-  useEffect(()=>{
-    if(!quranViewRef.current) return;
+    if(!quranPageRef.current) return;
     const obs=new ResizeObserver(([entry])=>{
       const h=entry.contentRect.height;
-      if(h>0) setQuranViewWidth(Math.floor(h/1.32));
+      if(h>0) setQuranContainerH(h);
     });
-    obs.observe(quranViewRef.current);
+    obs.observe(quranPageRef.current);
     return()=>obs.disconnect();
   },[quranMode,activeTab]);
 
@@ -2686,7 +2752,7 @@ export default function RihlatAlHifz() {
               />
             </div>
           ):(
-            <div ref={quranViewRef} style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#0B1220,#0E1628)"}}
+            <div ref={quranPageRef} style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",background:"linear-gradient(180deg,#0B1220,#0E1628)"}}
               onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2694,25 +2760,23 @@ export default function RihlatAlHifz() {
                 if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
                 else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
               }}>
-              <style>{`
-                [class*="ReadingView"] { background-color: transparent !important; }
-                [class*="ReadingView"] * { color: #E8D5A3 !important; line-height: 2.8 !important; }
-                [class*="surah"] { color: #E8D5A3 !important; }
-                [class*="bismillah"] { color: #E8D5A3 !important; }
-                [class*="ayah"] { color: #E8D5A3 !important; }
-              `}</style>
-              <ReadingView
-                page={mushafPage}
-                fixedAspectRatio={true}
-                readingViewStyles={{
-                  width: quranViewWidth ? `${quranViewWidth}px` : "100%",
-                  maxWidth:"100%",
-                  backgroundColor:"transparent",
-                  borderRadius:0,
-                  border:"none"
-                }}
-                surahTitleStyles={{color:goldColor,fontSize:"18px"}}
-              />
+              <style>{`@import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap');`}</style>
+              {mushafLoading?(
+                <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <div style={{color:"rgba(232,213,163,0.25)",fontSize:11,fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.1em"}}>loading...</div>
+                </div>
+              ):(()=>{
+                const pgLines=mushafLayout?mushafLayout[String(mushafPage)]:[];
+                const nLines=(pgLines&&pgLines.length)||15;
+                const fontSize=quranContainerH>0?Math.max(14,Math.floor(quranContainerH/nLines*0.56)):18;
+                return(
+                  <QuranPageView
+                    pageLines={pgLines||[]}
+                    wordMap={mushafWords}
+                    fontSize={fontSize}
+                  />
+                );
+              })()}
             </div>
           )}
 
