@@ -2682,8 +2682,7 @@ export default function RihlatAlHifz() {
                 else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
               }}>
               <style>{`
-                [class*="ReadingView"] { background-color: transparent !important; height: 100% !important; }
-                [class*="ReadingView"] > div { justify-content: space-between !important; height: 100% !important; }
+                [class*="ReadingView"] { background-color: transparent !important; }
                 [class*="ReadingView"] * { color: #E8D5A3 !important; font-size: 40px !important; line-height: 3.2 !important; }
                 [class*="surah"] { color: #E8D5A3 !important; }
                 [class*="bismillah"] { color: #E8D5A3 !important; font-size: 40px !important; }
@@ -2692,7 +2691,7 @@ export default function RihlatAlHifz() {
               <ReadingView
                 page={mushafPage}
                 fixedAspectRatio={false}
-                readingViewStyles={{width:"100%",height:"100%",backgroundColor:"transparent",borderRadius:0,border:"none"}}
+                readingViewStyles={{width:"100%",flex:"1",backgroundColor:"transparent",borderRadius:0,border:"none"}}
                 surahTitleStyles={{color:goldColor,fontSize:"18px"}}
               />
             </div>
