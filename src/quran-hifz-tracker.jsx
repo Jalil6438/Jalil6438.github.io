@@ -531,6 +531,8 @@ export default function RihlatAlHifz() {
   const [quranPageDir,setQuranPageDir]=useState(null);
   const quranTouchRef=useRef(0);
   const quranContentRef=useRef(null);
+  const quranViewRef=useRef(null);
+  const [quranViewWidth,setQuranViewWidth]=useState(null);
   const mushafScrollRef=useRef(null);
   const mushafLinesRef=useRef(null);
   const [mushafScale,setMushafScale]=useState(1);
@@ -636,6 +638,17 @@ export default function RihlatAlHifz() {
     obs.observe(mushafScrollRef.current);
     return()=>obs.disconnect();
   },[activeTab]);
+
+  // Compute ReadingView width from container height so aspect-ratio fills edge-to-edge
+  useEffect(()=>{
+    if(!quranViewRef.current) return;
+    const obs=new ResizeObserver(([entry])=>{
+      const h=entry.contentRect.height;
+      if(h>0) setQuranViewWidth(Math.floor(h/1.32));
+    });
+    obs.observe(quranViewRef.current);
+    return()=>obs.disconnect();
+  },[quranMode,activeTab]);
 
   async function fetchTafsir(verseKey){
     setTafsirAyah(verseKey);
@@ -2673,7 +2686,7 @@ export default function RihlatAlHifz() {
               />
             </div>
           ):(
-            <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"stretch",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"6px 8px"}}
+            <div ref={quranViewRef} style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#0B1220,#0E1628)"}}
               onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2683,15 +2696,21 @@ export default function RihlatAlHifz() {
               }}>
               <style>{`
                 [class*="ReadingView"] { background-color: transparent !important; }
-                [class*="ReadingView"] * { color: #E8D5A3 !important; font-size: 40px !important; line-height: 3.2 !important; }
+                [class*="ReadingView"] * { color: #E8D5A3 !important; line-height: 2.8 !important; }
                 [class*="surah"] { color: #E8D5A3 !important; }
-                [class*="bismillah"] { color: #E8D5A3 !important; font-size: 40px !important; }
+                [class*="bismillah"] { color: #E8D5A3 !important; }
                 [class*="ayah"] { color: #E8D5A3 !important; }
               `}</style>
               <ReadingView
                 page={mushafPage}
-                fixedAspectRatio={false}
-                readingViewStyles={{width:"100%",flex:"1",backgroundColor:"transparent",borderRadius:0,border:"none"}}
+                fixedAspectRatio={true}
+                readingViewStyles={{
+                  width: quranViewWidth ? `${quranViewWidth}px` : "100%",
+                  maxWidth:"100%",
+                  backgroundColor:"transparent",
+                  borderRadius:0,
+                  border:"none"
+                }}
                 surahTitleStyles={{color:goldColor,fontSize:"18px"}}
               />
             </div>
