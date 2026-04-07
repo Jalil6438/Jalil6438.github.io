@@ -2627,7 +2627,7 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
-        const parchment="#1B2A4A";
+        const parchment="linear-gradient(180deg,#0B1220,#0E1628)";
         const goldColor="#E8D5A3";
         const inkColor="#E8D5A3";
 
@@ -2655,19 +2655,21 @@ export default function RihlatAlHifz() {
               if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
               else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
             }}>
-            <img
-              key={mushafPage}
-              src={mushafImageUrl(mushafPage)}
-              alt={`Mushaf page ${mushafPage}`}
-              style={{
-                width:"100%",
-                maxWidth:"420px",
-                borderRadius:4,
-                border:"1px solid rgba(232,213,163,0.15)",
-                display:"block",
-                userSelect:"none",
-              }}
-            />
+            <div style={{width:"100%",maxWidth:"420px",overflow:"hidden",borderRadius:4,border:"1px solid rgba(232,213,163,0.15)"}}>
+              <img
+                key={mushafPage}
+                src={mushafImageUrl(mushafPage)}
+                alt={`Mushaf page ${mushafPage}`}
+                style={{
+                  width:"108%",
+                  marginLeft:"-4%",
+                  marginTop:"-3.5%",
+                  marginBottom:"-3.5%",
+                  display:"block",
+                  userSelect:"none",
+                }}
+              />
+            </div>
           </div>
 
           {/* Page nav */}
