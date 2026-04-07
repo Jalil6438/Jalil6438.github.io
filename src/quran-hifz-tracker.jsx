@@ -2688,12 +2688,14 @@ export default function RihlatAlHifz() {
                 [class*="bismillah"] { color: #E8D5A3 !important; font-size: 28px !important; }
                 [class*="ayah"] { color: #E8D5A3 !important; }
               `}</style>
-              <ReadingView
-                page={mushafPage}
-                fixedAspectRatio={true}
-                readingViewStyles={{width:"100%",height:"100%",backgroundColor:"transparent",borderRadius:0,border:"none",zoom:"1.45"}}
-                surahTitleStyles={{color:goldColor,fontSize:"18px"}}
-              />
+              <div style={{zoom:"1.45",width:"100%",overflow:"hidden"}}>
+                <ReadingView
+                  page={mushafPage}
+                  fixedAspectRatio={true}
+                  readingViewStyles={{width:"100%",backgroundColor:"transparent",borderRadius:0,border:"none"}}
+                  surahTitleStyles={{color:goldColor,fontSize:"18px"}}
+                />
+              </div>
             </div>
           )}
 
