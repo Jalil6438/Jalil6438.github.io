@@ -2659,11 +2659,9 @@ export default function RihlatAlHifz() {
               readingViewStyles={{
                 width:"100%",
                 maxWidth:"420px",
-                backgroundColor:parchment,
                 borderRadius:4,
               }}
               surahTitleStyles={{color:goldColor}}
-              versesStyle={{color:inkColor}}
             />
           </div>
 
