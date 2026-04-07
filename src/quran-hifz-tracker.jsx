@@ -2654,7 +2654,7 @@ export default function RihlatAlHifz() {
           </div>
 
           {/* ReadingView */}
-          <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:parchment,padding:"8px 4px"}}
+          <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:parchment,padding:"12px 14px"}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
