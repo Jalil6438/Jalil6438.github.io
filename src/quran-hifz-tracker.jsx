@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { ReadingView } from "react-quran";
-import "react-quran/fonts/index.css";
+// Mushaf images served from github.com/jalil6438/mushaf-images
+function mushafImageUrl(page) {
+  return `https://raw.githubusercontent.com/jalil6438/mushaf-images/main/page-${String(page).padStart(3,"0")}.png`;
+}
 
 // ── QURAN RECITERS (Al-Quran Al-Karim tab) ────────────────────────────────────
 const QURAN_RECITERS = [
@@ -2631,15 +2633,6 @@ export default function RihlatAlHifz() {
 
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:52}}>
-          <style>{`
-            .quran-font-react-quran { color: #E8D5A3 !important; }
-            [class*="quran-font"] { color: #E8D5A3 !important; }
-            [class*="ReadingView"] span { color: #E8D5A3 !important; }
-            [class*="ReadingView"] { background-color: #1B2A4A !important; }
-            [class*="surah"] { color: #E8D5A3 !important; }
-            [class*="bismillah"] { color: #E8D5A3 !important; }
-            [class*="ayah"] { color: #E8D5A3 !important; }
-          `}</style>
 
           {/* Slim header */}
           <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 10px",flexShrink:0,borderBottom:"1px solid rgba(26,39,68,0.12)",background:parchment}}>
@@ -2662,17 +2655,18 @@ export default function RihlatAlHifz() {
               if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
               else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
             }}>
-            <ReadingView
-              page={mushafPage}
-              fixedAspectRatio={true}
-              readingViewStyles={{
+            <img
+              key={mushafPage}
+              src={mushafImageUrl(mushafPage)}
+              alt={`Mushaf page ${mushafPage}`}
+              style={{
                 width:"100%",
                 maxWidth:"420px",
-                backgroundColor:"#1B2A4A",
                 borderRadius:4,
                 border:"1px solid rgba(232,213,163,0.15)",
+                display:"block",
+                userSelect:"none",
               }}
-              surahTitleStyles={{color:goldColor}}
             />
           </div>
 
