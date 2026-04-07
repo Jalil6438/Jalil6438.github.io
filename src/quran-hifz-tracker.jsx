@@ -672,23 +672,26 @@ export default function RihlatAlHifz() {
     (async()=>{
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,position,id,char_type_name&per_page=50`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,char_type_name&per_page=50`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         if(cancelled) return;
         const vs=data.verses||[];
         setMushafVerses(vs);
-        // Build word map keyed by global word ID (matches quran-layout.json)
+        // Sequential counter starting from DB first_word_id of first ayah line
+        const pgLines=mushafLayout?mushafLayout[String(mushafPage)]:[];
+        const firstAyahLine=(pgLines||[]).find(l=>l.t==="a"&&l.f);
+        const startIdx=firstAyahLine?firstAyahLine.f:1;
         const wordMap={};
+        let idx=startIdx;
         vs.forEach(v=>{
           (v.words||[]).forEach(w=>{
-            if(w.id){
-              wordMap[w.id]={
-                text:(w.text_uthmani||"").replace(/[\u06DF\u06E2\u06ED]/g,""),
-                type:w.char_type_name||"word",
-                vk:v.verse_key
-              };
-            }
+            wordMap[idx]={
+              text:(w.text_uthmani||"").replace(/[\u06DF\u06E2\u06ED]/g,""),
+              type:w.char_type_name||"word",
+              vk:v.verse_key
+            };
+            idx++;
           });
         });
         setMushafWords(wordMap);
