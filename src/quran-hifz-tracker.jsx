@@ -2673,7 +2673,7 @@ export default function RihlatAlHifz() {
               />
             </div>
           ):(
-            <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"stretch",justifyContent:"center",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"6px 8px"}}
+            <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"stretch",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"6px 8px"}}
               onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2682,20 +2682,19 @@ export default function RihlatAlHifz() {
                 else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
               }}>
               <style>{`
-                [class*="ReadingView"] { background-color: transparent !important; }
-                [class*="ReadingView"] * { color: #E8D5A3 !important; font-size: 28px !important; line-height: 3.2 !important; }
+                [class*="ReadingView"] { background-color: transparent !important; height: 100% !important; }
+                [class*="ReadingView"] > div { justify-content: space-between !important; height: 100% !important; }
+                [class*="ReadingView"] * { color: #E8D5A3 !important; font-size: 40px !important; line-height: 3.2 !important; }
                 [class*="surah"] { color: #E8D5A3 !important; }
-                [class*="bismillah"] { color: #E8D5A3 !important; font-size: 28px !important; }
+                [class*="bismillah"] { color: #E8D5A3 !important; font-size: 40px !important; }
                 [class*="ayah"] { color: #E8D5A3 !important; }
               `}</style>
-              <div style={{zoom:"1.45",width:"100%",overflow:"hidden"}}>
-                <ReadingView
-                  page={mushafPage}
-                  fixedAspectRatio={true}
-                  readingViewStyles={{width:"100%",backgroundColor:"transparent",borderRadius:0,border:"none"}}
-                  surahTitleStyles={{color:goldColor,fontSize:"18px"}}
-                />
-              </div>
+              <ReadingView
+                page={mushafPage}
+                fixedAspectRatio={false}
+                readingViewStyles={{width:"100%",height:"100%",backgroundColor:"transparent",borderRadius:0,border:"none"}}
+                surahTitleStyles={{color:goldColor,fontSize:"18px"}}
+              />
             </div>
           )}
 
