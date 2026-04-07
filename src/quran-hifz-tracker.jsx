@@ -2661,10 +2661,10 @@ export default function RihlatAlHifz() {
                 src={mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
                 style={{
-                  width:"108%",
-                  marginLeft:"-4%",
-                  marginTop:"-3.5%",
-                  marginBottom:"-3.5%",
+                  width:"120%",
+                  marginLeft:"-10%",
+                  marginTop:"-8%",
+                  marginBottom:"-8%",
                   display:"block",
                   userSelect:"none",
                 }}
