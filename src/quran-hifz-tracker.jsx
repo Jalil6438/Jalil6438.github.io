@@ -2625,12 +2625,21 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
-        const parchment="hsl(200 5% 90% / 1)";
-        const goldColor="#8B6914";
-        const inkColor="#1A2744";
+        const parchment="#1B2A4A";
+        const goldColor="#E8D5A3";
+        const inkColor="#E8D5A3";
 
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:52}}>
+          <style>{`
+            .quran-font-react-quran { color: #E8D5A3 !important; }
+            [class*="quran-font"] { color: #E8D5A3 !important; }
+            [class*="ReadingView"] span { color: #E8D5A3 !important; }
+            [class*="ReadingView"] { background-color: #1B2A4A !important; }
+            [class*="surah"] { color: #E8D5A3 !important; }
+            [class*="bismillah"] { color: #E8D5A3 !important; }
+            [class*="ayah"] { color: #E8D5A3 !important; }
+          `}</style>
 
           {/* Slim header */}
           <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 10px",flexShrink:0,borderBottom:"1px solid rgba(26,39,68,0.12)",background:parchment}}>
@@ -2659,8 +2668,9 @@ export default function RihlatAlHifz() {
               readingViewStyles={{
                 width:"100%",
                 maxWidth:"420px",
-                backgroundColor:"hsl(200 5% 90% / 1)",
+                backgroundColor:"#1B2A4A",
                 borderRadius:4,
+                border:"1px solid rgba(232,213,163,0.15)",
               }}
               surahTitleStyles={{color:goldColor}}
             />
