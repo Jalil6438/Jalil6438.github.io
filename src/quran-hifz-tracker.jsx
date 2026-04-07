@@ -616,20 +616,14 @@ export default function RihlatAlHifz() {
     return ()=>{cancelled=true;};
   },[mushafPage,activeTab,mushafLayout]);
 
-  // ResizeObserver — fires when container has real dimensions on any device
+  // Width-only scaling to prevent clipping — no dynamic line height
   useEffect(()=>{
     if(!mushafScrollRef.current) return;
     const obs=new ResizeObserver(entries=>{
       for(const entry of entries){
         const cw=entry.contentRect.width;
-        const ch=entry.contentRect.height;
-        if(!cw||!ch) continue;
-        const scale=Math.min(cw/420,1.1);
-        setMushafScale(scale);
-        const fontSize=Math.round(18*scale);
-        const availH=ch-40;
-        const lh=availH/(15*fontSize);
-        setMushafLineHeight(Math.max(1.4,Math.min(lh,2.4)));
+        if(!cw) continue;
+        setMushafScale(Math.min(cw/420,1.05));
       }
     });
     obs.observe(mushafScrollRef.current);
@@ -2629,7 +2623,7 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const qFont="'KFGQPC',serif";
         const qCSS={fontFeatureSettings:"'liga' 1,'calt' 1,'kern' 1,'rlig' 1",wordBreak:"keep-all",overflowWrap:"normal",textRendering:"optimizeLegibility",WebkitFontSmoothing:"antialiased",fontWeight:500};
-        const baseFontPx=18;
+        const baseFontPx=20;
         const fSize=`${Math.round(baseFontPx*mushafScale)}px`;
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
@@ -2640,8 +2634,12 @@ export default function RihlatAlHifz() {
 
         return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:52}}>
-          <link rel="preload" href="/fonts/KFGQPC.otf" as="font" type="font/otf" crossOrigin="anonymous"/>
-          <style>{`@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:block;}`}</style>
+          <link rel="preload" href="/fonts/UthmanicHafs1B_Ver13.ttf" as="font" type="font/ttf" crossOrigin="anonymous"/>
+          <link rel="preload" href="/fonts/surah_names.ttf" as="font" type="font/ttf" crossOrigin="anonymous"/>
+          <style>{`
+            @font-face{font-family:'KFGQPC';src:url('/fonts/UthmanicHafs1B_Ver13.ttf') format('truetype');font-display:block;}
+            @font-face{font-family:'SurahNames';src:url('/fonts/surah_names.ttf') format('truetype');font-display:block;}
+          `}</style>
 
           {/* Slim header */}
           <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 10px",flexShrink:0,borderBottom:"1px solid rgba(139,105,20,0.12)",background:parchment}}>
@@ -2657,7 +2655,7 @@ export default function RihlatAlHifz() {
 
           {/* Mushaf reading area */}
           <div ref={mushafScrollRef}
-            style={{flex:1,overflowY:"auto",WebkitOverflowScrolling:"touch",display:"flex",flexDirection:"column",justifyContent:"flex-start",padding:"0 4px",background:parchment}}
+            style={{flex:1,overflowY:"hidden",WebkitOverflowScrolling:"touch",padding:"5vh 4px 5vh",background:parchment}}
             onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
             onTouchEnd={e=>{
               const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2670,7 +2668,7 @@ export default function RihlatAlHifz() {
                 <div className="spin" style={{width:18,height:18,border:"2px solid rgba(139,105,20,0.15)",borderTopColor:goldColor,borderRadius:"50%"}}/>
               </div>
             ):(
-              <div style={{direction:"ltr",padding:"20px 0 24px",width:"100%"}}>
+              <div style={{direction:"ltr",width:"100%"}}>
               {pageLines.map((line,li)=>{
                 const isCentered=!!line.center;
                 if(line.type==="surah_name"){
@@ -2678,7 +2676,7 @@ export default function RihlatAlHifz() {
                   return <div key={li} style={{textAlign:"center",padding:"14px 0 8px",margin:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,justifyContent:"center",marginBottom:3}}>
                       <div style={{flex:1,maxWidth:60,height:1,background:`linear-gradient(90deg,transparent,rgba(139,105,20,0.25))`}}/>
-                      <div style={{fontFamily:"'Amiri',serif",fontSize:28,color:goldColor,letterSpacing:"0.5px"}}>{SURAH_AR[sn]||""}</div>
+                      <div style={{fontFamily:"'SurahNames',serif",fontSize:36,color:goldColor,lineHeight:1.4}}>{SURAH_AR[sn]||""}</div>
                       <div style={{flex:1,maxWidth:60,height:1,background:`linear-gradient(90deg,rgba(139,105,20,0.25),transparent)`}}/>
                     </div>
                     <div style={{fontSize:10,color:"rgba(28,16,8,0.35)",fontFamily:"'DM Sans',sans-serif",letterSpacing:".06em"}}>{SURAH_EN[sn]||""}</div>
@@ -2701,7 +2699,7 @@ export default function RihlatAlHifz() {
                 return <div key={li} className={mainVk?"sbtn":""}
                   onClick={()=>{if(mainVk)playAyah(mainVk,mainVk);}}
                   onContextMenu={e=>{if(!mainVk)return;e.preventDefault();fetchTafsir(mainVk);setTafsirOn(true);}}
-                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:mushafLineHeight,color:isP?goldColor:inkColor,background:isP?"rgba(139,105,20,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,...qCSS}}>{lineText}</div>;
+                  style={{direction:"rtl",textAlign:isCentered?"center":"justify",fontFamily:qFont,fontSize:fSize,lineHeight:1.45,color:isP?goldColor:inkColor,background:isP?"rgba(139,105,20,0.08)":"transparent",borderRadius:isP?3:0,transition:"color .15s",padding:0,margin:0,...qCSS}}>{lineText}</div>;
               })}
               </div>
             )}
