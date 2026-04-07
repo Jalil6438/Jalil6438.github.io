@@ -536,7 +536,7 @@ export default function RihlatAlHifz() {
   const [mushafScale,setMushafScale]=useState(1);
   const [mushafLineHeight,setMushafLineHeight]=useState(1.65);
   const [mushafPage,setMushafPage]=useState(1);
-  const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
+  const [quranMode,setQuranMode]=useState("interactive"); // "mushaf" | "interactive"
   const [tafsirOn,setTafsirOn]=useState(false);
   const [tafsirAyah,setTafsirAyah]=useState(null);
   const [tafsirData,setTafsirData]=useState({});
@@ -2682,17 +2682,17 @@ export default function RihlatAlHifz() {
                 else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
               }}>
               <style>{`
-                [class*="ReadingView"] { background-color: #1B2A4A !important; }
-                [class*="ReadingView"] span { color: #E8D5A3 !important; }
+                [class*="ReadingView"] { background-color: transparent !important; }
+                [class*="ReadingView"] span { color: #E8D5A3 !important; font-size: 26px !important; line-height: 2.2 !important; }
                 [class*="surah"] { color: #E8D5A3 !important; }
-                [class*="bismillah"] { color: #E8D5A3 !important; }
+                [class*="bismillah"] { color: #E8D5A3 !important; font-size: 26px !important; }
                 [class*="ayah"] { color: #E8D5A3 !important; }
               `}</style>
               <ReadingView
                 page={mushafPage}
-                fixedAspectRatio={false}
+                fixedAspectRatio={true}
                 readingViewStyles={{width:"100%",height:"100%",backgroundColor:"transparent",borderRadius:0,border:"none"}}
-                surahTitleStyles={{color:goldColor}}
+                surahTitleStyles={{color:goldColor,fontSize:"18px"}}
               />
             </div>
           )}
