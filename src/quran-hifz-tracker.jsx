@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-// Mushaf images served from github.com/jalil6438/mushaf-images
+// Mushaf images served from github.com/Jalil6438/mushaf-images
 function mushafImageUrl(page) {
-  return `https://raw.githubusercontent.com/jalil6438/mushaf-images/main/page-${String(page).padStart(3,"0")}.png`;
+  return `https://raw.githubusercontent.com/Jalil6438/mushaf-images/master/page-${String(page).padStart(3,"0")}.png`;
 }
 
 // ── QURAN RECITERS (Al-Quran Al-Karim tab) ────────────────────────────────────
