@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { ReadingView } from "react-quran";
+import "react-quran/fonts/index.css";
 // Mushaf images served from github.com/Jalil6438/mushaf-images
 function mushafImageUrl(page) {
   return `https://raw.githubusercontent.com/Jalil6438/mushaf-images/master/page-${String(page).padStart(3,"0")}.png`;
@@ -534,6 +536,7 @@ export default function RihlatAlHifz() {
   const [mushafScale,setMushafScale]=useState(1);
   const [mushafLineHeight,setMushafLineHeight]=useState(1.65);
   const [mushafPage,setMushafPage]=useState(1);
+  const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
   const [tafsirOn,setTafsirOn]=useState(false);
   const [tafsirAyah,setTafsirAyah]=useState(null);
   const [tafsirData,setTafsirData]=useState({});
@@ -2642,32 +2645,57 @@ export default function RihlatAlHifz() {
             <select value={curSurahPage} onChange={e=>{const pg=Number(e.target.value);if(pg)setMushafPage(pg);}} style={{flex:1,background:"#0B1220",border:"1px solid rgba(217,177,95,0.20)",color:"rgba(243,231,191,0.55)",fontSize:11,padding:"4px 7px",borderRadius:12,outline:"none",fontFamily:"'DM Sans',sans-serif"}}>
               {Object.entries(SURAH_PAGES).map(([num,pg])=><option key={num} value={pg} style={{background:"#0B1220",color:"#F3E7BF"}}>{SURAH_EN[Number(num)]}</option>)}
             </select>
+            {/* Mode toggle */}
+            <div style={{display:"flex",borderRadius:10,overflow:"hidden",border:"1px solid rgba(217,177,95,0.20)",flexShrink:0}}>
+              <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{padding:"4px 8px",fontSize:10,fontWeight:600,background:quranMode==="mushaf"?"rgba(217,177,95,0.15)":"transparent",color:quranMode==="mushaf"?"#E6B84A":"rgba(217,177,95,0.35)"}}>🕌</div>
+              <div style={{width:1,background:"rgba(217,177,95,0.20)"}}/>
+              <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{padding:"4px 8px",fontSize:10,fontWeight:600,background:quranMode==="interactive"?"rgba(217,177,95,0.15)":"transparent",color:quranMode==="interactive"?"#E6B84A":"rgba(217,177,95,0.35)"}}>✋</div>
+            </div>
             <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"4px 8px",background:"transparent",border:"1px solid rgba(217,177,95,0.20)",borderRadius:12,fontSize:11,color:"rgba(217,177,95,0.50)"}}>🎙️</div>
             <div className="sbtn" onClick={()=>setTafsirOn(t=>!t)} style={{padding:"4px 8px",borderRadius:12,fontSize:10,fontWeight:600,color:tafsirOn?"#E6B84A":"rgba(217,177,95,0.30)",background:tafsirOn?"rgba(230,184,74,0.10)":"transparent",border:`1px solid ${tafsirOn?"rgba(230,184,74,0.30)":"rgba(217,177,95,0.15)"}`}}>Tafsir</div>
           </div>
 
-          {/* ReadingView */}
-          <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"#F5F0E8"}}
-            onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
-            onTouchEnd={e=>{
-              const dx=e.changedTouches[0].clientX-quranTouchRef.current;
-              if(Math.abs(dx)<60) return;
-              if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
-              else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
-            }}>
-            <img
-              key={mushafPage}
-              src={mushafImageUrl(mushafPage)}
-              alt={`Mushaf page ${mushafPage}`}
-              style={{
-                width:"100%",
-                display:"block",
-                userSelect:"none",
-                transform:"scale(1.13)",
-                transformOrigin:"center center",
-              }}
-            />
-          </div>
+          {/* Viewer */}
+          {quranMode==="mushaf"?(
+            <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"#F5F0E8"}}
+              onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
+              onTouchEnd={e=>{
+                const dx=e.changedTouches[0].clientX-quranTouchRef.current;
+                if(Math.abs(dx)<60) return;
+                if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
+                else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
+              }}>
+              <img
+                key={mushafPage}
+                src={mushafImageUrl(mushafPage)}
+                alt={`Mushaf page ${mushafPage}`}
+                style={{width:"116%",marginLeft:"-8%",display:"block",userSelect:"none"}}
+              />
+            </div>
+          ):(
+            <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"#1B2A4A",padding:"12px 14px"}}
+              onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
+              onTouchEnd={e=>{
+                const dx=e.changedTouches[0].clientX-quranTouchRef.current;
+                if(Math.abs(dx)<60) return;
+                if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
+                else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
+              }}>
+              <style>{`
+                [class*="ReadingView"] { background-color: #1B2A4A !important; }
+                [class*="ReadingView"] span { color: #E8D5A3 !important; }
+                [class*="surah"] { color: #E8D5A3 !important; }
+                [class*="bismillah"] { color: #E8D5A3 !important; }
+                [class*="ayah"] { color: #E8D5A3 !important; }
+              `}</style>
+              <ReadingView
+                page={mushafPage}
+                fixedAspectRatio={true}
+                readingViewStyles={{width:"100%",maxWidth:"420px",backgroundColor:"#1B2A4A",borderRadius:4,border:"1px solid rgba(232,213,163,0.15)"}}
+                surahTitleStyles={{color:goldColor}}
+              />
+            </div>
+          )}
 
           {/* Page nav */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 14px 6px",borderTop:`1px solid rgba(217,177,95,0.10)`,flexShrink:0,background:"#0B1220"}}>
