@@ -2673,7 +2673,7 @@ export default function RihlatAlHifz() {
               />
             </div>
           ):(
-            <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"#1B2A4A",padding:"12px 14px"}}
+            <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"0"}}
               onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2691,7 +2691,7 @@ export default function RihlatAlHifz() {
               <ReadingView
                 page={mushafPage}
                 fixedAspectRatio={true}
-                readingViewStyles={{width:"100%",maxWidth:"420px",backgroundColor:"#1B2A4A",borderRadius:4,border:"1px solid rgba(232,213,163,0.15)"}}
+                readingViewStyles={{width:"100%",height:"100%",backgroundColor:"transparent",borderRadius:0,border:"none"}}
                 surahTitleStyles={{color:goldColor}}
               />
             </div>
