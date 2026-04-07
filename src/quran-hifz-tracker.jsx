@@ -2625,7 +2625,7 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
-        const parchment="transparent";
+        const parchment="#F9F9F9";
         const goldColor="#8B6914";
         const inkColor="#1A2744";
 
@@ -2659,6 +2659,7 @@ export default function RihlatAlHifz() {
               readingViewStyles={{
                 width:"100%",
                 maxWidth:"420px",
+                backgroundColor:"#F9F9F9",
                 borderRadius:4,
               }}
               surahTitleStyles={{color:goldColor}}
