@@ -2691,7 +2691,7 @@ export default function RihlatAlHifz() {
               <ReadingView
                 page={mushafPage}
                 fixedAspectRatio={true}
-                readingViewStyles={{width:"100%",height:"100%",backgroundColor:"transparent",borderRadius:0,border:"none",zoom:"1.18"}}
+                readingViewStyles={{width:"100%",height:"100%",backgroundColor:"transparent",borderRadius:0,border:"none",zoom:"1.45"}}
                 surahTitleStyles={{color:goldColor,fontSize:"18px"}}
               />
             </div>
