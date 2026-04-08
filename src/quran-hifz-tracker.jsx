@@ -2913,7 +2913,7 @@ export default function RihlatAlHifz() {
                 <div style={{width:1,background:"rgba(217,177,95,0.18)"}}/>
                 <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{padding:"7px 10px",fontSize:10,fontWeight:600,background:quranMode==="interactive"?"rgba(217,177,95,0.15)":"transparent",color:quranMode==="interactive"?"#E6B84A":"rgba(217,177,95,0.35)"}}>✋</div>
               </div>
-              <div className="sbtn" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"7px 10px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:8,fontSize:11,color:"rgba(217,177,95,0.55)"}}>🎙️</div>
+              <div className="sbtn" onClick={()=>setShowMushafSheet(true)} style={{padding:"7px 10px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:8,fontSize:10,fontWeight:600,color:"rgba(217,177,95,0.60)"}}>⋯</div>
             </div>
             <div style={{height:1,background:"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)"}}/>
           </div>
@@ -2990,26 +2990,6 @@ export default function RihlatAlHifz() {
             <div style={{fontSize:11,color:"rgba(217,177,95,0.45)",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?"rgba(217,177,95,0.60)":"rgba(217,177,95,0.15)",borderRadius:10,border:"1px solid rgba(217,177,95,0.15)",background:"rgba(255,255,255,0.03)"}}>›</div>
           </div>
-
-          {/* ── TAFSIR DRAWER ── */}
-          {tafsirOn&&tafsirAyah&&(
-            <div style={{borderTop:"1px solid rgba(212,175,55,0.08)",background:"#080C14",maxHeight:"50vh",overflowY:"auto",flexShrink:0}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 16px 4px"}}>
-                <span style={{fontSize:10,color:"rgba(230,184,74,0.40)"}}>{tafsirAyah}</span>
-                <div className="sbtn" onClick={()=>{setTafsirAyah(null);setTafsirOn(false);}} style={{fontSize:13,color:"rgba(243,231,200,0.18)"}}>×</div>
-              </div>
-              <div style={{display:"flex",borderBottom:"1px solid rgba(212,175,55,0.05)",padding:"0 16px"}}>
-                {TAFSIR_SOURCES.map(src=>(
-                  <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,textAlign:"center",padding:"6px 4px",fontSize:10,fontWeight:tafsirTab===src.id?600:400,color:tafsirTab===src.id?"#E6B84A":"rgba(243,231,200,0.22)",borderBottom:`2px solid ${tafsirTab===src.id?"#E6B84A":"transparent"}`}}>
-                    {src.name}
-                  </div>
-                ))}
-              </div>
-              <div style={{padding:"12px 16px 20px",fontSize:14,lineHeight:1.8,color:"rgba(243,231,200,0.60)",fontFamily:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"'Amiri',serif":"'DM Sans',sans-serif",direction:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"rtl":"ltr"}}>
-                {tafsirData[`${tafsirTab}-${tafsirAyah}`]||<span style={{color:"rgba(243,231,200,0.18)",fontSize:11}}>Loading...</span>}
-              </div>
-            </div>
-          )}
 
           {/* ── TAFSIR DRAWER ── */}
           {tafsirOn&&tafsirAyah&&(
@@ -3371,6 +3351,14 @@ export default function RihlatAlHifz() {
                   <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>View tafsir for first ayah on page</div>
                 </div>
               </div>
+              {/* Reciter */}
+              <div className="sbtn" onClick={()=>{setShowMushafSheet(false);setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)"}}>
+                <span style={{fontSize:20,color:"rgba(217,177,95,0.70)"}}>🎙️</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.85)"}}>Reciter</div>
+                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>{QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Al-Dosari"}</div>
+                </div>
+              </div>
               {/* Bookmark */}
               {(()=>{
                 const isBookmarked=mushafBookmarks.includes(mushafPage);
@@ -3381,7 +3369,7 @@ export default function RihlatAlHifz() {
                     setMushafBookmarks(updated);
                     try{localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(updated));}catch{}
                   }} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:isBookmarked?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.04)",border:`1px solid ${isBookmarked?"rgba(232,200,120,0.40)":"rgba(217,177,95,0.12)"}`}}>
-                    <span style={{fontSize:20,color:isBookmarked?"#E6B84A":"rgba(217,177,95,0.70)"}}>{isBookmarked?"🔖":"🔖"}</span>
+                    <span style={{fontSize:20,color:isBookmarked?"#E6B84A":"rgba(217,177,95,0.70)"}}>🔖</span>
                     <div>
                       <div style={{fontSize:13,fontWeight:600,color:isBookmarked?"#F6E27A":"rgba(243,231,200,0.85)"}}>{isBookmarked?"Remove Bookmark":"Bookmark Page"}</div>
                       <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>Page {mushafPage}</div>
