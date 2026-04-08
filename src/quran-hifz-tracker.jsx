@@ -2775,7 +2775,7 @@ export default function RihlatAlHifz() {
           {/* Viewer */}
           {quranMode==="mushaf"?(
             <div
-              style={{flex:1,overflowY:"auto",background:"#0B1220"}}
+              style={{flex:1,overflow:"hidden",backgroundColor:"#0b1a2b",display:"flex",justifyContent:"center",alignItems:"center"}}
               onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -2787,19 +2787,12 @@ export default function RihlatAlHifz() {
               {/* RTL arrows */}
               <button onClick={()=>setMushafPage(p=>Math.min(604,p+1))} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
               <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
-              <div style={{padding:12,display:"flex",flexDirection:"column",alignItems:"center"}}>
-                <div style={{overflow:"hidden",width:"100%",maxWidth:500,borderRadius:12,boxShadow:"0 10px 30px rgba(0,0,0,0.4)"}}>
-                  <img
-                    key={mushafPage}
-                    src={mushafImageUrl(mushafPage)}
-                    alt={`Mushaf page ${mushafPage}`}
-                    style={{width:"120%",marginLeft:"-10%",marginTop:"-8%",marginBottom:"-8%",display:"block",userSelect:"none"}}
-                  />
-                </div>
-                <div style={{textAlign:"center",color:"#E8D5A3",marginTop:8,fontSize:12,fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.06em"}}>
-                  Page {mushafPage}
-                </div>
-              </div>
+              <img
+                key={mushafPage}
+                src={mushafImageUrl(mushafPage)}
+                alt={`Mushaf page ${mushafPage}`}
+                style={{width:"105%",marginLeft:"-2.5%",height:"auto",display:"block",userSelect:"none",boxShadow:"0 0 30px rgba(0,0,0,0.6)"}}
+              />
             </div>
           ):(
             <div
