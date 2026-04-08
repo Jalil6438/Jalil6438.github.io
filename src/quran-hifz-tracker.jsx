@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 // react-quran removed — custom renderer
 // Font via Google Fonts (injected in QuranPageView)
 // Mushaf images served from github.com/Jalil6438/mushaf-images
@@ -617,6 +618,7 @@ export default function RihlatAlHifz() {
   const quranPageRef=useRef(null);
   const [quranContainerH,setQuranContainerH]=useState(0);
   const [mushafPage,setMushafPage]=useState(1);
+  const [swipeDir,setSwipeDir]=useState(0);
   const [croppedPages,setCroppedPages]=useState({});
   const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
   const [tafsirOn,setTafsirOn]=useState(false);
@@ -2838,25 +2840,41 @@ export default function RihlatAlHifz() {
 
           {/* Viewer */}
           {quranMode==="mushaf"?(
-            <div
-              style={{flex:1,overflow:"hidden",backgroundColor:"#0b1a2b",display:"flex",justifyContent:"center",alignItems:"center"}}
-              onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
-              onTouchEnd={e=>{
-                const dx=e.changedTouches[0].clientX-quranTouchRef.current;
-                if(Math.abs(dx)<60) return;
-                // RTL: swipe left = prev page, swipe right = next page
-                if(dx < -60) setMushafPage(p=>Math.max(1,p-1));
-                if(dx > 60) setMushafPage(p=>Math.min(604,p+1));
-              }}>
-              {/* RTL arrows */}
-              <button onClick={()=>setMushafPage(p=>Math.min(604,p+1))} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
-              <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
-              <img
-                key={mushafPage}
-                src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
-                alt={`Mushaf page ${mushafPage}`}
-                style={{width:"100%",height:"auto",display:"block",userSelect:"none"}}
-              />
+            <div style={{flex:1,overflow:"hidden",backgroundColor:"#0b1a2b",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}>
+              {/* RTL arrows: left=next, right=prev */}
+              <button onClick={()=>{setSwipeDir(1);setMushafPage(p=>Math.min(604,p+1));}} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
+              <button onClick={()=>{setSwipeDir(-1);setMushafPage(p=>Math.max(1,p-1));}} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={mushafPage}
+                  drag="x"
+                  dragConstraints={{left:0,right:0}}
+                  dragElastic={0.08}
+                  onDragEnd={(e,info)=>{
+                    if(info.offset.x <= -80){
+                      // RTL: drag left = prev page
+                      setSwipeDir(-1);
+                      setMushafPage(p=>Math.max(1,p-1));
+                    } else if(info.offset.x >= 80){
+                      // RTL: drag right = next page
+                      setSwipeDir(1);
+                      setMushafPage(p=>Math.min(604,p+1));
+                    }
+                  }}
+                  initial={{x: swipeDir > 0 ? 80 : -80, opacity:0.92}}
+                  animate={{x:0, opacity:1}}
+                  exit={{x: swipeDir > 0 ? -80 : 80, opacity:0.92}}
+                  transition={{type:"spring",stiffness:320,damping:32,mass:0.8}}
+                  style={{width:"100%",touchAction:"pan-y",cursor:"grab"}}
+                >
+                  <img
+                    src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
+                    alt={`Mushaf page ${mushafPage}`}
+                    draggable={false}
+                    style={{width:"100%",height:"auto",display:"block",userSelect:"none",WebkitUserDrag:"none"}}
+                  />
+                </motion.div>
+              </AnimatePresence>
             </div>
           ):(
             <div
