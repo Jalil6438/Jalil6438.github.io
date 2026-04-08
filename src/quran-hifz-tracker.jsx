@@ -617,6 +617,7 @@ export default function RihlatAlHifz() {
   const quranPageRef=useRef(null);
   const [quranContainerH,setQuranContainerH]=useState(0);
   const [mushafPage,setMushafPage]=useState(1);
+  const [croppedPages,setCroppedPages]=useState({});
   const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
   const [tafsirOn,setTafsirOn]=useState(false);
   const [tafsirAyah,setTafsirAyah]=useState(null);
@@ -737,6 +738,69 @@ export default function RihlatAlHifz() {
     })();
     return () => { cancelled = true; };
   }, [activeTab, mushafPage]);
+
+  // Auto-crop white margins from mushaf page image
+  function cropMushafImage(imgUrl) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = imgUrl;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        let imageData;
+        try { imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+        catch(e) { resolve(imgUrl); return; }
+        const data = imageData.data;
+        let top = 0, bottom = canvas.height - 1, left = 0, right = canvas.width - 1;
+        const isWhite = (r,g,b) => r > 240 && g > 240 && b > 240;
+        outer: for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const i = (y * canvas.width + x) * 4;
+            if (!isWhite(data[i],data[i+1],data[i+2])) { top = y; break outer; }
+          }
+        }
+        outer: for (let y = canvas.height - 1; y >= 0; y--) {
+          for (let x = 0; x < canvas.width; x++) {
+            const i = (y * canvas.width + x) * 4;
+            if (!isWhite(data[i],data[i+1],data[i+2])) { bottom = y; break outer; }
+          }
+        }
+        outer: for (let x = 0; x < canvas.width; x++) {
+          for (let y = 0; y < canvas.height; y++) {
+            const i = (y * canvas.width + x) * 4;
+            if (!isWhite(data[i],data[i+1],data[i+2])) { left = x; break outer; }
+          }
+        }
+        outer: for (let x = canvas.width - 1; x >= 0; x--) {
+          for (let y = 0; y < canvas.height; y++) {
+            const i = (y * canvas.width + x) * 4;
+            if (!isWhite(data[i],data[i+1],data[i+2])) { right = x; break outer; }
+          }
+        }
+        const w = right - left;
+        const h = bottom - top;
+        const out = document.createElement("canvas");
+        out.width = w; out.height = h;
+        out.getContext("2d").drawImage(canvas, left, top, w, h, 0, 0, w, h);
+        resolve(out.toDataURL());
+      };
+      img.onerror = () => resolve(imgUrl);
+    });
+  }
+
+  // Crop on page change (cache result so we don't re-crop)
+  useEffect(() => {
+    if (activeTab !== "quran" || quranMode !== "mushaf") return;
+    if (croppedPages[mushafPage]) return;
+    const url = mushafImageUrl(mushafPage);
+    cropMushafImage(url).then(cropped => {
+      setCroppedPages(prev => ({...prev, [mushafPage]: cropped}));
+    });
+  }, [mushafPage, activeTab, quranMode]);
 
   // Measure custom Quran page container for font size calculation
   useEffect(()=>{
@@ -2789,15 +2853,9 @@ export default function RihlatAlHifz() {
               <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
               <img
                 key={mushafPage}
-                src={mushafImageUrl(mushafPage)}
+                src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
-                style={{
-                  width:"100%",height:"auto",display:"block",userSelect:"none",
-                  WebkitMaskImage:"linear-gradient(to right, transparent, black 10%, black 90%, transparent), linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
-                  WebkitMaskComposite:"intersect",
-                  maskImage:"linear-gradient(to right, transparent, black 10%, black 90%, transparent), linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
-                  maskComposite:"intersect",
-                }}
+                style={{width:"100%",height:"auto",display:"block",userSelect:"none"}}
               />
             </div>
           ):(
