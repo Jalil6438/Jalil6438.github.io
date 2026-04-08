@@ -3,7 +3,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 // Font via Google Fonts (injected in QuranPageView)
 // Mushaf images served from github.com/Jalil6438/mushaf-images
 function mushafImageUrl(page) {
-  return `https://raw.githubusercontent.com/Jalil6438/mushaf-images/master/page-${String(page).padStart(3,"0")}.png`;
+  // Repo has 3 cover pages before Al-Fatiha, so page 1 = file page-004
+  return `https://raw.githubusercontent.com/Jalil6438/mushaf-images/master/page-${String(page + 3).padStart(3,"0")}.png`;
 }
 
 // ── QURAN RECITERS (Al-Quran Al-Karim tab) ────────────────────────────────────
@@ -628,6 +629,8 @@ export default function RihlatAlHifz() {
   const [mushafVerses,setMushafVerses]=useState([]);
   const [mushafLoading,setMushafLoading]=useState(false);
   const [mushafSurahInfo,setMushafSurahInfo]=useState("");
+  const [showSurahPicker,setShowSurahPicker]=useState(false);
+  const [selectedSurahNum,setSelectedSurahNum]=useState(1);
   const [mushafLayout,setMushafLayout]=useState(null); // loaded from /quran-layout.json
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafPageLines,setMushafPageLines]=useState([]);
@@ -693,6 +696,7 @@ export default function RihlatAlHifz() {
           setMushafJuzNum(vs[0].juz_number || 1);
           const surahNums = [...new Set(vs.map(v => parseInt(v.verse_key.split(":")[0], 10)))];
           setMushafSurahInfo(surahNums.map(n => SURAH_EN[n] || "").filter(Boolean).join(" · "));
+          if(surahNums.length>0) setSelectedSurahNum(surahNums[0]);
         } else {
           setMushafJuzNum(1); setMushafSurahInfo("");
         }
