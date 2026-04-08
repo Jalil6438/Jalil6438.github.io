@@ -636,6 +636,10 @@ export default function RihlatAlHifz() {
   const [mushafLayout,setMushafLayout]=useState(null); // loaded from /quran-layout.json
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafPageLines,setMushafPageLines]=useState([]);
+  const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
+  const [showMushafRangePicker,setShowMushafRangePicker]=useState(false);
+  const [mushafRangeStart,setMushafRangeStart]=useState(null);
+  const [mushafRangeEnd,setMushafRangeEnd]=useState(null);
   const [mushafJuzNum,setMushafJuzNum]=useState(1);
   const [mushafSurahNum,setMushafSurahNum]=useState(1);
   const [quranPageBreaks,setQuranPageBreaks]=useState([0]);
@@ -1387,6 +1391,35 @@ export default function RihlatAlHifz() {
   }
 
   function getEveryayahFolder(id){ const r=RECITERS.find(x=>x.id===id); return r?.everyayah||RECITERS[0].everyayah; }
+
+  function stopMushafAudio(){
+    if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
+    setPlayingKey(null); setAudioLoading(null); setMushafAudioPlaying(false);
+  }
+
+  function playMushafRange(verses){
+    if(!verses||verses.length===0) return;
+    if(mushafAudioPlaying){ stopMushafAudio(); return; }
+    stopMushafAudio();
+    setMushafAudioPlaying(true);
+    const surahNum=parseInt(verses[0].verse_key.split(":")[0],10);
+    surahQueueRef.current=verses;
+    surahIdxRef.current=0;
+    // override onended to also set mushafAudioPlaying false when done
+    function playIdx(idx){
+      if(idx>=verses.length){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
+      const v=verses[idx]; const vKey=v.verse_key; const [surah,ayah]=vKey.split(":");
+      setPlayingKey(vKey); setAudioLoading(vKey);
+      const folder=getEveryayahFolder(reciter);
+      const url=`https://everyayah.com/data/${folder}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`;
+      const audio=new Audio(url); audio.preload="auto"; audioRef.current=audio;
+      audio.oncanplay=()=>setAudioLoading(null);
+      audio.onended=()=>{ playIdx(idx+1); };
+      audio.onerror=()=>{ playIdx(idx+1); };
+      audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
+    }
+    playIdx(0);
+  }
   function getArchiveUrl(id, surahNum){ const r=RECITERS.find(x=>x.id===id); if(!r?.archive) return null; return `https://archive.org/download/${r.archive}/${String(surahNum).padStart(3,"0")}.mp3`; }
 
   const MID_SURAH_JUZ=new Set([2,3,4,5,6,7,8,11,12,16,19,20,21,22,23,24,25,27]);
@@ -2861,8 +2894,6 @@ export default function RihlatAlHifz() {
                 else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
             >
-              {/* RTL arrows: left=next, right=prev */}
-
               <img
                 key={mushafPage}
                 src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
@@ -2871,6 +2902,17 @@ export default function RihlatAlHifz() {
                 className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
                 style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none"}}
               />
+              {/* Audio FABs — bottom center overlay */}
+              <div style={{position:"absolute",bottom:14,left:0,right:0,display:"flex",justifyContent:"center",alignItems:"center",gap:10,pointerEvents:"none"}}>
+                {/* Play/Stop page button */}
+                <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }} style={{pointerEvents:"auto",width:48,height:48,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:mushafAudioPlaying?"rgba(230,184,74,0.90)":"rgba(8,16,34,0.88)",border:"1px solid rgba(217,177,95,0.40)",boxShadow:"0 4px 20px rgba(0,0,0,0.50)",color:mushafAudioPlaying?"#0B1220":"#E8D5A3",fontSize:20}}>
+                  {mushafAudioPlaying?"⏹":"▶"}
+                </div>
+                {/* Range picker button */}
+                <div className="sbtn" onClick={()=>{stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true);}} style={{pointerEvents:"auto",width:40,height:40,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(8,16,34,0.88)",border:"1px solid rgba(217,177,95,0.25)",boxShadow:"0 4px 20px rgba(0,0,0,0.50)",color:"rgba(217,177,95,0.70)",fontSize:14}}>
+                  ≡
+                </div>
+              </div>
             </div>
           ):(
             <div
@@ -3232,6 +3274,72 @@ export default function RihlatAlHifz() {
         </div>
         );
       })()}
+
+      {/* Mushaf Audio Range Picker */}
+      {showMushafRangePicker&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.82)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowMushafRangePicker(false)}>
+          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+            <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
+
+            {/* Header */}
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
+              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0),rgba(232,200,120,0.50))"}}/>
+              <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600}}>Select Ayah Range</div>
+              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50),rgba(217,177,95,0))"}}/>
+            </div>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",textAlign:"center",marginBottom:16}}>Page {mushafPage} · {mushafVerses.length} ayahs</div>
+
+            {/* Ayah list — tap to set start/end */}
+            <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:20}}>
+              {mushafVerses.map((v,i)=>{
+                const vKey=v.verse_key;
+                const [s,a]=vKey.split(":");
+                const ayahNum=Number(a);
+                const isStart=mushafRangeStart===i;
+                const isEnd=mushafRangeEnd===i;
+                const inRange=mushafRangeStart!==null&&mushafRangeEnd!==null&&i>=mushafRangeStart&&i<=mushafRangeEnd;
+                return(
+                  <div key={vKey} className="sbtn"
+                    onClick={()=>{
+                      if(mushafRangeStart===null||mushafRangeEnd!==null){
+                        setMushafRangeStart(i); setMushafRangeEnd(null);
+                      } else if(i<mushafRangeStart){
+                        setMushafRangeStart(i);
+                      } else {
+                        setMushafRangeEnd(i);
+                      }
+                    }}
+                    style={{padding:"10px 14px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",
+                      background:inRange?"rgba(217,177,95,0.10)":isStart||isEnd?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.03)",
+                      border:`1px solid ${isStart?"rgba(232,200,120,0.70)":isEnd?"rgba(232,200,120,0.50)":inRange?"rgba(217,177,95,0.20)":"rgba(217,177,95,0.08)"}`,
+                    }}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{fontSize:10,fontFamily:"'IBM Plex Mono',monospace",color:"rgba(217,177,95,0.40)",width:24}}>{ayahNum}</div>
+                      <div style={{fontSize:12,color:inRange||isStart||isEnd?"#F5E6B3":"rgba(243,231,200,0.55)",direction:"rtl",maxWidth:220,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.text_uthmani||""}</div>
+                    </div>
+                    <div style={{fontSize:10,color:isStart?"#F6E27A":isEnd?"rgba(246,226,122,0.60)":"transparent",fontWeight:600,flexShrink:0}}>
+                      {isStart?"START":isEnd?"END":""}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Play button */}
+            <div className="sbtn"
+              onClick={()=>{
+                const start=mushafRangeStart??0;
+                const end=mushafRangeEnd??mushafVerses.length-1;
+                const slice=mushafVerses.slice(start,end+1);
+                setShowMushafRangePicker(false);
+                playMushafRange(slice);
+              }}
+              style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",background:mushafRangeStart!==null?"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)":"rgba(255,255,255,0.04)",color:mushafRangeStart!==null?"#060A07":"rgba(243,231,200,0.30)",fontSize:14,fontWeight:700,border:`1px solid ${mushafRangeStart!==null?"transparent":"rgba(217,177,95,0.12)"}`,boxShadow:mushafRangeStart!==null?"0 8px 24px rgba(212,175,55,0.22)":"none"}}>
+              {mushafRangeStart===null?"Tap an ayah to set start range":`Play Ayah ${Number(mushafVerses[mushafRangeStart]?.verse_key?.split(":")?.[1])} → ${Number(mushafVerses[mushafRangeEnd??mushafVerses.length-1]?.verse_key?.split(":")?.[1])}`}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quran Juz Picker Modal */}
       {showQuranJuzModal&&(
