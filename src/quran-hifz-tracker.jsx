@@ -397,8 +397,8 @@ function AsrSessionView({
               const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
               asrTouchStartRef.current=null;
               if(Math.abs(delta)<40) return;
-              if(delta<0&&asrSafePage<asrPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(asrPages-1,p+1)); }
-              else if(delta>0&&asrSafePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); }
+              if(delta>0&&asrSafePage<asrPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(asrPages-1,p+1)); }
+              else if(delta<0&&asrSafePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); }
             }}
           >
             <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
@@ -2103,7 +2103,7 @@ export default function RihlatAlHifz() {
                   return (
                 <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}
                   onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}}
-                  onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx<-40&&aSafe<aPages-1)setAyahPage(p=>p+1);else if(dx>40&&aSafe>0)setAyahPage(p=>p-1);}}>
+                  onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx>40&&aSafe<aPages-1)setAyahPage(p=>p+1);else if(dx<-40&&aSafe>0)setAyahPage(p=>p-1);}}>
                   {pageAyahs.map((v,i)=>{
                     const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
                     const vKey=v.verse_key;
@@ -2844,29 +2844,20 @@ export default function RihlatAlHifz() {
               onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
-                if(Math.abs(dx)<80) return;
-                if(dx<0){ setMushafSwipeAnim("prev"); setMushafPage(p=>Math.max(1,p-1)); }
-                else { setMushafSwipeAnim("next"); setMushafPage(p=>Math.min(604,p+1)); }
+                if(Math.abs(dx)<40) return;
+                if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
+                else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
             >
               {/* RTL arrows: left=next, right=prev */}
-              <button onClick={()=>{setMushafSwipeAnim("next");setMushafPage(p=>Math.min(604,p+1));}} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
-              <button onClick={()=>{setMushafSwipeAnim("prev");setMushafPage(p=>Math.max(1,p-1));}} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
+              <button onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
+              <button onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
               <img
                 key={mushafPage}
                 src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
                 draggable={false}
-                onAnimationEnd={()=>setMushafSwipeAnim("idle")}
-                style={{
-                  width:"100%",height:"auto",display:"block",
-                  userSelect:"none",WebkitUserDrag:"none",
-                  animation: mushafSwipeAnim==="next"
-                    ? "pageTurnNext 0.32s cubic-bezier(0.22,1,0.36,1) both"
-                    : mushafSwipeAnim==="prev"
-                    ? "pageTurnPrev 0.32s cubic-bezier(0.22,1,0.36,1) both"
-                    : "none",
-                }}
+                className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
               />
             </div>
           ):(
