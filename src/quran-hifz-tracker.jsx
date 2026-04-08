@@ -2791,7 +2791,13 @@ export default function RihlatAlHifz() {
                 key={mushafPage}
                 src={mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
-                style={{width:"105%",marginLeft:"-2.5%",height:"auto",display:"block",userSelect:"none",boxShadow:"0 0 30px rgba(0,0,0,0.6)"}}
+                style={{
+                  width:"100%",height:"auto",display:"block",userSelect:"none",
+                  WebkitMaskImage:"linear-gradient(to right, transparent, black 10%, black 90%, transparent), linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
+                  WebkitMaskComposite:"intersect",
+                  maskImage:"linear-gradient(to right, transparent, black 10%, black 90%, transparent), linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
+                  maskComposite:"intersect",
+                }}
               />
             </div>
           ):(
