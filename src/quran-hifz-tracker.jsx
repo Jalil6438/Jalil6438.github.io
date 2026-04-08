@@ -2858,6 +2858,7 @@ export default function RihlatAlHifz() {
                 alt={`Mushaf page ${mushafPage}`}
                 draggable={false}
                 className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
+                style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none"}}
               />
             </div>
           ):(
