@@ -617,7 +617,7 @@ export default function RihlatAlHifz() {
   const quranPageRef=useRef(null);
   const [quranContainerH,setQuranContainerH]=useState(0);
   const [mushafPage,setMushafPage]=useState(1);
-  const [quranMode,setQuranMode]=useState("interactive"); // "mushaf" | "interactive"
+  const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
   const [tafsirOn,setTafsirOn]=useState(false);
   const [tafsirAyah,setTafsirAyah]=useState(null);
   const [tafsirData,setTafsirData]=useState({});
@@ -2774,20 +2774,32 @@ export default function RihlatAlHifz() {
 
           {/* Viewer */}
           {quranMode==="mushaf"?(
-            <div style={{flex:1,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"#F5F0E8"}}
+            <div
+              style={{flex:1,overflowY:"auto",background:"#0B1220"}}
               onTouchStart={e=>{quranTouchRef.current=e.touches[0].clientX;}}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
                 if(Math.abs(dx)<60) return;
-                if(dx>0&&mushafPage<604)setMushafPage(p=>p+1);
-                else if(dx<0&&mushafPage>1)setMushafPage(p=>p-1);
+                // RTL: swipe left = prev page, swipe right = next page
+                if(dx < -60) setMushafPage(p=>Math.max(1,p-1));
+                if(dx > 60) setMushafPage(p=>Math.min(604,p+1));
               }}>
-              <img
-                key={mushafPage}
-                src={mushafImageUrl(mushafPage)}
-                alt={`Mushaf page ${mushafPage}`}
-                style={{width:"116%",marginLeft:"-8%",display:"block",userSelect:"none"}}
-              />
+              {/* RTL arrows */}
+              <button onClick={()=>setMushafPage(p=>Math.min(604,p+1))} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
+              <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
+              <div style={{padding:12,display:"flex",flexDirection:"column",alignItems:"center"}}>
+                <div style={{overflow:"hidden",width:"100%",maxWidth:500,borderRadius:12,boxShadow:"0 10px 30px rgba(0,0,0,0.4)"}}>
+                  <img
+                    key={mushafPage}
+                    src={mushafImageUrl(mushafPage)}
+                    alt={`Mushaf page ${mushafPage}`}
+                    style={{width:"120%",marginLeft:"-10%",marginTop:"-8%",marginBottom:"-8%",display:"block",userSelect:"none"}}
+                  />
+                </div>
+                <div style={{textAlign:"center",color:"#E8D5A3",marginTop:8,fontSize:12,fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.06em"}}>
+                  Page {mushafPage}
+                </div>
+              </div>
             </div>
           ):(
             <div
