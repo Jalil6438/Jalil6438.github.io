@@ -627,6 +627,7 @@ export default function RihlatAlHifz() {
   const [mushafSurahInfo,setMushafSurahInfo]=useState("");
   const [mushafLayout,setMushafLayout]=useState(null); // loaded from /quran-layout.json
   const [mushafWords,setMushafWords]=useState([]);
+  const [mushafPageLines,setMushafPageLines]=useState([]);
   const [mushafJuzNum,setMushafJuzNum]=useState(1);
   const [quranPageBreaks,setQuranPageBreaks]=useState([0]);
   const [openSurah,setOpenSurah]=useState(null);
@@ -666,33 +667,76 @@ export default function RihlatAlHifz() {
     fetch("/quran-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
   },[]);
 
-  useEffect(()=>{
-    if(activeTab!=="quran"||!mushafLayout) return;
-    let cancelled=false;
-    (async()=>{
+  useEffect(() => {
+    if (activeTab !== "quran") return;
+    let cancelled = false;
+    (async () => {
       setMushafLoading(true);
       try {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?language=en&words=true&fields=text_uthmani,verse_key,juz_number,page_number&word_fields=text_uthmani,verse_key&per_page=50`);
-        if(!res.ok) throw new Error();
-        const data=await res.json();
-        if(cancelled) return;
-        const vs=data.verses||[];
+        const res = await fetch(
+          `https://api.quran.com/api/v4/verses/by_page/${mushafPage}?` +
+          new URLSearchParams({
+            language: "en", words: "true", per_page: "50",
+            fields: "text_uthmani,verse_key,juz_number,page_number",
+            word_fields: "text_uthmani,line_number,position"
+          })
+        );
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (cancelled) return;
+        const vs = data.verses || [];
         setMushafVerses(vs);
-        // Flat word list for rendering
-        const words=vs.flatMap(v=>(v.words||[]).map(w=>({...w,verse_key:v.verse_key})));
-        setMushafWords(words);
-        if(vs.length>0){
-          const jn=vs[0].juz_number||1;
-          setMushafJuzNum(jn);
-          const surahNums=[...new Set(vs.map(v=>parseInt(v.verse_key.split(":")[0])))];
-          const names=surahNums.map(n=>SURAH_EN[n]||"").filter(Boolean);
-          setMushafSurahInfo(names.join(" · "));
+        if (vs.length > 0) {
+          setMushafJuzNum(vs[0].juz_number || 1);
+          const surahNums = [...new Set(vs.map(v => parseInt(v.verse_key.split(":")[0], 10)))];
+          setMushafSurahInfo(surahNums.map(n => SURAH_EN[n] || "").filter(Boolean).join(" · "));
+        } else {
+          setMushafJuzNum(1); setMushafSurahInfo("");
         }
-      } catch {}
-      if(!cancelled) setMushafLoading(false);
+        // Group words by line_number
+        const allWords = vs.flatMap(v =>
+          (v.words || []).map(w => ({
+            text: (w.text_uthmani || "").replace(/[\u06DF\u06E2\u06ED]/g, "").trim(),
+            lineNumber: Number(w.line_number || 0),
+            position: Number(w.position || 0),
+            verseKey: v.verse_key,
+          }))
+        );
+        const grouped = new Map();
+        for (const word of allWords) {
+          if (!word.lineNumber) continue;
+          if (!grouped.has(word.lineNumber)) grouped.set(word.lineNumber, []);
+          grouped.get(word.lineNumber).push(word);
+        }
+        const lines = [...grouped.entries()]
+          .sort((a, b) => a[0] - b[0])
+          .map(([lineNumber, words]) => {
+            const sorted = words.sort((a, b) => a.position - b.position);
+            const lastVerseKey = sorted[sorted.length - 1]?.verseKey || "";
+            const prevVerseKey = sorted[0]?.verseKey || "";
+            // line ends an ayah if last word is last word of its verse
+            const allWords2 = vs.flatMap(v => (v.words||[]).map(w=>({...w,verse_key:v.verse_key})));
+            const lastInVerse = allWords2.filter(w => w.verse_key === lastVerseKey);
+            const endsAyah = lastInVerse.length > 0 &&
+              sorted[sorted.length-1].position === Math.max(...lastInVerse.map(w=>Number(w.position||0)));
+            return {
+              lineNumber,
+              words: sorted,
+              text: sorted.map(w => w.text).filter(Boolean).join(" "),
+              endsAyah,
+              ayahNum: endsAyah ? lastVerseKey.split(":")[1] : null,
+            };
+          })
+          .filter(l => l.text.length > 0);
+        setMushafPageLines(lines);
+      } catch (err) {
+        setMushafVerses([]); setMushafPageLines([]);
+      } finally {
+        if (!cancelled) setMushafLoading(false);
+      }
     })();
-    return ()=>{cancelled=true;};
-  },[mushafPage,activeTab,mushafLayout]);
+    return () => { cancelled = true; };
+  }, [activeTab, mushafPage]);
 
   // Measure custom Quran page container for font size calculation
   useEffect(()=>{
@@ -2750,15 +2794,15 @@ export default function RihlatAlHifz() {
               onTouchStart={(e)=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={(e)=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
-                if(Math.abs(dx)<40) return;
-                if(dx<0) setMushafPage(p=>Math.min(604,p+1));
-                if(dx>0) setMushafPage(p=>Math.max(1,p-1));
+                // RTL: swipe left = prev page, swipe right = next page
+                if(dx < -40) setMushafPage(p=>Math.max(1,p-1));
+                if(dx > 40) setMushafPage(p=>Math.min(604,p+1));
               }}
               style={{position:"relative",flex:1,overflowY:"auto",paddingBottom:70,background:"linear-gradient(180deg,#0B1220,#0E1628)"}}
             >
-              {/* Page arrows */}
-              <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
-              <button onClick={()=>setMushafPage(p=>Math.min(604,p+1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
+              {/* RTL arrows: left=next, right=prev */}
+              <button onClick={()=>setMushafPage(p=>Math.min(604,p+1))} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
+              <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
 
               {/* Surah name */}
               <div style={{padding:"10px 14px 0",textAlign:"center"}}>
@@ -2768,25 +2812,16 @@ export default function RihlatAlHifz() {
                 <div style={{height:1,background:"rgba(217,177,95,0.25)",maxWidth:760,margin:"0 auto 14px"}} />
               </div>
 
-              {/* Word renderer */}
+              {/* Line-based renderer */}
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40,color:"rgba(232,213,163,0.45)",fontSize:13}}>Loading page...</div>
               ):(
-                <div style={{direction:"rtl",textAlign:"center",lineHeight:1.9,fontSize:"28px",color:"#F5E6B3",padding:"10px 20px"}}>
-                  {(mushafWords||[]).map((word,index)=>{
-                    const isLastWord=index===mushafWords.length-1||mushafWords[index+1]?.verse_key!==word.verse_key;
-                    const ayahNum=word.verse_key?word.verse_key.split(":")[1]:null;
-                    return(
-                      <span key={index} style={{margin:"0 2px"}}>
-                        {word.text_uthmani}
-                        {isLastWord&&ayahNum&&(
-                          <span style={{color:"#D4AF37",margin:"0 6px",fontSize:"0.9em"}}>
-                            ۝{toArabicDigits(ayahNum)}
-                          </span>
-                        )}
-                      </span>
-                    );
-                  })}
+                <div style={{padding:"0 6px"}}>
+                  {(mushafPageLines||[]).map(line=>(
+                    <div key={line.lineNumber} style={{direction:"rtl",textAlign:"justify",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:"22px",lineHeight:1.75,color:"#F5E6B3",padding:"0 8px"}}>
+                      {line.text}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
