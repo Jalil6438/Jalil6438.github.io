@@ -18,7 +18,6 @@ const QURAN_RECITERS = [
   { id:"ayyoub",   name:"Muhammad Ayyoub",        arabic:"محمد أيوب",         quranicaudio:"muhammad_ayyoub" },
   { id:"budair",   name:"Salah Al-Budair",        arabic:"صلاح البدير",       quranicaudio:"salahbudair" },
   { id:"alijaber", name:"Abdullah Ali Jaber",     arabic:"عبدالله علي جابر",  quranicaudio:"abdullah_ali_jaber" },
-  { id:"turki",    name:"Badr Al-Turki",          arabic:"بدر التركي",        quranicaudio:"badr_al_turki" },
 ];
 
 // ── RECITERS (My Hifz tab — ayah by ayah confirmed) ──────────────────────────
@@ -637,6 +636,8 @@ export default function RihlatAlHifz() {
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafPageLines,setMushafPageLines]=useState([]);
   const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
+  const [showMushafSheet,setShowMushafSheet]=useState(false);
+  const [mushafBookmarks,setMushafBookmarks]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-mushaf-bookmarks")||"[]");}catch{return [];}});
   const [showMushafRangePicker,setShowMushafRangePicker]=useState(false);
   const [mushafRangeStart,setMushafRangeStart]=useState(null);
   const [mushafRangeEnd,setMushafRangeEnd]=useState(null);
@@ -1390,7 +1391,13 @@ export default function RihlatAlHifz() {
     audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
   }
 
-  function getEveryayahFolder(id){ const r=RECITERS.find(x=>x.id===id); return r?.everyayah||RECITERS[0].everyayah; }
+  function getEveryayahFolder(id){
+    const r=RECITERS.find(x=>x.id===id);
+    if(r?.everyayah) return r.everyayah;
+    // Extra reciters only in QURAN_RECITERS
+    const extras={"alijaber":"Ali_Jaber_128kbps"};
+    return extras[id]||RECITERS[0].everyayah;
+  }
 
   function stopMushafAudio(){
     if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
@@ -1402,22 +1409,50 @@ export default function RihlatAlHifz() {
     if(mushafAudioPlaying){ stopMushafAudio(); return; }
     stopMushafAudio();
     setMushafAudioPlaying(true);
-    const surahNum=parseInt(verses[0].verse_key.split(":")[0],10);
-    surahQueueRef.current=verses;
-    surahIdxRef.current=0;
-    // override onended to also set mushafAudioPlaying false when done
+
+    const folder=getEveryayahFolder(quranReciter);
+    function urlFor(vKey){
+      const [s,a]=vKey.split(":");
+      return `https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
+    }
+
+    // Pre-load all ayahs upfront so transitions are instant
+    const preloaded=verses.map(v=>{
+      const a=new Audio(urlFor(v.verse_key));
+      a.preload="auto";
+      return a;
+    });
+
+    let nextTriggered=false;
+
     function playIdx(idx){
       if(idx>=verses.length){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
-      const v=verses[idx]; const vKey=v.verse_key; const [surah,ayah]=vKey.split(":");
-      setPlayingKey(vKey); setAudioLoading(vKey);
-      const folder=getEveryayahFolder(reciter);
-      const url=`https://everyayah.com/data/${folder}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`;
-      const audio=new Audio(url); audio.preload="auto"; audioRef.current=audio;
+      const vKey=verses[idx].verse_key;
+      const audio=preloaded[idx];
+      nextTriggered=false;
+      audioRef.current=audio;
+      setPlayingKey(vKey);
+      setAudioLoading(vKey);
+
       audio.oncanplay=()=>setAudioLoading(null);
-      audio.onended=()=>{ playIdx(idx+1); };
-      audio.onerror=()=>{ playIdx(idx+1); };
+      audio.onended=()=>playIdx(idx+1);
+      audio.onerror=()=>playIdx(idx+1);
+
+      // Start next ayah 0.25s before current ends — eliminates the gap
+      audio.ontimeupdate=()=>{
+        if(!nextTriggered && audio.duration>0 && audio.currentTime >= audio.duration - 0.25){
+          nextTriggered=true;
+          if(idx+1<verses.length){
+            const nextAudio=preloaded[idx+1];
+            nextAudio.currentTime=0;
+            nextAudio.play().catch(()=>{});
+          }
+        }
+      };
+
       audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
     }
+
     playIdx(0);
   }
   function getArchiveUrl(id, surahNum){ const r=RECITERS.find(x=>x.id===id); if(!r?.archive) return null; return `https://archive.org/download/${r.archive}/${String(surahNum).padStart(3,"0")}.mp3`; }
@@ -2899,20 +2934,18 @@ export default function RihlatAlHifz() {
                 src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
                 draggable={false}
+                onClick={()=>setShowMushafSheet(true)}
                 className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
-                style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none"}}
+                style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none",cursor:"pointer"}}
               />
-              {/* Audio FABs — bottom center overlay */}
-              <div style={{position:"absolute",bottom:14,left:0,right:0,display:"flex",justifyContent:"center",alignItems:"center",gap:10,pointerEvents:"none"}}>
-                {/* Play/Stop page button */}
-                <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }} style={{pointerEvents:"auto",width:48,height:48,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:mushafAudioPlaying?"rgba(230,184,74,0.90)":"rgba(8,16,34,0.88)",border:"1px solid rgba(217,177,95,0.40)",boxShadow:"0 4px 20px rgba(0,0,0,0.50)",color:mushafAudioPlaying?"#0B1220":"#E8D5A3",fontSize:20}}>
-                  {mushafAudioPlaying?"⏹":"▶"}
+              {/* Playing indicator — subtle, non-intrusive */}
+              {mushafAudioPlaying&&(
+                <div style={{position:"absolute",bottom:10,left:0,right:0,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+                  <div className="sbtn" onClick={(e)=>{e.stopPropagation();stopMushafAudio();}} style={{pointerEvents:"auto",padding:"6px 16px",borderRadius:20,background:"rgba(8,16,34,0.90)",border:"1px solid rgba(217,177,95,0.40)",color:"#E8D5A3",fontSize:12,display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{color:"#E6B84A"}}>▶</span> Playing · tap to stop
+                  </div>
                 </div>
-                {/* Range picker button */}
-                <div className="sbtn" onClick={()=>{stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true);}} style={{pointerEvents:"auto",width:40,height:40,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(8,16,34,0.88)",border:"1px solid rgba(217,177,95,0.25)",boxShadow:"0 4px 20px rgba(0,0,0,0.50)",color:"rgba(217,177,95,0.70)",fontSize:14}}>
-                  ≡
-                </div>
-              </div>
+              )}
             </div>
           ):(
             <div
