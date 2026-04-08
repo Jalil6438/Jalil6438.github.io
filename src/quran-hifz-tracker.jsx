@@ -637,6 +637,7 @@ export default function RihlatAlHifz() {
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafPageLines,setMushafPageLines]=useState([]);
   const [mushafJuzNum,setMushafJuzNum]=useState(1);
+  const [mushafSurahNum,setMushafSurahNum]=useState(1);
   const [quranPageBreaks,setQuranPageBreaks]=useState([0]);
   const [openSurah,setOpenSurah]=useState(null);
   const [goalYears,setGoalYears]=useState(3);
@@ -697,6 +698,7 @@ export default function RihlatAlHifz() {
         if (vs.length > 0) {
           setMushafJuzNum(vs[0].juz_number || 1);
           const surahNums = [...new Set(vs.map(v => parseInt(v.verse_key.split(":")[0], 10)))];
+          setMushafSurahNum(surahNums[0]||1);
           setMushafSurahInfo(surahNums.map(n => SURAH_EN[n] || "").filter(Boolean).join(" · "));
           if(surahNums.length>0) setSelectedSurahNum(surahNums[0]);
         } else {
@@ -2817,7 +2819,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ QURAN TEXT ═══ */}
       {activeTab==="quran"&&(()=>{
-        const curSurahNum=mushafVerses.length>0?parseInt(mushafVerses[0].verse_key.split(":")[0]):1;
+        const curSurahNum=mushafSurahNum;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
         const parchment="linear-gradient(180deg,#0B1220,#0E1628)";
         const goldColor="#E8D5A3";
