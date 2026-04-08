@@ -1513,8 +1513,8 @@ export default function RihlatAlHifz() {
         @keyframes asrSlideRight{from{transform:translateX(-40px);opacity:0}to{transform:translateX(0);opacity:1}}
         .asr-slide-left{animation:asrSlideLeft .2s ease-out}
         .asr-slide-right{animation:asrSlideRight .2s ease-out}
-        @keyframes pageTurnNext{0%{transform:perspective(1200px) rotateY(12deg);opacity:0}100%{transform:perspective(1200px) rotateY(0deg);opacity:1}}
-        @keyframes pageTurnPrev{0%{transform:perspective(1200px) rotateY(-12deg);opacity:0}100%{transform:perspective(1200px) rotateY(0deg);opacity:1}}
+        @keyframes pageTurnNext{0%{transform:perspective(900px) rotateY(18deg) translateX(30px);opacity:0}60%{opacity:1}100%{transform:perspective(900px) rotateY(0deg) translateX(0);opacity:1}}
+        @keyframes pageTurnPrev{0%{transform:perspective(900px) rotateY(-18deg) translateX(-30px);opacity:0}60%{opacity:1}100%{transform:perspective(900px) rotateY(0deg) translateX(0);opacity:1}}
         .page-next{animation:pageTurnNext .4s ease-out;transform-origin:left center;}
         .page-prev{animation:pageTurnPrev .4s ease-out;transform-origin:right center;}
         .asr-surah-btn{transition:all .15s ease;transform:scale(1);}
@@ -2841,51 +2841,32 @@ export default function RihlatAlHifz() {
           {/* Viewer */}
           {quranMode==="mushaf"?(
             <div style={{flex:1,overflow:"hidden",backgroundColor:"#0b1a2b",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
-              onTouchStart={e=>{
-                quranTouchRef.current=e.touches[0].clientX;
-                if(mushafImgRef.current){
-                  mushafImgRef.current.style.transition="none";
-                  mushafImgRef.current.style.transform="translateX(0)";
-                }
-              }}
-              onTouchMove={e=>{
-                if(!mushafImgRef.current) return;
-                const dx=e.touches[0].clientX-quranTouchRef.current;
-                // dampen drag feel
-                mushafImgRef.current.style.transform=`translateX(${dx*0.35}px)`;
-              }}
+              onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
-                const img=mushafImgRef.current;
-                if(!img) return;
-                if(Math.abs(dx)>=80){
-                  // commit — animate off screen then change page
-                  const exitX=dx<0?-300:300;
-                  img.style.transition="transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease";
-                  img.style.transform=`translateX(${exitX}px)`;
-                  img.style.opacity="0";
-                  setTimeout(()=>{
-                    // RTL: drag left=prev, drag right=next
-                    if(dx<0) setMushafPage(p=>Math.max(1,p-1));
-                    else setMushafPage(p=>Math.min(604,p+1));
-                  },200);
-                } else {
-                  // snap back
-                  img.style.transition="transform 0.3s cubic-bezier(0.34,1.56,0.64,1)";
-                  img.style.transform="translateX(0)";
-                }
+                if(Math.abs(dx)<80) return;
+                if(dx<0){ setMushafSwipeAnim("prev"); setMushafPage(p=>Math.max(1,p-1)); }
+                else { setMushafSwipeAnim("next"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
             >
               {/* RTL arrows: left=next, right=prev */}
-              <button onClick={()=>setMushafPage(p=>Math.min(604,p+1))} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
-              <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
+              <button onClick={()=>{setMushafSwipeAnim("next");setMushafPage(p=>Math.min(604,p+1));}} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
+              <button onClick={()=>{setMushafSwipeAnim("prev");setMushafPage(p=>Math.max(1,p-1));}} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
               <img
-                ref={mushafImgRef}
                 key={mushafPage}
                 src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
                 draggable={false}
-                style={{width:"100%",height:"auto",display:"block",userSelect:"none",WebkitUserDrag:"none",willChange:"transform"}}
+                onAnimationEnd={()=>setMushafSwipeAnim("idle")}
+                style={{
+                  width:"100%",height:"auto",display:"block",
+                  userSelect:"none",WebkitUserDrag:"none",
+                  animation: mushafSwipeAnim==="next"
+                    ? "pageTurnNext 0.32s cubic-bezier(0.22,1,0.36,1) both"
+                    : mushafSwipeAnim==="prev"
+                    ? "pageTurnPrev 0.32s cubic-bezier(0.22,1,0.36,1) both"
+                    : "none",
+                }}
               />
             </div>
           ):(
