@@ -3010,6 +3010,26 @@ export default function RihlatAlHifz() {
               </div>
             </div>
           )}
+
+          {/* ── TAFSIR DRAWER ── */}
+          {tafsirOn&&tafsirAyah&&(
+            <div style={{borderTop:"1px solid rgba(212,175,55,0.08)",background:"#080C14",maxHeight:"50vh",overflowY:"auto",flexShrink:0}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 16px 4px"}}>
+                <span style={{fontSize:10,color:"rgba(230,184,74,0.40)"}}>{tafsirAyah}</span>
+                <div className="sbtn" onClick={()=>{setTafsirAyah(null);setTafsirOn(false);}} style={{fontSize:13,color:"rgba(243,231,200,0.18)"}}>×</div>
+              </div>
+              <div style={{display:"flex",borderBottom:"1px solid rgba(212,175,55,0.05)",padding:"0 16px"}}>
+                {TAFSIR_SOURCES.map(src=>(
+                  <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,textAlign:"center",padding:"6px 4px",fontSize:10,fontWeight:tafsirTab===src.id?600:400,color:tafsirTab===src.id?"#E6B84A":"rgba(243,231,200,0.22)",borderBottom:`2px solid ${tafsirTab===src.id?"#E6B84A":"transparent"}`}}>
+                    {src.name}
+                  </div>
+                ))}
+              </div>
+              <div style={{padding:"12px 16px 20px",fontSize:14,lineHeight:1.8,color:"rgba(243,231,200,0.60)",fontFamily:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"'Amiri',serif":"'DM Sans',sans-serif",direction:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"rtl":"ltr"}}>
+                {tafsirData[`${tafsirTab}-${tafsirAyah}`]||<span style={{color:"rgba(243,231,200,0.18)",fontSize:11}}>Loading...</span>}
+              </div>
+            </div>
+          )}
         </div>
         );
       })()}
@@ -3308,6 +3328,72 @@ export default function RihlatAlHifz() {
         );
       })()}
 
+      {/* Mushaf Action Sheet */}
+      {showMushafSheet&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowMushafSheet(false)}>
+          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 28px",width:"100%",maxWidth:520,border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+            <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18}}>
+              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0),rgba(232,200,120,0.40))"}}/>
+              <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600}}>Page {mushafPage}</div>
+              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.40),rgba(217,177,95,0))"}}/>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {/* Play Page */}
+              <div className="sbtn" onClick={()=>{setShowMushafSheet(false);if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);}}} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:mushafAudioPlaying?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${mushafAudioPlaying?"rgba(230,184,74,0.40)":"rgba(217,177,95,0.12)"}`}}>
+                <span style={{fontSize:20,color:mushafAudioPlaying?"#E6B84A":"rgba(217,177,95,0.70)"}}>{mushafAudioPlaying?"⏹":"▶"}</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color:mushafAudioPlaying?"#F6E27A":"rgba(243,231,200,0.85)"}}>{mushafAudioPlaying?"Stop":"Play Page"}</div>
+                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>{mushafAudioPlaying?"Currently playing":"Play all ayahs on this page"}</div>
+                </div>
+              </div>
+              {/* Play Range */}
+              <div className="sbtn" onClick={()=>{setShowMushafSheet(false);stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true);}} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)"}}>
+                <span style={{fontSize:20,color:"rgba(217,177,95,0.70)"}}>⏭</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.85)"}}>Play Range</div>
+                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>Select start and end ayah</div>
+                </div>
+              </div>
+              {/* Tafsir */}
+              <div className="sbtn" onClick={()=>{
+                setShowMushafSheet(false);
+                if(mushafVerses.length>0){
+                  const vk=mushafVerses[0].verse_key;
+                  setTafsirAyah(vk);
+                  setTafsirOn(true);
+                  fetchTafsir(vk);
+                }
+              }} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)"}}>
+                <span style={{fontSize:20,color:"rgba(217,177,95,0.70)"}}>📖</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.85)"}}>Tafsir</div>
+                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>View tafsir for first ayah on page</div>
+                </div>
+              </div>
+              {/* Bookmark */}
+              {(()=>{
+                const isBookmarked=mushafBookmarks.includes(mushafPage);
+                return(
+                  <div className="sbtn" onClick={()=>{
+                    setShowMushafSheet(false);
+                    const updated=isBookmarked?mushafBookmarks.filter(p=>p!==mushafPage):[...mushafBookmarks,mushafPage].sort((a,b)=>a-b);
+                    setMushafBookmarks(updated);
+                    try{localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(updated));}catch{}
+                  }} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:isBookmarked?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.04)",border:`1px solid ${isBookmarked?"rgba(232,200,120,0.40)":"rgba(217,177,95,0.12)"}`}}>
+                    <span style={{fontSize:20,color:isBookmarked?"#E6B84A":"rgba(217,177,95,0.70)"}}>{isBookmarked?"🔖":"🔖"}</span>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:600,color:isBookmarked?"#F6E27A":"rgba(243,231,200,0.85)"}}>{isBookmarked?"Remove Bookmark":"Bookmark Page"}</div>
+                      <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>Page {mushafPage}</div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mushaf Audio Range Picker */}
       {showMushafRangePicker&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.82)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowMushafRangePicker(false)}>
@@ -3413,21 +3499,19 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600}}>Select Surah</div>
               <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
               {Object.entries(SURAH_PAGES).map(([num,pg])=>{
                 const n=Number(num);
                 const isSel=mushafSurahNum===n;
                 return(
                   <div key={n} className="sbtn" onClick={()=>{setMushafPage(pg);setShowQuranSurahModal(false);}}
-                    style={{padding:"11px 16px",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"space-between",
+                    style={{padding:"10px 12px",borderRadius:10,
                       background:isSel?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)",
                       border:`1px solid ${isSel?"rgba(232,200,120,0.65)":"rgba(217,177,95,0.08)"}`,
-                      boxShadow:isSel?"0 0 20px rgba(232,200,120,0.20)":"none"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:"rgba(217,177,95,0.40)",width:28}}>{String(n).padStart(3,"0")}</div>
-                      <div style={{fontSize:13,fontWeight:isSel?600:400,color:isSel?"#F6E27A":"rgba(243,231,200,0.75)"}}>{SURAH_EN[n]}</div>
-                    </div>
-                    <div style={{fontSize:13,color:isSel?"rgba(246,226,122,0.70)":"rgba(217,177,95,0.30)",direction:"rtl"}}>{SURAH_AR[n]}</div>
+                      boxShadow:isSel?"0 0 16px rgba(232,200,120,0.20)":"none"}}>
+                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"rgba(217,177,95,0.35)",marginBottom:3}}>{String(n).padStart(3,"0")}</div>
+                    <div style={{fontSize:12,fontWeight:isSel?600:400,color:isSel?"#F6E27A":"rgba(243,231,200,0.80)",marginBottom:2}}>{SURAH_EN[n]}</div>
+                    <div style={{fontSize:11,color:isSel?"rgba(246,226,122,0.60)":"rgba(217,177,95,0.35)",direction:"rtl"}}>{SURAH_AR[n]}</div>
                   </div>
                 );
               })}
