@@ -2862,8 +2862,7 @@ export default function RihlatAlHifz() {
               }}
             >
               {/* RTL arrows: left=next, right=prev */}
-              <button onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
-              <button onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
+
               <img
                 key={mushafPage}
                 src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
@@ -2885,8 +2884,7 @@ export default function RihlatAlHifz() {
               style={{position:"relative",flex:1,overflowY:"auto",paddingBottom:70,background:"linear-gradient(180deg,#0B1220,#0E1628)"}}
             >
               {/* RTL arrows: left=next, right=prev */}
-              <button onClick={()=>setMushafPage(p=>Math.min(604,p+1))} style={{position:"fixed",left:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x2039;</button>
-              <button onClick={()=>setMushafPage(p=>Math.max(1,p-1))} style={{position:"fixed",right:12,bottom:92,width:42,height:42,borderRadius:"50%",border:"1px solid rgba(217,177,95,0.25)",background:"rgba(8,16,34,0.92)",color:"#E8D5A3",fontSize:22,cursor:"pointer",zIndex:20}}>&#x203a;</button>
+
 
               {/* Surah name */}
               <div style={{padding:"10px 14px 0",textAlign:"center"}}>
@@ -2912,10 +2910,10 @@ export default function RihlatAlHifz() {
           )}
 
           {/* Page nav */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 14px 6px",borderTop:`1px solid rgba(217,177,95,0.10)`,flexShrink:0,background:"#0B1220"}}>
-            <div className="sbtn" onClick={()=>{if(mushafPage<604)setMushafPage(p=>p+1);}} style={{padding:"5px 12px",fontSize:16,color:mushafPage<604?"rgba(217,177,95,0.50)":"rgba(217,177,95,0.15)"}}>‹</div>
-            <div style={{fontSize:9,color:"rgba(217,177,95,0.40)",fontFamily:"'DM Sans',sans-serif",letterSpacing:".06em"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
-            <div className="sbtn" onClick={()=>{if(mushafPage>1)setMushafPage(p=>p-1);}} style={{padding:"5px 12px",fontSize:16,color:mushafPage>1?"rgba(217,177,95,0.50)":"rgba(217,177,95,0.15)"}}>›</div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:"1px solid rgba(217,177,95,0.12)",flexShrink:0,background:"#060C18"}}>
+            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?"rgba(217,177,95,0.60)":"rgba(217,177,95,0.15)",borderRadius:10,border:"1px solid rgba(217,177,95,0.15)",background:"rgba(255,255,255,0.03)"}}>‹</div>
+            <div style={{fontSize:11,color:"rgba(217,177,95,0.45)",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
+            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?"rgba(217,177,95,0.60)":"rgba(217,177,95,0.15)",borderRadius:10,border:"1px solid rgba(217,177,95,0.15)",background:"rgba(255,255,255,0.03)"}}>›</div>
           </div>
 
           {/* ── TAFSIR DRAWER ── */}
@@ -3277,7 +3275,7 @@ export default function RihlatAlHifz() {
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {Object.entries(SURAH_PAGES).map(([num,pg])=>{
                 const n=Number(num);
-                const isSel=curSurahNum===n;
+                const isSel=mushafSurahNum===n;
                 return(
                   <div key={n} className="sbtn" onClick={()=>{setMushafPage(pg);setShowQuranSurahModal(false);}}
                     style={{padding:"11px 16px",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"space-between",
