@@ -642,6 +642,7 @@ export default function RihlatAlHifz() {
   const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
   const [showMushafSheet,setShowMushafSheet]=useState(false);
   const [mushafBookmarks,setMushafBookmarks]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-mushaf-bookmarks")||"[]");}catch{return [];}});
+  const [qcfLoadedPages,setQcfLoadedPages]=useState(new Set()); // tracks which page fonts loaded
   const [showMushafRangePicker,setShowMushafRangePicker]=useState(false);
   const [mushafRangeStart,setMushafRangeStart]=useState(null);
   const [mushafRangeEnd,setMushafRangeEnd]=useState(null);
@@ -685,18 +686,22 @@ export default function RihlatAlHifz() {
     fetch("/quran-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
   },[]);
 
-  // QCF V2 per-page font loader
+  // QCF V2 per-page font loader — uses React state so component re-renders when font loads
   const qcfFontsLoaded = useRef(new Set());
   const loadQcfFont = useCallback(async (pageNum) => {
     const key = `p${pageNum}-v2`;
     if (qcfFontsLoaded.current.has(key)) return;
+    qcfFontsLoaded.current.add(key); // mark in-progress to prevent duplicate loads
     try {
       const ff = new FontFace(key, `url('https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2')`);
-      ff.display = "block";
+      ff.display = "swap";
       await ff.load();
       document.fonts.add(ff);
-      qcfFontsLoaded.current.add(key);
-    } catch(e) { qcfFontsLoaded.current.add(key+"_failed"); /* mark failed so fallback renders */ }
+      setQcfLoadedPages(prev => new Set([...prev, pageNum])); // trigger re-render
+    } catch(e) {
+      // Font failed — trigger re-render so fallback text shows
+      setQcfLoadedPages(prev => new Set([...prev, `${pageNum}_fallback`]));
+    }
   }, []);
 
   useEffect(() => {
@@ -3018,7 +3023,7 @@ export default function RihlatAlHifz() {
                         style={{
                           display:"flex",
                           flexDirection:"row",
-                          justifyContent: line.words.length<=4 ? "center" : "space-between",
+                          justifyContent: line.words.length<=3 ? "center" : line.words.length<=6 ? "space-evenly" : "space-between",
                           alignItems:"center",
                           direction:"rtl",
                           width:"100%",
@@ -3030,21 +3035,26 @@ export default function RihlatAlHifz() {
                         {line.words.map((w,wi)=>{
                           const isEnd = w.charType==="end";
                           if(isEnd){
-                            // End markers: always use UthmanicHafs Unicode font with text_qpc_hafs (not code_v2)
+                            // End markers: always Unicode font + text_qpc_hafs text
                             return (
                               <span
                                 key={wi}
-                                style={{fontFamily:"'UthmanicHafs','Amiri',serif", color:"rgba(217,177,95,0.75)", flexShrink:0, fontSize:"0.85em"}}
+                                style={{fontFamily:"'UthmanicHafs','Amiri',serif", color:"rgba(217,177,95,0.80)", flexShrink:0, fontSize:"0.82em"}}
                                 dangerouslySetInnerHTML={{__html: w.fallback}}
                               />
                             );
                           }
-                          // Regular words: QCF V2 per-page font, fallback to UthmanicHafs
+                          // Regular words: use QCF V2 only if font confirmed loaded, else show Unicode fallback
+                          const fontLoaded = qcfLoadedPages.has(w.pageNum);
                           return (
                             <span
                               key={wi}
-                              style={{fontFamily:`p${w.pageNum}-v2,'UthmanicHafs','Amiri',serif`, color:"#F3E7C8", flexShrink: line.words.length<=4?0:1}}
-                              dangerouslySetInnerHTML={{__html: w.codeV2 || w.fallback}}
+                              style={{
+                                fontFamily: fontLoaded ? `p${w.pageNum}-v2,'UthmanicHafs','Amiri',serif` : "'UthmanicHafs','Amiri',serif",
+                                color:"#F3E7C8",
+                                flexShrink: line.words.length<=4 ? 0 : 1,
+                              }}
+                              dangerouslySetInnerHTML={{__html: fontLoaded ? (w.codeV2 || w.fallback) : w.fallback}}
                             />
                           );
                         })}
@@ -3052,11 +3062,9 @@ export default function RihlatAlHifz() {
                     ))}
                   </div>
 
-                  {/* Page number inside ornamental brackets */}
-                  <div style={{textAlign:"center",padding:"6px 0 12px",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                    <span style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:"4.5cqi",color:"rgba(217,177,95,0.35)"}}>﴾</span>
-                    <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(217,177,95,0.35)",letterSpacing:".08em"}}>{mushafPage}</span>
-                    <span style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:"4.5cqi",color:"rgba(217,177,95,0.35)"}}>﴿</span>
+                  {/* Page number — simple centered, no directional brackets */}
+                  <div style={{textAlign:"center",padding:"6px 0 12px",fontFamily:"'Amiri',serif",fontSize:13,color:"rgba(217,177,95,0.30)",letterSpacing:".1em"}}>
+                    — {mushafPage} —
                   </div>
                 </div>
               )}
