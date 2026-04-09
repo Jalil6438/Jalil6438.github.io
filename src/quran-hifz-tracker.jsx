@@ -2289,40 +2289,42 @@ export default function RihlatAlHifz() {
                   const isFinal=onLastPage;
                   return (<div>
                   <div className="sbtn" onClick={()=>{
+                    if(!onLastPage){
+                      // Not on last page — advance to next batch of ayahs
+                      setAyahPage(p=>p+1);
+                      return;
+                    }
+                    // On last page — complete the session
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                     toggleCheck(sess.id);
                     setRepCounts({});
                     setOpenAyah(null);
+                    setAyahPage(0);
                     if(activeSessionIndex>=SESSIONS.length-1){
                       setYesterdayBatch(fajrBatch);
-                      console.log('[ISHA CTA]', {bEnd, totalSV, sessionIdx, sessionJuz, 'bEnd>=totalSV': bEnd>=totalSV, 'totalSV>0': totalSV>0, activeSessionIndex, 'isIsha': activeSessionIndex>=SESSIONS.length-1});
                       if(bEnd>=totalSV&&totalSV>0&&sessionJuz){
-                        console.log('[ISHA CTA] → COMPLETION BRANCH');
                         setSessionIdx(totalSV);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
                         setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
                         setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
                         setSessionJuz(null);
                       } else if(sessionJuz) {
-                        console.log('[ISHA CTA] → ELSE BRANCH');
                         setSessionIdx(bEnd);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
                     } else {
-                      console.log('[NON-ISHA CTA]', {activeSessionIndex, 'SESSIONS.length-1': SESSIONS.length-1});
                       setActiveSessionIndex(i=>i+1);
                     }
                   }} style={{width:"100%",padding:"14px",borderRadius:12,fontSize:14,fontWeight:700,textAlign:"center",transition:"all .2s",
-                    ...(isFinal
-                      ?{background:"linear-gradient(180deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 18px rgba(230,184,74,0.30),0 0 14px rgba(230,184,74,0.15)"}
-                      :{background:"rgba(230,184,74,0.12)",color:"rgba(230,184,74,0.65)",border:"1px solid rgba(230,184,74,0.18)",boxShadow:"none"}
-                    )}}>
-                    {isFinal?"Complete Session":"Continue"}
+                    background:"linear-gradient(180deg,#E6B84A,#D4A62A)",
+                    color:"#0B1220",
+                    boxShadow:"0 6px 18px rgba(230,184,74,0.30),0 0 14px rgba(230,184,74,0.15)"}}>
+                    {isFinal?"Complete Session":"Next →"}
                   </div>
-                  {!isFinal&&<div style={{textAlign:"center",fontSize:10,color:"rgba(243,231,200,0.28)",marginTop:6}}>Keep going — you're building strong foundations</div>}
+                  {!isFinal&&<div style={{textAlign:"center",fontSize:10,color:"rgba(243,231,200,0.28)",marginTop:6}}>{ayahPage+1} of {batchPages} · keep going</div>}
                   </div>);
                 })()}
               </div>
