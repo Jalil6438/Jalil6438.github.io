@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 // react-quran removed — custom renderer
 // Font via Google Fonts (injected in QuranPageView)
 // Mushaf images served from github.com/Jalil6438/mushaf-images
@@ -685,6 +685,20 @@ export default function RihlatAlHifz() {
     fetch("/quran-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
   },[]);
 
+  // QCF V2 per-page font loader
+  const qcfFontsLoaded = useRef(new Set());
+  const loadQcfFont = useCallback(async (pageNum) => {
+    const key = `p${pageNum}-v2`;
+    if (qcfFontsLoaded.current.has(key)) return;
+    try {
+      const ff = new FontFace(key, `url('https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2')`);
+      ff.display = "block";
+      await ff.load();
+      document.fonts.add(ff);
+      qcfFontsLoaded.current.add(key);
+    } catch(e) { /* silent — fallback to UthmanicHafs */ }
+  }, []);
+
   useEffect(() => {
     if (activeTab !== "quran") return;
     let cancelled = false;
@@ -695,8 +709,8 @@ export default function RihlatAlHifz() {
           `https://api.quran.com/api/v4/verses/by_page/${mushafPage}?` +
           new URLSearchParams({
             language: "en", words: "true", per_page: "50",
-            fields: "text_uthmani,verse_key,juz_number,page_number",
-            word_fields: "text_uthmani,line_number,position,char_type_name"
+            fields: "verse_key,juz_number,page_number",
+            word_fields: "code_v2,text_qpc_hafs,line_number,position,char_type_name,page_number"
           })
         );
         if (!res.ok) throw new Error();
@@ -713,16 +727,19 @@ export default function RihlatAlHifz() {
         } else {
           setMushafJuzNum(1); setMushafSurahInfo("");
         }
-        // Group words by line_number
+        // Group words by line_number — keep only word + end tokens
         const allWords = vs.flatMap(v =>
           (v.words || []).map(w => ({
-            text: (w.text_uthmani || "").replace(/^[ۭۡ۟۠ۢ؀-؅‌‍]+$/,"").trim(),
+            codeV2:     w.code_v2 || "",
+            fallback:   w.text_qpc_hafs || "",
             lineNumber: Number(w.line_number || 0),
-            position: Number(w.position || 0),
-            verseKey: v.verse_key,
-            charType: w.char_type_name || "word",
+            position:   Number(w.position || 0),
+            pageNum:    Number(w.page_number || mushafPage),
+            verseKey:   v.verse_key,
+            charType:   w.char_type_name || "word",
           }))
-        );
+        ).filter(w => w.charType === "word" || w.charType === "end");
+
         const grouped = new Map();
         for (const word of allWords) {
           if (!word.lineNumber) continue;
@@ -731,34 +748,24 @@ export default function RihlatAlHifz() {
         }
         const lines = [...grouped.entries()]
           .sort((a, b) => a[0] - b[0])
-          .map(([lineNumber, words]) => {
-            const sorted = words.sort((a, b) => a.position - b.position);
-            const lastVerseKey = sorted[sorted.length - 1]?.verseKey || "";
-            const prevVerseKey = sorted[0]?.verseKey || "";
-            // line ends an ayah if last word is last word of its verse
-            const allWords2 = vs.flatMap(v => (v.words||[]).map(w=>({...w,verse_key:v.verse_key})));
-            const lastInVerse = allWords2.filter(w => w.verse_key === lastVerseKey);
-            const endsAyah = lastInVerse.length > 0 &&
-              sorted[sorted.length-1].position === Math.max(...lastInVerse.map(w=>Number(w.position||0)));
-            return {
-              lineNumber,
-              words: sorted,
-              text: sorted.filter(w=>{if(w.charType==="end")return true;if(w.charType!=="word")return false;const stripped=w.text.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7-\u06ED]/g,"").trim();return stripped.length>=2;}).map(w=>w.text).filter(Boolean).join(" "),
-              endsAyah,
-              ayahNum: endsAyah ? lastVerseKey.split(":")[1] : null,
-              isCentered: sorted.length <= 3, // Bismillah / short lines centered
-            };
-          })
-          .filter(l => l.text.length > 0);
+          .map(([lineNumber, words]) => ({
+            lineNumber,
+            words: words.sort((a, b) => a.position - b.position),
+          }))
+          .filter(l => l.words.length > 0);
         setMushafPageLines(lines);
+
+        // Load QCF V2 per-page fonts
+        const pageNums = [...new Set(allWords.map(w => w.pageNum).filter(Boolean))];
+        await Promise.all(pageNums.map(p => loadQcfFont(p)));
+        if (!cancelled) setMushafLoading(false);
       } catch (err) {
         setMushafVerses([]); setMushafPageLines([]);
-      } finally {
         if (!cancelled) setMushafLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [activeTab, mushafPage]);
+  }, [activeTab, mushafPage, loadQcfFont]);
 
   // Auto-crop white margins from mushaf page image
   function cropMushafImage(imgUrl) {
@@ -2998,7 +3005,7 @@ export default function RihlatAlHifz() {
                     ));
                   })()}
 
-                  {/* Lines — cqi font scales perfectly to container width */}
+                  {/* Lines — QCF V2 glyph rendering, per-page font */}
                   <div style={{
                     display:"flex",
                     flexDirection:"column",
@@ -3009,18 +3016,30 @@ export default function RihlatAlHifz() {
                     {(mushafPageLines||[]).map((line,li)=>(
                       <div key={line.lineNumber}
                         style={{
-                          fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",
-                          fontSize:"5.3cqi",
-                          lineHeight:2.2,
-                          color:"#F3E7C8",
+                          display:"flex",
+                          flexDirection:"row",
+                          justifyContent: line.words.length<=4 ? "center" : "space-between",
+                          alignItems:"center",
                           direction:"rtl",
-                          textAlign:"justify",
-                          textAlignLast:"center",
                           width:"100%",
-                          display:"block",
+                          fontSize:"5.3cqi",
+                          lineHeight:2.3,
+                          minHeight:"2.3em",
                         }}
                       >
-                        {line.text}
+                        {line.words.map((w,wi)=>{
+                          const isEnd = w.charType==="end";
+                          const fontFam = isEnd
+                            ? "'UthmanicHafs','Amiri',serif"
+                            : `p${w.pageNum}-v2,'UthmanicHafs','Amiri',serif`;
+                          return (
+                            <span
+                              key={wi}
+                              style={{fontFamily:fontFam, color:"#F3E7C8", flexShrink: line.words.length<=4?0:1}}
+                              dangerouslySetInnerHTML={{__html: w.codeV2 || w.fallback}}
+                            />
+                          );
+                        })}
                       </div>
                     ))}
                   </div>
