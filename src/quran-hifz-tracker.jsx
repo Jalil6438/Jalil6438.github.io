@@ -724,7 +724,6 @@ export default function RihlatAlHifz() {
             charType:   w.char_type_name || "word",
           }))
         ).filter(w => w.charType === "word" || w.charType === "end");
-        });
 
         const grouped = new Map();
         for (const w of allWords) {
