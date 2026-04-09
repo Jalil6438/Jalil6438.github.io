@@ -2039,6 +2039,9 @@ export default function RihlatAlHifz() {
               <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)",overflowY:"auto",padding:"32px 20px 40px"}}>
 
                 {/* Header */}
+                <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
+                  <div className="sbtn" onClick={()=>{setActiveTab("myhifz");setActiveSessionIndex(0);}} style={{padding:"6px 12px",fontSize:20,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
+                </div>
                 <div style={{textAlign:"center",marginBottom:8}}>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7C8",fontWeight:700,fontStyle:"italic",marginBottom:6}}>Choose Your Asr Review</div>
                   <div style={{fontSize:13,color:"rgba(243,231,200,0.45)"}}>Cycle through completed memorization.</div>
