@@ -716,7 +716,7 @@ export default function RihlatAlHifz() {
         // Group words by line_number
         const allWords = vs.flatMap(v =>
           (v.words || []).map(w => ({
-            text: (w.text_uthmani || "").trim(),
+            text: (w.text_uthmani || "").replace(/^[ۭۡ۟۠ۢ؀-؅‌‍]+$/,"").trim(),
             lineNumber: Number(w.line_number || 0),
             position: Number(w.position || 0),
             verseKey: v.verse_key,
@@ -743,7 +743,7 @@ export default function RihlatAlHifz() {
             return {
               lineNumber,
               words: sorted,
-              text: sorted.map(w => w.text).filter(Boolean).join(" "),
+              text: sorted.filter(w=>w.charType==="word"||w.charType==="end").map(w => w.text).filter(Boolean).join(" "),
               endsAyah,
               ayahNum: endsAyah ? lastVerseKey.split(":")[1] : null,
               isCentered: sorted.length <= 3, // Bismillah / short lines centered
@@ -2975,31 +2975,41 @@ export default function RihlatAlHifz() {
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.35)",fontSize:12,letterSpacing:".1em"}}>Loading page...</div>
               ):(
-                <div style={{margin:"12px 10px",borderRadius:6,overflow:"hidden",background:"#F8F3E6",boxShadow:"0 4px 24px rgba(0,0,0,0.50)",border:"1px solid rgba(201,168,76,0.20)"}}>
+                <div style={{margin:"12px 10px",borderRadius:6,overflow:"hidden",background:"transparent"}}>
 
                   {/* Surah header band — shows when surah changes on this page */}
                   {(()=>{
                     const surahNums=[...new Set((mushafVerses||[]).map(v=>parseInt(v.verse_key.split(":")[0],10)))];
                     return surahNums.map(n=>(
-                      <div key={n} style={{background:"linear-gradient(90deg,#c9a84c22,#c9a84c44,#c9a84c22)",borderBottom:"1px solid rgba(201,168,76,0.30)",padding:"6px 12px",textAlign:"center"}}>
-                        <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#5A3E10",fontWeight:700,letterSpacing:".04em"}}>{SURAH_AR[n]||""}</div>
-                        <div style={{fontSize:9,color:"rgba(90,62,16,0.60)",letterSpacing:".15em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[n]||""}</div>
+                      <div key={n}>
+                        <div style={{background:"rgba(201,168,76,0.06)",borderBottom:"1px solid rgba(201,168,76,0.18)",padding:"8px 12px",textAlign:"center"}}>
+                          <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:"#E8C878",fontWeight:700,letterSpacing:".04em"}}>{SURAH_AR[n]||""}</div>
+                          <div style={{fontSize:9,color:"rgba(217,177,95,0.55)",letterSpacing:".15em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[n]||""}</div>
+                        </div>
+                        {/* Bismillah — shown for all surahs except Al-Tawbah (9) and Al-Fatiha (1 — already has it in text) */}
+                        {n!==9&&n!==1&&(
+                          <div style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:"22px",color:"#E8C878",textAlign:"center",padding:"10px 16px 4px",direction:"rtl",lineHeight:2}}>
+                            بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+                          </div>
+                        )}
                       </div>
                     ));
                   })()}
 
                   {/* Page content */}
-                  <div style={{padding:"14px 12px 18px"}}>
+                  <div style={{padding:"14px 16px 18px"}}>
                     {(mushafPageLines||[]).map((line,li)=>(
                       <div key={line.lineNumber}
                         style={{
                           fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",
-                          fontSize:"22px",
-                          lineHeight:2.4,
-                          color:"#1A0A00",
+                          fontSize:"23px",
+                          lineHeight:2.5,
+                          color:"#F3E7C8",
                           direction:"rtl",
                           textAlign:"center",
-                          letterSpacing:"0.02em",
+                          letterSpacing:"0.01em",
+                          whiteSpace:"nowrap",
+                          overflow:"hidden",
                         }}
                       >
                         {line.text}
@@ -3008,7 +3018,7 @@ export default function RihlatAlHifz() {
                   </div>
 
                   {/* Page number */}
-                  <div style={{textAlign:"center",padding:"4px 0 10px",fontFamily:"'Amiri',serif",fontSize:13,color:"rgba(90,62,16,0.50)"}}>
+                  <div style={{textAlign:"center",padding:"4px 0 10px",fontFamily:"'Amiri',serif",fontSize:13,color:"rgba(217,177,95,0.35)"}}>
                     ﴾ {mushafPage} ﴿
                   </div>
                 </div>
