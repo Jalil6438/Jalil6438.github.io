@@ -2938,125 +2938,138 @@ export default function RihlatAlHifz() {
               }}
               style={{position:"relative",flex:1,overflowY:"auto",background:"#060C18",padding:"10px 12px 80px"}}
             >
-              {/* Translation toggle + page info */}
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <div style={{fontSize:10,color:"rgba(217,177,95,0.35)",letterSpacing:".1em"}}>PAGE {mushafPage}</div>
+              {/* Translation toggle — small, clean */}
+              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:8}}>
                 <div className="sbtn" onClick={()=>setShowTranslation(t=>!t)}
-                  style={{fontSize:9,fontWeight:700,letterSpacing:".15em",textTransform:"uppercase",
-                  padding:"4px 10px",borderRadius:20,border:"1px solid rgba(201,168,76,0.20)",
-                  color:showTranslation?"#E8C878":"rgba(217,177,95,0.35)",
-                  background:showTranslation?"rgba(201,168,76,0.08)":"transparent"}}>
-                  {showTranslation?"Translation ON":"Translation OFF"}
+                  style={{fontSize:8,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",
+                  padding:"3px 9px",borderRadius:20,border:"1px solid rgba(201,168,76,0.18)",
+                  color:showTranslation?"rgba(217,177,95,0.80)":"rgba(217,177,95,0.28)",
+                  background:"transparent"}}>
+                  {showTranslation?"Translation ✓":"Translation"}
                 </div>
               </div>
 
               {mushafLoading?(
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.30)",fontSize:12,letterSpacing:".1em"}}>Loading ayahs...</div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.30)",fontSize:12,letterSpacing:".1em"}}>Loading...</div>
               ):(
                 <div>
-                  {/* Group by surah — show surah header when surah changes */}
                   {(()=>{
                     let lastSurah = null;
+                    // Single shared audio ref — stops previous before playing new
+                    const playAyahAudio = (vk) => {
+                      if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
+                      const [s,a]=vk.split(":");
+                      const folder=getEveryayahFolder(quranReciter);
+                      const url=`https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
+                      const au=new Audio(url);
+                      audioRef.current=au;
+                      setPlayingKey(vk);
+                      au.play();
+                      au.onended=()=>{ setPlayingKey(null); };
+                    };
                     return (mushafVerses||[]).map(verse=>{
                       const [sNum,aNum] = verse.verse_key.split(":");
                       const surahN = parseInt(sNum,10);
                       const isSelected = selectedAyah === verse.verse_key;
+                      const isPlaying = playingKey === verse.verse_key;
+                      const isSaved = mushafBookmarks.includes(verse.verse_key);
                       const transText = (verse.translations?.[0]?.text||"").replace(/<[^>]*>/g,"").trim();
                       const showHeader = surahN !== lastSurah;
                       lastSurah = surahN;
+                      // Strip standalone sukun/diacritic-only tokens from Arabic text
+                      const arabicText = (verse.text_uthmani||"").replace(/[ۣ۪ۭ۟۠ۡۢۤۧۨ۫۬]\s*/g,"");
 
                       return (
                         <div key={verse.verse_key}>
-                          {/* Surah header */}
+                          {/* Surah header — minimal, no border box */}
                           {showHeader&&(
-                            <div style={{textAlign:"center",margin:"4px 0 8px",padding:"8px 12px",background:"rgba(201,168,76,0.05)",borderRadius:8,border:"1px solid rgba(201,168,76,0.12)"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"#E8C878",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
-                              <div style={{fontSize:9,color:"rgba(217,177,95,0.45)",letterSpacing:".18em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
+                            <div style={{textAlign:"center",padding:"14px 0 10px"}}>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"#E8C878",fontWeight:700}}>{SURAH_AR[surahN]||""}</div>
+                              <div style={{fontSize:8,color:"rgba(217,177,95,0.40)",letterSpacing:".20em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[surahN]||""}</div>
                               {surahN!==9&&surahN!==1&&(
-                                <div style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:18,color:"rgba(232,200,120,0.70)",marginTop:8,direction:"rtl",lineHeight:2}}>
+                                <div style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:16,color:"rgba(232,200,120,0.55)",marginTop:10,direction:"rtl",lineHeight:2}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}
+                              <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(201,168,76,0.15),transparent)",marginTop:10}}/>
                             </div>
                           )}
 
-                          {/* Ayah card */}
+                          {/* Ayah panel — light, elegant */}
                           <div
                             onClick={()=>setSelectedAyah(isSelected?null:verse.verse_key)}
                             style={{
-                              marginBottom:8,
-                              borderRadius:10,
-                              border:`1px solid ${isSelected?"rgba(201,168,76,0.40)":"rgba(201,168,76,0.10)"}`,
-                              background:isSelected?"rgba(201,168,76,0.06)":"rgba(255,255,255,0.02)",
-                              transition:"all .18s",
+                              marginBottom:10,
+                              borderRadius:16,
+                              border:`1px solid ${isSelected?"rgba(212,175,55,0.35)":"rgba(212,175,55,0.12)"}`,
+                              background:isSelected?"rgba(212,175,55,0.06)":"rgba(255,255,255,0.02)",
+                              boxShadow:isSelected?"0 0 18px rgba(212,175,55,0.10)":"none",
+                              transition:"all .18s ease",
                               cursor:"pointer",
-                              overflow:"hidden",
+                              padding:"14px 16px",
                             }}
                           >
-                            {/* Card header: verse key */}
-                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 12px",borderBottom:"1px solid rgba(201,168,76,0.07)"}}>
-                              <div style={{fontSize:9,color:"rgba(217,177,95,0.40)",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>
-                                {SURAH_EN[surahN]} · {sNum}:{aNum}
-                              </div>
-                              <div style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:13,color:"rgba(217,177,95,0.50)"}}>
-                                ۝{aNum}
-                              </div>
-                            </div>
-
-                            {/* Arabic text */}
+                            {/* Arabic text — centered */}
                             <div style={{
                               fontFamily:"'UthmanicHafs','Amiri',serif",
-                              fontSize:22,
+                              fontSize:26,
                               lineHeight:2.2,
                               color:isSelected?"#F5E6B3":"#E8DFC0",
                               direction:"rtl",
-                              textAlign:"right",
-                              padding:"14px 16px 6px",
+                              textAlign:"center",
                             }}>
-                              {verse.text_uthmani}
+                              {arabicText}
+                            </div>
+
+                            {/* Ayah number — inline, integrated */}
+                            <div style={{textAlign:"center",marginTop:2,marginBottom:transText&&showTranslation?8:0}}>
+                              <span style={{
+                                fontFamily:"'UthmanicHafs','Amiri',serif",
+                                fontSize:13,
+                                color:"rgba(212,175,55,0.45)",
+                              }}>﴿ {aNum} ﴾</span>
+                              {isSaved&&<span style={{marginLeft:8,fontSize:9,color:"#E8C878",letterSpacing:".08em",fontWeight:700,fontFamily:"'DM Sans',sans-serif",verticalAlign:"middle"}}>✦</span>}
                             </div>
 
                             {/* Translation */}
                             {showTranslation&&transText&&(
                               <div style={{
                                 fontSize:12,
-                                color:"rgba(243,231,200,0.40)",
+                                color:"rgba(243,231,200,0.38)",
                                 lineHeight:1.75,
-                                padding:"4px 14px 12px",
                                 fontFamily:"'DM Sans',sans-serif",
                                 fontStyle:"italic",
+                                textAlign:"center",
+                                paddingTop:2,
                               }}>
                                 {transText}
                               </div>
                             )}
 
-                            {/* Action bar — shown when selected */}
+                            {/* Action bar — slides in when selected */}
                             {isSelected&&(
-                              <div style={{display:"flex",gap:6,padding:"8px 10px",borderTop:"1px solid rgba(201,168,76,0.10)"}}>
+                              <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:12,paddingTop:10,borderTop:"1px solid rgba(212,175,55,0.10)"}}>
                                 {[
-                                  {icon:"▶",label:"Audio",   action:()=>{ setPlayingKey(verse.verse_key); const [s,a]=verse.verse_key.split(":"); const folder=getEveryayahFolder(quranReciter); const url=`https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`; const au=new Audio(url); au.play(); }},
-                                  {icon:"📖",label:"Tafsir", action:()=>{ setTafsirAyah(verse.verse_key); setTafsirOn(true); }},
-                                  {icon:"🔖",label:"Save",   action:()=>{ const bm=[...mushafBookmarks]; const idx=bm.indexOf(verse.verse_key); if(idx>=0)bm.splice(idx,1); else bm.push(verse.verse_key); setMushafBookmarks(bm); localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }},
+                                  {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",  action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(verse.verse_key);} }},
+                                  {icon:"📖", label:"Tafsir",   action:()=>{ setTafsirAyah(verse.verse_key); setTafsirOn(p=>p&&tafsirAyah===verse.verse_key?false:true); }},
+                                  {icon:isSaved?"🔖":"🔖", label:isSaved?"Saved":"Save",  action:()=>{ const bm=[...mushafBookmarks]; const idx=bm.indexOf(verse.verse_key); if(idx>=0)bm.splice(idx,1); else bm.push(verse.verse_key); setMushafBookmarks(bm); localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }},
                                 ].map(btn=>(
                                   <div key={btn.label} className="sbtn"
                                     onClick={e=>{e.stopPropagation();btn.action();}}
                                     style={{
                                       display:"flex",alignItems:"center",gap:4,
-                                      padding:"5px 10px",borderRadius:20,fontSize:10,fontWeight:700,
-                                      letterSpacing:".08em",textTransform:"uppercase",
-                                      border:"1px solid rgba(201,168,76,0.18)",
-                                      color:"rgba(217,177,95,0.70)",
-                                      background:"rgba(201,168,76,0.05)",
+                                      padding:"5px 12px",borderRadius:20,fontSize:9,fontWeight:700,
+                                      letterSpacing:".10em",textTransform:"uppercase",
+                                      border:"1px solid rgba(212,175,55,0.20)",
+                                      color:btn.label==="Saved"?"#E8C878":"rgba(212,175,55,0.65)",
+                                      background:btn.label==="Saved"?"rgba(212,175,55,0.08)":"transparent",
+                                      fontFamily:"'DM Sans',sans-serif",
                                     }}
                                   >
-                                    <span style={{fontSize:12}}>{btn.icon}</span>
-                                    <span style={{fontFamily:"'DM Sans',sans-serif"}}>{btn.label}</span>
+                                    <span>{btn.icon}</span>
+                                    <span>{btn.label}</span>
                                   </div>
                                 ))}
-                                {/* Bookmark indicator */}
-                                {mushafBookmarks.includes(verse.verse_key)&&(
-                                  <div style={{marginLeft:"auto",fontSize:9,color:"#E8C878",letterSpacing:".1em",fontWeight:700,fontFamily:"'DM Sans',sans-serif",alignSelf:"center"}}>SAVED ✓</div>
-                                )}
                               </div>
                             )}
                           </div>
