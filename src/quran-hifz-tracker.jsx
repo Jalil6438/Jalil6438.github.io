@@ -686,24 +686,6 @@ export default function RihlatAlHifz() {
     fetch("/quran-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
   },[]);
 
-  // QCF V2 per-page font loader — uses React state so component re-renders when font loads
-  const qcfFontsLoaded = useRef(new Set());
-  const loadQcfFont = useCallback(async (pageNum) => {
-    const key = `p${pageNum}-v2`;
-    if (qcfFontsLoaded.current.has(key)) return;
-    qcfFontsLoaded.current.add(key); // mark in-progress to prevent duplicate loads
-    try {
-      const ff = new FontFace(key, `url('https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p${pageNum}.woff2')`);
-      ff.display = "swap";
-      await ff.load();
-      document.fonts.add(ff);
-      setQcfLoadedPages(prev => new Set([...prev, pageNum])); // trigger re-render
-    } catch(e) {
-      // Font failed — trigger re-render so fallback text shows
-      setQcfLoadedPages(prev => new Set([...prev, `${pageNum}_fallback`]));
-    }
-  }, []);
-
   useEffect(() => {
     if (activeTab !== "quran") return;
     let cancelled = false;
@@ -715,7 +697,7 @@ export default function RihlatAlHifz() {
           new URLSearchParams({
             language: "en", words: "true", per_page: "50",
             fields: "verse_key,juz_number,page_number",
-            word_fields: "code_v2,text_qpc_hafs,line_number,position,char_type_name,page_number"
+            word_fields: "text_uthmani,text_qpc_hafs,line_number,position,char_type_name"
           })
         );
         if (!res.ok) throw new Error();
@@ -732,45 +714,46 @@ export default function RihlatAlHifz() {
         } else {
           setMushafJuzNum(1); setMushafSurahInfo("");
         }
-        // Group words by line_number — keep only word + end tokens
+        // Group words by line — only word + end tokens, filter bare markers
         const allWords = vs.flatMap(v =>
-          (v.words || []).map(w => ({
-            codeV2:     w.code_v2 || "",
-            fallback:   w.text_qpc_hafs || "",
+          (v.words||[]).map(w => ({
+            text: w.text_uthmani || w.text_qpc_hafs || "",
             lineNumber: Number(w.line_number || 0),
             position:   Number(w.position || 0),
-            pageNum:    Number(w.page_number || mushafPage),
             verseKey:   v.verse_key,
             charType:   w.char_type_name || "word",
           }))
-        ).filter(w => w.charType === "word" || w.charType === "end");
+        ).filter(w => {
+          if (w.charType === "end") return true;
+          if (w.charType !== "word") return false;
+          // strip diacritics, keep only tokens with 2+ base letters
+          const bare = w.text.replace(/[ؐ-ًؚ-ٰٟۖ-ۭ]/g,"").trim();
+          return bare.length >= 2;
+        });
 
         const grouped = new Map();
-        for (const word of allWords) {
-          if (!word.lineNumber) continue;
-          if (!grouped.has(word.lineNumber)) grouped.set(word.lineNumber, []);
-          grouped.get(word.lineNumber).push(word);
+        for (const w of allWords) {
+          if (!w.lineNumber) continue;
+          if (!grouped.has(w.lineNumber)) grouped.set(w.lineNumber, []);
+          grouped.get(w.lineNumber).push(w);
         }
         const lines = [...grouped.entries()]
-          .sort((a, b) => a[0] - b[0])
+          .sort((a,b) => a[0]-b[0])
           .map(([lineNumber, words]) => ({
             lineNumber,
-            words: words.sort((a, b) => a.position - b.position),
+            words: words.sort((a,b)=>a.position-b.position),
+            text: words.sort((a,b)=>a.position-b.position).map(w=>w.text).join(" "),
           }))
-          .filter(l => l.words.length > 0);
+          .filter(l => l.text.trim().length > 0);
         setMushafPageLines(lines);
-
-        // Load QCF V2 per-page fonts
-        const pageNums = [...new Set(allWords.map(w => w.pageNum).filter(Boolean))];
-        await Promise.all(pageNums.map(p => loadQcfFont(p)));
-        if (!cancelled) setMushafLoading(false);
-      } catch (err) {
+      } catch(err) {
         setMushafVerses([]); setMushafPageLines([]);
+      } finally {
         if (!cancelled) setMushafLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [activeTab, mushafPage, loadQcfFont]);
+  }, [activeTab, mushafPage]);
 
   // Auto-crop white margins from mushaf page image
   function cropMushafImage(imgUrl) {
@@ -3010,61 +2993,35 @@ export default function RihlatAlHifz() {
                     ));
                   })()}
 
-                  {/* Lines — QCF V2 glyph rendering, per-page font */}
+                  {/* Lines — UthmanicHafs, CSS justify fills each line naturally */}
                   <div style={{
                     display:"flex",
                     flexDirection:"column",
-                    justifyContent: (mushafPage<=2||mushafPageLines.length<10)?"center":"flex-start",
+                    justifyContent:(mushafPage<=2||mushafPageLines.length<10)?"center":"flex-start",
                     padding:"1cqi 0",
-                    minHeight: (mushafPage<=2||mushafPageLines.length<10)?"50vw":"auto",
+                    minHeight:(mushafPage<=2||mushafPageLines.length<10)?"40vw":"auto",
                   }}>
-                    {(mushafPageLines||[]).map((line,li)=>(
+                    {(mushafPageLines||[]).map((line)=>(
                       <div key={line.lineNumber}
                         style={{
-                          display:"flex",
-                          flexDirection:"row",
-                          justifyContent: line.words.length<=3 ? "center" : line.words.length<=6 ? "space-evenly" : "space-between",
-                          alignItems:"center",
-                          direction:"rtl",
-                          width:"100%",
+                          fontFamily:"'UthmanicHafs','Amiri',serif",
                           fontSize:"5.3cqi",
                           lineHeight:2.3,
-                          minHeight:"2.3em",
+                          color:"#F3E7C8",
+                          direction:"rtl",
+                          textAlign:"justify",
+                          textAlignLast:"center",
+                          width:"100%",
                         }}
                       >
-                        {line.words.map((w,wi)=>{
-                          const isEnd = w.charType==="end";
-                          if(isEnd){
-                            // End markers: always Unicode font + text_qpc_hafs text
-                            return (
-                              <span
-                                key={wi}
-                                style={{fontFamily:"'UthmanicHafs','Amiri',serif", color:"rgba(217,177,95,0.80)", flexShrink:0, fontSize:"0.82em"}}
-                                dangerouslySetInnerHTML={{__html: w.fallback}}
-                              />
-                            );
-                          }
-                          // Regular words: use QCF V2 only if font confirmed loaded, else show Unicode fallback
-                          const fontLoaded = qcfLoadedPages.has(w.pageNum);
-                          return (
-                            <span
-                              key={wi}
-                              style={{
-                                fontFamily: fontLoaded ? `p${w.pageNum}-v2,'UthmanicHafs','Amiri',serif` : "'UthmanicHafs','Amiri',serif",
-                                color:"#F3E7C8",
-                                flexShrink: line.words.length<=4 ? 0 : 1,
-                              }}
-                              dangerouslySetInnerHTML={{__html: fontLoaded ? (w.codeV2 || w.fallback) : w.fallback}}
-                            />
-                          );
-                        })}
+                        {line.text}
                       </div>
                     ))}
                   </div>
 
-                  {/* Page number — simple centered, no directional brackets */}
-                  <div style={{textAlign:"center",padding:"6px 0 12px",fontFamily:"'Amiri',serif",fontSize:13,color:"rgba(217,177,95,0.30)",letterSpacing:".1em"}}>
-                    — {mushafPage} —
+                  {/* Page number */}
+                  <div style={{textAlign:"center",padding:"4px 0 10px",fontSize:11,color:"rgba(217,177,95,0.28)",fontFamily:"'DM Sans',sans-serif",letterSpacing:".12em"}}>
+                    {mushafPage}
                   </div>
                 </div>
               )}
