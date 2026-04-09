@@ -743,7 +743,7 @@ export default function RihlatAlHifz() {
             return {
               lineNumber,
               words: sorted,
-              text: sorted.filter(w=>{if(w.charType==="end")return true;if(w.charType!=="word")return false;return /[\u0621-\u063A\u0641-\u064A\u0671-\u06D5]/.test(w.text);}).map(w=>w.text).filter(Boolean).join(" "),
+              text: sorted.filter(w=>{if(w.charType==="end")return true;if(w.charType!=="word")return false;const stripped=w.text.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7-\u06ED]/g,"").trim();return stripped.length>=2;}).map(w=>w.text).filter(Boolean).join(" "),
               endsAyah,
               ayahNum: endsAyah ? lastVerseKey.split(":")[1] : null,
               isCentered: sorted.length <= 3, // Bismillah / short lines centered
