@@ -723,12 +723,7 @@ export default function RihlatAlHifz() {
             verseKey:   v.verse_key,
             charType:   w.char_type_name || "word",
           }))
-        ).filter(w => {
-          if (w.charType === "end") return true;
-          if (w.charType !== "word") return false;
-          // strip diacritics, keep only tokens with 2+ base letters
-          const bare = w.text.replace(/[ؐ-ًؚ-ٰٟۖ-ۭ]/g,"").trim();
-          return bare.length >= 2;
+        ).filter(w => w.charType === "word" || w.charType === "end");
         });
 
         const grouped = new Map();
