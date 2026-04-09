@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 // react-quran removed — custom renderer
 // Font via Google Fonts (injected in QuranPageView)
 // Mushaf images served from github.com/Jalil6438/mushaf-images
@@ -642,7 +642,7 @@ export default function RihlatAlHifz() {
   const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
   const [showMushafSheet,setShowMushafSheet]=useState(false);
   const [mushafBookmarks,setMushafBookmarks]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-mushaf-bookmarks")||"[]");}catch{return [];}});
-  const [qcfLoadedPages,setQcfLoadedPages]=useState(new Set()); // tracks which page fonts loaded
+  
   const [showMushafRangePicker,setShowMushafRangePicker]=useState(false);
   const [mushafRangeStart,setMushafRangeStart]=useState(null);
   const [mushafRangeEnd,setMushafRangeEnd]=useState(null);
