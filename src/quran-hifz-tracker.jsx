@@ -696,7 +696,7 @@ export default function RihlatAlHifz() {
       await ff.load();
       document.fonts.add(ff);
       qcfFontsLoaded.current.add(key);
-    } catch(e) { /* silent — fallback to UthmanicHafs */ }
+    } catch(e) { qcfFontsLoaded.current.add(key+"_failed"); /* mark failed so fallback renders */ }
   }, []);
 
   useEffect(() => {
@@ -3029,13 +3029,21 @@ export default function RihlatAlHifz() {
                       >
                         {line.words.map((w,wi)=>{
                           const isEnd = w.charType==="end";
-                          const fontFam = isEnd
-                            ? "'UthmanicHafs','Amiri',serif"
-                            : `p${w.pageNum}-v2,'UthmanicHafs','Amiri',serif`;
+                          if(isEnd){
+                            // End markers: always use UthmanicHafs Unicode font with text_qpc_hafs (not code_v2)
+                            return (
+                              <span
+                                key={wi}
+                                style={{fontFamily:"'UthmanicHafs','Amiri',serif", color:"rgba(217,177,95,0.75)", flexShrink:0, fontSize:"0.85em"}}
+                                dangerouslySetInnerHTML={{__html: w.fallback}}
+                              />
+                            );
+                          }
+                          // Regular words: QCF V2 per-page font, fallback to UthmanicHafs
                           return (
                             <span
                               key={wi}
-                              style={{fontFamily:fontFam, color:"#F3E7C8", flexShrink: line.words.length<=4?0:1}}
+                              style={{fontFamily:`p${w.pageNum}-v2,'UthmanicHafs','Amiri',serif`, color:"#F3E7C8", flexShrink: line.words.length<=4?0:1}}
                               dangerouslySetInnerHTML={{__html: w.codeV2 || w.fallback}}
                             />
                           );
@@ -3044,9 +3052,11 @@ export default function RihlatAlHifz() {
                     ))}
                   </div>
 
-                  {/* Page number */}
-                  <div style={{textAlign:"center",padding:"4px 0 8px",fontFamily:"'Amiri',serif",fontSize:12,color:"rgba(217,177,95,0.30)"}}>
-                    ﴾ {mushafPage} ﴿
+                  {/* Page number inside ornamental brackets */}
+                  <div style={{textAlign:"center",padding:"6px 0 12px",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                    <span style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:"4.5cqi",color:"rgba(217,177,95,0.35)"}}>﴾</span>
+                    <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(217,177,95,0.35)",letterSpacing:".08em"}}>{mushafPage}</span>
+                    <span style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:"4.5cqi",color:"rgba(217,177,95,0.35)"}}>﴿</span>
                   </div>
                 </div>
               )}
