@@ -743,7 +743,7 @@ export default function RihlatAlHifz() {
             return {
               lineNumber,
               words: sorted,
-              text: sorted.filter(w=>w.charType==="word"||w.charType==="end").map(w => w.text).filter(Boolean).join(" "),
+              text: sorted.filter(w=>w.charType==="word"||w.charType==="end").map(w=>w.text.replace(/[۝۞۩●•⚫⦁ۭ۟۠ۡۢ]/g,"").trim()).filter(Boolean).join(" "),
               endsAyah,
               ayahNum: endsAyah ? lastVerseKey.split(":")[1] : null,
               isCentered: sorted.length <= 3, // Bismillah / short lines centered
