@@ -377,6 +377,10 @@ function AsrSessionView({
     return (
       <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto",padding:"16px 0 36px",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)"}}>
         <div style={{flex:1,display:"flex",flexDirection:"column"}}>
+          {/* Exit button */}
+          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
+            <div className="sbtn" onClick={onChangeSelection} style={{padding:"6px 10px",fontSize:18,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
+          </div>
           <div className="asr-title">ASR SESSION</div>
           <div className="asr-title-line"/>
 
