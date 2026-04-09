@@ -2040,7 +2040,7 @@ export default function RihlatAlHifz() {
 
                 {/* Header */}
                 <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
-                  <div className="sbtn" onClick={()=>{setActiveTab("myhifz");setActiveSessionIndex(0);}} style={{padding:"6px 12px",fontSize:20,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
+                  <div className="sbtn" onClick={()=>{const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];setSessionsCompleted(prev=>({...prev,[sess.id]:true}));toggleCheck(sess.id);setActiveSessionIndex(i=>Math.min(SESSIONS.length-1,i+1));}} style={{padding:"6px 12px",fontSize:20,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
                 </div>
                 <div style={{textAlign:"center",marginBottom:8}}>
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7C8",fontWeight:700,fontStyle:"italic",marginBottom:6}}>Choose Your Asr Review</div>
