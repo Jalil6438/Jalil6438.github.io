@@ -902,12 +902,9 @@ export default function RihlatAlHifz() {
   useEffect(()=>{
     const l=document.createElement("link"); l.rel="stylesheet";
     l.href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap";
-    // Load UthmanicHafs for Interactive Quran mode
-    const uf=document.createElement("link"); uf.rel="preload"; uf.as="font"; uf.type="font/woff2"; uf.crossOrigin="anonymous";
-    uf.href="https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2";
-    document.head.appendChild(uf);
+    // Load UthmanicHafs for Interactive Quran mode — served locally to avoid CORS
     const ufs=document.createElement("style");
-    ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2') format('woff2'),url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.ttf') format('truetype');font-display:swap;}";
+    ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;}";
     document.head.appendChild(ufs);
     document.head.appendChild(l);
   },[]);
@@ -2992,58 +2989,22 @@ export default function RihlatAlHifz() {
                   })()}
 
                   {/* Page content */}
-                  <div style={{padding:"14px 10px 18px"}}>
-                    {(mushafPageLines||[]).map((line,li)=>{
-                      // Separate regular words from ayah-end markers
-                      const bodyWords = line.words.filter(w=>w.charType!=="end");
-                      const endMarkers = line.words.filter(w=>w.charType==="end");
-
-                      return (
-                        <div key={line.lineNumber}
-                          style={{
-                            display:"flex",
-                            flexDirection:"row",
-                            alignItems:"center",
-                            direction:"rtl",
-                            justifyContent: line.isCentered ? "center" : "space-between",
-                            minHeight:38,
-                            paddingBottom:2,
-                          }}
-                        >
-                          {line.words.map((w,wi)=>{
-                            if(w.charType==="end"){
-                              // Ornamental ayah number marker
-                              const ayahNum=w.text.replace(/[^٠-٩۰-۹0-9]/g,"").trim()||w.text.trim();
-                              return (
-                                <span key={wi} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",flexShrink:0,margin:"0 2px",position:"relative",width:28,height:28}}>
-                                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                                    <circle cx="14" cy="14" r="12" stroke="#8B6208" strokeWidth="1.2" fill="rgba(201,168,76,0.12)"/>
-                                    <circle cx="14" cy="14" r="9" stroke="#8B6208" strokeWidth="0.5" fill="none"/>
-                                  </svg>
-                                  <span style={{position:"absolute",fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:9,color:"#5A3E10",lineHeight:1,top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>{w.text}</span>
-                                </span>
-                              );
-                            }
-                            // Regular word
-                            return (
-                              <span key={wi}
-                                style={{
-                                  fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",
-                                  fontSize:"22px",
-                                  color:"#1A0A00",
-                                  lineHeight:2.2,
-                                  letterSpacing:"0.01em",
-                                  cursor:"pointer",
-                                  flexShrink: line.isCentered ? 0 : 1,
-                                }}
-                              >
-                                {w.text}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
+                  <div style={{padding:"14px 12px 18px"}}>
+                    {(mushafPageLines||[]).map((line,li)=>(
+                      <div key={line.lineNumber}
+                        style={{
+                          fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",
+                          fontSize:"22px",
+                          lineHeight:2.4,
+                          color:"#1A0A00",
+                          direction:"rtl",
+                          textAlign:"center",
+                          letterSpacing:"0.02em",
+                        }}
+                      >
+                        {line.text}
+                      </div>
+                    ))}
                   </div>
 
                   {/* Page number */}
