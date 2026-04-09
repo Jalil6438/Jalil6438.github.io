@@ -1581,7 +1581,7 @@ export default function RihlatAlHifz() {
         .gold-particles::before,.gold-particles::after{content:"";position:fixed;width:3px;height:3px;border-radius:50%;background:#D4AF37;pointer-events:none;z-index:0;}
         .gold-particles::before{left:15%;bottom:-10px;animation:goldParticle 12s linear infinite;opacity:0.07;}
         .gold-particles::after{left:75%;bottom:-10px;animation:goldParticle 18s linear 4s infinite;opacity:0.05;width:2px;height:2px;}
-        @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}
+        @keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .9s linear infinite;}@keyframes slideUpDrawer{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}.pulse{animation:pulse 1.6s infinite;}
 
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
@@ -2942,26 +2942,15 @@ export default function RihlatAlHifz() {
               }}
               style={{position:"relative",flex:1,overflowY:"auto",background:"#060C18",padding:"10px 12px 80px"}}
             >
-              {/* Translation toggle — small, top-right */}
-              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
-                <div className="sbtn" onClick={()=>setShowTranslation(t=>!t)}
-                  style={{fontSize:8,fontWeight:700,letterSpacing:".14em",textTransform:"uppercase",
-                  padding:"3px 9px",borderRadius:20,border:"1px solid rgba(201,168,76,0.18)",
-                  color:showTranslation?"rgba(217,177,95,0.80)":"rgba(217,177,95,0.28)",
-                  background:"transparent"}}>
-                  {showTranslation?"Translation ✓":"Translation"}
-                </div>
-              </div>
-
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.25)",fontSize:11,letterSpacing:".12em"}}>Loading...</div>
               ):(
-                <div style={{background:"rgba(255,255,255,0.015)",borderRadius:16,border:"1px solid rgba(201,168,76,0.08)",padding:"4px 0 8px"}}>
+                <div style={{padding:"0 4px"}}>
                   {(()=>{
                     let lastSurah = null;
                     const playAyahAudio = (vk) => {
-                      if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
+                      if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
                       const [s,a]=vk.split(":");
                       const folder=getEveryayahFolder(quranReciter);
                       const url=`https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
@@ -2971,119 +2960,69 @@ export default function RihlatAlHifz() {
                       au.play();
                       au.onended=()=>setPlayingKey(null);
                     };
-                    return (mushafVerses||[]).map((verse, vi)=>{
+                    return (mushafVerses||[]).map((verse,vi)=>{
                       const [sNum,aNum] = verse.verse_key.split(":");
                       const surahN = parseInt(sNum,10);
                       const isSelected = selectedAyah === verse.verse_key;
-                      const isPlaying = playingKey === verse.verse_key;
-                      const isSaved = mushafBookmarks.includes(verse.verse_key);
-                      const transText = verse._translation || "";
                       const showSurahHeader = surahN !== lastSurah;
                       lastSurah = surahN;
 
                       return (
                         <div key={verse.verse_key}>
-                          {/* Surah header — appears when surah changes */}
+                          {/* Surah header */}
                           {showSurahHeader&&(
-                            <div style={{textAlign:"center",padding:"18px 16px 12px"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"#E8C878",fontWeight:700,marginBottom:3}}>{SURAH_AR[surahN]||""}</div>
+                            <div style={{textAlign:"center",padding:"16px 16px 12px"}}>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"#E8C878",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
                               <div style={{fontSize:8,color:"rgba(217,177,95,0.40)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
                               {surahN!==9&&surahN!==1&&(
                                 <div style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:17,color:"rgba(232,200,120,0.55)",marginTop:10,direction:"rtl",lineHeight:2,textAlign:"center"}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}
-                              {/* Gold fade divider */}
-                              <div style={{height:1,margin:"12px 20px 0",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)"}}/>
+                              <div style={{height:1,margin:"10px 16px 0",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)"}}/>
                             </div>
                           )}
 
-                          {/* Ayah reading block */}
+                          {/* Ayah reading block — tap to open bottom drawer */}
                           <div
                             onClick={()=>setSelectedAyah(isSelected?null:verse.verse_key)}
                             style={{
-                              padding:"16px 18px",
+                              padding:"14px 12px",
                               background:isSelected?"rgba(212,175,55,0.05)":"transparent",
-                              transition:"background .18s",
+                              transition:"background .15s",
                               cursor:"pointer",
+                              direction:"rtl",
                             }}
                           >
-                            {/* Arabic text — centered, prominent */}
-                            <div style={{
-                              fontFamily:"'UthmanicHafs','Amiri',serif",
-                              fontSize:26,
-                              lineHeight:2.3,
-                              color:isSelected?"#F5E6B3":"#E8DFC0",
-                              direction:"rtl",
-                              textAlign:"center",
-                            }}>
-                              {verse.text_uthmani}
-                            </div>
-
-                            {/* Ayah number — inline centered, correct RTL ornaments ﴾ ١ ﴿ */}
-                            <div style={{textAlign:"center",marginTop:2}}>
-                              <span style={{
-                                fontFamily:"'UthmanicHafs','Amiri',serif",
-                                fontSize:13,
-                                color:isSaved?"rgba(232,200,120,0.75)":"rgba(212,175,55,0.38)",
-                                letterSpacing:"0.02em",
-                              }}>﴾ {aNum} ﴿</span>
-                            </div>
-
-                            {/* Expanded state — translation + actions */}
-                            {isSelected&&(
-                              <div style={{marginTop:10}}>
-                                {/* Translation */}
-                                {showTranslation&&transText&&(
-                                  <div style={{
-                                    fontSize:12,
-                                    color:"rgba(243,231,200,0.42)",
-                                    lineHeight:1.8,
-                                    fontFamily:"'DM Sans',sans-serif",
-                                    fontStyle:"italic",
-                                    textAlign:"center",
-                                    padding:"8px 8px 10px",
-                                    borderTop:"1px solid rgba(201,168,76,0.08)",
-                                    marginTop:6,
-                                  }}>
-                                    {transText}
-                                  </div>
-                                )}
-
-                                {/* Action row */}
-                                <div style={{display:"flex",justifyContent:"center",gap:8,marginTop:8,paddingTop:8,borderTop:"1px solid rgba(201,168,76,0.08)"}}>
-                                  {[
-                                    {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
-                                      action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(verse.verse_key);} }},
-                                    {icon:"📖", label:"Tafsir",
-                                      action:()=>{ const same=tafsirAyah===verse.verse_key; setTafsirAyah(verse.verse_key); setTafsirOn(!same||!tafsirOn); }},
-                                    {icon:isSaved?"✦":"🔖", label:isSaved?"Saved":"Save",
-                                      action:()=>{ const bm=[...mushafBookmarks]; const idx=bm.indexOf(verse.verse_key); if(idx>=0)bm.splice(idx,1); else bm.push(verse.verse_key); setMushafBookmarks(bm); localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }},
-                                  ].map(btn=>(
-                                    <div key={btn.label} className="sbtn"
-                                      onClick={e=>{e.stopPropagation();btn.action();}}
-                                      style={{
-                                        display:"flex",alignItems:"center",gap:4,
-                                        padding:"5px 12px",borderRadius:20,fontSize:9,fontWeight:700,
-                                        letterSpacing:".10em",textTransform:"uppercase",
-                                        border:"1px solid rgba(212,175,55,0.20)",
-                                        color:btn.label==="Saved"?"#E8C878":"rgba(212,175,55,0.60)",
-                                        background:btn.label==="Saved"?"rgba(212,175,55,0.07)":"transparent",
-                                        fontFamily:"'DM Sans',sans-serif",
-                                      }}
-                                    >
-                                      <span>{btn.icon}</span>
-                                      <span>{btn.label}</span>
-                                    </div>
-                                  ))}
-                                </div>
+                            {/* Ayah: number badge inline at start (RTL = right side), then Arabic text */}
+                            <div style={{display:"flex",alignItems:"flex-start",gap:8,direction:"rtl"}}>
+                              {/* Ayah number badge — at the beginning (right in RTL) */}
+                              <div style={{
+                                flexShrink:0,
+                                width:24,height:24,borderRadius:"50%",
+                                border:"1px solid rgba(212,175,55,0.40)",
+                                display:"flex",alignItems:"center",justifyContent:"center",
+                                marginTop:6,
+                              }}>
+                                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,fontWeight:700,color:"rgba(212,175,55,0.70)"}}>{aNum}</span>
                               </div>
-                            )}
+                              {/* Arabic text */}
+                              <div style={{
+                                flex:1,
+                                fontFamily:"'UthmanicHafs','Amiri',serif",
+                                fontSize:24,
+                                lineHeight:2.2,
+                                color:isSelected?"#F5E6B3":"#E8DFC0",
+                                textAlign:"right",
+                              }}>
+                                {verse.text_uthmani}
+                              </div>
+                            </div>
                           </div>
 
-                          {/* Gold fade divider between ayahs — not after last */}
+                          {/* Gold divider between ayahs */}
                           {vi < (mushafVerses||[]).length - 1 && (
-                            <div style={{height:1,margin:"0 20px",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.18) 50%,rgba(217,177,95,0) 100%)"}}/>
+                            <div style={{height:1,margin:"0 16px",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.14) 50%,rgba(217,177,95,0) 100%)"}}/>
                           )}
                         </div>
                       );
@@ -3091,6 +3030,98 @@ export default function RihlatAlHifz() {
                   })()}
                 </div>
               )}
+
+              {/* ── BOTTOM DRAWER — slides up on ayah tap ── */}
+              {selectedAyah&&(()=>{
+                const [sNum,aNum] = selectedAyah.split(":");
+                const surahN = parseInt(sNum,10);
+                const selVerse = (mushafVerses||[]).find(v=>v.verse_key===selectedAyah);
+                const transText = selVerse?._translation || "";
+                const isPlaying = playingKey === selectedAyah;
+                const isSaved = mushafBookmarks.includes(selectedAyah);
+                const playAyahAudio = (vk) => {
+                  if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
+                  const [s,a]=vk.split(":");
+                  const folder=getEveryayahFolder(quranReciter);
+                  const url=`https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
+                  const au=new Audio(url); audioRef.current=au; setPlayingKey(vk);
+                  au.play(); au.onended=()=>setPlayingKey(null);
+                };
+                return (
+                  <div
+                    onClick={e=>e.stopPropagation()}
+                    style={{
+                      position:"fixed",bottom:52,left:0,right:0,zIndex:200,
+                      background:"linear-gradient(180deg,#0C1422 0%,#080E1A 100%)",
+                      borderTop:"1px solid rgba(212,175,55,0.20)",
+                      borderRadius:"20px 20px 0 0",
+                      padding:"10px 20px 20px",
+                      boxShadow:"0 -8px 32px rgba(0,0,0,0.60)",
+                      animation:"slideUpDrawer .22s ease-out",
+                    }}
+                  >
+                    {/* Drag handle */}
+                    <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
+                      <div style={{width:36,height:4,borderRadius:2,background:"rgba(255,255,255,0.15)"}}/>
+                    </div>
+
+                    {/* Ayah label */}
+                    <div style={{textAlign:"center",marginBottom:10}}>
+                      <div style={{fontSize:10,color:"rgba(217,177,95,0.50)",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>
+                        Ayah {aNum} · {SURAH_EN[surahN]||""}
+                      </div>
+                    </div>
+
+                    {/* Translation */}
+                    {transText?(
+                      <div style={{
+                        fontSize:13,color:"rgba(243,231,200,0.75)",lineHeight:1.8,
+                        fontFamily:"'DM Sans',sans-serif",textAlign:"center",
+                        marginBottom:14,padding:"0 8px",
+                      }}>
+                        {transText}
+                      </div>
+                    ):(
+                      <div style={{height:8}}/>
+                    )}
+
+                    {/* Action buttons */}
+                    <div style={{display:"flex",justifyContent:"center",gap:8}}>
+                      {[
+                        {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
+                          action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(selectedAyah);} }},
+                        {icon:"📖", label:"Tafsir",
+                          action:()=>{ setTafsirAyah(selectedAyah); setTafsirOn(p=>!(p&&tafsirAyah===selectedAyah)); }},
+                        {icon:isSaved?"✦":"🔖", label:isSaved?"Saved":"Save",
+                          action:()=>{ const bm=[...mushafBookmarks]; const idx=bm.indexOf(selectedAyah); if(idx>=0)bm.splice(idx,1); else bm.push(selectedAyah); setMushafBookmarks(bm); localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }},
+                        {icon:"✏️", label:"Reflect", action:()=>{}},
+                      ].map(btn=>(
+                        <div key={btn.label} className="sbtn"
+                          onClick={e=>{e.stopPropagation();btn.action();}}
+                          style={{
+                            display:"flex",flexDirection:"column",alignItems:"center",gap:3,
+                            padding:"8px 14px",borderRadius:12,fontSize:9,fontWeight:700,
+                            letterSpacing:".08em",textTransform:"uppercase",
+                            border:"1px solid rgba(212,175,55,0.20)",
+                            color:isSaved&&btn.label==="Saved"?"#E8C878":"rgba(212,175,55,0.65)",
+                            background:isSaved&&btn.label==="Saved"?"rgba(212,175,55,0.07)":"rgba(255,255,255,0.03)",
+                            fontFamily:"'DM Sans',sans-serif",minWidth:56,
+                          }}
+                        >
+                          <span style={{fontSize:16}}>{btn.icon}</span>
+                          <span>{btn.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Close tap area */}
+                    <div className="sbtn" onClick={()=>setSelectedAyah(null)}
+                      style={{textAlign:"center",marginTop:12,fontSize:10,color:"rgba(217,177,95,0.25)",letterSpacing:".12em",fontFamily:"'DM Sans',sans-serif"}}>
+                      TAP TO CLOSE
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
