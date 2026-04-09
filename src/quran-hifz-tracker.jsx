@@ -1912,7 +1912,7 @@ export default function RihlatAlHifz() {
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div>
             <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>{localStorage.getItem("rihlat-username")||"Abdul Jalil"} · Hifz Journey</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Rihlat Al-Hifz · رحلة الحفظ</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Al-Hifz · رحلة الحفظ</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
             {nextJuz&&<div style={{textAlign:"right"}}><div style={{fontSize:12,color:"#8FA3B8",letterSpacing:"1px",marginBottom:1}}>Next Target</div><div style={{fontSize:11,color:T.sub}}>Juz {nextJuz.num}</div></div>}
@@ -2451,7 +2451,7 @@ export default function RihlatAlHifz() {
                 </div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:19,fontWeight:700,color:"#EDE8DC",fontFamily:"'Playfair Display',serif",marginBottom:2}}>{username}</div>
-                  <div style={{fontSize:11,color:"#E6B84A",marginBottom:8,letterSpacing:".06em"}}>Hifz Journey · رحلة الحفظ</div>
+                  <div style={{fontSize:11,color:"#E6B84A",marginBottom:8,letterSpacing:".06em"}}>Al-Hifz · رحلة الحفظ</div>
                   <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
                     {[
                       {label:"📅 Joined "+joinYear, bg:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.6)", border:"rgba(255,255,255,0.1)"},
