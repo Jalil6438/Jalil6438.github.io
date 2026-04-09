@@ -2975,7 +2975,7 @@ export default function RihlatAlHifz() {
                               <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"#E8C878",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
                               <div style={{fontSize:8,color:"rgba(217,177,95,0.40)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
                               {surahN!==9&&surahN!==1&&(
-                                <div style={{fontFamily:"'UthmanicHafs','Amiri',serif",fontSize:17,color:"rgba(232,200,120,0.55)",marginTop:10,direction:"rtl",lineHeight:2,textAlign:"center"}}>
+                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:"rgba(232,200,120,0.55)",marginTop:10,direction:"rtl",lineHeight:2,textAlign:"center"}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}
@@ -3009,7 +3009,7 @@ export default function RihlatAlHifz() {
                               {/* Arabic text */}
                               <div style={{
                                 flex:1,
-                                fontFamily:"'UthmanicHafs','Amiri',serif",
+                                fontFamily:"'Amiri Quran','Amiri',serif",
                                 fontSize:24,
                                 lineHeight:2.2,
                                 color:isSelected?"#F5E6B3":"#E8DFC0",
