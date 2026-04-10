@@ -1493,6 +1493,8 @@ export default function RihlatAlHifz() {
     } else {
       setSessionIdx(bEnd);
       setJuzProgress(p=>({...p,[sessionJuz]:bEnd}));
+      // V9: add completed batch ayahs
+      setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(bStart,bEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
       setJuzStatus(prev=>{
         const next={...prev};
         let changed=false;
@@ -1528,7 +1530,13 @@ export default function RihlatAlHifz() {
       audioRef.current=audio;
       audio.oncanplay=()=>{setAudioLoading(null);setPlayingKey(key);};
       audio.onended=()=>{
-        setRepCounts(prev=>({...prev,[verseKey]:Math.min(20,(prev[verseKey]||0)+1)}));
+        setRepCounts(prev=>{
+          const newCount=Math.min(20,(prev[verseKey]||0)+1);
+          if(newCount>=20 && !completedAyahs.has(verseKey)){
+            setCompletedAyahs(ca=>{const next=new Set(ca);next.add(verseKey);saveCompletedAyahs(next);return next;});
+          }
+          return {...prev,[verseKey]:newCount};
+        });
         if(looping){
           audio.currentTime=0;
           audio.play().catch(()=>{setPlayingKey(null);});
@@ -2250,7 +2258,7 @@ export default function RihlatAlHifz() {
                 <div style={{marginBottom:10}}>
                   <div style={{fontSize:8,color:"rgba(230,184,74,0.40)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>
                   <div style={{padding:"11px 14px",
-                    background:dark?"linear-gradient(180deg,rgba(15,26,43,0.95) 0%,rgba(12,21,38,0.98) 100%)":"linear-gradient(180deg,rgba(225,215,192,0.95) 0%,rgba(215,205,180,0.98) 100%)",
+                    background:dark?"linear-gradient(180deg,rgba(15,26,43,0.95) 0%,rgba(12,21,38,0.98) 100%)":"#E4D8B8",
                     border:`1px solid ${isDone?"rgba(74,222,128,0.20)":(dark?"rgba(230,184,74,0.18)":"rgba(139,106,16,0.18)")}`,borderLeft:`3px solid ${isDone?"#4ADE80":(dark?"#E6B84A":"#B83A1A")}`,borderRadius:"0 10px 10px 0",
                     boxShadow:dark?"0 4px 16px rgba(0,0,0,0.20),0 0 12px rgba(230,184,74,0.06)":"0 2px 8px rgba(0,0,0,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -2441,7 +2449,7 @@ export default function RihlatAlHifz() {
 
                     return (
                       <div key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
-                        style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EDE4CC",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
+                        style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#E4D8B8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                           <div style={{width:28,height:28,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${repsDone?"rgba(230,184,74,0.45)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:repsDone?"#E6B84A":"#888",flexShrink:0}}>
                             {repsDone?"✓":aStart+i+1}
@@ -2478,7 +2486,7 @@ export default function RihlatAlHifz() {
                   const mvPct=Math.min((mvReps/20)*100,100);
                   return (
                     <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setOpenAyah(null)}>
-                      <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
+                      <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#E4D8B8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
                         <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
                         {/* Arabic */}
                         <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
@@ -2494,17 +2502,17 @@ export default function RihlatAlHifz() {
                         </div>
                         {/* Audio controls */}
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:16}}>
-                          <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(mvKey,mvKey):null} style={{width:40,height:40,borderRadius:"50%",background:mvPlaying?"rgba(240,192,64,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${mvPlaying?"rgba(240,192,64,0.40)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color:mvPlaying?"#F0C040":"rgba(243,231,200,0.56)",opacity:hasPerAyah(reciter)?1:0.4}}>
-                            {mvLoading?<div className="spin" style={{width:14,height:14,border:"2px solid rgba(240,192,64,0.3)",borderTopColor:"#F0C040",borderRadius:"50%"}}/>:(mvPlaying?"⏸":"▶")}
+                          <div className="sbtn" onClick={()=>hasPerAyah(reciter)?playAyah(mvKey,mvKey):null} style={{width:56,height:56,borderRadius:"50%",background:dark?(mvPlaying?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))"):(mvPlaying?"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.10),rgba(228,216,184,0.95))":"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.04),rgba(228,216,184,0.95))"),border:`1.5px solid ${mvPlaying?"rgba(212,175,55,0.40)":"rgba(212,175,55,0.30)"}`,boxShadow:"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color:mvPlaying?(dark?"#F0C040":"#8B6A10"):(dark?"rgba(243,231,200,0.75)":"#5A4A20"),opacity:hasPerAyah(reciter)?1:0.4}}>
+                            {mvLoading?<div className="spin" style={{width:14,height:14,border:"2px solid rgba(212,175,55,0.3)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>:(mvPlaying?"⏸":"▶")}
                           </div>
-                          <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:34,height:34,borderRadius:"50%",background:looping?"rgba(240,192,64,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${looping?"rgba(240,192,64,0.30)":"rgba(255,255,255,0.06)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:looping?"#F0C040":"rgba(255,255,255,0.35)"}}>🔁</div>
+                          <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:56,height:56,borderRadius:"50%",background:dark?(looping?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))"):(looping?"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.10),rgba(228,216,184,0.95))":"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.04),rgba(228,216,184,0.95))"),border:`1.5px solid ${looping?"rgba(212,175,55,0.40)":"rgba(212,175,55,0.30)"}`,boxShadow:"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:looping?(dark?"#F0C040":"#8B6A10"):(dark?"rgba(243,231,200,0.75)":"#5A4A20")}}>🔁</div>
                         </div>
                         {/* Rep counter */}
-                        <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:Math.min(20,(prev[mvKey]||0)+1)}))}
+                        <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(20,(prev[mvKey]||0)+1);if(newCount>=20&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}return{...prev,[mvKey]:newCount};});}}
                           style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .3s ease",
-                            background:mvRepsDone?"rgba(230,184,74,0.10)":"rgba(230,184,74,0.06)",
-                            border:`1px solid ${mvRepsDone?"rgba(230,184,74,0.45)":"rgba(230,184,74,0.15)"}`,
-                            boxShadow:mvRepsDone?"0 0 20px rgba(230,184,74,0.25)":"none"}}>
+                            background:dark?(mvRepsDone?"rgba(212,175,55,0.10)":"rgba(212,175,55,0.04)"):(mvRepsDone?"rgba(139,106,16,0.08)":"rgba(139,106,16,0.03)"),
+                            border:`1.5px solid ${mvRepsDone?"rgba(212,175,55,0.45)":"rgba(212,175,55,0.25)"}`,
+                            boxShadow:mvRepsDone?"0 0 16px rgba(212,175,55,0.20), 0 4px 14px rgba(0,0,0,0.15)":"0 0 12px rgba(212,175,55,0.12), 0 4px 14px rgba(0,0,0,0.10)"}}>
                           {mvRepsDone?(
                             <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ 20/20 Complete — MashaAllah!</div>
                           ):(
