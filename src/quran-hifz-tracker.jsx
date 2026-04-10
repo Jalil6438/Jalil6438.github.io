@@ -1145,7 +1145,7 @@ export default function RihlatAlHifz() {
             if(freshCompleted.has(orderedVerses[i].verse_key)) newIdx=i+1;
             else break;
           }
-          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, newSessionIdx: newIdx, completedAyahsSize: freshCompleted.size, firstVerse: orderedVerses[0]?.verse_key, verseAtIdx: orderedVerses[newIdx]?.verse_key});
+          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, newSessionIdx: newIdx, completedAyahsSize: freshCompleted.size, first5: orderedVerses.slice(0,5).map(v=>v.verse_key), verseAtIdx: orderedVerses[newIdx]?.verse_key});
           setSessionVerses(orderedVerses); setSessionIdx(newIdx);
           // Backfill: add already-progressed ayahs to completedAyahs
           if(newIdx>0){
@@ -1556,7 +1556,15 @@ export default function RihlatAlHifz() {
         });
       }
 
-      // Step 5 — set all three together, auto-start
+      // Step 5 — sort by descending surah then ascending ayah (backwards memorization order)
+      allVerses.sort((a,b)=>{
+        const sa=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
+        const sb=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
+        if(sa!==sb) return sb-sa; // higher surah first (114 → 78)
+        const aa=parseInt(a.verse_key?.split(":")?.[1],10);
+        const ab=parseInt(b.verse_key?.split(":")?.[1],10);
+        return aa-ab; // ayahs ascending within surah
+      });
       setAsrSelectedJuz(juzPool);
       setAsrSelectedSurahs(eligibleSurahs);
       setAsrReviewBatch(allVerses);
