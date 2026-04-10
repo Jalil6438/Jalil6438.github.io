@@ -2674,6 +2674,14 @@ export default function RihlatAlHifz() {
                       } else if(sessionJuz) {
                         setSessionIdx(bEnd);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
+                        // V9: add all completed ayahs up to bEnd + mark completed surahs
+                        setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(0,bEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
+                        // Mark completed surahs in V9
+                        const surahCounts={};const surahTotals={};
+                        sessionVerses.forEach(v=>{const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);surahTotals[sn]=(surahTotals[sn]||0)+1;});
+                        let cursor=0;const surahOrder=[];
+                        sessionVerses.forEach(v=>{const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);if(!surahOrder.includes(sn))surahOrder.push(sn);});
+                        for(const sn of surahOrder){const count=surahTotals[sn]||0;if(cursor+count<=bEnd)v9MarkSurahComplete(sn);cursor+=count;}
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
