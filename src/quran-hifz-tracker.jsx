@@ -153,6 +153,7 @@ const JUZ_RANGES = {
   29:{start:"67:1", end:"77:50",total:431}, 30:{start:"78:1", end:"114:6",total:564},
 };
 
+
 // Expand a verse range into individual ayah keys e.g. "2:142" → "2:252"
 function expandRangeToKeys(startKey, endKey) {
   const keys = [];
@@ -800,6 +801,8 @@ export default function RihlatAlHifz() {
           (transData.verses||[]).forEach(v => { transMap[v.verse_key] = v.translations?.[0]?.text || ""; });
           vs.forEach(v => { v._translation = (transMap[v.verse_key]||"").replace(/<[^>]*>/g,"").trim(); });
         }
+        // Fix U+06DF (small high rounded zero) → remove it for UthmanicHafs compatibility
+        vs.forEach(v => { if(v.text_uthmani) v.text_uthmani = v.text_uthmani.replace(/\u06DF/g, "\u0652"); });
         setMushafVerses(vs);
         setMushafPageLines([]);
         if (vs.length > 0) {
@@ -961,7 +964,7 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     const l=document.createElement("link"); l.rel="stylesheet";
-    l.href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap";
+    l.href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap";
     // Load UthmanicHafs for Interactive Quran mode — served locally to avoid CORS
     const ufs=document.createElement("style");
     ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;}";
@@ -2165,15 +2168,15 @@ export default function RihlatAlHifz() {
           {id:"quran",   img:"/tab-quran.jpg",   label:"Al-Qur'an"},
           {id:"masjidayn",icon:"\uD83D\uDD4B",  label:"More"},
         ].map(t=>(
-          <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"8px 4px 6px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+          <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
             {t.img?(
-              <div style={{width:26,height:26,borderRadius:6,overflow:"hidden",opacity:activeTab===t.id?1:0.35,transition:"opacity .15s",boxShadow:activeTab===t.id?"0 0 8px rgba(212,175,55,0.40)":"none"}}>
-                <img src={t.img} alt={t.label} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              <div style={{width:38,height:38,borderRadius:9,overflow:"hidden",opacity:activeTab===t.id?1:0.65,transition:"all .15s",boxShadow:activeTab===t.id?"0 0 20px rgba(212,175,55,0.60), 0 0 8px rgba(212,175,55,0.35), 0 0 40px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)",border:activeTab===t.id?"1px solid rgba(212,175,55,0.50)":"1px solid rgba(212,175,55,0.10)"}}>
+                <img src={t.img} alt={t.label} style={{width:"100%",height:"100%",objectFit:"cover",filter:activeTab===t.id?"brightness(1.3)":"brightness(0.85)"}}/>
               </div>
             ):(
-              <span style={{fontSize:20,opacity:activeTab===t.id?1:0.4}}>{t.icon}</span>
+              <span style={{fontSize:24,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
-            <span style={{fontSize:9,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#6B7280"}}>{t.label}</span>
+            <span style={{fontSize:10,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
           </div>
         ))}
       </div>
@@ -3150,17 +3153,18 @@ export default function RihlatAlHifz() {
             <div style={{fontSize:10,color:"rgba(217,177,95,0.50)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600,marginBottom:8}}>AL-QUR'AN AL-KARIM</div>
             {/* Picker buttons row */}
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-              <div className="sbtn" onClick={()=>setShowQuranJuzModal(true)} style={{padding:"7px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:10,fontSize:11,fontWeight:700,color:"rgba(217,177,95,0.90)",flexShrink:0,display:"flex",alignItems:"center",gap:5}}>
+              <div className="sbtn" onClick={()=>setShowQuranJuzModal(true)} style={{flex:1,padding:"7px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:10,fontSize:11,fontWeight:700,color:"rgba(217,177,95,0.90)",display:"flex",alignItems:"center",justifyContent:"center",gap:5,height:32}}>
                 Juz {mushafJuzNum} <span style={{fontSize:9,opacity:0.5}}>▾</span>
               </div>
-              <div className="sbtn" onClick={()=>setShowQuranSurahModal(true)} style={{flex:1,padding:"7px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:10,fontSize:11,color:"rgba(243,231,191,0.70)",display:"flex",alignItems:"center",justifyContent:"space-between",gap:4,overflow:"hidden"}}>
+              <div className="sbtn" onClick={()=>setShowQuranSurahModal(true)} style={{flex:1,padding:"7px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:10,fontSize:11,color:"rgba(243,231,191,0.70)",display:"flex",alignItems:"center",justifyContent:"center",gap:4,overflow:"hidden",height:32}}>
                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
                 <span style={{fontSize:9,opacity:0.5,flexShrink:0}}>▾</span>
               </div>
-              <div style={{display:"flex",borderRadius:8,overflow:"hidden",border:"1px solid rgba(217,177,95,0.18)",flexShrink:0}}>
-                <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{padding:"7px 10px",fontSize:10,fontWeight:600,background:quranMode==="mushaf"?"rgba(217,177,95,0.15)":"transparent",color:quranMode==="mushaf"?"#E6B84A":"rgba(217,177,95,0.35)"}}>🕌</div>
-                <div style={{width:1,background:"rgba(217,177,95,0.18)"}}/>
-                <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{padding:"7px 10px",fontSize:10,fontWeight:600,background:quranMode==="interactive"?"rgba(217,177,95,0.15)":"transparent",color:quranMode==="interactive"?"#E6B84A":"rgba(217,177,95,0.35)"}}>✋</div>
+              <div style={{position:"relative",display:"flex",borderRadius:999,flex:1,background:"rgba(12,20,34,0.80)",border:"1px solid rgba(212,175,55,0.15)",padding:2,height:32}}>
+                {/* Sliding gold pill */}
+                <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:28,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 14px rgba(212,175,55,0.45), 0 0 6px rgba(212,175,55,0.25)",transition:"left .25s ease"}}/>
+                <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:quranMode==="mushaf"?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>🕌</div>
+                <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:quranMode==="interactive"?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>✋</div>
               </div>
 
             </div>
@@ -3229,6 +3233,7 @@ export default function RihlatAlHifz() {
                       const surahN = parseInt(sNum,10);
                       const isSelected = selectedAyah === verse.verse_key;
                       const showSurahHeader = surahN !== lastSurah;
+                      const isFirstAyah = aNum === "1";
                       lastSurah = surahN;
 
                       return (
@@ -3238,7 +3243,7 @@ export default function RihlatAlHifz() {
                             <div style={{textAlign:"center",padding:"16px 16px 12px"}}>
                               <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"#E8C878",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
                               <div style={{fontSize:8,color:"rgba(217,177,95,0.40)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
-                              {surahN!==9&&surahN!==1&&(
+                              {isFirstAyah&&surahN!==9&&surahN!==1&&(
                                 <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:"rgba(232,200,120,0.55)",marginTop:10,direction:"rtl",lineHeight:2,textAlign:"center"}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
@@ -3271,21 +3276,18 @@ export default function RihlatAlHifz() {
                               {/* Arabic text */}
                               <div style={{
                                 flex:1,
-                                fontFamily:"'Amiri Quran','Amiri',serif",
-                                fontSize:24,
+                                fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",
+                                fontSize:22,
                                 lineHeight:2.2,
                                 color:isSelected?"#F5E6B3":"#E8DFC0",
                                 textAlign:"right",
                               }}>
-                                {verse.text_uthmani}
+                                {(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                               </div>
                             </div>
                           </div>
 
-                          {/* Gold divider between ayahs */}
-                          {vi < (mushafVerses||[]).length - 1 && (
-                            <div style={{height:1,margin:"0 16px",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.14) 50%,rgba(217,177,95,0) 100%)"}}/>
-                          )}
+                          {/* Divider removed — continuous flow */}
                         </div>
                       );
                     });
@@ -3298,7 +3300,8 @@ export default function RihlatAlHifz() {
                 const [sNum,aNum] = selectedAyah.split(":");
                 const surahN = parseInt(sNum,10);
                 const selVerse = (mushafVerses||[]).find(v=>v.verse_key===selectedAyah);
-                const transText = selVerse?._translation || "";
+                const transText = selVerse?._translation || translations[selectedAyah] || "";
+                if(!transText && selVerse) fetchTranslations([selVerse]);
                 const isPlaying = playingKey === selectedAyah;
                 const isSaved = mushafBookmarks.includes(selectedAyah);
                 const isBookmarkedPage = mushafBookmarks.includes(mushafPage);
@@ -3314,7 +3317,7 @@ export default function RihlatAlHifz() {
                   <div
                     onClick={e=>e.stopPropagation()}
                     style={{
-                      position:"fixed",bottom:52,left:0,right:0,zIndex:200,
+                      position:"fixed",bottom:62,left:0,right:0,zIndex:200,
                       height:"50vh",
                       background:"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)",
                       borderTop:"1px solid rgba(212,175,55,0.22)",
@@ -3351,7 +3354,7 @@ export default function RihlatAlHifz() {
                         {/* Translation */}
                         <div style={{flex:1,overflowY:"auto",marginBottom:10}}>
                           {transText?(
-                            <div style={{fontSize:13,color:"rgba(243,231,200,0.78)",lineHeight:1.85,fontFamily:"'DM Sans',sans-serif",textAlign:"center",padding:"4px 0"}}>
+                            <div style={{fontSize:15,color:"rgba(243,231,200,0.78)",lineHeight:1.85,fontFamily:"'DM Sans',sans-serif",textAlign:"center",padding:"12px 8px",display:"flex",alignItems:"center",justifyContent:"center",height:"100%"}}>
                               {transText}
                             </div>
                           ):(
@@ -3360,7 +3363,7 @@ export default function RihlatAlHifz() {
                         </div>
 
                         {/* Ayah action buttons */}
-                        <div style={{flexShrink:0,display:"flex",justifyContent:"center",gap:8,marginBottom:10}}>
+                        <div style={{flexShrink:0,display:"flex",justifyContent:"center",gap:12,marginBottom:10}}>
                           {[
                             {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
                               action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(selectedAyah);} }},
@@ -3373,23 +3376,25 @@ export default function RihlatAlHifz() {
                             <div key={btn.label} className="sbtn"
                               onClick={e=>{e.stopPropagation();btn.action();}}
                               style={{
-                                display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-                                padding:"8px 12px",borderRadius:12,fontSize:9,fontWeight:700,
-                                letterSpacing:".08em",textTransform:"uppercase",
-                                border:"1px solid rgba(212,175,55,0.20)",
-                                color:isSaved&&btn.label==="Saved"?"#E8C878":"rgba(212,175,55,0.65)",
-                                background:isSaved&&btn.label==="Saved"?"rgba(212,175,55,0.07)":"rgba(255,255,255,0.03)",
-                                fontFamily:"'DM Sans',sans-serif",minWidth:52,
+                                display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:5,
+                                width:56,height:56,borderRadius:999,fontSize:9,fontWeight:700,
+                                letterSpacing:".06em",textTransform:"uppercase",
+                                border:"1.5px solid rgba(212,175,55,0.30)",
+                                color:isSaved&&btn.label==="Saved"?"#E8C878":"rgba(243,231,200,0.75)",
+                                background:isSaved&&btn.label==="Saved"?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))",
+                                boxShadow:"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.40)",
+                                fontFamily:"'DM Sans',sans-serif",
+                                transition:"all .15s ease",
                               }}
                             >
-                              <span style={{fontSize:15}}>{btn.icon}</span>
-                              <span>{btn.label}</span>
+                              <span style={{fontSize:16}}>{btn.icon}</span>
+                              <span style={{fontSize:7}}>{btn.label}</span>
                             </div>
                           ))}
                         </div>
 
                         {/* Page action row */}
-                        <div style={{flexShrink:0,display:"flex",gap:6,paddingBottom:12,borderTop:"1px solid rgba(212,175,55,0.08)",paddingTop:8}}>
+                        <div style={{flexShrink:0,display:"flex",gap:6,paddingBottom:12,borderTop:"1px solid rgba(139,106,16,0.15)",paddingTop:8}}>
                           {[
                             {icon:mushafAudioPlaying?"⏹":"▶", label:mushafAudioPlaying?"Stop":"Page",
                               action:()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }},
@@ -3400,10 +3405,10 @@ export default function RihlatAlHifz() {
                           ].map(btn=>(
                             <div key={btn.label} className="sbtn" onClick={e=>{e.stopPropagation();btn.action();}}
                               style={{
-                                flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,
-                                padding:"6px 4px",borderRadius:10,fontSize:8,fontWeight:700,
+                                flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,
+                                padding:"8px 4px",borderRadius:10,fontSize:8,fontWeight:700,
                                 letterSpacing:".06em",textTransform:"uppercase",
-                                color:"rgba(212,175,55,0.45)",
+                                color:"rgba(139,106,16,0.70)",
                                 fontFamily:"'DM Sans',sans-serif",
                               }}
                             >
@@ -3430,7 +3435,7 @@ export default function RihlatAlHifz() {
                           ))}
                         </div>
                         {/* Tafsir content */}
-                        <div style={{flex:1,overflowY:"auto",padding:"12px 18px 20px",fontSize:13,lineHeight:1.85,
+                        <div style={{flex:1,overflowY:"auto",padding:"12px 18px 20px",fontSize:14,lineHeight:1.85,
                           color:"rgba(243,231,200,0.70)",
                           fontFamily:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"'Amiri',serif":"'DM Sans',sans-serif",
                           direction:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"rtl":"ltr"}}>
@@ -3889,12 +3894,11 @@ export default function RihlatAlHifz() {
                 const isSel=mushafSurahNum===n;
                 return(
                   <div key={n} className="sbtn" onClick={()=>{setMushafPage(pg);setShowQuranSurahModal(false);}}
-                    style={{padding:"10px 12px",borderRadius:10,
+                    style={{padding:"13px 16px",borderRadius:14,textAlign:"center",
                       background:isSel?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)",
-                      border:`1px solid ${isSel?"rgba(232,200,120,0.65)":"rgba(217,177,95,0.08)"}`,
-                      boxShadow:isSel?"0 0 16px rgba(232,200,120,0.20)":"none"}}>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:"rgba(217,177,95,0.35)",marginBottom:3}}>{String(n).padStart(3,"0")}</div>
-                    <div style={{fontSize:12,fontWeight:isSel?600:400,color:isSel?"#F6E27A":"rgba(243,231,200,0.80)",marginBottom:2}}>{SURAH_EN[n]}</div>
+                      border:`1px solid ${isSel?"rgba(232,200,120,0.65)":"rgba(217,177,95,0.12)"}`,
+                      boxShadow:isSel?"0 0 28px rgba(232,200,120,0.30),inset 0 0 14px rgba(217,177,95,0.08)":"none"}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:isSel?600:400,color:isSel?"#F6E27A":"rgba(243,231,200,0.70)",marginBottom:2}}>{SURAH_EN[n]}</div>
                     <div style={{fontSize:11,color:isSel?"rgba(246,226,122,0.60)":"rgba(217,177,95,0.35)",direction:"rtl"}}>{SURAH_AR[n]}</div>
                   </div>
                 );
