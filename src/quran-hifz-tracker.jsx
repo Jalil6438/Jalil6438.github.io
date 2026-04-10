@@ -1089,9 +1089,9 @@ export default function RihlatAlHifz() {
     setSessionDone([]);
   },[sessionJuz]);
 
-  // Fetch session verses
+  // Fetch session verses (wait for loaded so backfill completes first)
   useEffect(()=>{
-    if(!sessionJuz) return;
+    if(!sessionJuz||!loaded) return;
     console.log('[FETCH START]', {sessionJuz, 'juzProgress[sessionJuz]': juzProgress[sessionJuz]});
     let cancelled=false;
     (async()=>{
@@ -1166,7 +1166,7 @@ export default function RihlatAlHifz() {
       if(!cancelled) setSessLoading(false);
     })();
     return()=>{cancelled=true;};
-  },[sessionJuz]);
+  },[sessionJuz,loaded]);
 
   // Auto-mark Juz complete when sessionVerses goes to 0 after having verses
   // This catches the case where all surahs are marked done via individual surah completion
