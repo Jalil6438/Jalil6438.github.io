@@ -170,6 +170,7 @@ function expandRangeToKeys(startKey, endKey) {
 // Cached juz key lists — computed once per session
 const _juzKeyCache = {};
 function getJuzKeys(juzNum) {
+  if(!juzNum || !JUZ_RANGES[juzNum]) return [];
   if(!_juzKeyCache[juzNum]) {
     const {start,end} = JUZ_RANGES[juzNum];
     _juzKeyCache[juzNum] = expandRangeToKeys(start, end);
@@ -1169,13 +1170,12 @@ export default function RihlatAlHifz() {
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
   // ── V9 MATH — single source of truth ─────────────────────────────────────
-  const memorizedAyahs = completedAyahs.size;
+  const memorizedAyahs = completedAyahs?.size ?? 0;
   const totalAyahsInQuran = 6236;
   const pct = Math.round((memorizedAyahs / totalAyahsInQuran) * 100);
   const completedCount = Object.keys(JUZ_RANGES).filter(j => v9IsJuzComplete(Number(j))).length;
-  // Exact daysPerJuz: use actual ayah count of the next incomplete juz, not average
   const nextIncompleteJuz = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].find(j=>!v9IsJuzComplete(j));
-  const nextJuzAyahs = nextIncompleteJuz ? JUZ_RANGES[nextIncompleteJuz].total : null;
+  const nextJuzAyahs = nextIncompleteJuz ? (JUZ_RANGES[nextIncompleteJuz]?.total ?? null) : null;
   const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>!v9IsJuzComplete(j.num));
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
@@ -1382,6 +1382,7 @@ export default function RihlatAlHifz() {
   }
 
   function v9IsJuzComplete(juzNum) {
+    if(!juzNum || !JUZ_RANGES[juzNum]) return false;
     return getJuzKeys(juzNum).every(k => completedAyahs.has(k));
   }
 
