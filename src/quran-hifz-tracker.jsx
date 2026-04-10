@@ -912,45 +912,35 @@ export default function RihlatAlHifz() {
     return()=>obs.disconnect();
   },[quranMode,activeTab]);
 
-  // Parse tafsir text into styled blocks (Arabic vs English/commentary)
+  // Parse tafsir text — separate Arabic from English into clean blocks
   function parseTafsirBlocks(text) {
     if(!text) return [];
-    // Arabic Unicode range detection
-    const isArabic = (str) => /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(str);
-    const isMainlyArabic = (str) => {
-      const arabicChars = (str.match(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g)||[]).length;
-      return arabicChars > str.replace(/\s/g,"").length * 0.4;
-    };
-    // Split by double newlines or periods followed by Arabic
-    const raw = text.split(/\n\n+|\r\n\r\n+/).filter(Boolean);
-    if(raw.length <= 1) {
-      // Single block — try splitting by sentences
-      const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z\u0600])/);
-      if(sentences.length > 1) {
-        return sentences.map(s => ({type: isMainlyArabic(s.trim()) ? "arabic" : "english", text: s.trim()})).filter(b => b.text);
+    const blocks = [];
+    // Regex: match runs of Arabic characters (with diacritics, punctuation, spaces between them)
+    // Minimum 3 Arabic chars to count as a block (avoids picking up lone symbols)
+    const arabicRun = /((?:[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED][\s\u060C\u061B\u061F\u0640.,،؛؟]*){3,})/g;
+    let lastIdx = 0;
+    let match;
+    while((match = arabicRun.exec(text)) !== null) {
+      // English before this Arabic block
+      if(match.index > lastIdx) {
+        const eng = text.slice(lastIdx, match.index).trim();
+        if(eng) blocks.push({type:"english", text:eng});
       }
-      // Try splitting by detecting Arabic chunks inline
-      const parts = [];
-      let remaining = text;
-      const arabicPattern = /([\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\s\u060C\u061B\u061F.,،؛؟]+)/g;
-      let lastIdx = 0;
-      let match;
-      while((match = arabicPattern.exec(remaining)) !== null) {
-        if(match[0].replace(/\s/g,"").length < 5) continue;
-        if(match.index > lastIdx) {
-          const eng = remaining.slice(lastIdx, match.index).trim();
-          if(eng) parts.push({type:"english", text:eng});
-        }
-        parts.push({type:"arabic", text:match[0].trim()});
-        lastIdx = match.index + match[0].length;
-      }
-      if(lastIdx < remaining.length) {
-        const tail = remaining.slice(lastIdx).trim();
-        if(tail) parts.push({type:"english", text:tail});
-      }
-      return parts.length > 0 ? parts : [{type: isMainlyArabic(text) ? "arabic" : "english", text}];
+      const ar = match[0].trim();
+      if(ar) blocks.push({type:"arabic", text:ar});
+      lastIdx = match.index + match[0].length;
     }
-    return raw.map(p => ({type: isMainlyArabic(p.trim()) ? "arabic" : "english", text: p.trim()})).filter(b => b.text);
+    // Remaining English after last Arabic block
+    if(lastIdx < text.length) {
+      const tail = text.slice(lastIdx).trim();
+      if(tail) blocks.push({type:"english", text:tail});
+    }
+    // If no Arabic found at all, split by paragraphs
+    if(blocks.length === 0) {
+      return text.split(/\n\n+/).filter(Boolean).map(p => ({type:"english", text:p.trim()}));
+    }
+    return blocks;
   }
 
   async function fetchTafsir(verseKey){
@@ -3597,7 +3587,7 @@ export default function RihlatAlHifz() {
                           <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
                             {(selVerse?.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                           </div>
-                          {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.50)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
+                          {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
                         </div>
                         {/* Tab selector */}
                         <div style={{display:"flex",borderBottom:dark?"1px solid rgba(212,175,55,0.10)":"1px solid rgba(0,0,0,0.06)",padding:"0 20px",flexShrink:0,gap:4}}>
