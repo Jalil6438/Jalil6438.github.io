@@ -248,7 +248,7 @@ const STATUS_CFG = {
 }
 
 const DARK  = {bg:"#04070A",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
-const LIGHT = {bg:"#F7F3EC",surface:"#FFFFFF",surface2:"#F0EBE0",border:"#DDD4C0",border2:"#D0C8B0",text:"#1A1200",sub:"#3A2A08",dim:"#6A5A30",vdim:"#9A9A88",accent:"#B83A1A",accentDim:"rgba(184,58,26,0.10)",input:"#F7F3EC",inputBorder:"#CCC4B0",inputText:"#1A1200"};
+const LIGHT = {bg:"#F5EDD8",surface:"#E4D8B8",surface2:"#DDD0B0",border:"#C8BA98",border2:"#BDB08E",text:"#1A1200",sub:"#3A2A08",dim:"#6A5A30",vdim:"#9A9A88",accent:"#B83A1A",accentDim:"rgba(184,58,26,0.10)",input:"#E4D8B8",inputBorder:"#C8BA98",inputText:"#1A1200"};
 const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
 const TODAY=()=>new Date().toDateString();
 const DATEKEY=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
@@ -452,7 +452,7 @@ function AsrSessionView({
       green:"#59D98A",greenSoft:"rgba(89,217,138,0.16)",
     };
     return (
-      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto",padding:"16px 0 36px",background:dark?"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 100%)"}}>
+      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto",padding:"16px 0 36px",background:dark?"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)":"#F5EDD8"}}>
         <div style={{flex:1,display:"flex",flexDirection:"column"}}>
           {/* Exit button */}
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
@@ -565,7 +565,7 @@ function AsrSessionView({
           const evLoading=audioLoading===evKey;
           return (
             <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setAsrExpandedAyah(null)}>
-              <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,borderRadius:24,padding:"28px 24px 24px",background:"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.12) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
+              <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,borderRadius:24,padding:"28px 24px 24px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.12) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#E4D8B8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
                 <div className="sbtn" onClick={()=>setAsrExpandedAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
                 <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
                   {ev.text_uthmani}
@@ -1818,7 +1818,7 @@ export default function RihlatAlHifz() {
 
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
-        .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:${dark?"radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%)":"linear-gradient(180deg,#EDE4CC 0%,#E4D8B8 100%)"};box-shadow:${dark?"0 14px 36px rgba(0,0,0,0.42)":"0 4px 16px rgba(0,0,0,0.08)"};}
+        .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:${dark?"radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%)":"#E4D8B8"};box-shadow:${dark?"0 14px 36px rgba(0,0,0,0.42)":"0 4px 16px rgba(0,0,0,0.08)"};}
         .asr-shell::before{content:"";position:absolute;inset:0;border-radius:30px;padding:1px;background:${dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.03) 10%,rgba(232,200,120,0.18) 50%,rgba(217,177,95,0.03) 90%,rgba(217,177,95,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(217,177,95,0.05) 0%,rgba(217,177,95,0.015) 30%,rgba(217,177,95,0.035) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.12) 50%,rgba(139,106,16,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(139,106,16,0.08) 0%,rgba(139,106,16,0.03) 100%)"};-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
         .asr-title{text-align:center;font-size:15px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:${dark?"#E8C878":"#8B6A10"};margin-bottom:10px;text-shadow:${dark?"0 0 18px rgba(217,177,95,0.28)":"none"};}
         .asr-title-line{position:relative;height:1px;margin:8px 0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.04) 18%,rgba(232,200,120,0.42) 50%,rgba(217,177,95,0.04) 82%,rgba(217,177,95,0) 100%);}
@@ -2117,16 +2117,16 @@ export default function RihlatAlHifz() {
         ];
         const d=DUAS[duaIdx%DUAS.length];
         return (
-          <div style={{position:"fixed",inset:0,background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
-            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)"}}/>
-            <div className="fi" style={{position:"relative",background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:20,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center",boxShadow:"0 20px 50px rgba(0,0,0,0.45),0 0 30px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:"#F6E27A",direction:"rtl",lineHeight:1.8,marginBottom:20,textShadow:"0 0 18px rgba(212,175,55,0.18)"}}>
+          <div style={{position:"fixed",inset:0,background:dark?"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 50%,#E8DCBE 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)":"radial-gradient(circle at 50% 0%,rgba(139,106,16,0.06),transparent 60%)"}}/>
+            <div className="fi" style={{position:"relative",background:dark?"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)":"linear-gradient(180deg,#C8BA98 0%,#BDB08E 100%)",border:dark?"1px solid rgba(212,175,55,0.20)":"1px solid rgba(139,106,16,0.18)",borderRadius:20,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center",boxShadow:dark?"0 20px 50px rgba(0,0,0,0.45),0 0 30px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)":"0 10px 30px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.5)"}}>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,30px)",color:dark?"#F6E27A":"#1E1000",direction:"rtl",lineHeight:1.8,marginBottom:20,textShadow:dark?"0 0 18px rgba(212,175,55,0.18)":"none"}}>
                 بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
               </div>
-              <div style={{fontSize:8,color:"rgba(212,175,55,0.65)",letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,opacity:0.75}}>Begin With Dua</div>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,32px)",color:"#F6E27A",direction:"rtl",lineHeight:2,marginBottom:16,textShadow:"0 0 12px rgba(212,175,55,0.12)"}}>{d.arabic}</div>
-              <div style={{fontSize:11,color:"rgba(243,231,191,0.85)",lineHeight:1.6,marginBottom:4,opacity:0.85}}>{d.translation}</div>
-              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:"rgba(212,175,55,0.40)",marginBottom:20,opacity:0.5}}>{d.source}</div>
+              <div style={{fontSize:8,color:dark?"rgba(212,175,55,0.65)":"#8B6A10",letterSpacing:".12em",textTransform:"uppercase",marginBottom:14,opacity:0.75}}>Begin With Dua</div>
+              <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.5vw,32px)",color:dark?"#F6E27A":"#1E1000",direction:"rtl",lineHeight:2,marginBottom:16,textShadow:dark?"0 0 12px rgba(212,175,55,0.12)":"none"}}>{d.arabic}</div>
+              <div style={{fontSize:11,color:dark?"rgba(243,231,191,0.85)":"#2A1A00",lineHeight:1.6,marginBottom:4,opacity:0.85}}>{d.translation}</div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:dark?"rgba(212,175,55,0.40)":"#8B6A10",marginBottom:20,opacity:0.5}}>{d.source}</div>
               <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:20}}>
                 {[0,1,2,3,4,5].map(i=>(
                   <div key={i} style={{width:i===duaIdx%6?14:5,height:5,borderRadius:3,background:i===duaIdx%6?"linear-gradient(90deg,#D4AF37,#F6E27A)":"rgba(255,255,255,0.08)",boxShadow:i===duaIdx%6?"0 0 8px rgba(212,175,55,0.35)":"none",opacity:i===duaIdx%6?1:0.3,transition:"all .3s"}}/>
@@ -2165,7 +2165,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* TABS — fixed bottom bar with icons */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#F5F0E8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#E4D8B8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
         {[
           {id:"myhifz",  img:"/tab-hifz.jpg",   label:"My Hifz"},
           {id:"rihlah",  img:"/tab-rihlah.jpg",  label:"My Rihlah"},
@@ -2187,7 +2187,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&(
-        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",position:"relative"}} className="fi gold-particles">
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F5EDD8",position:"relative"}} className="fi gold-particles">
 
           {/* ── STICKY RECITER BUTTON ── */}
           <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,paddingBottom:2}}>
@@ -2250,16 +2250,16 @@ export default function RihlatAlHifz() {
                 <div style={{marginBottom:10}}>
                   <div style={{fontSize:8,color:"rgba(230,184,74,0.40)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>
                   <div style={{padding:"11px 14px",
-                    background:"linear-gradient(180deg,rgba(15,26,43,0.95) 0%,rgba(12,21,38,0.98) 100%)",
-                    border:`1px solid ${isDone?"rgba(74,222,128,0.20)":"rgba(230,184,74,0.18)"}`,borderLeft:`3px solid ${isDone?"#4ADE80":"#E6B84A"}`,borderRadius:"0 10px 10px 0",
-                    boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 12px rgba(230,184,74,0.06)"}}>
+                    background:dark?"linear-gradient(180deg,rgba(15,26,43,0.95) 0%,rgba(12,21,38,0.98) 100%)":"linear-gradient(180deg,rgba(225,215,192,0.95) 0%,rgba(215,205,180,0.98) 100%)",
+                    border:`1px solid ${isDone?"rgba(74,222,128,0.20)":(dark?"rgba(230,184,74,0.18)":"rgba(139,106,16,0.18)")}`,borderLeft:`3px solid ${isDone?"#4ADE80":(dark?"#E6B84A":"#B83A1A")}`,borderRadius:"0 10px 10px 0",
+                    boxShadow:dark?"0 4px 16px rgba(0,0,0,0.20),0 0 12px rgba(230,184,74,0.06)":"0 2px 8px rgba(0,0,0,0.06)"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{flex:1}}>
-                        <div style={{fontSize:14,fontWeight:700,color:isDone?"#4ADE80":"#F0E6D0"}}>{sessionLabel}</div>
+                        <div style={{fontSize:14,fontWeight:700,color:isDone?"#4ADE80":(dark?"#F0E6D0":"#1E1000")}}>{sessionLabel}</div>
                       </div>
-                      <div style={{fontSize:12,color:"rgba(230,184,74,0.60)",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length} of {batch.length||dailyNew}</div>
+                      <div style={{fontSize:12,color:dark?"rgba(230,184,74,0.60)":"#8B6A10",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length} of {batch.length||dailyNew}</div>
                     </div>
-                    {microGuide&&<div style={{fontSize:11,color:"rgba(243,231,200,0.35)",marginTop:5}}>{microGuide}</div>}
+                    {microGuide&&<div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6A5A30",marginTop:5}}>{microGuide}</div>}
                   </div>
                 </div>
               );
@@ -2267,7 +2267,7 @@ export default function RihlatAlHifz() {
 
             {/* ── ASR EMPTY STATE — shown when auto-pool has nothing ── */}
             {SESSIONS[activeSessionIndex]?.id==="asr"&&!sessLoading&&!asrStarted&&batch.length===0&&!asrIsCustomized&&(
-              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:dark?"linear-gradient(180deg,#060C18 0%,#040814 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 100%)",padding:"32px 24px"}}>
+              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:dark?"linear-gradient(180deg,#060C18 0%,#040814 100%)":"#F5EDD8",padding:"32px 24px"}}>
                 <div style={{fontSize:36,marginBottom:16}}>📖</div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7C8",fontWeight:700,textAlign:"center",marginBottom:10}}>Nothing to review yet</div>
                 <div style={{fontSize:13,color:"rgba(243,231,200,0.45)",textAlign:"center",lineHeight:1.8,maxWidth:280,marginBottom:28}}>
@@ -2290,7 +2290,7 @@ export default function RihlatAlHifz() {
               const activeJuzSurahs=activeJuz?(JUZ_SURAHS[activeJuz]||[]).filter(s=>isSurahComplete(s.s)||v9IsJuzComplete(activeJuz)):[];
               const isJuzSelected=asrSelectedJuz.includes(activeJuz);
               return (
-              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:dark?"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 100%)",overflowY:"auto",padding:"32px 20px 40px"}}>
+              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:dark?"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)":"#F5EDD8",overflowY:"auto",padding:"32px 20px 40px"}}>
 
                 {/* Header */}
                 <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
@@ -2398,7 +2398,7 @@ export default function RihlatAlHifz() {
             {/* ── LOADING / ERROR STATES ── */}
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
             {!sessLoading&&sessError&&(
-              <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"linear-gradient(180deg,#EDE4CC 0%,#E4D8B8 100%)",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(139,106,16,0.15)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"#E4D8B8",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(139,106,16,0.15)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
                 <div style={{width:74,height:74,borderRadius:"50%",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,boxShadow:"0 0 10px rgba(230,184,74,0.10)",fontSize:30}}>📖</div>
                 <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
                 <div style={{fontSize:14,lineHeight:1.7,color:"rgba(255,255,255,0.60)",maxWidth:320,marginBottom:22}}>Please check your connection and try again.</div>
@@ -2690,11 +2690,11 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 1. PROFILE HEADER ── */}
-            <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"linear-gradient(160deg,#EDE4CC 0%,#E8DCBE 50%,#F0E8D0 100%)",padding:"20px 16px 24px",position:"relative",overflow:"hidden",zIndex:1}}>
+            <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#E4D8B8",padding:"20px 16px 24px",position:"relative",overflow:"hidden",zIndex:1}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
               <div style={{display:"flex",alignItems:"center",gap:14,position:"relative",zIndex:1}}>
                 <div style={{position:"relative"}}>
-                  <div style={{width:64,height:64,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"linear-gradient(135deg,#E8DCBE,#D8C8A0)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 20px rgba(212,175,55,0.15)"}}>
+                  <div style={{width:64,height:64,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E4D8B8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 20px rgba(212,175,55,0.15)"}}>
                     <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
                   </div>
                   <div style={{position:"absolute",bottom:-2,right:-2,width:20,height:20,background:"linear-gradient(135deg,#D4AF37,#E6B84A)",borderRadius:"50%",border:dark?"2px solid #0D1020":"2px solid #EDE4CC",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -2720,7 +2720,7 @@ export default function RihlatAlHifz() {
             <div style={{padding:"12px 14px 64px",position:"relative",zIndex:1}}>
 
             {/* ── 2 & 3. OVERALL PROGRESS + DAILY GOALS — single card ── */}
-            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"linear-gradient(135deg,rgba(225,215,192,0.95) 0%,rgba(215,205,180,0.90) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px",marginBottom:10}}>
+            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#E4D8B8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px",marginBottom:10}}>
 
               {/* ── Overall Progress ── */}
               <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:12}}>Overall Progress</div>
@@ -2785,10 +2785,10 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 4. HIFZ JOURNEY ── */}
-            <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"linear-gradient(180deg,#EDE4CC 0%,#E4D8B8 100%)",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(139,106,16,0.15)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 10% 20%, rgba(46,230,197,0.05) 0, transparent 40%), radial-gradient(circle at 85% 75%, rgba(230,184,74,0.05) 0, transparent 40%)"}}/>
+            <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"#C8BA98",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(160,136,72,0.25)",borderRadius:20,boxShadow:dark?"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)":"0 4px 12px rgba(0,0,0,0.08)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
+              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 10% 20%, rgba(46,230,197,0.05) 0, transparent 40%), radial-gradient(circle at 85% 75%, rgba(230,184,74,0.05) 0, transparent 40%)":"none"}}/>
               <div style={{position:"relative",zIndex:1,marginBottom:12}}>
-                <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.5)",fontWeight:700}}>Your Hifz Journey</div>
+                <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.5)":"#1E1000",fontWeight:700}}>Your Hifz Journey</div>
                 <div style={{fontSize:10,color:"rgba(230,184,74,0.45)",marginTop:3}}>You are currently on Juz {sessionJuz||"—"}</div>
               </div>
               {(()=>{
@@ -2829,14 +2829,14 @@ export default function RihlatAlHifz() {
                         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                       </filter>
                     </defs>
-                    <path d={pathD} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" strokeLinecap="round"/>
+                    <path d={pathD} fill="none" stroke={dark?"rgba(255,255,255,0.08)":"rgba(139,106,16,0.15)"} strokeWidth="3" strokeLinecap="round"/>
                     <path d={pathD} fill="none" stroke="url(#journeyGradient)" strokeWidth="6" strokeLinecap="round" filter="url(#lineGlow)" strokeDasharray={`${revealed} ${hidden}`}/>
                     {[{x:105,y:73,juz:10,label:"Juz 10"},{x:170,y:50,juz:20,label:"Juz 20"},{x:245,y:32,juz:30,label:"Juz 30"}].map((m,i)=>{
                       const reached=completedCount>=m.juz;
                       return (
                         <g key={i} opacity={reached?1:0.4}>
-                          <circle cx={m.x} cy={m.y} r="5.5" fill="rgba(255,255,255,0.22)"/>
-                          <text x={m.x} y={m.y+16} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.5)">{m.label}</text>
+                          <circle cx={m.x} cy={m.y} r="5.5" fill={dark?"rgba(255,255,255,0.22)":"rgba(139,106,16,0.25)"}/>
+                          <text x={m.x} y={m.y+16} textAnchor="middle" fontSize="8" fill={dark?"rgba(255,255,255,0.5)":"#6A5A30"}>{m.label}</text>
                         </g>
                       );
                     })}
@@ -2851,19 +2851,19 @@ export default function RihlatAlHifz() {
                       <circle cx="0" cy="0" r="16" fill="rgba(230,184,74,0.10)" stroke="rgba(230,184,74,0.70)" strokeWidth="1.5" filter="url(#goalGlow)"/>
                       <text x="0" y="5" textAnchor="middle" fontSize="13" fill="#F0C040">📖</text>
                     </g>
-                    <text x="20" y="126" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.4)">Juz 1</text>
+                    <text x="20" y="126" textAnchor="middle" fontSize="8" fill={dark?"rgba(255,255,255,0.4)":"#6A5A30"}>Juz 1</text>
                   </svg>
                 );
               })()}
               <div style={{display:"flex",justifyContent:"space-between",position:"relative",zIndex:1,marginTop:4}}>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Goal: Complete Qur'an in {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths} month${goalMonths!==1?"s":""}`:""}</div>
-                <div style={{fontSize:10,color:"rgba(230,184,74,0.6)",fontWeight:600}}>{timeline.juzLeft} Juz remaining</div>
+                <div style={{fontSize:10,color:dark?"rgba(255,255,255,0.3)":"#6A5A30"}}>Goal: Complete Qur'an in {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths} month${goalMonths!==1?"s":""}`:""}</div>
+                <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.6)":"#8B6A10",fontWeight:600}}>{timeline.juzLeft} Juz remaining</div>
               </div>
             </div>
 
 
             {/* ── 5. ACTIVE SESSION CHECKLIST ── */}
-            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"linear-gradient(135deg,rgba(225,215,192,0.95) 0%,rgba(215,205,180,0.90) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px",marginBottom:10}}>
+            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#E4D8B8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px",marginBottom:10}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
                   <div style={{width:36,height:36,borderRadius:12,background:`linear-gradient(135deg,${activeSess.color}88,${activeSess.color}44)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 4px 12px ${activeSess.color}40`}}>
@@ -2913,7 +2913,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 6. BADGES ── */}
-            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"linear-gradient(135deg,rgba(225,215,192,0.95) 0%,rgba(215,205,180,0.90) 100%)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"18px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>
+            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#E4D8B8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"18px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 16%)"}}/>
               <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
               <div style={{display:"flex",justifyContent:"space-around",gap:8,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"12px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)"}}>
@@ -2926,12 +2926,12 @@ export default function RihlatAlHifz() {
 
             {/* ── 7. NAV BUTTONS ── */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"linear-gradient(145deg,#EDE4CC,#E4D8B8)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#E4D8B8",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>📖</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Memorization</div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Track your progress</div>
               </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"linear-gradient(145deg,#EDE4CC,#E4D8B8)",border:"1px solid rgba(240,192,64,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#E4D8B8",border:"1px solid rgba(240,192,64,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Plan</div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Your hifz timeline</div>
@@ -2967,7 +2967,7 @@ export default function RihlatAlHifz() {
         }));
 
         return (
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",padding:"14px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F5EDD8",padding:"14px 16px 64px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:20}}>
@@ -3145,7 +3145,7 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const curSurahNum=mushafSurahNum;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
-        const parchment=dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)";
+        const parchment=dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F5EDD8";
         const goldColor="#E8D5A3";
         const inkColor="#E8D5A3";
 
@@ -3153,7 +3153,7 @@ export default function RihlatAlHifz() {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:52}}>
 
           {/* Header — Asr session style */}
-          <div style={{flexShrink:0,padding:"14px 16px 0",background:dark?"#060C18":"#E8DCBE"}}>
+          <div style={{flexShrink:0,padding:"14px 16px 0",background:dark?"#060C18":"#E4D8B8"}}>
             <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"#8B6A10",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600,marginBottom:8}}>AL-QUR'AN AL-KARIM</div>
             {/* Picker buttons row */}
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
@@ -3177,7 +3177,7 @@ export default function RihlatAlHifz() {
 
           {/* Viewer */}
           {quranMode==="mushaf"?(
-            <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0b1a2b":"#F0E8D0",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
+            <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0b1a2b":"#F5EDD8",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
               onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -3482,7 +3482,7 @@ export default function RihlatAlHifz() {
           )}
 
           {/* Page nav */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)",flexShrink:0,background:dark?"#060C18":"#E8DCBE"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)",flexShrink:0,background:dark?"#060C18":"#E4D8B8"}}>
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?(dark?"rgba(217,177,95,0.60)":"#8B6A10"):(dark?"rgba(217,177,95,0.15)":"rgba(139,106,16,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(139,106,16,0.05)"}}>‹</div>
             <div style={{fontSize:11,color:dark?"rgba(217,177,95,0.45)":"#8B6A10",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?(dark?"rgba(217,177,95,0.60)":"#8B6A10"):(dark?"rgba(217,177,95,0.15)":"rgba(139,106,16,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(139,106,16,0.05)"}}>›</div>
@@ -3495,7 +3495,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TIMELINE ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="timeline"&&(
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",padding:"16px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F5EDD8",padding:"16px 16px 64px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:22}}>
@@ -3616,7 +3616,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ ADJUST PLAN ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",padding:"16px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F5EDD8",padding:"16px 16px 64px"}} className="fi gold-particles">
           {/* Header */}
           <div style={{marginBottom:20}}>
             <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back to My Plan</div>
@@ -3751,7 +3751,7 @@ export default function RihlatAlHifz() {
         };
         return (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowJuzModal(false)}>
-          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#E4D8B8",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
 
             {/* Header divider */}
@@ -3790,7 +3790,7 @@ export default function RihlatAlHifz() {
       {/* Mushaf Audio Range Picker */}
       {showMushafRangePicker&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.82)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowMushafRangePicker(false)}>
-          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#E4D8B8",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
 
             {/* Header */}
@@ -3856,7 +3856,7 @@ export default function RihlatAlHifz() {
       {/* Quran Juz Picker Modal */}
       {showQuranJuzModal&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowQuranJuzModal(false)}>
-          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#E4D8B8",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
               <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
@@ -3885,7 +3885,7 @@ export default function RihlatAlHifz() {
       {/* Quran Surah Picker Modal */}
       {showQuranSurahModal&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowQuranSurahModal(false)}>
-          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"75vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#E4D8B8",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"75vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
               <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
@@ -3915,7 +3915,7 @@ export default function RihlatAlHifz() {
       {/* Quran Reciter Modal */}
 {showReciterModal&&(
   <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
-    <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"68vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#E4D8B8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"68vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
 
       {/* ── Handle + Header ── */}
       <div style={{padding:"12px 18px 0",textAlign:"center"}}>
