@@ -712,8 +712,9 @@ export default function RihlatAlHifz() {
   const [croppedPages,setCroppedPages]=useState({});
   const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
   const [selectedAyah,setSelectedAyah]=useState(null);
+  const [drawerView,setDrawerView]=useState("default"); // "default"|"tafsir"|"reflect"
   const [showTranslation,setShowTranslation]=useState(true);
-  const [showReflect,setShowReflect]=useState(false); // show reflection input in bottom drawer
+  const [showReflect,setShowReflect]=useState(false); // legacy, replaced by drawerView
   const [reflections,setReflections]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-reflections")||"{}");}catch{return {};}});
   const [tafsirOn,setTafsirOn]=useState(false);
   const [tafsirAyah,setTafsirAyah]=useState(null);
@@ -1957,12 +1958,12 @@ export default function RihlatAlHifz() {
             </div>
           )}
           {onboardStep===4&&loaded&&(()=>{
+            try {
             const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths);
             const remainingJuz=tl.juzLeft;
             const apd=Math.round(parseFloat(tl.ayahsPerDay));
             const daysPerJuz=tl.daysPerJuz;
             const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
-            const juzDone=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].filter(j=>v9IsJuzComplete(j)).length;
             return (
               <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
                 <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
@@ -1999,7 +2000,7 @@ export default function RihlatAlHifz() {
                 )}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                   <div style={{fontSize:9,color:"rgba(243,231,191,0.65)",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
-                  <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{juzDone} Juz selected</div>
+                  <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{completedCount} Juz completed</div>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
                   {displayedJuz.map(j=>{
@@ -2087,6 +2088,11 @@ export default function RihlatAlHifz() {
                 </div>
               </div>
             );
+            } catch(e) {
+              return <div style={{flex:1,padding:"24px",background:"#060A07",color:"#E5534B",fontSize:11,fontFamily:"monospace",whiteSpace:"pre-wrap",overflowY:"auto"}}>
+                ERROR IN STEP 4:{"\n"}{e?.message}{"\n\n"}{e?.stack}
+              </div>;
+            }
           })()}
 
         </div>
@@ -3156,7 +3162,7 @@ export default function RihlatAlHifz() {
                 <div style={{width:1,background:"rgba(217,177,95,0.18)"}}/>
                 <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{padding:"7px 10px",fontSize:10,fontWeight:600,background:quranMode==="interactive"?"rgba(217,177,95,0.15)":"transparent",color:quranMode==="interactive"?"#E6B84A":"rgba(217,177,95,0.35)"}}>✋</div>
               </div>
-              <div className="sbtn" onClick={()=>setShowMushafSheet(true)} style={{padding:"7px 10px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:8,fontSize:10,fontWeight:600,color:"rgba(217,177,95,0.60)"}}>⋯</div>
+
             </div>
             <div style={{height:1,background:"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)"}}/>
           </div>
@@ -3243,7 +3249,7 @@ export default function RihlatAlHifz() {
 
                           {/* Ayah reading block — tap to open bottom drawer */}
                           <div
-                            onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);}}
+                            onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
                             style={{
                               padding:"14px 12px",
                               background:isSelected?"rgba(212,175,55,0.05)":"transparent",
@@ -3260,7 +3266,7 @@ export default function RihlatAlHifz() {
                                   fontFamily:"'Amiri Quran','Amiri',serif",
                                   fontSize:20,
                                   color:isSelected?"rgba(212,175,55,0.80)":"rgba(212,175,55,0.38)",
-                                }}>﴾{toArabicDigits(aNum)}﴿</span>
+                                }}>﴿{toArabicDigits(aNum)}﴾</span>
                               </div>
                               {/* Arabic text */}
                               <div style={{
@@ -3287,7 +3293,7 @@ export default function RihlatAlHifz() {
                 </div>
               )}
 
-              {/* ── BOTTOM DRAWER — slides up on ayah tap ── */}
+              {/* ── UNIFIED 50% DRAWER ── */}
               {selectedAyah&&(()=>{
                 const [sNum,aNum] = selectedAyah.split(":");
                 const surahN = parseInt(sNum,10);
@@ -3295,6 +3301,7 @@ export default function RihlatAlHifz() {
                 const transText = selVerse?._translation || "";
                 const isPlaying = playingKey === selectedAyah;
                 const isSaved = mushafBookmarks.includes(selectedAyah);
+                const isBookmarkedPage = mushafBookmarks.includes(mushafPage);
                 const playAyahAudio = (vk) => {
                   if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
                   const [s,a]=vk.split(":");
@@ -3308,77 +3315,136 @@ export default function RihlatAlHifz() {
                     onClick={e=>e.stopPropagation()}
                     style={{
                       position:"fixed",bottom:52,left:0,right:0,zIndex:200,
-                      background:"linear-gradient(180deg,#0C1422 0%,#080E1A 100%)",
-                      borderTop:"1px solid rgba(212,175,55,0.20)",
+                      height:"50vh",
+                      background:"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)",
+                      borderTop:"1px solid rgba(212,175,55,0.22)",
                       borderRadius:"20px 20px 0 0",
-                      padding:"10px 20px 20px",
-                      boxShadow:"0 -8px 32px rgba(0,0,0,0.60)",
+                      boxShadow:"0 -12px 40px rgba(0,0,0,0.70)",
                       animation:"slideUpDrawer .22s ease-out",
+                      display:"flex",flexDirection:"column",
                     }}
                   >
-                    {/* Drag handle */}
-                    <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
-                      <div style={{width:36,height:4,borderRadius:2,background:"rgba(255,255,255,0.15)"}}/>
-                    </div>
-
-                    {/* Ayah label */}
-                    <div style={{textAlign:"center",marginBottom:10}}>
-                      <div style={{fontSize:10,color:"rgba(217,177,95,0.50)",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>
-                        Ayah {aNum} · {SURAH_EN[surahN]||""}
+                    {/* Drag handle + header row */}
+                    <div style={{flexShrink:0,padding:"10px 20px 0"}}>
+                      <div style={{display:"flex",justifyContent:"center",marginBottom:8}}>
+                        <div style={{width:36,height:4,borderRadius:2,background:"rgba(255,255,255,0.15)"}}/>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        {drawerView!=="default"?(
+                          <div className="sbtn" onClick={()=>setDrawerView("default")}
+                            style={{fontSize:11,color:"rgba(212,175,55,0.60)",display:"flex",alignItems:"center",gap:4,fontFamily:"'DM Sans',sans-serif"}}>
+                            ← Back
+                          </div>
+                        ):(
+                          <div style={{fontSize:10,color:"rgba(217,177,95,0.50)",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>
+                            {SURAH_EN[surahN]||""} · {sNum}:{aNum}
+                          </div>
+                        )}
+                        <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");if(audioRef.current){audioRef.current.pause();audioRef.current=null;setPlayingKey(null);}}}
+                          style={{fontSize:18,color:"rgba(243,231,200,0.20)",lineHeight:1,padding:"0 4px"}}>×</div>
                       </div>
                     </div>
 
-                    {/* Translation */}
-                    {transText?(
-                      <div style={{
-                        fontSize:13,color:"rgba(243,231,200,0.75)",lineHeight:1.8,
-                        fontFamily:"'DM Sans',sans-serif",textAlign:"center",
-                        marginBottom:14,padding:"0 8px",
-                      }}>
-                        {transText}
+                    {/* ── VIEW: DEFAULT ── */}
+                    {drawerView==="default"&&(
+                      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",padding:"8px 20px 0"}}>
+                        {/* Translation */}
+                        <div style={{flex:1,overflowY:"auto",marginBottom:10}}>
+                          {transText?(
+                            <div style={{fontSize:13,color:"rgba(243,231,200,0.78)",lineHeight:1.85,fontFamily:"'DM Sans',sans-serif",textAlign:"center",padding:"4px 0"}}>
+                              {transText}
+                            </div>
+                          ):(
+                            <div style={{height:12}}/>
+                          )}
+                        </div>
+
+                        {/* Ayah action buttons */}
+                        <div style={{flexShrink:0,display:"flex",justifyContent:"center",gap:8,marginBottom:10}}>
+                          {[
+                            {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
+                              action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(selectedAyah);} }},
+                            {icon:"📖", label:"Tafsir",
+                              action:()=>{ if(!selectedAyah)return; setTafsirAyah(selectedAyah); fetchTafsir(selectedAyah); setDrawerView("tafsir"); }},
+                            {icon:isSaved?"✦":"🔖", label:isSaved?"Saved":"Save",
+                              action:()=>{ const bm=[...mushafBookmarks]; const idx=bm.indexOf(selectedAyah); if(idx>=0)bm.splice(idx,1); else bm.push(selectedAyah); setMushafBookmarks(bm); localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }},
+                            {icon:"✏️", label:"Reflect", action:()=>setDrawerView("reflect")},
+                          ].map(btn=>(
+                            <div key={btn.label} className="sbtn"
+                              onClick={e=>{e.stopPropagation();btn.action();}}
+                              style={{
+                                display:"flex",flexDirection:"column",alignItems:"center",gap:3,
+                                padding:"8px 12px",borderRadius:12,fontSize:9,fontWeight:700,
+                                letterSpacing:".08em",textTransform:"uppercase",
+                                border:"1px solid rgba(212,175,55,0.20)",
+                                color:isSaved&&btn.label==="Saved"?"#E8C878":"rgba(212,175,55,0.65)",
+                                background:isSaved&&btn.label==="Saved"?"rgba(212,175,55,0.07)":"rgba(255,255,255,0.03)",
+                                fontFamily:"'DM Sans',sans-serif",minWidth:52,
+                              }}
+                            >
+                              <span style={{fontSize:15}}>{btn.icon}</span>
+                              <span>{btn.label}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Page action row */}
+                        <div style={{flexShrink:0,display:"flex",gap:6,paddingBottom:12,borderTop:"1px solid rgba(212,175,55,0.08)",paddingTop:8}}>
+                          {[
+                            {icon:mushafAudioPlaying?"⏹":"▶", label:mushafAudioPlaying?"Stop":"Page",
+                              action:()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }},
+                            {icon:"⏭", label:"Range", action:()=>{ stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true); }},
+                            {icon:"🎙️", label:"Reciter", action:()=>{ setReciterMode("quran");setShowReciterModal(true); }},
+                            {icon:isBookmarkedPage?"✦":"🔖", label:isBookmarkedPage?"Saved":"Bookmark",
+                              action:()=>{ const updated=isBookmarkedPage?mushafBookmarks.filter(p=>p!==mushafPage):[...mushafBookmarks,mushafPage].sort((a,b)=>a-b); setMushafBookmarks(updated); try{localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(updated));}catch{} }},
+                          ].map(btn=>(
+                            <div key={btn.label} className="sbtn" onClick={e=>{e.stopPropagation();btn.action();}}
+                              style={{
+                                flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,
+                                padding:"6px 4px",borderRadius:10,fontSize:8,fontWeight:700,
+                                letterSpacing:".06em",textTransform:"uppercase",
+                                color:"rgba(212,175,55,0.45)",
+                                fontFamily:"'DM Sans',sans-serif",
+                              }}
+                            >
+                              <span style={{fontSize:14}}>{btn.icon}</span>
+                              <span>{btn.label}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ):(
-                      <div style={{height:8}}/>
                     )}
 
-                    {/* Action buttons */}
-                    <div style={{display:"flex",justifyContent:"center",gap:8}}>
-                      {[
-                        {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
-                          action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(selectedAyah);} }},
-                        {icon:"📖", label:"Tafsir",
-                          action:()=>{
-                            if(!selectedAyah) return;
-                            setTafsirOn(p=>!(p&&tafsirAyah===selectedAyah));
-                            setTafsirAyah(selectedAyah);
-                            fetchTafsir(selectedAyah);
-                          }},
-                        {icon:isSaved?"✦":"🔖", label:isSaved?"Saved":"Save",
-                          action:()=>{ const bm=[...mushafBookmarks]; const idx=bm.indexOf(selectedAyah); if(idx>=0)bm.splice(idx,1); else bm.push(selectedAyah); setMushafBookmarks(bm); localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }},
-                        {icon:"✏️", label:"Reflect", action:()=>setShowReflect(r=>!r)},
-                      ].map(btn=>(
-                        <div key={btn.label} className="sbtn"
-                          onClick={e=>{e.stopPropagation();btn.action();}}
-                          style={{
-                            display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-                            padding:"8px 14px",borderRadius:12,fontSize:9,fontWeight:700,
-                            letterSpacing:".08em",textTransform:"uppercase",
-                            border:"1px solid rgba(212,175,55,0.20)",
-                            color:isSaved&&btn.label==="Saved"?"#E8C878":"rgba(212,175,55,0.65)",
-                            background:isSaved&&btn.label==="Saved"?"rgba(212,175,55,0.07)":"rgba(255,255,255,0.03)",
-                            fontFamily:"'DM Sans',sans-serif",minWidth:56,
-                          }}
-                        >
-                          <span style={{fontSize:16}}>{btn.icon}</span>
-                          <span>{btn.label}</span>
+                    {/* ── VIEW: TAFSIR ── */}
+                    {drawerView==="tafsir"&&(
+                      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",padding:"8px 0 0"}}>
+                        {/* Tab selector */}
+                        <div style={{display:"flex",borderBottom:"1px solid rgba(212,175,55,0.08)",padding:"0 16px",flexShrink:0}}>
+                          {TAFSIR_SOURCES.map(src=>(
+                            <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)}
+                              style={{flex:1,textAlign:"center",padding:"6px 4px",fontSize:10,fontWeight:tafsirTab===src.id?700:400,
+                              color:tafsirTab===src.id?"#E6B84A":"rgba(243,231,200,0.25)",
+                              borderBottom:`2px solid ${tafsirTab===src.id?"#E6B84A":"transparent"}`}}>
+                              {src.name}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                        {/* Tafsir content */}
+                        <div style={{flex:1,overflowY:"auto",padding:"12px 18px 20px",fontSize:13,lineHeight:1.85,
+                          color:"rgba(243,231,200,0.70)",
+                          fontFamily:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"'Amiri',serif":"'DM Sans',sans-serif",
+                          direction:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"rtl":"ltr"}}>
+                          {tafsirData[`${tafsirTab}-${selectedAyah}`]||<span style={{color:"rgba(243,231,200,0.20)",fontSize:11}}>Loading...</span>}
+                        </div>
+                      </div>
+                    )}
 
-                    {/* Reflection input — shown when Reflect tapped */}
-                    {showReflect&&(
-                      <div style={{marginTop:12,padding:"10px 12px",borderRadius:12,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(212,175,55,0.15)"}}>
-                        <div style={{fontSize:9,color:"rgba(217,177,95,0.50)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,fontFamily:"'DM Sans',sans-serif"}}>Your Reflection</div>
+                    {/* ── VIEW: REFLECT ── */}
+                    {drawerView==="reflect"&&(
+                      <div style={{flex:1,display:"flex",flexDirection:"column",padding:"12px 20px 16px",overflow:"hidden"}}>
+                        <div style={{fontSize:9,color:"rgba(217,177,95,0.45)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:8,fontFamily:"'DM Sans',sans-serif"}}>
+                          Your Reflection · {SURAH_EN[surahN]||""} {sNum}:{aNum}
+                        </div>
                         <textarea
                           value={reflections[selectedAyah]||""}
                           onChange={e=>{
@@ -3387,25 +3453,19 @@ export default function RihlatAlHifz() {
                             try{localStorage.setItem("rihlat-reflections",JSON.stringify(updated));}catch{}
                           }}
                           placeholder="Write your thoughts on this ayah..."
-                          rows={3}
                           style={{
-                            width:"100%",background:"transparent",border:"none",outline:"none",
-                            color:"rgba(243,231,200,0.75)",fontSize:12,lineHeight:1.7,
+                            flex:1,width:"100%",background:"rgba(255,255,255,0.03)",
+                            border:"1px solid rgba(212,175,55,0.15)",borderRadius:12,
+                            padding:"12px",outline:"none",
+                            color:"rgba(243,231,200,0.80)",fontSize:13,lineHeight:1.75,
                             fontFamily:"'DM Sans',sans-serif",resize:"none",
-                            placeholder:"rgba(217,177,95,0.25)",
                           }}
                         />
                         {reflections[selectedAyah]&&(
-                          <div style={{fontSize:9,color:"rgba(217,177,95,0.35)",textAlign:"right",fontFamily:"'DM Sans',sans-serif",marginTop:2}}>Saved ✓</div>
+                          <div style={{fontSize:9,color:"rgba(217,177,95,0.35)",textAlign:"right",fontFamily:"'DM Sans',sans-serif",marginTop:4}}>Saved ✓</div>
                         )}
                       </div>
                     )}
-
-                    {/* Close tap area */}
-                    <div className="sbtn" onClick={()=>{setSelectedAyah(null);setShowReflect(false);}}
-                      style={{textAlign:"center",marginTop:12,fontSize:10,color:"rgba(217,177,95,0.25)",letterSpacing:".12em",fontFamily:"'DM Sans',sans-serif"}}>
-                      TAP TO CLOSE
-                    </div>
                   </div>
                 );
               })()}
@@ -3419,25 +3479,7 @@ export default function RihlatAlHifz() {
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?"rgba(217,177,95,0.60)":"rgba(217,177,95,0.15)",borderRadius:10,border:"1px solid rgba(217,177,95,0.15)",background:"rgba(255,255,255,0.03)"}}>›</div>
           </div>
 
-          {/* ── TAFSIR DRAWER ── */}
-          {tafsirOn&&tafsirAyah&&(
-            <div style={{borderTop:"1px solid rgba(212,175,55,0.08)",background:"#080C14",maxHeight:"50vh",overflowY:"auto",flexShrink:0}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 16px 4px"}}>
-                <span style={{fontSize:10,color:"rgba(230,184,74,0.40)"}}>{tafsirAyah}</span>
-                <div className="sbtn" onClick={()=>{setTafsirAyah(null);setTafsirOn(false);}} style={{fontSize:13,color:"rgba(243,231,200,0.18)"}}>×</div>
-              </div>
-              <div style={{display:"flex",borderBottom:"1px solid rgba(212,175,55,0.05)",padding:"0 16px"}}>
-                {TAFSIR_SOURCES.map(src=>(
-                  <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,textAlign:"center",padding:"6px 4px",fontSize:10,fontWeight:tafsirTab===src.id?600:400,color:tafsirTab===src.id?"#E6B84A":"rgba(243,231,200,0.22)",borderBottom:`2px solid ${tafsirTab===src.id?"#E6B84A":"transparent"}`}}>
-                    {src.name}
-                  </div>
-                ))}
-              </div>
-              <div style={{padding:"12px 16px 20px",fontSize:14,lineHeight:1.8,color:"rgba(243,231,200,0.60)",fontFamily:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"'Amiri',serif":"'DM Sans',sans-serif",direction:TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar"?"rtl":"ltr"}}>
-                {tafsirData[`${tafsirTab}-${tafsirAyah}`]||<span style={{color:"rgba(243,231,200,0.18)",fontSize:11}}>Loading...</span>}
-              </div>
-            </div>
-          )}
+
         </div>
         );
       })()}
@@ -3735,64 +3777,6 @@ export default function RihlatAlHifz() {
         </div>
         );
       })()}
-
-      {/* Mushaf Action Sheet */}
-      {showMushafSheet&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowMushafSheet(false)}>
-          <div style={{background:"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)",borderRadius:"18px 18px 0 0",padding:"16px 18px 28px",width:"100%",maxWidth:520,border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
-            <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18}}>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0),rgba(232,200,120,0.40))"}}/>
-              <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600}}>Page {mushafPage}</div>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.40),rgba(217,177,95,0))"}}/>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {/* Play Page */}
-              <div className="sbtn" onClick={()=>{setShowMushafSheet(false);if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);}}} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:mushafAudioPlaying?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${mushafAudioPlaying?"rgba(230,184,74,0.40)":"rgba(217,177,95,0.12)"}`}}>
-                <span style={{fontSize:20,color:mushafAudioPlaying?"#E6B84A":"rgba(217,177,95,0.70)"}}>{mushafAudioPlaying?"⏹":"▶"}</span>
-                <div>
-                  <div style={{fontSize:13,fontWeight:600,color:mushafAudioPlaying?"#F6E27A":"rgba(243,231,200,0.85)"}}>{mushafAudioPlaying?"Stop":"Play Page"}</div>
-                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>{mushafAudioPlaying?"Currently playing":"Play all ayahs on this page"}</div>
-                </div>
-              </div>
-              {/* Play Range */}
-              <div className="sbtn" onClick={()=>{setShowMushafSheet(false);stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true);}} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)"}}>
-                <span style={{fontSize:20,color:"rgba(217,177,95,0.70)"}}>⏭</span>
-                <div>
-                  <div style={{fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.85)"}}>Play Range</div>
-                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>Select start and end ayah</div>
-                </div>
-              </div>
-              {/* Reciter */}
-              <div className="sbtn" onClick={()=>{setShowMushafSheet(false);setReciterMode("quran");setShowReciterModal(true);}} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)"}}>
-                <span style={{fontSize:20,color:"rgba(217,177,95,0.70)"}}>🎙️</span>
-                <div>
-                  <div style={{fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.85)"}}>Reciter</div>
-                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>{QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Al-Dosari"}</div>
-                </div>
-              </div>
-              {/* Bookmark */}
-              {(()=>{
-                const isBookmarked=mushafBookmarks.includes(mushafPage);
-                return(
-                  <div className="sbtn" onClick={()=>{
-                    setShowMushafSheet(false);
-                    const updated=isBookmarked?mushafBookmarks.filter(p=>p!==mushafPage):[...mushafBookmarks,mushafPage].sort((a,b)=>a-b);
-                    setMushafBookmarks(updated);
-                    try{localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(updated));}catch{}
-                  }} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:isBookmarked?"rgba(217,177,95,0.08)":"rgba(255,255,255,0.04)",border:`1px solid ${isBookmarked?"rgba(232,200,120,0.40)":"rgba(217,177,95,0.12)"}`}}>
-                    <span style={{fontSize:20,color:isBookmarked?"#E6B84A":"rgba(217,177,95,0.70)"}}>🔖</span>
-                    <div>
-                      <div style={{fontSize:13,fontWeight:600,color:isBookmarked?"#F6E27A":"rgba(243,231,200,0.85)"}}>{isBookmarked?"Remove Bookmark":"Bookmark Page"}</div>
-                      <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>Page {mushafPage}</div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Mushaf Audio Range Picker */}
       {showMushafRangePicker&&(
