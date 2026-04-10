@@ -1145,6 +1145,17 @@ export default function RihlatAlHifz() {
             if(freshCompleted.has(orderedVerses[i].verse_key)) newIdx=i+1;
             else break;
           }
+          // Fallback: if V9 is empty but juzProgress has data, use that and backfill
+          const savedProgress=juzProgress[sessionJuz]||0;
+          if(newIdx===0 && savedProgress>0 && savedProgress<=orderedVerses.length){
+            newIdx=savedProgress;
+            // Backfill these ayahs into V9 now
+            const toBackfill=orderedVerses.slice(0,newIdx);
+            toBackfill.forEach(v=>{if(v.verse_key) freshCompleted.add(v.verse_key);});
+            saveCompletedAyahs(freshCompleted);
+            setCompletedAyahs(freshCompleted);
+            console.log('[PROGRESS BACKFILL]',{savedProgress,backfilled:toBackfill.length});
+          }
           console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, newSessionIdx: newIdx, completedAyahsSize: freshCompleted.size, first5: orderedVerses.slice(0,5).map(v=>v.verse_key), verseAtIdx: orderedVerses[newIdx]?.verse_key});
           setSessionVerses(orderedVerses); setSessionIdx(newIdx);
           // Backfill: add already-progressed ayahs to completedAyahs
