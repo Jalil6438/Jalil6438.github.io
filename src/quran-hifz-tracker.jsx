@@ -380,8 +380,8 @@ const MADINAH_IMAMS = [
   { id:"imadhafez", name:"Imad Zuhair Hafez",       arabic:"عماد زهير حافظ",    quranicaudio:"imad_zuhair_hafez",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"ahmadhudhayfi",name:"Ahmad Al-Hudhaify",    arabic:"أحمد الحذيفي",      quranicaudio:"ahmad_alhuthayfi",                surahCount:null, note:"Partial — not all surahs available", status:"current" },
   // ── Former Imams (rahimahullah / retired) ──
-  { id:"alijaber",  name:"Ali Jaber",               arabic:"علي جابر",          quranicaudio:"ali_jaber",                       surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Passed away 2005 · rahimahullah" },
-  { id:"ayyoub2",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         archive:"HaramainAyub",                         surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Passed away 2016 · rahimahullah" },
+  { id:"alijaber",  name:"Ali Jaber",               arabic:"علي جابر",          quranicaudio:"ali_jaber",                       surahCount:114, note:"Full Quran (114 surahs)", status:"former", deceased:"1932–2005 · rahimahullah" },
+  { id:"ayyoub2",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         archive:"HaramainAyub",                         surahCount:114, note:"Full Quran (114 surahs)", status:"former", deceased:"1952–2016 · rahimahullah" },
   { id:"alakhdar",  name:"Ibrahim Al-Akhdar",       arabic:"إبراهيم الأخضر",    quranicaudio:"ibrahim_al_akhdar",               surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Former Imam · appointed 1986" },
 ];
 
@@ -4528,7 +4528,8 @@ export default function RihlatAlHifz() {
                         <div style={{fontSize:13,fontWeight:500,color:isOpen?T.text:T.sub}}>{imam.name}</div>
                         <div style={{display:"flex",gap:8,alignItems:"center",marginTop:3,flexWrap:"wrap"}}>
                           <span style={{fontSize:11,color:isOpen?mosqueColor:T.dim,direction:"rtl"}}>{imam.arabic}</span>
-                          {imam.retired&&<span style={{fontSize:8,padding:"1px 6px",borderRadius:10,background:T.surface2,border:`1px solid ${T.border}`,color:T.dim}}>{imam.retired}</span>}
+                          {imam.deceased&&<span style={{fontSize:8,padding:"1px 6px",borderRadius:10,background:T.surface2,border:`1px solid ${T.border}`,color:T.dim}}>{imam.deceased}</span>}
+                          {imam.retired&&!imam.deceased&&<span style={{fontSize:8,padding:"1px 6px",borderRadius:10,background:T.surface2,border:`1px solid ${T.border}`,color:T.dim}}>{imam.retired}</span>}
                           <span style={{fontSize:9,padding:"1px 6px",borderRadius:10,background:`${badgeColor}15`,border:`1px solid ${badgeColor}40`,color:badgeColor}}>{badgeLabel}</span>
                         </div>
                       </div>
