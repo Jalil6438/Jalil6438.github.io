@@ -2887,20 +2887,20 @@ export default function RihlatAlHifz() {
                 <svg width={100} height={100} style={{flexShrink:0,overflow:"visible"}}>
                   <defs>
                     <linearGradient id="ringgrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={dark?"#F6E27A":"#E85D3A"}/>
-                      <stop offset="100%" stopColor={dark?"#D4AF37":"#B83A1A"}/>
+                      <stop offset="0%" stopColor={dark?"#F6E27A":"#E07A5F"}/>
+                      <stop offset="100%" stopColor={dark?"#D4AF37":"#9F2F1F"}/>
                     </linearGradient>
-                    <filter id="glow2"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="glow2"><feGaussianBlur stdDeviation={dark?"3":"4"} result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
-                  <circle cx={50} cy={50} r={40} fill="none" stroke={dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)"} strokeWidth={9}/>
+                  <circle cx={50} cy={50} r={40} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={9}/>
                   <circle cx={50} cy={50} r={40} fill="none" stroke="url(#ringgrad)" strokeWidth={9}
                     strokeDasharray={`${2*Math.PI*40*(pct/100)} ${2*Math.PI*40}`} strokeLinecap="round"
-                    transform="rotate(-90 50 50)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease"}}/>
-                  <text x={50} y={44} textAnchor="middle" fill={dark?"#E6B84A":"#B83A1A"} fontSize={20} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={50} y={62} textAnchor="middle" fill={dark?"rgba(255,255,255,0.5)":"#2D2A26"} fontSize={9} fontWeight={600} fontFamily="'DM Sans',sans-serif">{memorizedAyahs} ayahs</text>
+                    transform="rotate(-90 50 50)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease",filter:dark?"":"drop-shadow(0 0 6px rgba(200,74,47,0.40))"}}/>
+                  <text x={50} y={44} textAnchor="middle" fill={dark?"#E6B84A":"#2B2118"} fontSize={20} fontWeight={900} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
+                  <text x={50} y={62} textAnchor="middle" fill={dark?"rgba(255,255,255,0.5)":"#6B645A"} fontSize={9} fontWeight={600} fontFamily="'DM Sans',sans-serif">{memorizedAyahs} ayahs</text>
                 </svg>
                 <div style={{flex:1}}>
-                  {[{label:"Memorized",val:`${memorizedAyahs} ayahs`,color:dark?"#E6B84A":"#B83A1A"},{label:"Juz",val:`${completedCount} of 30`,color:dark?"#E6B84A":"#B83A1A"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:dark?"#E6B84A":"#B83A1A"},{label:"Remaining",val:`${totalAyahsInQuran-memorizedAyahs} ayahs`,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}].map((s,i)=>(
+                  {[{label:"Memorized",val:`${memorizedAyahs} ayahs`,color:dark?"#E6B84A":"#2B2118"},{label:"Juz",val:`${completedCount} of 30`,color:dark?"#E6B84A":"#2B2118"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:dark?"#E6B84A":"#2B2118"},{label:"Remaining",val:`${totalAyahsInQuran-memorizedAyahs} ayahs`,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}].map((s,i)=>(
                     <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:i<3?"1px solid rgba(255,255,255,0.06)":"none"}}>
                       <span style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
                       <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:s.color,fontWeight:700}}>{s.val}</span>
