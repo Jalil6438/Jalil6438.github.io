@@ -1211,16 +1211,17 @@ export default function RihlatAlHifz() {
       setAsrStarted(false);
       setAsrPage(0);
       setAsrExpandedAyah(null);
-      setAsrIsCustomized(false); // reset customization when leaving Asr
+      setAsrIsCustomized(false);
       return;
     }
+    // Don't auto-build during onboarding — it would interfere with the flow
+    if (showOnboarding) return;
     setAsrPage(0);
     setAsrExpandedAyah(null);
-    // Auto-build pool unless user has customized this session
     if (!asrIsCustomized) {
       buildAsrAutoPool();
     }
-  }, [currentSessionId, sessionJuz]);
+  }, [currentSessionId, sessionJuz, showOnboarding]);
 
   const bKey=`${sessionJuz}-${bStart}`;
   const bDone=sessionDone.includes(bKey);
@@ -1950,6 +1951,7 @@ export default function RihlatAlHifz() {
 
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
           {onboardStep===4&&(()=>{
+            try {
             const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths);
             const remainingJuz=tl.juzLeft;
             const apd=Math.round(parseFloat(tl.ayahsPerDay));
@@ -2079,6 +2081,10 @@ export default function RihlatAlHifz() {
                 </div>
               </div>
             );
+            } catch(e) {
+              console.error('[Onboard step 4]', e);
+              return <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(243,231,200,0.4)",fontSize:13}}>Loading...</div>;
+            }
           })()}
 
         </div>
