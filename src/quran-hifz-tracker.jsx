@@ -4607,7 +4607,7 @@ export default function RihlatAlHifz() {
             ]},
             {title:"Live Streams & Ramadan Content",items:[
               "Masjid Al-Haram & Masjid An-Nabawi live streams via Saudi Broadcasting Authority (aloula.sa)",
-              "Taraweeh recordings sourced from Internet Archive community uploads",
+              "Ramadan Taraweeh & Tahajjud recordings via Shaykh Badr Al-Turki YouTube channel (@sheikh_badr_al_turki)",
               "Imam data referenced from haramain.info",
             ]},
             {title:"Fonts",items:[
