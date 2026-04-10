@@ -444,7 +444,7 @@ function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
     asrVisibleAyahs,asrBatch,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
-    audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,
+    audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,
   }) {
     const T2={
       gold:"#D2A85A",goldBright:"#E2BC72",
@@ -1138,13 +1138,14 @@ export default function RihlatAlHifz() {
 
         if(!cancelled){
           const surahsInOrder=[...new Set(orderedVerses.map(v=>v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10)))];
-          // Calculate progress from completedAyahs — count how many leading verses are already done
+          // Calculate progress from completedAyahs — read fresh from localStorage to avoid stale closure
+          const freshCompleted = loadCompletedAyahs();
           let newIdx=0;
           for(let i=0;i<orderedVerses.length;i++){
-            if(completedAyahs.has(orderedVerses[i].verse_key)) newIdx=i+1;
+            if(freshCompleted.has(orderedVerses[i].verse_key)) newIdx=i+1;
             else break;
           }
-          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, newSessionIdx: newIdx, completedAyahsSize: completedAyahs.size});
+          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, newSessionIdx: newIdx, completedAyahsSize: freshCompleted.size, firstVerse: orderedVerses[0]?.verse_key, verseAtIdx: orderedVerses[newIdx]?.verse_key});
           setSessionVerses(orderedVerses); setSessionIdx(newIdx);
           // Backfill: add already-progressed ayahs to completedAyahs
           if(newIdx>0){
@@ -1933,6 +1934,7 @@ export default function RihlatAlHifz() {
       {/* ── ASR FULL-SCREEN MODE ── */}
       {!sessLoading&&activeTab==="myhifz"&&currentSessionId==="asr"&&asrStarted&&batch.length>0&&(
         <AsrSessionView
+          dark={dark}
           asrSelectionSummary={asrSelectionSummary}
           asrSafePage={asrSafePage}
           asrPages={asrPages}
