@@ -2664,9 +2664,16 @@ export default function RihlatAlHifz() {
                     if(!onLastPage){
                       // Not on last page — advance to next batch of ayahs
                       setAyahPage(p=>p+1);
+                      // V9: add current page's ayahs to completedAyahs
+                      const pageSize=5;
+                      const pageStart2=ayahPage*pageSize;
+                      const pageEnd2=Math.min(pageStart2+pageSize,batch.length);
+                      setCompletedAyahs(prev=>{const next=new Set(prev);batch.slice(pageStart2,pageEnd2).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
                       return;
                     }
-                    // On last page — complete the session
+                    // On last page — complete the session + add last page ayahs to V9
+                    {const ps=5;const ps2=ayahPage*ps;const pe2=Math.min(ps2+ps,batch.length);
+                    setCompletedAyahs(prev=>{const next=new Set(prev);batch.slice(ps2,pe2).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});}
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                     toggleCheck(sess.id);
