@@ -117,6 +117,75 @@ const JUZ_META = [
   {num:29,arabic:"تَبَارَكَ",roman:"Tabarakalladhi",order:2},{num:30,arabic:"عَمَّ",roman:"Amma",order:1},
 ];
 
+// ── V9 AYAH ENGINE ───────────────────────────────────────────────────────────
+// Source of truth: every surah's exact ayah count. Verified against Quran MCP.
+const SURAH_AYAH_COUNTS = {
+  1:7,2:286,3:200,4:176,5:120,6:165,7:206,8:75,9:129,10:109,
+  11:123,12:111,13:43,14:52,15:99,16:128,17:111,18:110,19:98,20:135,
+  21:112,22:78,23:118,24:64,25:77,26:227,27:93,28:88,29:69,30:60,
+  31:34,32:30,33:73,34:54,35:45,36:83,37:182,38:88,39:75,40:85,
+  41:54,42:53,43:89,44:59,45:37,46:35,47:38,48:29,49:18,50:45,
+  51:60,52:49,53:62,54:55,55:78,56:96,57:29,58:22,59:24,60:13,
+  61:14,62:11,63:11,64:18,65:12,66:12,67:30,68:52,69:52,70:44,
+  71:28,72:28,73:20,74:56,75:40,76:31,77:50,78:40,79:46,80:42,
+  81:29,82:19,83:36,84:25,85:22,86:17,87:19,88:26,89:30,90:20,
+  91:15,92:21,93:11,94:8,95:8,96:19,97:5,98:8,99:8,100:11,
+  101:11,102:8,103:3,104:9,105:5,106:4,107:7,108:3,109:6,110:3,
+  111:5,112:4,113:5,114:6
+}; // Total: 6236 verified
+
+// Juz boundaries — verified against Quran MCP. total = exact ayah count per juz.
+const JUZ_RANGES = {
+  1:{start:"1:1",  end:"2:141", total:148}, 2:{start:"2:142",end:"2:252", total:111},
+  3:{start:"2:253",end:"3:92",  total:126}, 4:{start:"3:93", end:"4:23",  total:131},
+  5:{start:"4:24", end:"4:147", total:124}, 6:{start:"4:148",end:"5:81",  total:110},
+  7:{start:"5:82", end:"6:110", total:149}, 8:{start:"6:111",end:"7:87",  total:142},
+  9:{start:"7:88", end:"8:40",  total:159}, 10:{start:"8:41",end:"9:92",  total:127},
+  11:{start:"9:93",end:"11:5",  total:151}, 12:{start:"11:6",end:"12:52", total:170},
+  13:{start:"12:53",end:"14:52",total:154}, 14:{start:"15:1",end:"16:128",total:227},
+  15:{start:"17:1",end:"18:74", total:185}, 16:{start:"18:75",end:"20:135",total:269},
+  17:{start:"21:1",end:"22:78", total:190}, 18:{start:"23:1",end:"25:20", total:202},
+  19:{start:"25:21",end:"27:55",total:339}, 20:{start:"27:56",end:"29:45",total:171},
+  21:{start:"29:46",end:"33:30",total:178}, 22:{start:"33:31",end:"36:27",total:169},
+  23:{start:"36:28",end:"39:31",total:357}, 24:{start:"39:32",end:"41:46",total:175},
+  25:{start:"41:47",end:"45:37",total:246}, 26:{start:"46:1", end:"51:30",total:195},
+  27:{start:"51:31",end:"57:29",total:399}, 28:{start:"58:1", end:"66:12",total:137},
+  29:{start:"67:1", end:"77:50",total:431}, 30:{start:"78:1", end:"114:6",total:564},
+};
+
+// Expand a verse range into individual ayah keys e.g. "2:142" → "2:252"
+function expandRangeToKeys(startKey, endKey) {
+  const keys = [];
+  let [s,a] = startKey.split(":").map(Number);
+  const [es,ea] = endKey.split(":").map(Number);
+  while(s < es || (s === es && a <= ea)) {
+    keys.push(`${s}:${a}`);
+    if(s===es && a===ea) break;
+    a++;
+    if(a > SURAH_AYAH_COUNTS[s]) { s++; a=1; }
+  }
+  return keys;
+}
+
+// Cached juz key lists — computed once per session
+const _juzKeyCache = {};
+function getJuzKeys(juzNum) {
+  if(!_juzKeyCache[juzNum]) {
+    const {start,end} = JUZ_RANGES[juzNum];
+    _juzKeyCache[juzNum] = expandRangeToKeys(start, end);
+  }
+  return _juzKeyCache[juzNum];
+}
+
+// V9 storage
+const V9_KEY = "jalil-quran-v9";
+function loadCompletedAyahs() {
+  try { const s=localStorage.getItem(V9_KEY); return s?new Set(JSON.parse(s)):new Set(); } catch { return new Set(); }
+}
+function saveCompletedAyahs(set) {
+  try { localStorage.setItem(V9_KEY, JSON.stringify([...set])); } catch {}
+}
+
 // ── JUZ → SURAH MAPPING ──────────────────────────────────────────────────────
 const JUZ_SURAHS = {
   1:[{s:1,name:"Al-Fatiha",a:7},{s:2,name:"Al-Baqarah",a:141}],
@@ -156,18 +225,24 @@ const STATUS_CFG = {
   in_progress:    {label:"In Progress",  color:"#F6A623"},
   needs_revision: {label:"Needs Revision",color:"#E5534B"},
   not_started:    {label:"Not Started",  color:"#3A8A50"},
-};function calcTimeline(years,juzDone,months) {
-  const juzLeft=Math.max(1,30-juzDone);
+};function calcTimeline(years,memorizedAyahs,months,nextJuzAyahs) {
+  const totalAyahs=6236;
+  const remainingAyahs=Math.max(0,totalAyahs-memorizedAyahs);
   const totalMonths=(years*12)+(months||0);
   const totalDays=totalMonths*30;
-  const totalAyahs=6236;
-  const remainingAyahs=Math.round(totalAyahs*(juzLeft/30));
-  const apd=totalMonths>0?Math.max(1,Math.round(remainingAyahs/totalDays)):1;
-  const daysPerJuz=apd>0?Math.round((totalAyahs/30)/apd):0;
+  const apd=totalDays>0?Math.max(1,remainingAyahs/totalDays):1;
+  const avgJuzSize=totalAyahs/30; // ~207.9 — fallback only
+  // Use actual next incomplete juz size if provided, otherwise average
+  const juzSizeForDisplay=nextJuzAyahs||avgJuzSize;
+  const daysPerJuz=apd>0?Math.ceil(juzSizeForDisplay/apd):0;
+  const juzDoneEquiv=memorizedAyahs/avgJuzSize;
+  const juzLeft=Math.max(0,30-juzDoneEquiv);
+  const juzPerMonth=totalMonths>0?(juzLeft/totalMonths):0;
   return { ayahsPerDay:apd.toFixed(1), daysPerJuz,
-           juzPerMonth:(juzLeft/Math.max(1,totalMonths)).toFixed(1),
+           juzPerMonth:juzPerMonth.toFixed(1),
            revDuhr:Math.max(1,Math.round(apd*0.3)), revAsr:Math.max(1,Math.round(apd*0.2)),
-           activeDays:totalDays, ayahsLeft:remainingAyahs, juzLeft };
+           activeDays:totalDays, ayahsLeft:remainingAyahs,
+           juzLeft:Math.ceil(juzLeft) };
 }
 
 const DARK  = {bg:"#04070A",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
@@ -367,7 +442,7 @@ function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
     asrVisibleAyahs,asrBatch,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
-    audioLoading,asrSurahProgress,onComplete,onChangeSelection,
+    audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,
   }) {
     const T2={
       gold:"#D2A85A",goldBright:"#E2BC72",
@@ -384,12 +459,20 @@ function AsrSessionView({
           <div className="asr-title">ASR SESSION</div>
           <div className="asr-title-line"/>
 
-          {/* Reviewing + selection */}
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-            <div style={{width:10,height:10,borderRadius:"50%",background:T2.green,boxShadow:"0 0 10px rgba(89,217,138,0.26)",flexShrink:0}}/>
-            <div style={{color:"rgba(243,231,200,0.52)",fontSize:11,letterSpacing:".12em",textTransform:"uppercase",fontWeight:500}}>Reviewing</div>
+          {/* Reviewing + selection + customize */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:10,height:10,borderRadius:"50%",background:T2.green,boxShadow:"0 0 10px rgba(89,217,138,0.26)",flexShrink:0}}/>
+              <div style={{color:"rgba(243,231,200,0.52)",fontSize:11,letterSpacing:".12em",textTransform:"uppercase",fontWeight:500}}>{asrIsCustomized?"Customized":"Auto"}</div>
+            </div>
+            <div className="sbtn" onClick={onChangeSelection}
+              style={{fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",
+              padding:"3px 9px",borderRadius:20,border:"1px solid rgba(217,177,95,0.22)",
+              color:"rgba(217,177,95,0.55)"}}>
+              Customize
+            </div>
           </div>
-          <div style={{color:T2.ivory,fontSize:15,fontWeight:600,marginBottom:18,lineHeight:1.25,maxWidth:"82%"}}>{asrSelectionSummary||"Asr Review"}</div>
+          <div style={{color:T2.ivory,fontSize:14,fontWeight:600,marginBottom:16,lineHeight:1.25,maxWidth:"90%"}}>{asrSelectionSummary||"Asr Review"}</div>
 
           {/* Ayah panel — frame is static, only content slides */}
           <div
@@ -610,6 +693,8 @@ export default function RihlatAlHifz() {
   const [loadMsg,setLoadMsg]=useState("");
   const [fetchError,setFetchError]=useState(false);
   const [juzStatus,setJuzStatus]=useState({});
+  // V9 — ayah-based source of truth
+  const [completedAyahs,setCompletedAyahs]=useState(()=>loadCompletedAyahs());
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
   const [fontSize,setFontSize]=useState(20);
@@ -625,8 +710,10 @@ export default function RihlatAlHifz() {
   const [mushafSwipeAnim,setMushafSwipeAnim]=useState("idle"); // "idle"|"exit-left"|"exit-right"
   const [croppedPages,setCroppedPages]=useState({});
   const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
-  const [selectedAyah,setSelectedAyah]=useState(null); // verse_key of selected ayah
-  const [showTranslation,setShowTranslation]=useState(true); // toggle translations in interactive mode
+  const [selectedAyah,setSelectedAyah]=useState(null);
+  const [showTranslation,setShowTranslation]=useState(true);
+  const [showReflect,setShowReflect]=useState(false); // show reflection input in bottom drawer
+  const [reflections,setReflections]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-reflections")||"{}");}catch{return {};}});
   const [tafsirOn,setTafsirOn]=useState(false);
   const [tafsirAyah,setTafsirAyah]=useState(null);
   const [tafsirData,setTafsirData]=useState({});
@@ -669,6 +756,7 @@ export default function RihlatAlHifz() {
   const AYAHS_PER_PAGE = 5;
   const [ayahPage, setAyahPage] = useState(0);
   const [asrStarted,setAsrStarted]=useState(false);
+  const [asrIsCustomized,setAsrIsCustomized]=useState(false); // session-scoped, never persisted
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrSurahShowCount,setAsrSurahShowCount]=useState(10);
   const [memSections,setMemSections]=useState({completed:false,inprogress:true,upcoming:false,upcomingAll:false});
@@ -1080,32 +1168,19 @@ export default function RihlatAlHifz() {
   const surahGroups=[];let cur=null;
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
-  const completedCount=Object.keys(JUZ_SURAHS).filter(juzKey=>{
-    const juzNum=Number(juzKey);
-    if(juzStatus[juzNum]==="complete") return true;
-    const surahs=JUZ_SURAHS[juzNum]||[];
-    return surahs.length>0&&surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
-  }).length;
-
-  const totalAyahsInQuran=Object.values(JUZ_SURAHS).reduce((sum,surahs)=>sum+surahs.reduce((n,s)=>n+s.a,0),0);
-
-  const memorizedAyahs=Object.keys(JUZ_SURAHS).reduce((sum,juzKey)=>{
-    const juzNum=Number(juzKey);
-    const surahs=JUZ_SURAHS[juzNum]||[];
-    const juzTotal=surahs.reduce((n,s)=>n+s.a,0);
-    if(juzStatus[juzNum]==="complete") return sum+juzTotal;
-    // Count ayahs from individually completed surahs
-    const completedSurahAyahs=surahs.reduce((n,s)=>juzStatus[`s${s.s}`]==="complete"?n+s.a:n,0);
-    // Use the higher of surah-based count or juzProgress (My Hifz sequential progress)
-    return sum+Math.min(Math.max(completedSurahAyahs,juzProgress[juzNum]||0),juzTotal);
-  },0);
-
-  const pct=totalAyahsInQuran>0?Math.round((memorizedAyahs/totalAyahsInQuran)*100):0;
-  const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>juzStatus[j.num]!=="complete");
+  // ── V9 MATH — single source of truth ─────────────────────────────────────
+  const memorizedAyahs = completedAyahs.size;
+  const totalAyahsInQuran = 6236;
+  const pct = Math.round((memorizedAyahs / totalAyahsInQuran) * 100);
+  const completedCount = Object.keys(JUZ_RANGES).filter(j => v9IsJuzComplete(Number(j))).length;
+  // Exact daysPerJuz: use actual ayah count of the next incomplete juz, not average
+  const nextIncompleteJuz = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].find(j=>!v9IsJuzComplete(j));
+  const nextJuzAyahs = nextIncompleteJuz ? JUZ_RANGES[nextIncompleteJuz].total : null;
+  const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>!v9IsJuzComplete(j.num));
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
   const curCfg=STATUS_CFG[curStatus];
-  const timeline=calcTimeline(goalYears,completedCount,goalMonths);
+  const timeline=calcTimeline(goalYears,memorizedAyahs,goalMonths,nextJuzAyahs);
   const dailyNew=Math.round(parseFloat(timeline.ayahsPerDay));
 
     const totalSV=sessionVerses.length;
@@ -1136,11 +1211,16 @@ export default function RihlatAlHifz() {
       setAsrStarted(false);
       setAsrPage(0);
       setAsrExpandedAyah(null);
+      setAsrIsCustomized(false); // reset customization when leaving Asr
       return;
     }
     setAsrPage(0);
     setAsrExpandedAyah(null);
-  }, [currentSessionId, sessionJuz, batch.length]);
+    // Auto-build pool unless user has customized this session
+    if (!asrIsCustomized) {
+      buildAsrAutoPool();
+    }
+  }, [currentSessionId, sessionJuz]);
 
   const bKey=`${sessionJuz}-${bStart}`;
   const bDone=sessionDone.includes(bKey);
@@ -1165,15 +1245,11 @@ export default function RihlatAlHifz() {
 
   const asrSelectionSummary = (() => {
     const parts = [];
-    if (asrSelectedJuz.length) {
-      parts.push(...asrSelectedJuz.map(j => `Juz ${j}`));
-    }
-    if (asrSelectedSurahs.length) {
-      parts.push(
-        ...asrSelectedSurahs.map(s => SURAH_EN[s]).filter(Boolean)
-      );
-    }
-    return parts.join(" + ");
+    if (asrSelectedJuz.length) parts.push(...asrSelectedJuz.map(j => `Juz ${j}`));
+    if (asrSelectedSurahs.length) parts.push(...asrSelectedSurahs.map(s => SURAH_EN[s]).filter(Boolean));
+    if (!parts.length) return "";
+    const label = asrIsCustomized ? "Customized" : "Reviewing";
+    return `${label}: ${parts.join(" · ")}`;
   })();
 
   const asrSurahProgress = (() => {
@@ -1256,12 +1332,158 @@ export default function RihlatAlHifz() {
     return next;
   }
 
+  // ── V9 ayah-based mark functions ─────────────────────────────────────────
+  function v9MarkJuzComplete(juzNum) {
+    const keys = getJuzKeys(juzNum);
+    setCompletedAyahs(prev => {
+      const next = new Set(prev);
+      keys.forEach(k => next.add(k));
+      saveCompletedAyahs(next);
+      return next;
+    });
+  }
+
+  function v9MarkJuzIncomplete(juzNum) {
+    const keys = new Set(getJuzKeys(juzNum));
+    setCompletedAyahs(prev => {
+      const next = new Set([...prev].filter(k => !keys.has(k)));
+      saveCompletedAyahs(next);
+      return next;
+    });
+  }
+
+  function v9MarkSurahComplete(surahNum) {
+    setCompletedAyahs(prev => {
+      const next = new Set(prev);
+      const total = SURAH_AYAH_COUNTS[surahNum] || 0;
+      for(let i=1;i<=total;i++) next.add(`${surahNum}:${i}`);
+      saveCompletedAyahs(next);
+      return next;
+    });
+  }
+
+  function v9MarkSurahIncomplete(surahNum) {
+    setCompletedAyahs(prev => {
+      const total = SURAH_AYAH_COUNTS[surahNum] || 0;
+      const remove = new Set();
+      for(let i=1;i<=total;i++) remove.add(`${surahNum}:${i}`);
+      const next = new Set([...prev].filter(k => !remove.has(k)));
+      saveCompletedAyahs(next);
+      return next;
+    });
+  }
+
+  // V9 math helpers — O(1) or O(juz size), always ayah-based
+  function v9JuzProgress(juzNum) {
+    const keys = getJuzKeys(juzNum);
+    const done = keys.filter(k => completedAyahs.has(k)).length;
+    return { done, total: JUZ_RANGES[juzNum].total, pct: done / JUZ_RANGES[juzNum].total };
+  }
+
+  function v9IsJuzComplete(juzNum) {
+    return getJuzKeys(juzNum).every(k => completedAyahs.has(k));
+  }
+
+  // ── Asr auto-pool helpers ─────────────────────────────────────────────────
+  function isSurahComplete(surahNum) {
+    const total = SURAH_AYAH_COUNTS[surahNum] || 0;
+    for(let i=1;i<=total;i++) {
+      if(!completedAyahs.has(`${surahNum}:${i}`)) return false;
+    }
+    return total > 0;
+  }
+
+  function hasAnyAyahsInJuz(juzNum) {
+    return getJuzKeys(juzNum).some(k => completedAyahs.has(k));
+  }
+
+  async function buildAsrAutoPool() {
+    if(sessLoading) return;
+    setSessLoading(true);
+    try {
+      // Step 1 — collect eligible juz and surahs
+      const eligibleJuz = [];    // fully complete juz nums
+      const eligibleSurahs = []; // complete surahs from started-but-incomplete juz
+
+      for(let j=1;j<=30;j++) {
+        if(v9IsJuzComplete(j)) {
+          eligibleJuz.push(j);
+        } else if(hasAnyAyahsInJuz(j)) {
+          const juzSurahList = JUZ_SURAHS[j] || [];
+          juzSurahList.forEach(({s}) => {
+            if(isSurahComplete(s) && !eligibleSurahs.includes(s)) {
+              eligibleSurahs.push(s);
+            }
+          });
+        }
+      }
+
+      if(eligibleJuz.length === 0 && eligibleSurahs.length === 0) {
+        // Nothing eligible — leave batch empty, show empty state
+        setAsrReviewBatch([]);
+        setAsrSelectedJuz([]);
+        setAsrSelectedSurahs([]);
+        setSessLoading(false);
+        return;
+      }
+
+      // Step 2 — cap: max 2 juz, rotate by day of year
+      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+      const juzPool = eligibleJuz.length <= 2
+        ? eligibleJuz
+        : [
+            eligibleJuz[dayOfYear % eligibleJuz.length],
+            eligibleJuz[(dayOfYear + 1) % eligibleJuz.length],
+          ].filter((v,i,a)=>a.indexOf(v)===i);
+
+      // Step 3 — fetch verses for selected juz
+      const allVerses = [];
+      const seenKeys = new Set();
+
+      for(const juzNum of juzPool) {
+        let page=1, tp=1;
+        do {
+          const res = await fetch(`https://api.qurancdn.com/api/qdc/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
+          if(!res.ok) break;
+          const data = await res.json();
+          (data.verses||[]).forEach(v => {
+            if(!seenKeys.has(v.verse_key)) { seenKeys.add(v.verse_key); allVerses.push(v); }
+          });
+          tp = data.pagination?.total_pages || 1; page++;
+        } while(page <= tp);
+      }
+
+      // Step 4 — fetch verses for eligible surahs
+      for(const surahNum of eligibleSurahs) {
+        const res = await fetch(`https://api.qurancdn.com/api/qdc/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
+        if(!res.ok) continue;
+        const data = await res.json();
+        (data.verses||[]).forEach(v => {
+          if(!seenKeys.has(v.verse_key)) { seenKeys.add(v.verse_key); allVerses.push(v); }
+        });
+      }
+
+      // Step 5 — set all three together, auto-start
+      setAsrSelectedJuz(juzPool);
+      setAsrSelectedSurahs(eligibleSurahs);
+      setAsrReviewBatch(allVerses);
+      setAsrStarted(true);
+      setAsrPage(0);
+      setAsrExpandedAyah(null);
+    } catch(e) {
+      console.error('[buildAsrAutoPool]', e.message);
+    } finally {
+      setSessLoading(false);
+    }
+  }
+
   function markBatchDone(){
     setSessionDone(d=>[...d,bKey]);
     if(bEnd>=totalSV){
       setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
       setJuzProgress(p=>({...p,[sessionJuz]:totalSV}));
       setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
+      v9MarkJuzComplete(sessionJuz); // V9: add all ayahs of this juz to completedAyahs
     } else {
       setSessionIdx(bEnd);
       setJuzProgress(p=>({...p,[sessionJuz]:bEnd}));
@@ -1639,7 +1861,9 @@ export default function RihlatAlHifz() {
             setAsrStarted(false);
             setAsrPage(0);
             setAsrExpandedAyah(null);
+            setAsrIsCustomized(true); // open customize picker
           }}
+          asrIsCustomized={asrIsCustomized}
         />
       )}
 
@@ -1726,9 +1950,8 @@ export default function RihlatAlHifz() {
 
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
           {onboardStep===4&&(()=>{
-            const juzDone=Object.keys(JUZ_SURAHS).filter(k=>{const n=Number(k);if(juzStatus[n]==="complete")return true;const ss=JUZ_SURAHS[n]||[];return ss.length>0&&ss.every(s=>juzStatus[`s${s.s}`]==="complete");}).length;
-            const tl=calcTimeline(goalYears,juzDone,goalMonths);
-            const remainingJuz=30-juzDone;
+            const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths);
+            const remainingJuz=tl.juzLeft;
             const apd=Math.round(parseFloat(tl.ayahsPerDay));
             const daysPerJuz=tl.daysPerJuz;
             const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
@@ -1776,7 +1999,7 @@ export default function RihlatAlHifz() {
                     const surahs=JUZ_SURAHS[j.num]||[];
                     const allChecked=surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
                     const someChecked=surahs.some(s=>juzStatus[`s${s.s}`]==="complete");
-                    const juzComplete=juzStatus[j.num]==="complete";
+                    const juzComplete=v9IsJuzComplete(j.num);
                     return (
                       <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.12)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 20px rgba(212,175,55,0.14),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 0 12px rgba(212,175,55,0.05),0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
                         {/* Juz header — tap to expand, long-press or ✓ button to mark complete */}
@@ -1786,7 +2009,7 @@ export default function RihlatAlHifz() {
                             <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                           </div>
                           <div style={{display:"flex",alignItems:"center",gap:10}}>
-                            <div className="sbtn" onClick={e=>{e.stopPropagation();setJuzStatus(prev=>{const next={...prev};if(next[j.num]==="complete")delete next[j.num];else next[j.num]="complete";return next;});}} style={{width:22,height:22,borderRadius:"50%",background:juzComplete?"rgba(246,226,122,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${juzComplete?"rgba(246,226,122,0.45)":"rgba(212,175,55,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:juzComplete?"#F6E27A":"rgba(212,175,55,0.4)",fontSize:11,fontWeight:700}}>{juzComplete?"✓":"○"}</div>
+                            <div className="sbtn" onClick={e=>{e.stopPropagation();const completing=!v9IsJuzComplete(j.num);setJuzStatus(prev=>{const next={...prev};if(!completing)delete next[j.num];else next[j.num]="complete";return next;});if(completing)v9MarkJuzComplete(j.num);else v9MarkJuzIncomplete(j.num);}} style={{width:22,height:22,borderRadius:"50%",background:juzComplete?"rgba(246,226,122,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${juzComplete?"rgba(246,226,122,0.45)":"rgba(212,175,55,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:juzComplete?"#F6E27A":"rgba(212,175,55,0.4)",fontSize:11,fontWeight:700}}>{juzComplete?"✓":"○"}</div>
                             <div style={{color:"rgba(212,175,55,0.7)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg) translateY(-2px)":"translateY(2px)"}}>▾</div>
                           </div>
                         </div>
@@ -1795,12 +2018,16 @@ export default function RihlatAlHifz() {
                           <div style={{borderTop:"1px solid rgba(212,175,55,0.12)",padding:"14px 14px 16px",background:"rgba(0,0,0,0.18)"}}>
                             {/* Select All */}
                             <div className="sbtn" onClick={()=>{
+                              const completing=!allChecked;
                               setJuzStatus(prev=>{
                                 const next={...prev};
-                                if(allChecked){ surahs.forEach(s=>{delete next[`s${s.s}`];}); delete next[j.num]; }
+                                if(!completing){ surahs.forEach(s=>{delete next[`s${s.s}`];}); delete next[j.num]; }
                                 else { surahs.forEach(s=>{next[`s${s.s}`]="complete";}); next[j.num]="complete"; }
                                 return next;
                               });
+                              // V9: add/remove all ayahs for every surah in this juz
+                              if(completing) surahs.forEach(s=>v9MarkSurahComplete(s.s));
+                              else v9MarkJuzIncomplete(j.num);
                             }} style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"8px 10px",borderRadius:10,background:"rgba(212,175,55,0.03)",border:"1px solid rgba(212,175,55,0.16)",boxShadow:"0 0 10px rgba(212,175,55,0.05)"}}>
                               <div style={{width:18,height:18,borderRadius:5,background:allChecked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:allChecked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:allChecked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{allChecked?"✓":""}</div>
                               <div style={{fontSize:12,color:allChecked?"#F6E27A":"rgba(212,175,55,0.8)",fontWeight:700,letterSpacing:".02em"}}>Select all surahs in Juz {j.num}</div>
@@ -1811,12 +2038,17 @@ export default function RihlatAlHifz() {
                                 const checked=juzStatus[`s${s.s}`]==="complete";
                                 return (
                                   <div key={s.s} className="sbtn" onClick={()=>{
+                                    const completing=!checked;
                                     setJuzStatus(prev=>{
-                                      const next={...prev,[`s${s.s}`]:checked?undefined:"complete"};
+                                      const next={...prev,[`s${s.s}`]:completing?"complete":undefined};
+                                      if(!completing) delete next[`s${s.s}`];
                                       const allNow=surahs.every(sr=>next[`s${sr.s}`]==="complete");
                                       if(allNow) next[j.num]="complete"; else delete next[j.num];
                                       return next;
                                     });
+                                    // V9: add/remove this surah's ayahs
+                                    if(completing) v9MarkSurahComplete(s.s);
+                                    else v9MarkSurahIncomplete(s.s);
                                   }} style={{display:"flex",alignItems:"center",gap:7,padding:"9px 10px",borderRadius:10,background:checked?"linear-gradient(180deg,rgba(212,175,55,0.08) 0%,rgba(12,16,26,0.96) 100%)":"rgba(255,255,255,0.02)",border:checked?"1px solid rgba(212,175,55,0.38)":"1px solid rgba(255,255,255,0.05)",boxShadow:checked?"0 0 14px rgba(212,175,55,0.12)":"none",transform:checked?"scale(1.01)":"scale(1)",transition:"all .18s ease"}}>
                                     <div style={{width:14,height:14,borderRadius:4,background:checked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:checked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:800,flexShrink:0,boxShadow:checked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{checked?"✓":""}</div>
                                     <div style={{fontSize:10,color:checked?"#F6E27A":"rgba(255,255,255,0.65)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:checked?600:400}}>{s.name}</div>
@@ -1914,13 +2146,19 @@ export default function RihlatAlHifz() {
       {/* TABS — fixed bottom bar with icons */}
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#F5F0E8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
         {[
-          {id:"myhifz",icon:"\uD83C\uDFE0",label:"My Hifz"},
-          {id:"rihlah",icon:"\uD83D\uDCCB",label:"My Rihlah"},
-          {id:"quran",icon:"\uD83D\uDCD6",label:"Al-Qur'an"},
-          {id:"masjidayn",icon:"\uD83D\uDD4B",label:"More"},
+          {id:"myhifz",  img:"/tab-hifz.jpg",   label:"My Hifz"},
+          {id:"rihlah",  img:"/tab-rihlah.jpg",  label:"My Rihlah"},
+          {id:"quran",   img:"/tab-quran.jpg",   label:"Al-Qur'an"},
+          {id:"masjidayn",icon:"\uD83D\uDD4B",  label:"More"},
         ].map(t=>(
           <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"8px 4px 6px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-            <span style={{fontSize:20,opacity:activeTab===t.id?1:0.4}}>{t.icon}</span>
+            {t.img?(
+              <div style={{width:26,height:26,borderRadius:6,overflow:"hidden",opacity:activeTab===t.id?1:0.35,transition:"opacity .15s",boxShadow:activeTab===t.id?"0 0 8px rgba(212,175,55,0.40)":"none"}}>
+                <img src={t.img} alt={t.label} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+              </div>
+            ):(
+              <span style={{fontSize:20,opacity:activeTab===t.id?1:0.4}}>{t.icon}</span>
+            )}
             <span style={{fontSize:9,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#6B7280"}}>{t.label}</span>
           </div>
         ))}
@@ -2006,10 +2244,29 @@ export default function RihlatAlHifz() {
               );
             })()}
 
-            {/* ── ASR PICKER ── */}
-            {SESSIONS[activeSessionIndex]?.id==="asr"&&(()=>{
+            {/* ── ASR EMPTY STATE — shown when auto-pool has nothing ── */}
+            {SESSIONS[activeSessionIndex]?.id==="asr"&&!sessLoading&&!asrStarted&&batch.length===0&&!asrIsCustomized&&(
+              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#060C18 0%,#040814 100%)",padding:"32px 24px"}}>
+                <div style={{fontSize:36,marginBottom:16}}>📖</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7C8",fontWeight:700,textAlign:"center",marginBottom:10}}>Nothing to review yet</div>
+                <div style={{fontSize:13,color:"rgba(243,231,200,0.45)",textAlign:"center",lineHeight:1.8,maxWidth:280,marginBottom:28}}>
+                  Complete a surah or a full juz to unlock Asr review.
+                </div>
+                <div className="sbtn" onClick={()=>setAsrIsCustomized(true)}
+                  style={{padding:"12px 28px",borderRadius:14,border:"1px solid rgba(217,177,95,0.30)",color:"rgba(217,177,95,0.80)",fontSize:12,fontWeight:700,letterSpacing:".10em",textTransform:"uppercase",marginBottom:14}}>
+                  Customize Review
+                </div>
+                <div className="sbtn" onClick={()=>{const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];setSessionsCompleted(prev=>({...prev,[sess.id]:true}));toggleCheck(sess.id);setActiveSessionIndex(i=>Math.min(SESSIONS.length-1,i+1));}}
+                  style={{fontSize:11,color:"rgba(243,231,200,0.25)",letterSpacing:".08em"}}>
+                  Skip for now ›
+                </div>
+              </div>
+            )}
+
+            {/* ── ASR PICKER — shown only when customizing ── */}
+            {SESSIONS[activeSessionIndex]?.id==="asr"&&asrIsCustomized&&(()=>{
               const activeJuz=asrActiveJuzPanel||(completedJuzOptions.length>0?completedJuzOptions[0].num:null);
-              const activeJuzSurahs=activeJuz?(JUZ_SURAHS[activeJuz]||[]).filter(s=>juzStatus[`s${s.s}`]==="complete"||juzStatus[activeJuz]==="complete"||asrPassedSurahs.has(s.s)):[];
+              const activeJuzSurahs=activeJuz?(JUZ_SURAHS[activeJuz]||[]).filter(s=>isSurahComplete(s.s)||v9IsJuzComplete(activeJuz)):[];
               const isJuzSelected=asrSelectedJuz.includes(activeJuz);
               return (
               <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)",overflowY:"auto",padding:"32px 20px 40px"}}>
@@ -2019,8 +2276,8 @@ export default function RihlatAlHifz() {
                   <div className="sbtn" onClick={()=>{const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];setSessionsCompleted(prev=>({...prev,[sess.id]:true}));toggleCheck(sess.id);setActiveSessionIndex(i=>Math.min(SESSIONS.length-1,i+1));}} style={{padding:"6px 12px",fontSize:20,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
                 </div>
                 <div style={{textAlign:"center",marginBottom:8}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7C8",fontWeight:700,fontStyle:"italic",marginBottom:6}}>Choose Your Asr Review</div>
-                  <div style={{fontSize:13,color:"rgba(243,231,200,0.45)"}}>Cycle through completed memorization.</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7C8",fontWeight:700,fontStyle:"italic",marginBottom:6}}>Customize Asr Review</div>
+                  <div style={{fontSize:13,color:"rgba(243,231,200,0.45)"}}>Override the recommended set for this session.</div>
                 </div>
 
                 {/* ── SELECT JUZ ── */}
@@ -2110,7 +2367,7 @@ export default function RihlatAlHifz() {
                     boxShadow:asrCanStart?"0 10px 22px rgba(210,168,90,0.22),inset 0 1px 0 rgba(255,255,255,0.14)":"none",
                     border:asrCanStart?"none":"1px solid rgba(255,255,255,0.06)",
                     pointerEvents:asrCanStart?"auto":"none"}}>
-                  Start Asr Review
+                  Start Custom Review
                 </div>
               </div>
               );
@@ -2125,14 +2382,6 @@ export default function RihlatAlHifz() {
                 <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
                 <div style={{fontSize:14,lineHeight:1.7,color:"rgba(255,255,255,0.60)",maxWidth:320,marginBottom:22}}>Please check your connection and try again.</div>
                 <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{background:"linear-gradient(180deg,#F0C040 0%,#D89A10 100%)",color:"#0B1220",border:"none",borderRadius:14,padding:"12px 28px",fontWeight:700,fontSize:16,boxShadow:"0 6px 14px rgba(240,192,64,0.14)",cursor:"pointer"}}>Retry</div>
-              </div>
-            )}
-
-            {/* ── ASR EMPTY STATE ── */}
-            {!sessLoading&&currentSessionId==="asr"&&batch.length===0&&(
-              <div style={{padding:"16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:12}}>
-                <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>Choose review material for Asr</div>
-                <div style={{fontSize:11,color:T.sub,lineHeight:1.6}}>Select completed surahs or completed juz above to build your Asr revision set.</div>
               </div>
             )}
 
@@ -2284,6 +2533,7 @@ export default function RihlatAlHifz() {
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
                         setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
                         setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
+                        v9MarkJuzComplete(sessionJuz); // V9
                         setSessionJuz(null);
                       } else if(sessionJuz) {
                         setSessionIdx(bEnd);
@@ -2985,7 +3235,7 @@ export default function RihlatAlHifz() {
 
                           {/* Ayah reading block — tap to open bottom drawer */}
                           <div
-                            onClick={()=>setSelectedAyah(isSelected?null:verse.verse_key)}
+                            onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);}}
                             style={{
                               padding:"14px 12px",
                               background:isSelected?"rgba(212,175,55,0.05)":"transparent",
@@ -2996,15 +3246,13 @@ export default function RihlatAlHifz() {
                           >
                             {/* Ayah: number badge inline at start (RTL = right side), then Arabic text */}
                             <div style={{display:"flex",alignItems:"flex-start",gap:8,direction:"rtl"}}>
-                              {/* Ayah number badge — at the beginning (right in RTL) */}
-                              <div style={{
-                                flexShrink:0,
-                                width:24,height:24,borderRadius:"50%",
-                                border:"1px solid rgba(212,175,55,0.40)",
-                                display:"flex",alignItems:"center",justifyContent:"center",
-                                marginTop:6,
-                              }}>
-                                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,fontWeight:700,color:"rgba(212,175,55,0.70)"}}>{aNum}</span>
+                              {/* Ayah ornament — Quranic end-marker with Arabic-Indic digits */}
+                              <div style={{flexShrink:0,marginTop:4,lineHeight:1}}>
+                                <span style={{
+                                  fontFamily:"'Amiri Quran','Amiri',serif",
+                                  fontSize:20,
+                                  color:isSelected?"rgba(212,175,55,0.80)":"rgba(212,175,55,0.38)",
+                                }}>﴾{toArabicDigits(aNum)}﴿</span>
                               </div>
                               {/* Arabic text */}
                               <div style={{
@@ -3091,10 +3339,15 @@ export default function RihlatAlHifz() {
                         {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
                           action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(selectedAyah);} }},
                         {icon:"📖", label:"Tafsir",
-                          action:()=>{ setTafsirAyah(selectedAyah); setTafsirOn(p=>!(p&&tafsirAyah===selectedAyah)); }},
+                          action:()=>{
+                            if(!selectedAyah) return;
+                            setTafsirOn(p=>!(p&&tafsirAyah===selectedAyah));
+                            setTafsirAyah(selectedAyah);
+                            fetchTafsir(selectedAyah);
+                          }},
                         {icon:isSaved?"✦":"🔖", label:isSaved?"Saved":"Save",
                           action:()=>{ const bm=[...mushafBookmarks]; const idx=bm.indexOf(selectedAyah); if(idx>=0)bm.splice(idx,1); else bm.push(selectedAyah); setMushafBookmarks(bm); localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }},
-                        {icon:"✏️", label:"Reflect", action:()=>{}},
+                        {icon:"✏️", label:"Reflect", action:()=>setShowReflect(r=>!r)},
                       ].map(btn=>(
                         <div key={btn.label} className="sbtn"
                           onClick={e=>{e.stopPropagation();btn.action();}}
@@ -3114,8 +3367,34 @@ export default function RihlatAlHifz() {
                       ))}
                     </div>
 
+                    {/* Reflection input — shown when Reflect tapped */}
+                    {showReflect&&(
+                      <div style={{marginTop:12,padding:"10px 12px",borderRadius:12,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(212,175,55,0.15)"}}>
+                        <div style={{fontSize:9,color:"rgba(217,177,95,0.50)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,fontFamily:"'DM Sans',sans-serif"}}>Your Reflection</div>
+                        <textarea
+                          value={reflections[selectedAyah]||""}
+                          onChange={e=>{
+                            const updated={...reflections,[selectedAyah]:e.target.value};
+                            setReflections(updated);
+                            try{localStorage.setItem("rihlat-reflections",JSON.stringify(updated));}catch{}
+                          }}
+                          placeholder="Write your thoughts on this ayah..."
+                          rows={3}
+                          style={{
+                            width:"100%",background:"transparent",border:"none",outline:"none",
+                            color:"rgba(243,231,200,0.75)",fontSize:12,lineHeight:1.7,
+                            fontFamily:"'DM Sans',sans-serif",resize:"none",
+                            placeholder:"rgba(217,177,95,0.25)",
+                          }}
+                        />
+                        {reflections[selectedAyah]&&(
+                          <div style={{fontSize:9,color:"rgba(217,177,95,0.35)",textAlign:"right",fontFamily:"'DM Sans',sans-serif",marginTop:2}}>Saved ✓</div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Close tap area */}
-                    <div className="sbtn" onClick={()=>setSelectedAyah(null)}
+                    <div className="sbtn" onClick={()=>{setSelectedAyah(null);setShowReflect(false);}}
                       style={{textAlign:"center",marginTop:12,fontSize:10,color:"rgba(217,177,95,0.25)",letterSpacing:".12em",fontFamily:"'DM Sans',sans-serif"}}>
                       TAP TO CLOSE
                     </div>
@@ -3339,7 +3618,7 @@ export default function RihlatAlHifz() {
                 {y:1,label:"Intense",icon:"\u26A1"},
                 {y:2,label:"Focused",icon:"\uD83D\uDD25"},
               ].map(p=>{
-                const t=calcTimeline(p.y,completedCount,0);
+                const t=calcTimeline(p.y,memorizedAyahs,0);
                 const isA=p.y===goalYears;
                 return (
                   <div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}}
@@ -3361,7 +3640,7 @@ export default function RihlatAlHifz() {
                 {y:5,label:"Light",icon:"\uD83E\uDDD8"},
                 {y:7,label:"Gentle",icon:"\uD83C\uDF19"},
               ].map(p=>{
-                const t=calcTimeline(p.y,completedCount,0);
+                const t=calcTimeline(p.y,memorizedAyahs,0);
                 const isA=p.y===goalYears;
                 return (
                   <div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}}
@@ -3474,22 +3753,6 @@ export default function RihlatAlHifz() {
                 <div>
                   <div style={{fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.85)"}}>Play Range</div>
                   <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>Select start and end ayah</div>
-                </div>
-              </div>
-              {/* Tafsir */}
-              <div className="sbtn" onClick={()=>{
-                setShowMushafSheet(false);
-                if(mushafVerses.length>0){
-                  const vk=mushafVerses[0].verse_key;
-                  setTafsirAyah(vk);
-                  setTafsirOn(true);
-                  fetchTafsir(vk);
-                }
-              }} style={{padding:"14px 18px",borderRadius:14,display:"flex",alignItems:"center",gap:14,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)"}}>
-                <span style={{fontSize:20,color:"rgba(217,177,95,0.70)"}}>📖</span>
-                <div>
-                  <div style={{fontSize:13,fontWeight:600,color:"rgba(243,231,200,0.85)"}}>Tafsir</div>
-                  <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",marginTop:2}}>View tafsir for first ayah on page</div>
                 </div>
               </div>
               {/* Reciter */}
