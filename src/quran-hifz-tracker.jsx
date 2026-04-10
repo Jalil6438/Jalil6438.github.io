@@ -352,33 +352,37 @@ const RAMADAN_NIGHTS_MADINAH = Array.from({length:30},(_,i)=>{
 
 // ── HARAMAIN IMAMS DATA (cross-referenced with haramain.info) ────────────────
 const MAKKAH_IMAMS = [
-  { id:"sudais2",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  quranicaudio:"abdurrahmaan_as-sudays",          surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"shuraim2",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       quranicaudio:"sa3ood_al-shuraym",               surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"muaiqly2",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     quranicaudio:"maher_almuaiqly",                 surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"baleela",   name:"Bandar Baleela",          arabic:"بندر بليلة",        quranicaudio:"bandar_baleela/complete",         surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"turki",     name:"Badr Al-Turki",           arabic:"بدر التركي",        quranicaudio:"badr_al_turki/mp3",               surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"dossary2",  name:"Yasser Al-Dosari",        arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary",               surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"juhany2",   name:"Abdullah Al-Juhany",      arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee",   surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"kalbani",   name:"Adel Kalbani",            arabic:"عادل الكلباني",     quranicaudio:"adel_kalbani",                    surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"khayat",    name:"Abdullah Khayat",         arabic:"عبدالله خياط",      quranicaudio:"khayat",                          surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"ghamdi",    name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      quranicaudio:"khalid_alghamdi",                 surahCount:null, note:"Partial — not all surahs available" },
-  { id:"salehtaleb",name:"Saleh Al-Taleb",          arabic:"صالح آل طالب",      quranicaudio:"saleh_al_taleb",                  surahCount:null, note:"Partial — not all surahs available" },
-  { id:"humaid",    name:"Saleh Bin Humaid",        arabic:"صالح بن حميد",      archive:"HaramainHumaid",                       surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"shamsan",   name:"Waleed Al-Shamsan",       arabic:"وليد الشمسان",      archive:null,                                   surahCount:null, note:"Prayer recordings — no full Quran archive" },
+  // ── Current Imams ──
+  { id:"sudais2",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  quranicaudio:"abdurrahmaan_as-sudays",          surahCount:114, note:"Full Quran (114 surahs)", status:"current", role:"Chief Imam" },
+  { id:"muaiqly2",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     quranicaudio:"maher_almuaiqly",                 surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"juhany2",   name:"Abdullah Al-Juhany",      arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee",   surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"baleela",   name:"Bandar Baleela",          arabic:"بندر بليلة",        quranicaudio:"bandar_baleela/complete",         surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"dossary2",  name:"Yasser Al-Dosari",        arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"humaid",    name:"Saleh Bin Humaid",        arabic:"صالح بن حميد",      archive:"HaramainHumaid",                       surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"khayat",    name:"Usama Khayat",            arabic:"أسامة خياط",        quranicaudio:"khayat",                          surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"turki",     name:"Badr Al-Turki",           arabic:"بدر التركي",        quranicaudio:"badr_al_turki/mp3",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"shamsan",   name:"Waleed Al-Shamsan",       arabic:"وليد الشمسان",      archive:null,                                   surahCount:null, note:"Prayer recordings — no full Quran archive", status:"current" },
+  // ── Former Imams ──
+  { id:"shuraim2",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       quranicaudio:"sa3ood_al-shuraym",               surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Retired 2022" },
+  { id:"ghamdi",    name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      quranicaudio:"khalid_alghamdi",                 surahCount:null, note:"Partial — not all surahs available", status:"former", retired:"Retired 2018" },
+  { id:"salehtaleb",name:"Saleh Al-Taleb",          arabic:"صالح آل طالب",      quranicaudio:"saleh_al_taleb",                  surahCount:null, note:"Partial — not all surahs available", status:"former", retired:"Retired 2018" },
+  { id:"kalbani",   name:"Adel Kalbani",            arabic:"عادل الكلباني",     quranicaudio:"adel_kalbani",                    surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Guest Imam · Taraweeh 2008" },
 ];
 const MADINAH_IMAMS = [
-  { id:"hudhaify2", name:"Ali Al-Hudhaify",         arabic:"علي الحذيفي",       quranicaudio:"huthayfi",                        surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"budair2",   name:"Salah Al-Budair",         arabic:"صلاح البدير",       quranicaudio:"salahbudair",                     surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"thubaity",  name:"Abdul Bari Ath-Thubaity", arabic:"عبدالباري الثبيتي", quranicaudio:"thubaity",                        surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"qasim",     name:"Abdul Muhsin Al-Qasim",   arabic:"عبدالمحسن القاسم",  quranicaudio:"abdul_muhsin_alqasim",            surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"imadhafez", name:"Imad Zuhair Hafez",       arabic:"عماد زهير حافظ",    quranicaudio:"imad_zuhair_hafez",               surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"alakhdar",  name:"Ibrahim Al-Akhdar",       arabic:"إبراهيم الأخضر",    quranicaudio:"ibrahim_al_akhdar",               surahCount:114, note:"Full Quran (114 surahs)" },
-   { id:"alijaber",  name:"Ali Jaber",               arabic:"علي جابر",          quranicaudio:"ali_jaber",                       surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"ahmadhudhayfi",name:"Ahmad Al-Hudhaify",    arabic:"أحمد الحذيفي",      quranicaudio:"ahmad_alhuthayfi",                surahCount:null, note:"Partial — not all surahs available" },
-  { id:"ayyoub2",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         archive:"HaramainAyub",                         surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"buayjaan",  name:"Abdullah Bu'ayjaan",      arabic:"عبدالله البعيجان",  archive:"HaramainBuayjaan",                     surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"muhanna",   name:"Khalid Al-Muhanna",       arabic:"خالد المهنا",       archive:"HaramainMuhanna",                      surahCount:114, note:"Full Quran (114 surahs)" },
-  { id:"qarafi2",   name:"Abdullah Al-Qarafi",      arabic:"عبدالله القرافي",   archive:"HaramainQuraafi",                      surahCount:114, note:"Full Quran (114 surahs)" },
+  // ── Current Imams ──
+  { id:"hudhaify2", name:"Ali Al-Hudhaify",         arabic:"علي الحذيفي",       quranicaudio:"huthayfi",                        surahCount:114, note:"Full Quran (114 surahs)", status:"current", role:"Chief Imam" },
+  { id:"budair2",   name:"Salah Al-Budair",         arabic:"صلاح البدير",       quranicaudio:"salahbudair",                     surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"qasim2",    name:"Abdul Muhsin Al-Qasim",   arabic:"عبدالمحسن القاسم",  quranicaudio:"abdul_muhsin_alqasim",            surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"thubaity",  name:"Abdul Bari Ath-Thubaity", arabic:"عبدالباري الثبيتي", quranicaudio:"thubaity",                        surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"muhanna",   name:"Khalid Al-Muhanna",       arabic:"خالد المهنا",       archive:"HaramainMuhanna",                      surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"qarafi2",   name:"Abdullah Al-Qarafi",      arabic:"عبدالله القرافي",   archive:"HaramainQuraafi",                      surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"buayjaan",  name:"Abdullah Bu'ayjaan",      arabic:"عبدالله البعيجان",  archive:"HaramainBuayjaan",                     surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"imadhafez", name:"Imad Zuhair Hafez",       arabic:"عماد زهير حافظ",    quranicaudio:"imad_zuhair_hafez",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"ahmadhudhayfi",name:"Ahmad Al-Hudhaify",    arabic:"أحمد الحذيفي",      quranicaudio:"ahmad_alhuthayfi",                surahCount:null, note:"Partial — not all surahs available", status:"current" },
+  // ── Former Imams (rahimahullah / retired) ──
+  { id:"alijaber",  name:"Ali Jaber",               arabic:"علي جابر",          quranicaudio:"ali_jaber",                       surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Passed away 2005 · rahimahullah" },
+  { id:"ayyoub2",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         archive:"HaramainAyub",                         surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Passed away 2016 · rahimahullah" },
+  { id:"alakhdar",  name:"Ibrahim Al-Akhdar",       arabic:"إبراهيم الأخضر",    quranicaudio:"ibrahim_al_akhdar",               surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Former Imam · appointed 1986" },
 ];
 
 const HARAMAIN_SURAHS = [
@@ -4431,12 +4435,18 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:10,color:T.dim,marginBottom:10,lineHeight:1.6}}>
                 Tap an imam to browse their surah recordings. Source: haramain.info / Internet Archive.
               </div>
-              {imams.map((imam)=>{
+              {/* Current Imams */}
+              {imams.filter(i=>i.status==="current").length>0&&(
+                <div style={{fontSize:9,color:mosqueColor,letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
+                  <span>Current Imams</span><div style={{flex:1,height:1,background:`${mosqueColor}30`}}/>
+                </div>
+              )}
+              {imams.filter(i=>i.status==="current").map((imam)=>{
                 const isOpen = openImam===imam.id;
                 const isFull = imam.surahCount===114;
                 const hasArchive = !!(imam.archive || imam.quranicaudio);
                 const badgeColor = isFull ? "#F0C040" : hasArchive ? "#F6A623" : "#E5534B";
-                const badgeLabel = isFull ? "✓ Full Quran (114 surahs)" : hasArchive ? "◦ Partial collection" : "✕ Prayer recordings only";
+                const badgeLabel = isFull ? "✓ Full Quran" : hasArchive ? "◦ Partial" : "✕ Prayer only";
                 return (
                   <div key={imam.id} style={{marginBottom:6,border:`1px solid ${isOpen?mosqueColor+"40":T.border}`,borderLeft:`3px solid ${isOpen?mosqueColor:T.border2}`,borderRadius:isOpen?"6px 6px 0 0":"6px",overflow:"hidden"}}>
                     <div className="srow" onClick={()=>setOpenImam(isOpen?null:imam.id)} style={{padding:"11px 14px",background:isOpen?T.surface2:T.surface,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -4495,6 +4505,54 @@ export default function RihlatAlHifz() {
                           )}
                         </div>
                       )
+                    )}
+                  </div>
+                );
+              })}
+              {/* Former Imams */}
+              {imams.filter(i=>i.status==="former").length>0&&(
+                <div style={{fontSize:9,color:T.dim,letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginTop:18,marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
+                  <span>Former Imams</span><div style={{flex:1,height:1,background:T.border}}/>
+                </div>
+              )}
+              {imams.filter(i=>i.status==="former").map((imam)=>{
+                const isOpen = openImam===imam.id;
+                const isFull = imam.surahCount===114;
+                const hasArchive = !!(imam.archive || imam.quranicaudio);
+                const badgeColor = isFull ? "#F0C040" : hasArchive ? "#F6A623" : "#E5534B";
+                const badgeLabel = isFull ? "✓ Full Quran" : hasArchive ? "◦ Partial" : "✕ Prayer only";
+                return (
+                  <div key={imam.id} style={{marginBottom:6,border:`1px solid ${isOpen?mosqueColor+"40":T.border}`,borderLeft:`3px solid ${isOpen?mosqueColor:T.border2}`,borderRadius:isOpen?"6px 6px 0 0":"6px",overflow:"hidden",opacity:0.85}}>
+                    <div className="srow" onClick={()=>setOpenImam(isOpen?null:imam.id)} style={{padding:"11px 14px",background:isOpen?T.surface2:T.surface,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:500,color:isOpen?T.text:T.sub}}>{imam.name}</div>
+                        <div style={{display:"flex",gap:8,alignItems:"center",marginTop:3,flexWrap:"wrap"}}>
+                          <span style={{fontSize:11,color:isOpen?mosqueColor:T.dim,direction:"rtl"}}>{imam.arabic}</span>
+                          {imam.retired&&<span style={{fontSize:8,padding:"1px 6px",borderRadius:10,background:T.surface2,border:`1px solid ${T.border}`,color:T.dim}}>{imam.retired}</span>}
+                          <span style={{fontSize:9,padding:"1px 6px",borderRadius:10,background:`${badgeColor}15`,border:`1px solid ${badgeColor}40`,color:badgeColor}}>{badgeLabel}</span>
+                        </div>
+                      </div>
+                      <div style={{color:isOpen?mosqueColor:T.dim,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(90deg)":"none"}}>›</div>
+                    </div>
+                    {isOpen&&hasArchive&&(
+                      <div className="fi" style={{background:T.surface,borderTop:`1px solid ${mosqueColor}20`,padding:"8px 8px 12px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:4}}>
+                        {HARAMAIN_SURAHS.map((name,si)=>{
+                          const sNum=si+1;
+                          const pkey=`${imam.id}-${sNum}`;
+                          const isP=haramainPlaying===pkey;
+                          return (
+                            <div key={sNum} className="sbtn" onClick={()=>playHaramainSurah(imam,sNum,pkey)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:5,background:isP?`${mosqueColor}15`:T.surface2,border:`1px solid ${isP?mosqueColor:T.border}`}}>
+                              <div style={{width:24,height:24,borderRadius:"50%",flexShrink:0,background:isP?mosqueColor:T.surface,border:`1px solid ${isP?mosqueColor:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:isP?"#fff":T.dim}}>
+                                {isP?"⏸":"▶"}
+                              </div>
+                              <div style={{minWidth:0}}>
+                                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:isP?mosqueColor:T.vdim}}>{String(sNum).padStart(3,"0")}</div>
+                                <div style={{fontSize:10,color:isP?T.text:T.sub,lineHeight:1.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{name}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
                 );
