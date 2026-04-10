@@ -1494,23 +1494,33 @@ export default function RihlatAlHifz() {
     if(sessLoading) return;
     setSessLoading(true);
     try {
+      // Read fresh from localStorage to avoid stale React state
+      const freshCA = loadCompletedAyahs();
+      const freshIsJuzComplete = (jn) => { if(!jn||!JUZ_RANGES[jn]) return false; return getJuzKeys(jn).every(k=>freshCA.has(k)); };
+      const freshIsSurahComplete = (sn) => { const t=SURAH_AYAH_COUNTS[sn]||0; for(let i=1;i<=t;i++){if(!freshCA.has(`${sn}:${i}`)) return false;} return t>0; };
+      const freshHasAny = (jn) => getJuzKeys(jn).some(k=>freshCA.has(k));
+
+      // Also check juzStatus for surahs marked complete in onboarding
+      const freshJS = juzStatus;
+
       // Step 1 — collect eligible juz and surahs
       const eligibleJuz = [];    // fully complete juz nums
       const eligibleSurahs = []; // complete surahs from started-but-incomplete juz
 
       for(let j=1;j<=30;j++) {
-        if(v9IsJuzComplete(j)) {
+        if(freshIsJuzComplete(j) || freshJS[j]==="complete") {
           eligibleJuz.push(j);
-        } else if(hasAnyAyahsInJuz(j)) {
+        } else if(freshHasAny(j) || (JUZ_SURAHS[j]||[]).some(({s})=>freshJS[`s${s}`]==="complete")) {
           const juzSurahList = JUZ_SURAHS[j] || [];
           juzSurahList.forEach(({s}) => {
-            if(isSurahComplete(s) && !eligibleSurahs.includes(s)) {
+            if((freshIsSurahComplete(s) || freshJS[`s${s}`]==="complete") && !eligibleSurahs.includes(s)) {
               eligibleSurahs.push(s);
             }
           });
         }
       }
 
+      console.log('[ASR POOL]',{freshCASize:freshCA.size,eligibleJuz,eligibleSurahs,juzStatusKeys:Object.keys(freshJS).filter(k=>freshJS[k]==="complete")});
       if(eligibleJuz.length === 0 && eligibleSurahs.length === 0) {
         // Nothing eligible — leave batch empty, show empty state
         setAsrReviewBatch([]);
