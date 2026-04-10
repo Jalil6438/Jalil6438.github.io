@@ -4186,23 +4186,7 @@ export default function RihlatAlHifz() {
         return (
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
 
-            {/* Selector */}
-            <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 14px",flexShrink:0}}>
-              <div style={{display:"flex",gap:8}}>
-                {streams.map((st,i)=>(
-                  <div key={i} className="sbtn" onClick={()=>setActiveStream(i)} style={{flex:1,padding:"10px 12px",borderRadius:7,background:activeStream===i?`${st.color}18`:T.surface2,border:`1px solid ${activeStream===i?st.color+"60":T.border}`,textAlign:"center"}}>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:5,marginBottom:3}}>
-                      <div className="pulse" style={{width:7,height:7,borderRadius:"50%",background:st.color}}/>
-                      <span style={{fontSize:9,color:st.color,fontFamily:"'IBM Plex Mono',monospace",fontWeight:600}}>LIVE</span>
-                    </div>
-                    <div style={{fontSize:13,fontWeight:activeStream===i?600:400,color:activeStream===i?T.text:T.sub}}>{st.icon} {st.label}</div>
-                    <div style={{fontSize:9,color:activeStream===i?st.color:T.dim,marginTop:1,direction:"rtl"}}>{st.arabic}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Big Watch Live buttons */}
+            {/* Watch Live buttons */}
             <div style={{flex:1,overflowY:"auto",padding:"16px 14px 32px",display:"flex",flexDirection:"column",gap:12}}>
               {streams.map((st,i)=>(
                 <a key={i} href={`https://www.youtube.com/${st.handle}/live`} target="_blank" rel="noreferrer"
@@ -4289,7 +4273,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* Player */}
-            <div style={{background:"#000",flexShrink:0}}>
+            <div style={{background:dark?"#000":"#D8CCB0",flexShrink:0}}>
               {hasVideo ? (
                 <iframe
                   key={`r${sel}-${ramadanVideoType}`}
@@ -4301,17 +4285,17 @@ export default function RihlatAlHifz() {
                 />
               ) : (
                 <div style={{height:140,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
-                  <div style={{fontSize:11,color:"#888"}}>Night {sel} {ramadanVideoType} — opens on YouTube</div>
+                  <div style={{fontSize:11,color:dark?"#888":"#6B645A"}}>Night {sel} {ramadanVideoType} — opens on YouTube</div>
                   <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
                      style={{padding:"8px 18px",background:"#E5534B",color:"#fff",borderRadius:6,textDecoration:"none",fontSize:12,fontWeight:700}}>
                     ▶ Open on YouTube
                   </a>
                 </div>
               )}
-              <div style={{padding:"6px 12px",background:"#111",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{padding:"6px 12px",background:dark?"#111":"#E0D5BC",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <span style={{fontSize:11,color:"#E5534B",fontWeight:600}}>Night {sel} · {activeLabel}</span>
                 {hasVideo
-                  ? <span style={{fontSize:9,color:"#555"}}>▶ in app</span>
+                  ? <span style={{fontSize:9,color:dark?"#555":"#6B645A"}}>▶ in app</span>
                   : <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
                        style={{fontSize:9,color:"#E5534B",textDecoration:"none"}}>Open YouTube ↗</a>}
               </div>
