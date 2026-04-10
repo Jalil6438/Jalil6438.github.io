@@ -1962,6 +1962,7 @@ export default function RihlatAlHifz() {
             const apd=Math.round(parseFloat(tl.ayahsPerDay));
             const daysPerJuz=tl.daysPerJuz;
             const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
+            const juzDone=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].filter(j=>v9IsJuzComplete(j)).length;
             return (
               <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
                 <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
