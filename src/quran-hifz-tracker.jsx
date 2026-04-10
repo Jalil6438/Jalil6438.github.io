@@ -711,7 +711,7 @@ export default function RihlatAlHifz() {
   const [mushafPage,setMushafPage]=useState(1);
   const [mushafSwipeAnim,setMushafSwipeAnim]=useState("idle"); // "idle"|"exit-left"|"exit-right"
   const [croppedPages,setCroppedPages]=useState({});
-  const [quranMode,setQuranMode]=useState("mushaf"); // "mushaf" | "interactive"
+  const [quranMode,setQuranMode]=useState("interactive"); // "mushaf" | "interactive"
   const [selectedAyah,setSelectedAyah]=useState(null);
   const [drawerView,setDrawerView]=useState("default"); // "default"|"tafsir"|"reflect"
   const [showTranslation,setShowTranslation]=useState(true);
@@ -1814,11 +1814,11 @@ export default function RihlatAlHifz() {
 
         .pbfill{transition:width .8s cubic-bezier(.4,0,.2,1);}
         input[type=range]{-webkit-appearance:none;height:4px;border-radius:2px;background:${dark?"#0C1A0E":"#D0C8B0"};outline:none;}
-        .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%);box-shadow:0 14px 36px rgba(0,0,0,0.42);}
-        .asr-shell::before{content:"";position:absolute;inset:0;border-radius:30px;padding:1px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.03) 10%,rgba(232,200,120,0.18) 50%,rgba(217,177,95,0.03) 90%,rgba(217,177,95,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(217,177,95,0.05) 0%,rgba(217,177,95,0.015) 30%,rgba(217,177,95,0.035) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
-        .asr-title{text-align:center;font-size:15px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:#E8C878;margin-bottom:10px;text-shadow:0 0 18px rgba(217,177,95,0.28);}
+        .asr-shell{position:relative;border-radius:30px;padding:16px 0px 22px;overflow:visible;background:${dark?"radial-gradient(circle at 50% 12%,rgba(58,92,165,0.16) 0%,rgba(58,92,165,0.05) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#081225 0%,#050A14 100%)":"linear-gradient(180deg,#EDE4CC 0%,#E4D8B8 100%)"};box-shadow:${dark?"0 14px 36px rgba(0,0,0,0.42)":"0 4px 16px rgba(0,0,0,0.08)"};}
+        .asr-shell::before{content:"";position:absolute;inset:0;border-radius:30px;padding:1px;background:${dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.03) 10%,rgba(232,200,120,0.18) 50%,rgba(217,177,95,0.03) 90%,rgba(217,177,95,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(217,177,95,0.05) 0%,rgba(217,177,95,0.015) 30%,rgba(217,177,95,0.035) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.12) 50%,rgba(139,106,16,0) 100%) top/100% 1px no-repeat,linear-gradient(180deg,rgba(139,106,16,0.08) 0%,rgba(139,106,16,0.03) 100%)"};-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+        .asr-title{text-align:center;font-size:15px;letter-spacing:.26em;text-transform:uppercase;font-weight:800;color:${dark?"#E8C878":"#8B6A10"};margin-bottom:10px;text-shadow:${dark?"0 0 18px rgba(217,177,95,0.28)":"none"};}
         .asr-title-line{position:relative;height:1px;margin:8px 0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.04) 18%,rgba(232,200,120,0.42) 50%,rgba(217,177,95,0.04) 82%,rgba(217,177,95,0) 100%);}
-        .asr-ayah-panel{position:relative;border-radius:0;padding:6px 20px;overflow:visible;background:rgba(8,16,34,0.30);}
+        .asr-ayah-panel{position:relative;border-radius:0;padding:6px 20px;overflow:visible;background:${dark?"rgba(8,16,34,0.30)":"rgba(139,106,16,0.04)"};}
         .asr-ayah-panel::before{display:none;}
         .asr-row{display:flex;align-items:center;gap:4px;min-height:56px;padding:10px 6px 14px;}
         .asr-row-divider{height:1px;margin:0 18px;background:linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(217,177,95,0.15) 15%,rgba(232,200,120,0.55) 50%,rgba(217,177,95,0.15) 85%,rgba(217,177,95,0) 100%);box-shadow:0 0 6px rgba(217,177,95,0.18),0 1px 3px rgba(217,177,95,0.10);}
@@ -2183,7 +2183,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&(
-        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:"linear-gradient(180deg,#0B1220,#0E1628)",position:"relative"}} className="fi gold-particles">
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",position:"relative"}} className="fi gold-particles">
 
           {/* ── STICKY RECITER BUTTON ── */}
           <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,paddingBottom:2}}>
@@ -2263,7 +2263,7 @@ export default function RihlatAlHifz() {
 
             {/* ── ASR EMPTY STATE — shown when auto-pool has nothing ── */}
             {SESSIONS[activeSessionIndex]?.id==="asr"&&!sessLoading&&!asrStarted&&batch.length===0&&!asrIsCustomized&&(
-              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#060C18 0%,#040814 100%)",padding:"32px 24px"}}>
+              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:dark?"linear-gradient(180deg,#060C18 0%,#040814 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 100%)",padding:"32px 24px"}}>
                 <div style={{fontSize:36,marginBottom:16}}>📖</div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7C8",fontWeight:700,textAlign:"center",marginBottom:10}}>Nothing to review yet</div>
                 <div style={{fontSize:13,color:"rgba(243,231,200,0.45)",textAlign:"center",lineHeight:1.8,maxWidth:280,marginBottom:28}}>
@@ -2286,7 +2286,7 @@ export default function RihlatAlHifz() {
               const activeJuzSurahs=activeJuz?(JUZ_SURAHS[activeJuz]||[]).filter(s=>isSurahComplete(s.s)||v9IsJuzComplete(activeJuz)):[];
               const isJuzSelected=asrSelectedJuz.includes(activeJuz);
               return (
-              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)",overflowY:"auto",padding:"32px 20px 40px"}}>
+              <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",background:dark?"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 100%)",overflowY:"auto",padding:"32px 20px 40px"}}>
 
                 {/* Header */}
                 <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
@@ -2394,7 +2394,7 @@ export default function RihlatAlHifz() {
             {/* ── LOADING / ERROR STATES ── */}
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
             {!sessLoading&&sessError&&(
-              <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"linear-gradient(180deg,#EDE4CC 0%,#E4D8B8 100%)",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(139,106,16,0.15)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
                 <div style={{width:74,height:74,borderRadius:"50%",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,boxShadow:"0 0 10px rgba(230,184,74,0.10)",fontSize:30}}>📖</div>
                 <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
                 <div style={{fontSize:14,lineHeight:1.7,color:"rgba(255,255,255,0.60)",maxWidth:320,marginBottom:22}}>Please check your connection and try again.</div>
@@ -2437,7 +2437,7 @@ export default function RihlatAlHifz() {
 
                     return (
                       <div key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
-                        style={{borderRadius:14,padding:"12px 14px",background:"#0F1A2B",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
+                        style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EDE4CC",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                           <div style={{width:28,height:28,borderRadius:"50%",background:repsDone?"rgba(230,184,74,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${repsDone?"rgba(230,184,74,0.45)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:600,color:repsDone?"#E6B84A":"#888",flexShrink:0}}>
                             {repsDone?"✓":aStart+i+1}
@@ -2686,14 +2686,14 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 1. PROFILE HEADER ── */}
-            <div style={{background:"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)",padding:"20px 16px 24px",position:"relative",overflow:"hidden",zIndex:1}}>
+            <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"linear-gradient(160deg,#EDE4CC 0%,#E8DCBE 50%,#F0E8D0 100%)",padding:"20px 16px 24px",position:"relative",overflow:"hidden",zIndex:1}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
               <div style={{display:"flex",alignItems:"center",gap:14,position:"relative",zIndex:1}}>
                 <div style={{position:"relative"}}>
-                  <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,#0E1E3A,#162D50)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 20px rgba(212,175,55,0.15)"}}>
+                  <div style={{width:64,height:64,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"linear-gradient(135deg,#E8DCBE,#D8C8A0)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 20px rgba(212,175,55,0.15)"}}>
                     <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
                   </div>
-                  <div style={{position:"absolute",bottom:-2,right:-2,width:20,height:20,background:"linear-gradient(135deg,#D4AF37,#E6B84A)",borderRadius:"50%",border:"2px solid #0D1020",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <div style={{position:"absolute",bottom:-2,right:-2,width:20,height:20,background:"linear-gradient(135deg,#D4AF37,#E6B84A)",borderRadius:"50%",border:dark?"2px solid #0D1020":"2px solid #EDE4CC",display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <span style={{fontSize:9,fontWeight:700,color:"#0B1220"}}>1</span>
                   </div>
                 </div>
@@ -2781,7 +2781,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 4. HIFZ JOURNEY ── */}
-            <div style={{background:"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)",border:"1px solid rgba(230,184,74,0.10)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
+            <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"linear-gradient(180deg,#EDE4CC 0%,#E4D8B8 100%)",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(139,106,16,0.15)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 10% 20%, rgba(46,230,197,0.05) 0, transparent 40%), radial-gradient(circle at 85% 75%, rgba(230,184,74,0.05) 0, transparent 40%)"}}/>
               <div style={{position:"relative",zIndex:1,marginBottom:12}}>
                 <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.5)",fontWeight:700}}>Your Hifz Journey</div>
@@ -2922,12 +2922,12 @@ export default function RihlatAlHifz() {
 
             {/* ── 7. NAV BUTTONS ── */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:"linear-gradient(145deg,#0B1020,#111A33)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"linear-gradient(145deg,#EDE4CC,#E4D8B8)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>📖</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Memorization</div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Track your progress</div>
               </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:"linear-gradient(145deg,#0B1020,#111A33)",border:"1px solid rgba(240,192,64,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"linear-gradient(145deg,#EDE4CC,#E4D8B8)",border:"1px solid rgba(240,192,64,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Plan</div>
                 <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Your hifz timeline</div>
@@ -2963,7 +2963,7 @@ export default function RihlatAlHifz() {
         }));
 
         return (
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"14px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",padding:"14px 16px 64px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:20}}>
@@ -3141,7 +3141,7 @@ export default function RihlatAlHifz() {
       {activeTab==="quran"&&(()=>{
         const curSurahNum=mushafSurahNum;
         const curSurahPage=SURAH_PAGES[curSurahNum]||1;
-        const parchment="linear-gradient(180deg,#0B1220,#0E1628)";
+        const parchment=dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)";
         const goldColor="#E8D5A3";
         const inkColor="#E8D5A3";
 
@@ -3149,31 +3149,31 @@ export default function RihlatAlHifz() {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:52}}>
 
           {/* Header — Asr session style */}
-          <div style={{flexShrink:0,padding:"14px 16px 0",background:"#060C18"}}>
-            <div style={{fontSize:10,color:"rgba(217,177,95,0.50)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600,marginBottom:8}}>AL-QUR'AN AL-KARIM</div>
+          <div style={{flexShrink:0,padding:"14px 16px 0",background:dark?"#060C18":"#F0EBE0"}}>
+            <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"#8B6A10",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600,marginBottom:8}}>AL-QUR'AN AL-KARIM</div>
             {/* Picker buttons row */}
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-              <div className="sbtn" onClick={()=>setShowQuranJuzModal(true)} style={{flex:1,padding:"7px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:10,fontSize:11,fontWeight:700,color:"rgba(217,177,95,0.90)",display:"flex",alignItems:"center",justifyContent:"center",gap:5,height:32}}>
+              <div className="sbtn" onClick={()=>setShowQuranJuzModal(true)} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(139,106,16,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,fontWeight:700,color:dark?"rgba(217,177,95,0.90)":"#8B6A10",display:"flex",alignItems:"center",justifyContent:"center",gap:5,height:32}}>
                 Juz {mushafJuzNum} <span style={{fontSize:9,opacity:0.5}}>▾</span>
               </div>
-              <div className="sbtn" onClick={()=>setShowQuranSurahModal(true)} style={{flex:1,padding:"7px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.18)",borderRadius:10,fontSize:11,color:"rgba(243,231,191,0.70)",display:"flex",alignItems:"center",justifyContent:"center",gap:4,overflow:"hidden",height:32}}>
+              <div className="sbtn" onClick={()=>setShowQuranSurahModal(true)} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(139,106,16,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:4,overflow:"hidden",height:32}}>
                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
                 <span style={{fontSize:9,opacity:0.5,flexShrink:0}}>▾</span>
               </div>
-              <div style={{position:"relative",display:"flex",borderRadius:999,flex:1,background:"rgba(12,20,34,0.80)",border:"1px solid rgba(212,175,55,0.15)",padding:2,height:32}}>
+              <div style={{position:"relative",display:"flex",borderRadius:999,flex:1,background:dark?"rgba(12,20,34,0.80)":"rgba(139,106,16,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:32}}>
                 {/* Sliding gold pill */}
                 <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:28,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 14px rgba(212,175,55,0.45), 0 0 6px rgba(212,175,55,0.25)",transition:"left .25s ease"}}/>
-                <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:quranMode==="mushaf"?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>🕌</div>
-                <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:quranMode==="interactive"?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>✋</div>
+                <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(139,106,16,0.40)",transition:"color .2s ease",fontWeight:700}}>🕌</div>
+                <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(139,106,16,0.40)",transition:"color .2s ease",fontWeight:700}}>✋</div>
               </div>
 
             </div>
-            <div style={{height:1,background:"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)"}}/>
+            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
 
           {/* Viewer */}
           {quranMode==="mushaf"?(
-            <div style={{flex:1,overflow:"hidden",backgroundColor:"#0b1a2b",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
+            <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0b1a2b":"#F0E8D0",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
               onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -3208,7 +3208,7 @@ export default function RihlatAlHifz() {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:"#060C18",padding:"10px 12px 80px"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F7F0DC",padding:"10px 12px 80px"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
@@ -3241,14 +3241,14 @@ export default function RihlatAlHifz() {
                           {/* Surah header */}
                           {showSurahHeader&&(
                             <div style={{textAlign:"center",padding:"16px 16px 12px"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"#E8C878",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
-                              <div style={{fontSize:8,color:"rgba(217,177,95,0.40)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#8B6A10",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
+                              <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(139,106,16,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
                               {isFirstAyah&&surahN!==9&&surahN!==1&&(
-                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:"rgba(232,200,120,0.55)",marginTop:10,direction:"rtl",lineHeight:2,textAlign:"center"}}>
+                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(139,106,16,0.45)",marginTop:10,direction:"rtl",lineHeight:2,textAlign:"center"}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}
-                              <div style={{height:1,margin:"10px 16px 0",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)"}}/>
+                              <div style={{height:1,margin:"10px 16px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
                             </div>
                           )}
 
@@ -3257,7 +3257,7 @@ export default function RihlatAlHifz() {
                             onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
                             style={{
                               padding:"14px 12px",
-                              background:isSelected?"rgba(212,175,55,0.05)":"transparent",
+                              background:isSelected?(dark?"rgba(212,175,55,0.05)":"rgba(139,106,16,0.06)"):"transparent",
                               transition:"background .15s",
                               cursor:"pointer",
                               direction:"rtl",
@@ -3270,7 +3270,7 @@ export default function RihlatAlHifz() {
                                 <span style={{
                                   fontFamily:"'Amiri Quran','Amiri',serif",
                                   fontSize:20,
-                                  color:isSelected?"rgba(212,175,55,0.80)":"rgba(212,175,55,0.38)",
+                                  color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),
                                 }}>﴿{toArabicDigits(aNum)}﴾</span>
                               </div>
                               {/* Arabic text */}
@@ -3279,7 +3279,7 @@ export default function RihlatAlHifz() {
                                 fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",
                                 fontSize:22,
                                 lineHeight:2.2,
-                                color:isSelected?"#F5E6B3":"#E8DFC0",
+                                color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#1E1000"),
                                 textAlign:"right",
                               }}>
                                 {(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
@@ -3319,10 +3319,10 @@ export default function RihlatAlHifz() {
                     style={{
                       position:"fixed",bottom:62,left:0,right:0,zIndex:200,
                       height:"50vh",
-                      background:"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)",
-                      borderTop:"1px solid rgba(212,175,55,0.22)",
+                      background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#F5EDD8 0%,#EDE4CC 100%)",
+                      borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",
                       borderRadius:"20px 20px 0 0",
-                      boxShadow:"0 -12px 40px rgba(0,0,0,0.70)",
+                      boxShadow:dark?"0 -12px 40px rgba(0,0,0,0.70)":"0 -12px 40px rgba(0,0,0,0.12)",
                       animation:"slideUpDrawer .22s ease-out",
                       display:"flex",flexDirection:"column",
                     }}
@@ -3330,7 +3330,7 @@ export default function RihlatAlHifz() {
                     {/* Drag handle + header row */}
                     <div style={{flexShrink:0,padding:"10px 20px 0"}}>
                       <div style={{display:"flex",justifyContent:"center",marginBottom:8}}>
-                        <div style={{width:36,height:4,borderRadius:2,background:"rgba(255,255,255,0.15)"}}/>
+                        <div style={{width:36,height:4,borderRadius:2,background:dark?"rgba(255,255,255,0.15)":"rgba(139,106,16,0.20)"}}/>
                       </div>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                         {drawerView!=="default"?(
@@ -3339,12 +3339,12 @@ export default function RihlatAlHifz() {
                             ← Back
                           </div>
                         ):(
-                          <div style={{fontSize:10,color:"rgba(217,177,95,0.50)",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>
+                          <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"#8B6A10",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>
                             {SURAH_EN[surahN]||""} · {sNum}:{aNum}
                           </div>
                         )}
                         <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");if(audioRef.current){audioRef.current.pause();audioRef.current=null;setPlayingKey(null);}}}
-                          style={{fontSize:18,color:"rgba(243,231,200,0.20)",lineHeight:1,padding:"0 4px"}}>×</div>
+                          style={{fontSize:18,color:dark?"rgba(243,231,200,0.20)":"rgba(139,106,16,0.30)",lineHeight:1,padding:"0 4px"}}>×</div>
                       </div>
                     </div>
 
@@ -3354,7 +3354,7 @@ export default function RihlatAlHifz() {
                         {/* Translation */}
                         <div style={{flex:1,overflowY:"auto",marginBottom:10}}>
                           {transText?(
-                            <div style={{fontSize:15,color:"rgba(243,231,200,0.78)",lineHeight:1.85,fontFamily:"'DM Sans',sans-serif",textAlign:"center",padding:"12px 8px",display:"flex",alignItems:"center",justifyContent:"center",height:"100%"}}>
+                            <div style={{fontSize:15,color:dark?"rgba(243,231,200,0.78)":"#3A2A08",lineHeight:1.85,fontFamily:"'DM Sans',sans-serif",textAlign:"center",padding:"12px 8px",display:"flex",alignItems:"center",justifyContent:"center",height:"100%"}}>
                               {transText}
                             </div>
                           ):(
@@ -3379,10 +3379,10 @@ export default function RihlatAlHifz() {
                                 display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:5,
                                 width:56,height:56,borderRadius:999,fontSize:9,fontWeight:700,
                                 letterSpacing:".06em",textTransform:"uppercase",
-                                border:"1.5px solid rgba(212,175,55,0.30)",
-                                color:isSaved&&btn.label==="Saved"?"#E8C878":"rgba(243,231,200,0.75)",
-                                background:isSaved&&btn.label==="Saved"?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))",
-                                boxShadow:"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.40)",
+                                border:dark?"1.5px solid rgba(212,175,55,0.30)":"1.5px solid rgba(139,106,16,0.25)",
+                                color:isSaved&&btn.label==="Saved"?(dark?"#E8C878":"#8B6A10"):(dark?"rgba(243,231,200,0.75)":"#5A4A20"),
+                                background:isSaved&&btn.label==="Saved"?(dark?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.10),rgba(240,230,210,0.95))"):(dark?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.04),rgba(240,230,210,0.95))"),
+                                boxShadow:dark?"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.40)":"0 0 8px rgba(139,106,16,0.10), 0 2px 8px rgba(0,0,0,0.08)",
                                 fontFamily:"'DM Sans',sans-serif",
                                 transition:"all .15s ease",
                               }}
@@ -3478,10 +3478,10 @@ export default function RihlatAlHifz() {
           )}
 
           {/* Page nav */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:"1px solid rgba(217,177,95,0.12)",flexShrink:0,background:"#060C18"}}>
-            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?"rgba(217,177,95,0.60)":"rgba(217,177,95,0.15)",borderRadius:10,border:"1px solid rgba(217,177,95,0.15)",background:"rgba(255,255,255,0.03)"}}>‹</div>
-            <div style={{fontSize:11,color:"rgba(217,177,95,0.45)",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
-            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?"rgba(217,177,95,0.60)":"rgba(217,177,95,0.15)",borderRadius:10,border:"1px solid rgba(217,177,95,0.15)",background:"rgba(255,255,255,0.03)"}}>›</div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)",flexShrink:0,background:dark?"#060C18":"#EDE4CC"}}>
+            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?(dark?"rgba(217,177,95,0.60)":"#8B6A10"):(dark?"rgba(217,177,95,0.15)":"rgba(139,106,16,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(139,106,16,0.05)"}}>‹</div>
+            <div style={{fontSize:11,color:dark?"rgba(217,177,95,0.45)":"#8B6A10",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
+            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?(dark?"rgba(217,177,95,0.60)":"#8B6A10"):(dark?"rgba(217,177,95,0.15)":"rgba(139,106,16,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(139,106,16,0.05)"}}>›</div>
           </div>
 
 
@@ -3491,7 +3491,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TIMELINE ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="timeline"&&(
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",padding:"16px 16px 64px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:22}}>
@@ -3612,7 +3612,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ ADJUST PLAN ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"linear-gradient(180deg,#0B1220,#0E1628)",padding:"16px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"linear-gradient(180deg,#F7F0DC,#EDE4CC)",padding:"16px 16px 64px"}} className="fi gold-particles">
           {/* Header */}
           <div style={{marginBottom:20}}>
             <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{display:"inline-block",padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)",marginBottom:10}}>← Back to My Plan</div>
