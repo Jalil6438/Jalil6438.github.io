@@ -4306,7 +4306,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* Night list */}
-            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 40px"}}>
+            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 80px"}}>
 
               {/* Nights 1–20 */}
               <div style={{fontSize:9,color:T.dim,letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",alignItems:"center",gap:7}}>
@@ -4431,7 +4431,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* Imam list */}
-            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 40px"}}>
+            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 80px"}}>
               <div style={{fontSize:10,color:T.dim,marginBottom:10,lineHeight:1.6}}>
                 Tap an imam to browse their surah recordings. Source: haramain.info / Internet Archive.
               </div>
