@@ -227,24 +227,26 @@ const STATUS_CFG = {
   in_progress:    {label:"In Progress",  color:"#F6A623"},
   needs_revision: {label:"Needs Revision",color:"#E5534B"},
   not_started:    {label:"Not Started",  color:"#3A8A50"},
-};function calcTimeline(years,memorizedAyahs,months,nextJuzAyahs) {
+};function calcTimeline(years,memorizedAyahs,months,nextJuzAyahs,completedJuzCount) {
   const totalAyahs=6236;
   const remainingAyahs=Math.max(0,totalAyahs-memorizedAyahs);
   const totalMonths=(years*12)+(months||0);
   const totalDays=totalMonths*30;
   const apd=totalDays>0?Math.max(1,remainingAyahs/totalDays):1;
-  const avgJuzSize=totalAyahs/30; // ~207.9 — fallback only
-  // Use actual next incomplete juz size if provided, otherwise average
+  // Juz math — derived from ayah truth
+  const juzDone=completedJuzCount||0;
+  const juzLeft=Math.max(0,30-juzDone);
+  // Use actual next juz size for days-per-juz estimate
+  const avgJuzSize=totalAyahs/30;
   const juzSizeForDisplay=nextJuzAyahs||avgJuzSize;
   const daysPerJuz=apd>0?Math.ceil(juzSizeForDisplay/apd):0;
-  const juzDoneEquiv=memorizedAyahs/avgJuzSize;
-  const juzLeft=Math.max(0,30-juzDoneEquiv);
   const juzPerMonth=totalMonths>0?(juzLeft/totalMonths):0;
   return { ayahsPerDay:apd.toFixed(1), daysPerJuz,
            juzPerMonth:juzPerMonth.toFixed(1),
            revDuhr:Math.max(1,Math.round(apd*0.3)), revAsr:Math.max(1,Math.round(apd*0.2)),
            activeDays:totalDays, ayahsLeft:remainingAyahs,
-           juzLeft:Math.ceil(juzLeft) };
+           memorizedAyahs, pct:Math.round((memorizedAyahs/totalAyahs)*100),
+           juzDone, juzLeft };
 }
 
 const DARK  = {bg:"#04070A",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
@@ -1271,18 +1273,26 @@ export default function RihlatAlHifz() {
   const surahGroups=[];let cur=null;
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
-  // ── V9 MATH — single source of truth ─────────────────────────────────────
+  // ── V9 MATH — single source of truth (ayah-level) ──────────────────────
   const memorizedAyahs = completedAyahs?.size ?? 0;
   const totalAyahsInQuran = 6236;
-  const pct = Math.round((memorizedAyahs / totalAyahsInQuran) * 100);
+  const pct = totalAyahsInQuran>0?Math.round((memorizedAyahs / totalAyahsInQuran) * 100):0;
+  // Juz count — derived from ayah truth (every ayah in the juz must be in completedAyahs)
   const completedCount = Object.keys(JUZ_RANGES).filter(j => v9IsJuzComplete(Number(j))).length;
+  // Surah count — derived from ayah truth
+  const completedSurahCount = Object.keys(SURAH_AYAH_COUNTS).filter(s => {
+    const total=SURAH_AYAH_COUNTS[s]||0;
+    if(total===0) return false;
+    for(let i=1;i<=total;i++){if(!completedAyahs.has(`${s}:${i}`)) return false;}
+    return true;
+  }).length;
   const nextIncompleteJuz = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].find(j=>!v9IsJuzComplete(j));
   const nextJuzAyahs = nextIncompleteJuz ? (JUZ_RANGES[nextIncompleteJuz]?.total ?? null) : null;
   const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>!v9IsJuzComplete(j.num));
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
   const curCfg=STATUS_CFG[curStatus];
-  const timeline=calcTimeline(goalYears,memorizedAyahs,goalMonths,nextJuzAyahs);
+  const timeline=calcTimeline(goalYears,memorizedAyahs,goalMonths,nextJuzAyahs,completedCount);
   const dailyNew=Math.round(parseFloat(timeline.ayahsPerDay));
 
     const totalSV=sessionVerses.length;
@@ -2092,7 +2102,7 @@ export default function RihlatAlHifz() {
           )}
           {onboardStep===4&&loaded&&(()=>{
             try {
-            const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths);
+            const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths,null,completedCount);
             const remainingJuz=tl.juzLeft;
             const apd=Math.round(parseFloat(tl.ayahsPerDay));
             const daysPerJuz=tl.daysPerJuz;
@@ -2278,7 +2288,7 @@ export default function RihlatAlHifz() {
             {nextJuz&&<div style={{textAlign:"right"}}><div style={{fontSize:12,color:"#8FA3B8",letterSpacing:"1px",marginBottom:1}}>Next Target</div><div style={{fontSize:11,color:T.sub}}>Juz {nextJuz.num}</div></div>}
             <div style={{textAlign:"right"}}>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:34,fontWeight:700,color:"#F0C040",lineHeight:1}}>{pct}%</div>
-              <div style={{fontSize:12,color:"#6B7280"}}>{completedCount} of 30 Juz memorized</div>
+              <div style={{fontSize:12,color:"#6B7280"}}>{memorizedAyahs} of {totalAyahsInQuran} ayahs</div>
               <div style={{height:3,width:60,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:2}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
             </div>
             <div className="sbtn" onClick={()=>setDark(d=>!d)} style={{padding:"5px 10px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,display:"flex",alignItems:"center",gap:5,fontSize:11,color:T.dim}}>
@@ -2879,11 +2889,11 @@ export default function RihlatAlHifz() {
                     strokeDasharray={`${2*Math.PI*40*(pct/100)} ${2*Math.PI*40}`} strokeLinecap="round"
                     transform="rotate(-90 50 50)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease"}}/>
                   <text x={50} y={46} textAnchor="middle" fill="#E6B84A" fontSize={18} fontWeight={700} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={50} y={61} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={10} fontFamily="'DM Sans',sans-serif">{completedCount} of 30 Juz</text>
+                  <text x={50} y={61} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={9} fontFamily="'DM Sans',sans-serif">{memorizedAyahs} ayahs</text>
                 </svg>
                 <div style={{flex:1}}>
-                  {[{label:"Memorized",val:`${completedCount} Juz`,color:"#E6B84A"},{label:"Remaining",val:`${30-completedCount} Juz`,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:i<1?"1px solid rgba(255,255,255,0.06)":"none"}}>
+                  {[{label:"Memorized",val:`${memorizedAyahs} ayahs`,color:"#E6B84A"},{label:"Juz",val:`${completedCount} of 30`,color:"#E6B84A"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:"#E6B84A"},{label:"Remaining",val:`${totalAyahsInQuran-memorizedAyahs} ayahs`,color:"rgba(255,255,255,0.3)"}].map((s,i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:i<3?"1px solid rgba(255,255,255,0.06)":"none"}}>
                       <span style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
                       <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:s.color,fontWeight:700}}>{s.val}</span>
                     </div>
@@ -3854,7 +3864,7 @@ export default function RihlatAlHifz() {
                 {y:1,label:"Intense",icon:"\u26A1"},
                 {y:2,label:"Focused",icon:"\uD83D\uDD25"},
               ].map(p=>{
-                const t=calcTimeline(p.y,memorizedAyahs,0);
+                const t=calcTimeline(p.y,memorizedAyahs,0,null,completedCount);
                 const isA=p.y===goalYears;
                 return (
                   <div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}}
@@ -3876,7 +3886,7 @@ export default function RihlatAlHifz() {
                 {y:5,label:"Light",icon:"\uD83E\uDDD8"},
                 {y:7,label:"Gentle",icon:"\uD83C\uDF19"},
               ].map(p=>{
-                const t=calcTimeline(p.y,memorizedAyahs,0);
+                const t=calcTimeline(p.y,memorizedAyahs,0,null,completedCount);
                 const isA=p.y===goalYears;
                 return (
                   <div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}}
