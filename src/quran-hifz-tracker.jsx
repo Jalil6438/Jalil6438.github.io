@@ -803,7 +803,7 @@ export default function RihlatAlHifz() {
         // Use same source as My Hifz — qurancdn returns clean text_uthmani, no stray tokens
         const [textRes, transRes] = await Promise.all([
           fetch(`https://api.qurancdn.com/api/qdc/verses/by_page/${mushafPage}?words=false&fields=text_uthmani,verse_key,juz_number&per_page=50`),
-          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?per_page=50&translations=131&fields=verse_key`)
+          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?per_page=50&translations=203&fields=verse_key`)
         ]);
         if (!textRes.ok) throw new Error();
         const textData = await textRes.json();
@@ -1246,7 +1246,7 @@ export default function RihlatAlHifz() {
     const updated={};
     for(const surahNum of surahSet){
       try{
-        const res=await fetch(`https://api.quran.com/api/v4/quran/translations/20?chapter_number=${surahNum}`);
+        const res=await fetch(`https://api.quran.com/api/v4/quran/translations/203?chapter_number=${surahNum}`);
         if(!res.ok) continue;
         const data=await res.json();
         if(!data.translations?.length) continue;
@@ -4166,6 +4166,7 @@ export default function RihlatAlHifz() {
               {id:"live",     label:"📡 Now Live"},
               {id:"ramadan",  label:"🌙 Ramadan 1447 · 2026"},
               {id:"haramain", label:"🎙️ Imams"},
+              {id:"about",    label:"ℹ️ About"},
             ].map(t=>(
               <div key={t.id} onClick={()=>setMasjidaynTab(t.id)} style={{flex:1,padding:"10px 6px", textAlign:"center",fontSize:11,fontWeight:masjidaynTab===t.id?700:400,color:masjidaynTab===t.id?T.accent:T.dim,borderBottom:`2px solid ${masjidaynTab===t.id?T.accent:"transparent"}`,cursor:"pointer"}}>
                 {t.label}
@@ -4526,6 +4527,95 @@ export default function RihlatAlHifz() {
 
     </div>
   )}
+
+      {/* ═══ ABOUT & CREDITS ═══ */}
+      {activeTab==="masjidayn"&&masjidaynTab==="about"&&(
+        <div style={{flex:1,overflowY:"auto",padding:"20px 18px 80px",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
+          <div style={{textAlign:"center",marginBottom:24}}>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Rihlat Al-Hifz</div>
+            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>Your Journey to Memorizing the Qur'an</div>
+            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#6B645A",marginTop:4}}>Version 1.0 · 2026</div>
+          </div>
+
+          {[
+            {title:"Quranic Text",items:[
+              "Uthmani text provided by Quran.com API (Quran Foundation)",
+              "Text data sourced from QuranCDN (api.qurancdn.com)",
+              "Mushaf page layout and verse mapping via Quran Foundation resources",
+            ]},
+            {title:"Translation",items:[
+              "English translation: Al-Hilali & Muhammad Muhsin Khan",
+              "Translation data served via Quran.com API (Quran Foundation)",
+              "Used for educational and da'wah purposes",
+            ]},
+            {title:"Tafsir",items:[
+              "Tafsir As-Sa'di — Shaykh Abdur-Rahman ibn Nasir As-Sa'di",
+              "Tafsir Al-Muyassar — King Fahd Complex for the Printing of the Holy Qur'an",
+              "Tafsir Ibn Kathir — Imam Isma'il ibn Umar ibn Kathir",
+              "All tafsir content served via Quran.com API (Quran Foundation)",
+            ]},
+            {title:"Recitations & Audio",items:[
+              "Ayah-by-ayah recitations via everyayah.com",
+              "Full surah recitations via quranicaudio.com (Quran Foundation)",
+              "Audio streaming via audio.qurancdn.com (Quran Foundation)",
+              "All reciters are credited by name throughout the application",
+              "Recitations used for educational purposes — memorization and review",
+            ]},
+            {title:"Reciters",items:[
+              "Masjid Al-Haram: Yasser Al-Dosari, Abdullah Al-Juhany, Abdul Rahman As-Sudais, Saud Ash-Shuraim, Maher Al-Muaiqly, Abu Bakr Ash-Shatri, Hani Ar-Rifai",
+              "Masjid An-Nabawi: Ali Al-Hudhaify, Muhammad Ayyoub, Salah Al-Budair, Abdul Muhsin Al-Qasim, Fares Abbad",
+              "Other: Mishary Rashid Alafasy, Nasser Al-Qatami",
+            ]},
+            {title:"Mushaf Images",items:[
+              "Mushaf page images based on the Madinah Mushaf",
+              "Published by the King Fahd Complex for the Printing of the Holy Qur'an",
+              "Used for educational and non-commercial purposes",
+            ]},
+            {title:"Live Streams & Ramadan Content",items:[
+              "Masjid Al-Haram & Masjid An-Nabawi live streams via Saudi Broadcasting Authority (aloula.sa)",
+              "Taraweeh recordings sourced from Internet Archive community uploads",
+              "Imam data referenced from haramain.info",
+            ]},
+            {title:"Fonts",items:[
+              "UthmanicHafs — Quranic script font (King Fahd Complex)",
+              "Amiri & Amiri Quran — Khaled Hosny (SIL Open Font License)",
+              "Scheherazade New — SIL International (SIL Open Font License)",
+              "DM Sans, Playfair Display, IBM Plex Mono — Google Fonts (Open Font License)",
+            ]},
+            {title:"Technology",items:[
+              "Built with React (Meta, MIT License)",
+              "HLS.js for live stream playback (Apache 2.0 License)",
+              "Hosted and deployed via Vercel",
+            ]},
+            {title:"Acknowledgements",items:[
+              "Quran Foundation (quran.com) — for their open API serving the global Muslim community",
+              "everyayah.com — for making ayah-by-ayah recitations freely accessible",
+              "King Fahd Complex for the Printing of the Holy Qur'an — for the Madinah Mushaf and UthmanicHafs font",
+              "The scholars whose tafsir works illuminate the meaning of the Qur'an",
+              "The blessed reciters of the Haramain whose voices guide millions in memorization",
+            ]},
+          ].map((section,i)=>(
+            <div key={i} style={{marginBottom:18}}>
+              <div style={{fontSize:10,color:dark?"rgba(212,175,55,0.60)":"#D4AF37",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>{section.title}</div>
+              <div style={{background:dark?"rgba(255,255,255,0.03)":"#EADFC8",border:dark?"1px solid rgba(212,175,55,0.10)":"1px solid rgba(0,0,0,0.08)",borderRadius:14,padding:"12px 14px"}}>
+                {section.items.map((item,j)=>(
+                  <div key={j} style={{fontSize:11,color:dark?"rgba(243,231,200,0.65)":"#2D2A26",lineHeight:1.7,padding:"4px 0",borderBottom:j<section.items.length-1?(dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"):"none"}}>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div style={{textAlign:"center",marginTop:20,padding:"16px",borderRadius:14,background:dark?"rgba(255,255,255,0.02)":"#EADFC8",border:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.06)"}}>
+            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",lineHeight:1.8}}>
+              This application is built as a service to the Muslim Ummah for the purpose of Quranic memorization and education. All Quranic content is used with respect for its sacred nature. No content is modified from its original source. All scholarly works are attributed to their authors.
+            </div>
+            <div style={{fontSize:10,color:dark?"rgba(212,175,55,0.40)":"#D4AF37",marginTop:10}}>NoorTech Studio · 2026</div>
+            <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.20)":"#6B645A",marginTop:4}}>Built with sincerity for the sake of Allah</div>
+          </div>
+        </div>
+      )}
 
     </>)}
 
