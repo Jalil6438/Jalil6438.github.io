@@ -1047,29 +1047,34 @@ export default function RihlatAlHifz() {
         }
       }
     } catch {}
-    // One-time backfill: sync juzProgress into completedAyahs
+    // One-time backfill: sync juzStatus into completedAyahs
     try {
       const p=JSON.parse(localStorage.getItem("jalil-quran-v8")||"{}");
       const jp=p.juzProgress||{};
       const js=p.juzStatus||{};
       const ca=loadCompletedAyahs();
-      let added=false;
-      // Add all ayahs for completed juz
+      const prevSize=ca.size;
+      // Add all ayahs for completed juz (numeric keys like 30: "complete")
       Object.entries(js).forEach(([k,v])=>{
-        if(v==="complete"&&!isNaN(Number(k))){
-          getJuzKeys(Number(k)).forEach(key=>{if(!ca.has(key)){ca.add(key);added=true;}});
+        const n=Number(k);
+        if(v==="complete"&&!isNaN(n)&&n>=1&&n<=30){
+          getJuzKeys(n).forEach(key=>ca.add(key));
         }
       });
-      // Add all ayahs for completed surahs
+      // Add all ayahs for completed surahs (keys like s77: "complete")
       Object.entries(js).forEach(([k,v])=>{
         if(v==="complete"&&k.startsWith("s")){
           const sn=Number(k.slice(1));
-          const total=SURAH_AYAH_COUNTS[sn]||0;
-          for(let i=1;i<=total;i++){const key=`${sn}:${i}`;if(!ca.has(key)){ca.add(key);added=true;}}
+          if(sn>=1&&sn<=114){
+            const total=SURAH_AYAH_COUNTS[sn]||0;
+            for(let i=1;i<=total;i++) ca.add(`${sn}:${i}`);
+          }
         }
       });
-      if(added){saveCompletedAyahs(ca);setCompletedAyahs(ca);}
-    } catch {}
+      const added=ca.size-prevSize;
+      console.log('[V9 BACKFILL]',{juzStatus:js,prevSize,newSize:ca.size,added});
+      if(added>0){saveCompletedAyahs(ca);setCompletedAyahs(ca);}
+    } catch(e){console.error('[V9 BACKFILL ERROR]',e);}
     setLoaded(true);
   },[]);
 
@@ -1570,8 +1575,8 @@ export default function RihlatAlHifz() {
     } else {
       setSessionIdx(bEnd);
       setJuzProgress(p=>({...p,[sessionJuz]:bEnd}));
-      // V9: add completed batch ayahs
-      setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(bStart,bEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
+      // V9: add all completed ayahs up to bEnd (not just current batch)
+      setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(0,bEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
       setJuzStatus(prev=>{
         const next={...prev};
         let changed=false;
@@ -1588,7 +1593,7 @@ export default function RihlatAlHifz() {
           const count=surahVerseCount[sn]||0;
           if(next[`s${sn}`]==="complete"){ cursor+=count; continue; }
           if(count===0) continue;
-          if(cursor+count<=bEnd){ next[`s${sn}`]="complete"; changed=true; }
+          if(cursor+count<=bEnd){ next[`s${sn}`]="complete"; changed=true; v9MarkSurahComplete(sn); }
           cursor+=count;
         }
         return changed?next:prev;
