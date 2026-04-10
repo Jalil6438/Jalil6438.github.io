@@ -4531,10 +4531,44 @@ export default function RihlatAlHifz() {
       {/* ═══ ABOUT & CREDITS ═══ */}
       {activeTab==="masjidayn"&&masjidaynTab==="about"&&(
         <div style={{flex:1,overflowY:"auto",padding:"20px 18px 80px",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
-          <div style={{textAlign:"center",marginBottom:24}}>
+          <div style={{textAlign:"center",marginBottom:20}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Rihlat Al-Hifz</div>
-            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>Your Journey to Memorizing the Qur'an</div>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.60)":"#6B645A",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
             <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#6B645A",marginTop:4}}>Version 1.0 · 2026</div>
+          </div>
+
+          {/* ── Purpose Statement ── */}
+          <div style={{background:dark?"rgba(212,175,55,0.04)":"rgba(212,175,55,0.06)",border:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.06)",borderRadius:16,padding:"18px 16px",marginBottom:24,textAlign:"center"}}>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:dark?"#E8C76A":"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:14}}>
+              وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ
+            </div>
+            <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",fontStyle:"italic",marginBottom:16}}>
+              "And We have certainly made the Qur'an easy for remembrance, so is there any who will remember?" — Al-Qamar 54:17
+            </div>
+            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left"}}>
+              Rihlat Al-Hifz was born from a simple belief: that the path to memorizing the Qur'an should feel guided, personal, and connected to the living tradition of the Haramain.
+            </div>
+            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
+              Too many memorization tools treat hifz as a checklist. But hifz is a journey — a rihlah. It is built one ayah at a time, one breath at a time, through repetition, reflection, and du'a. Every ayah you commit to memory is a conversation with your Creator that you carry with you for life.
+            </div>
+            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
+              This app tracks your progress at the ayah level — because that is the truth of how memorization happens. Not juz by juz, not surah by surah, but ayah by ayah. Your timeline, your goals, and your daily sessions are all built around this reality.
+            </div>
+            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
+              We chose to feature the reciters and scholars of Masjid Al-Haram and Masjid An-Nabawi because hifz is not just about memorizing words — it is about connecting to the tradition. When you listen to the imams of the Haramain recite, you are hearing the same voices that lead millions in salah in the holiest places on earth. That connection strengthens your memorization and deepens your love for the Qur'an.
+            </div>
+            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
+              Every feature in this app — from the five daily sessions tied to salah times, to the Asr review that cycles through your completed surahs, to the interactive Qur'an with tafsir at your fingertips — is designed to serve one purpose: to make the Qur'an accessible, personal, and deeply rooted in your daily life.
+            </div>
+            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.55)":"#6B645A",lineHeight:1.9,textAlign:"left",marginTop:10,fontStyle:"italic"}}>
+              We ask Allah to accept this effort, to make it a means of benefit for the Ummah, and to place it on the scale of good deeds for everyone who contributed to making it possible — the scholars, the reciters, the developers behind the open APIs, and every person who opens this app with the intention of drawing closer to His Book.
+            </div>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"#E8C76A":"#D4AF37",direction:"rtl",marginTop:14}}>
+              اللَّهُمَّ اجْعَلْنَا مِنْ أَهْلِ الْقُرْآنِ
+            </div>
+            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:4,fontStyle:"italic"}}>
+              O Allah, make us from the people of the Qur'an
+            </div>
           </div>
 
           {[
