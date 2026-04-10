@@ -1138,8 +1138,12 @@ export default function RihlatAlHifz() {
 
         if(!cancelled){
           const surahsInOrder=[...new Set(orderedVerses.map(v=>v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10)))];
-          const saved=juzProgress[sessionJuz]||0;
-          const newIdx=saved>orderedVerses.length?0:Math.min(saved,orderedVerses.length);
+          // Calculate progress from completedAyahs — count how many leading verses are already done
+          let newIdx=0;
+          for(let i=0;i<orderedVerses.length;i++){
+            if(completedAyahs.has(orderedVerses[i].verse_key)) newIdx=i+1;
+            else break;
+          }
           console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, savedProgress: saved, newSessionIdx: newIdx});
           setSessionVerses(orderedVerses); setSessionIdx(newIdx);
           // Backfill: add already-progressed ayahs to completedAyahs
@@ -1559,7 +1563,8 @@ export default function RihlatAlHifz() {
       setAsrPage(0);
       setAsrExpandedAyah(null);
     } catch(e) {
-      console.error('[buildAsrAutoPool]', e.message);
+      console.error('[buildAsrAutoPool]', e.message, e.stack);
+      setAsrReviewBatch([]);
     } finally {
       setSessLoading(false);
     }
