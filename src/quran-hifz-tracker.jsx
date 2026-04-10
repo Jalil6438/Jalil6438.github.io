@@ -1950,8 +1950,12 @@ export default function RihlatAlHifz() {
           )}
 
           {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
-          {onboardStep===4&&(()=>{
-            try {
+          {onboardStep===4&&!loaded&&(
+            <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)"}}>
+              <div className="spin" style={{width:24,height:24,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
+            </div>
+          )}
+          {onboardStep===4&&loaded&&(()=>{
             const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths);
             const remainingJuz=tl.juzLeft;
             const apd=Math.round(parseFloat(tl.ayahsPerDay));
@@ -2081,10 +2085,6 @@ export default function RihlatAlHifz() {
                 </div>
               </div>
             );
-            } catch(e) {
-              console.error('[Onboard step 4]', e);
-              return <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(243,231,200,0.4)",fontSize:13}}>Loading...</div>;
-            }
           })()}
 
         </div>
