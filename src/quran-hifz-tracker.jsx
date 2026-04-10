@@ -1144,7 +1144,7 @@ export default function RihlatAlHifz() {
             if(completedAyahs.has(orderedVerses[i].verse_key)) newIdx=i+1;
             else break;
           }
-          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, savedProgress: saved, newSessionIdx: newIdx});
+          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, newSessionIdx: newIdx, completedAyahsSize: completedAyahs.size});
           setSessionVerses(orderedVerses); setSessionIdx(newIdx);
           // Backfill: add already-progressed ayahs to completedAyahs
           if(newIdx>0){
