@@ -3503,7 +3503,7 @@ export default function RihlatAlHifz() {
         const inkColor="#E8D5A3";
 
         return (
-        <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:52}}>
+        <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:100}}>
 
           {/* Header — Asr session style */}
           <div style={{flexShrink:0,padding:"14px 16px 0",background:dark?"#060C18":"#EADFC8"}}>
