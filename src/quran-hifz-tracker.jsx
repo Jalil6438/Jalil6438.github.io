@@ -528,6 +528,18 @@ function AsrSessionView({
   }) {
     const [asrViewMode,setAsrViewMode]=useState("mushaf"); // "mushaf" default, "study" for cards
     const asrMushafScrollRef=useRef(null);
+    const [simVerseCache,setSimVerseCache]=useState({});
+    const fetchSimVerse=async(vk)=>{
+      if(simVerseCache[vk]) return;
+      const [s,a]=vk.split(":");
+      try{
+        const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_key/${vk}?words=false&fields=text_uthmani`);
+        if(!res.ok) return;
+        const data=await res.json();
+        const text=(data.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
+        if(text) setSimVerseCache(prev=>({...prev,[vk]:text}));
+      }catch{}
+    };
     const T2={
       gold:"#D2A85A",goldBright:"#E2BC72",
       ivory:"#F3E7C8",ivoryDim:"rgba(243,231,200,0.74)",ivoryFaint:"rgba(243,231,200,0.46)",
@@ -738,10 +750,12 @@ function AsrSessionView({
                     {MUTASHABIHAT[evKey].filter(sk=>completedAyahs?.has(sk)).map(simKey=>{
                       const [ss]=simKey.split(":");
                       const simVerse=asrBatch.find(v=>v.verse_key===simKey);
+                      const simText=simVerse?(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[simKey];
+                      if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
                       return (
                         <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
                           <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
-                          {simVerse&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</div>}
+                          {simText?<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{simText}</div>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
                         </div>
                       );
                     })}
@@ -853,6 +867,17 @@ export default function RihlatAlHifz() {
   const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
   const [hifzViewMode,setHifzViewMode]=useState("interactive"); // "interactive" or "mushaf"
   const [todayFajrBatch,setTodayFajrBatch]=useState([]); // saved when Fajr has ayahs, used by Maghrib/Isha
+  const [simVerseCache,setSimVerseCache]=useState({});
+  const fetchSimVerse=async(vk)=>{
+    if(simVerseCache[vk]) return;
+    try{
+      const res=await fetch(`https://api.qurancdn.com/api/qdc/verses/by_key/${vk}?words=false&fields=text_uthmani`);
+      if(!res.ok) return;
+      const data=await res.json();
+      const text=(data.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
+      if(text) setSimVerseCache(prev=>({...prev,[vk]:text}));
+    }catch{}
+  };
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSessionIndex,setActiveSessionIndex_]=useState(0);
@@ -2984,10 +3009,12 @@ export default function RihlatAlHifz() {
                             {MUTASHABIHAT[mvKey].filter(sk=>completedAyahs.has(sk)).map(simKey=>{
                               const [ss]=simKey.split(":");
                               const simVerse=batch.find(v=>v.verse_key===simKey)||sessionVerses.find(v=>v.verse_key===simKey);
+                              const simText=simVerse?(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[simKey];
+                              if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
                               return (
                                 <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
                                   <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
-                                  {simVerse&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</div>}
+                                  {simText?<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{simText}</div>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
                                 </div>
                               );
                             })}
