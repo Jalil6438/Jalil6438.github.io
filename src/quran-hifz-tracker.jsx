@@ -2409,7 +2409,7 @@ export default function RihlatAlHifz() {
             {t.img?(
               <img src={t.img} alt={t.label} style={{width:64,height:64,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
             ):(
-              <span style={{fontSize:28,width:64,height:48,display:"flex",alignItems:"center",justifyContent:"center",opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
+              <span style={{fontSize:40,width:64,height:64,display:"flex",alignItems:"center",justifyContent:"center",opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
             <span style={{fontSize:11,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
           </div>
@@ -2721,7 +2721,7 @@ export default function RihlatAlHifz() {
                         style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                           <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848")}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),direction:"rtl",unicodeBidi:"bidi-override"}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                           </div>
                           <span style={{flex:1,fontSize:12,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
                           <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>
