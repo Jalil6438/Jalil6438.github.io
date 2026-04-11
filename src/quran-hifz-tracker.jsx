@@ -3674,7 +3674,7 @@ export default function RihlatAlHifz() {
                   <div
                     onClick={e=>e.stopPropagation()}
                     style={{
-                      position:"fixed",bottom:drawerView==="tafsir"?0:62,left:0,right:0,zIndex:200,
+                      position:"fixed",bottom:drawerView==="tafsir"?0:100,left:0,right:0,zIndex:200,
                       height:drawerView==="tafsir"?"100vh":"50vh",
                       transition:"height .25s ease, bottom .25s ease",
                       background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)",
