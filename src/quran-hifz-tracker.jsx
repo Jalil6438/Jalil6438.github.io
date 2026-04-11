@@ -582,7 +582,7 @@ function AsrSessionView({
                       <span style={{flex:1,fontSize:12,color:"rgba(243,231,200,0.50)"}}>{SURAH_EN[sNum]||`Surah ${sNum}`} · {vKey}</span>
                       <span style={{fontSize:12,color:"rgba(243,231,200,0.20)"}}>›</span>
                     </div>
-                    <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(243,231,200,0.88)",direction:"rtl",textAlign:"right",lineHeight:1.7,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:"rgba(243,231,200,0.88)",direction:"rtl",textAlign:"right",lineHeight:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                       {v.text_uthmani}
                     </div>
                   </div>
@@ -2727,7 +2727,7 @@ export default function RihlatAlHifz() {
                           <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>
                           <span style={{fontSize:12,color:"rgba(255,255,255,0.18)"}}>›</span>
                         </div>
-                        <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:"rgba(255,255,255,0.88)",direction:"rtl",textAlign:"right",lineHeight:1.7,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:"rgba(255,255,255,0.88)",direction:"rtl",textAlign:"right",lineHeight:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                           {v.text_uthmani}
                         </div>
                       </div>
@@ -2783,7 +2783,7 @@ export default function RihlatAlHifz() {
                               </div>
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                                 {step.ayahs.map((a,ai)=>(
-                                  <span key={a.verse_key}><span style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"rgba(243,231,200,0.75)":"rgba(40,30,10,0.75)"}}>{a.text_uthmani}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
+                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.75)":"rgba(40,30,10,0.75)"}}>{a.text_uthmani}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
                                 ))}
                               </div>
                               <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",overflow:"hidden"}}>
