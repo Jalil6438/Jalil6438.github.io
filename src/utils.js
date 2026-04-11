@@ -78,10 +78,3 @@ export function getJuzKeys(juzNum) {
   return _juzKeyCache[juzNum];
 }
 
-// Session wisdom helper
-export function getSessionWisdom(sessionId, SESSION_WISDOM) {
-  const pool = SESSION_WISDOM[sessionId];
-  if (!pool || !pool.length) return null;
-  const day = Math.floor(Date.now() / 86400000);
-  return pool[day % pool.length];
-}
