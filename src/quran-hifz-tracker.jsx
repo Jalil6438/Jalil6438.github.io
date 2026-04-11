@@ -1184,6 +1184,9 @@ export default function RihlatAlHifz() {
           all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
         } while(page<=tp);
 
+        // Fix U+06DF dots for UthmanicHafs font
+        all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
+
         // 1) Get this juz's surahs in descending memorization order
         const descendingSurahOrder=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
 
@@ -1339,6 +1342,7 @@ export default function RihlatAlHifz() {
           if(cancelled) return;
           all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
         } while(page<=tp);
+        all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
         if(!cancelled){setAllVerses(all);const f=all[0]?.surah_number||parseInt(all[0]?.verse_key?.split(":")?.[0]);if(f)setOpenSurah(f);}
       } catch{if(!cancelled)setFetchError(true);}
       if(!cancelled){setLoading(false);setLoadMsg("");}
@@ -1681,6 +1685,9 @@ export default function RihlatAlHifz() {
           if(!seenKeys.has(v.verse_key)) { seenKeys.add(v.verse_key); allVerses.push(v); }
         });
       }
+
+      // Fix U+06DF dots for UthmanicHafs font
+      allVerses.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
 
       // Remove Al-Fatiha from revision — it's recited 17+ times daily in salah
       const filtered=allVerses.filter(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);return s!==1;});
