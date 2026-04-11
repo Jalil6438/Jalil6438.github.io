@@ -3627,7 +3627,7 @@ export default function RihlatAlHifz() {
                             {/* Ayah: number badge inline at start (RTL = right side), then Arabic text */}
                             <div style={{display:"flex",alignItems:"flex-start",gap:8,direction:"rtl"}}>
                               {/* Ayah ornament — Quranic end-marker with Arabic-Indic digits */}
-                              <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",width:40,alignSelf:"stretch",background:dark?"rgba(194,160,90,0.06)":"rgba(234,223,200,0.60)",borderLeft:dark?"1px solid rgba(194,160,90,0.10)":"1px solid rgba(180,140,40,0.10)"}}>
+                              <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",width:40,alignSelf:"stretch",background:dark?"rgba(194,160,90,0.06)":"rgba(8,14,26,0.06)",borderLeft:dark?"1px solid rgba(194,160,90,0.10)":"1px solid rgba(8,14,26,0.08)"}}>
                                 <span style={{
                                   fontFamily:"'Amiri Quran','Amiri',serif",
                                   fontSize:20,
