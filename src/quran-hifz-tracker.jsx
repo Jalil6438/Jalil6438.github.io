@@ -758,6 +758,7 @@ export default function RihlatAlHifz() {
   const [repCounts,setRepCounts]=useState({});
   const [connectionPhase,setConnectionPhase]=useState(false); // true = linking ayahs together
   const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
+  const [hifzViewMode,setHifzViewMode]=useState("interactive"); // "interactive" or "mushaf"
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSessionIndex,setActiveSessionIndex]=useState(0);
@@ -2406,9 +2407,9 @@ export default function RihlatAlHifz() {
         ].map(t=>(
           <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
             {t.img?(
-              <img src={t.img} alt={t.label} style={{width:54,height:54,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
+              <img src={t.img} alt={t.label} style={{width:64,height:64,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
             ):(
-              <span style={{fontSize:38,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
+              <span style={{fontSize:32,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
             <span style={{fontSize:11,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
           </div>
@@ -2651,9 +2652,18 @@ export default function RihlatAlHifz() {
             {/* ── AYAH BATCH ── */}
             {!sessLoading&&batch.length>0&&!isAsr&&(
               <div>
-                {/* Batch header */}
-                <div style={{marginBottom:10}}>
+                {/* Batch header + view toggle for Fajr */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
                   <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{currentSessionId==="fajr"?"Fajr":currentSessionId==="dhuhr"?"Dhuhr Review":currentSessionId==="asr"?"Asr Review":currentSessionId==="maghrib"?"Listening":"Isha Review"} — Ayah Batch</div>
+                  {currentSessionId==="fajr"&&(
+                    <div style={{display:"flex",gap:4}}>
+                      {["interactive","mushaf"].map(m=>(
+                        <div key={m} className="sbtn" onClick={()=>setHifzViewMode(m)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:hifzViewMode===m?700:400,letterSpacing:".06em",textTransform:"uppercase",color:hifzViewMode===m?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.35)":"#9A8A6A"),background:hifzViewMode===m?(dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)"):"transparent",border:`1px solid ${hifzViewMode===m?(dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"):"transparent"}`}}>
+                          {m==="interactive"?"Interactive":"Mushaf"}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* No per-ayah audio warning */}
@@ -2663,8 +2673,33 @@ export default function RihlatAlHifz() {
                   </div>
                 )}
 
-                {/* ── AYAH ROWS (5 per page, swipeable) ── */}
-                {(()=>{
+                {/* ── MUSHAF MODE — flowing Arabic text ── */}
+                {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(
+                  <div style={{padding:"16px 14px",borderRadius:14,background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${dark?"rgba(230,184,74,0.08)":"rgba(0,0,0,0.08)"}`,boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",marginBottom:16,direction:"rtl",textAlign:"center",lineHeight:2.4}}>
+                    {batch.map((v)=>{
+                      const vKey=v.verse_key;
+                      const aNum=parseInt(vKey.split(":")[1],10);
+                      const reps=repCounts[vKey]||0;
+                      const repsDone=reps>=20;
+                      return (
+                        <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
+                          style={{cursor:"pointer",transition:"all .15s",borderRadius:6,padding:"2px 4px",
+                            background:repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent"),
+                          }}>
+                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{v.text_uthmani}</span>
+                          <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                        </span>
+                      );
+                    })}
+                    <div style={{direction:"ltr",display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10,paddingTop:8,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
+                      <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
+                      <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── AYAH ROWS — Interactive mode (5 per page, swipeable) ── */}
+                {(hifzViewMode==="interactive"||currentSessionId!=="fajr")&&(()=>{
                   const APS=5;
                   const aPages=Math.max(1,Math.ceil(batch.length/APS));
                   const aSafe=Math.min(ayahPage,aPages-1);
