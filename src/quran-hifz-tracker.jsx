@@ -63,23 +63,23 @@ const SESSIONS = [
   { id:"fajr",    time:"Fajr",    arabic:"الفجر",  icon:"🌅", color:"#F0C040",
     title:"New Memorization",
     desc:"Your peak retention window. Memorize new ayahs right after salah while the mind is completely fresh.",
-    steps:["Read each ayah with its translation first","Recite aloud until the words feel natural","Cover the text and recite from memory","Repeat until you can recite without hesitation","Write it once to solidify the connection"] },
+    steps:["Repeat each ayah 20 times until it feels natural","Do not proceed until you have perfected the previous ayah","Memorize every day — missing days weakens ambition"] },
   { id:"dhuhr",   time:"Dhuhr",   arabic:"الظهر",  icon:"☀️", color:"#F6A623",
     title:"5-Day Review",
     desc:"Review what you memorized over the last 5 days. The Sheikh says: review the previous five days before starting anything new.",
-    steps:["Start with yesterday's ayahs — they fade fastest","Then run through the previous days","If you stumble, repeat until smooth before moving on"] },
+    steps:["Review what you memorized the previous five days","It escapes from hearts faster than the camel from its rope","Do not become sad if you lose memorization — this is the assembly stage"] },
   { id:"asr",     time:"Asr",     arabic:"العصر",  icon:"🌤️", color:"#4ECDC4",
     title:"Review Previous Juz",
     desc:"Cycle through completed Juz. Every Juz should be touched every 7-10 days.",
-    steps:["Choose a Juz you haven't reviewed recently","Recite a full page and notice what needs attention","This keeps older memorization strong and accessible"] },
+    steps:["Persistence in revision is a great foundation — Ibn al-Jawzi","Cycle through completed sections consistently","Allah elevates a people by way of this book"] },
   { id:"maghrib", time:"Maghrib", arabic:"المغرب", icon:"🌆", color:"#B794F4",
     title:"Listening",
     desc:"Follow along with your chosen reciter. Your ear reinforces what your tongue is learning.",
-    steps:["Listen to each ayah with full attention","Follow along in the mushaf without reciting","This strengthens your ear and pronunciation"] },
+    steps:["Listen to the reciter and follow along carefully","When the Qur'an is recited, listen and be silent — Al-A'raf 7:204","The character of the Prophet was the Qur'an"] },
   { id:"isha",    time:"Isha",    arabic:"العشاء", icon:"🌙", color:"#68D391",
     title:"Full Day Review",
     desc:"Recite everything from today before sleep. Sleep consolidates what you review right before it.",
-    steps:["Recite today's new ayahs one final time","Go over yesterday's ayahs to keep them fresh","End with dua — ask Allah to preserve the Quran in your heart"] },
+    steps:["Recite everything one final time before sleep","Memorization does not solidify except by way of revision","It is a treasure that is not given to just anyone"] },
 ];
 
 // ── SESSION WISDOM — from "The Easiest Way to Memorize the Noble Qur'an" by Sheikh Abdul Muhsin Al-Qasim ──
@@ -3256,10 +3256,10 @@ export default function RihlatAlHifz() {
               ):(
                 activeSteps.map((step,i)=>(
                   <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 10px",borderRadius:12,marginBottom:4,background:activeDone?"rgba(74,222,128,0.06)":"rgba(255,255,255,0.02)",border:activeDone?"1px solid rgba(74,222,128,0.1)":"1px solid transparent"}}>
-                    <div style={{width:24,height:24,borderRadius:7,background:activeDone?"linear-gradient(135deg,#4ADE80,#22C55E)":"rgba(255,255,255,0.07)",border:activeDone?"none":"1px solid rgba(255,255,255,0.1)",boxShadow:activeDone?"0 0 10px rgba(74,222,128,0.3)":"inset 0 0 0 1px rgba(255,255,255,0.02)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12,color:"#fff"}}>
-                      {activeDone&&"✓"}
+                    <div style={{width:24,height:24,borderRadius:7,background:activeDone?"linear-gradient(135deg,#4ADE80,#22C55E)":(dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.06)"),border:activeDone?"none":`1px solid ${dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)"}`,boxShadow:activeDone?"0 0 10px rgba(74,222,128,0.3)":"none",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12,color:activeDone?"#fff":(dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)")}}>
+                      {activeDone?"✓":""}
                     </div>
-                    <span style={{fontSize:12,color:activeDone?"rgba(245,231,184,0.7)":"rgba(255,255,255,0.85)",textDecoration:activeDone?"line-through":"none",opacity:activeDone?0.6:1}}>{step}</span>
+                    <span style={{fontSize:12,color:activeDone?(dark?"rgba(245,231,184,0.7)":"rgba(40,30,10,0.50)"):(dark?"rgba(255,255,255,0.85)":"#2D2A26"),textDecoration:activeDone?"line-through":"none",opacity:activeDone?0.6:1}}>{step}</span>
                   </div>
                 ))
               )}
