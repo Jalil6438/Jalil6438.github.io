@@ -2375,7 +2375,7 @@ export default function RihlatAlHifz() {
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 16px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
-            <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>{localStorage.getItem("rihlat-username")||"Abdul Jalil"} · Hifz Journey</div>
+            <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>{localStorage.getItem("rihlat-username")||"Abdul Jalil"}</div>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Al-Hifz</div>
             {nextJuz&&<div style={{fontSize:10,color:T.sub,marginTop:2}}>Next Target · Juz {nextJuz.num}</div>}
           </div>
