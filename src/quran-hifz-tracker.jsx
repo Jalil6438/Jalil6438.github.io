@@ -737,9 +737,11 @@ function AsrSessionView({
                     <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
                     {MUTASHABIHAT[evKey].filter(sk=>completedAyahs?.has(sk)).map(simKey=>{
                       const [ss]=simKey.split(":");
+                      const simVerse=asrBatch.find(v=>v.verse_key===simKey);
                       return (
-                        <div key={simKey} style={{padding:"6px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
-                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A"}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
+                        <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
+                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
+                          {simVerse&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</div>}
                         </div>
                       );
                     })}
@@ -1762,7 +1764,6 @@ export default function RihlatAlHifz() {
       const sortedEligible = [...eligibleJuz].sort((a,b) => a - b);
       // Rotate through all completed juz — advances each session
       const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
-      localStorage.setItem("jalil-asr-cycle",String(asrCycle+1));
       const juzCount = Math.max(1, Math.ceil(dailyJuzAmount));
       const startIdx = (asrCycle * juzCount) % sortedEligible.length;
       const juzPool = [];
@@ -2207,6 +2208,9 @@ export default function RihlatAlHifz() {
           onComplete={()=>{
             const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
             console.log('[ASR COMPLETE]', {activeSessionIndex, nextIndex: Math.min(SESSIONS.length-1,activeSessionIndex+1)});
+            // Advance Asr rotation for next session
+            const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
+            localStorage.setItem("jalil-asr-cycle",String(asrCycle+1));
             setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
             toggleCheck(sess.id);
             setAsrStarted(false);
@@ -2978,10 +2982,12 @@ export default function RihlatAlHifz() {
                           <div style={{marginTop:12,padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
                             <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
                             {MUTASHABIHAT[mvKey].filter(sk=>completedAyahs.has(sk)).map(simKey=>{
-                              const [ss,sa]=simKey.split(":");
+                              const [ss]=simKey.split(":");
+                              const simVerse=batch.find(v=>v.verse_key===simKey)||sessionVerses.find(v=>v.verse_key===simKey);
                               return (
-                                <div key={simKey} style={{padding:"6px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
-                                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:2}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
+                                <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
+                                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
+                                  {simVerse&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</div>}
                                 </div>
                               );
                             })}
