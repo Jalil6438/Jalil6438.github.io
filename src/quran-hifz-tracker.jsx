@@ -82,6 +82,61 @@ const SESSIONS = [
     steps:["Recite today's new ayahs one final time","Go over yesterday's ayahs to keep them fresh","End with dua — ask Allah to preserve the Quran in your heart"] },
 ];
 
+// ── SESSION WISDOM — from "The Easiest Way to Memorize the Noble Qur'an" by Sheikh Abdul Muhsin Al-Qasim ──
+const SESSION_WISDOM = {
+  fajr:[
+    {type:"book", text:"The foundation of memorization is repetition — the more the person repeats, the more proficient the memorization becomes."},
+    {type:"book", text:"Do not proceed to memorize a new page until you have perfected the previous one without error or hesitation."},
+    {type:"hadith", text:"The best of people are those who learn the Qur'an and teach it.", src:"Bukhari 5027"},
+    {type:"hadith", text:"Whoever recites a letter from Allah's Book will receive one hasanah, and each hasanah is multiplied by ten times fold.", src:"At-Tirmidhi 2910"},
+    {type:"book", text:"It is a treasure that is not given to just anyone."},
+    {type:"book", text:"Memorize every day; missing days weakens a person's ambition and memorization."},
+    {type:"quran", text:"And We have indeed made the Qur'an easy to understand and remember; then is there any one who will remember?", arabic:"وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ", ref:"Al-Qamar 54:17"},
+    {type:"quran", text:"And recite the Qur'an (aloud) in a slow, (pleasant tone and) style.", arabic:"وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا", ref:"Al-Muzzammil 73:4"},
+  ],
+  dhuhr:[
+    {type:"book", text:"Before starting a new lesson, review what you memorized the previous five days."},
+    {type:"book", text:"Everyone who memorizes the Qur'an will lose some within the first two years. This is the assembly stage. Do not become sad."},
+    {type:"book", text:"The devil plays a part in it to discourage you. So leave his whispers behind you and continue."},
+    {type:"book", text:"He who memorizes quickly, forgets quickly."},
+    {type:"hadith", text:"Review the Qur'an, for verily it escapes from the hearts of men faster than the camel from its rope.", src:"Bukhari 5032"},
+    {type:"quran", text:"Those to whom We gave the Book recite it as it should be recited, they are the ones who believe therein.", arabic:"الَّذِينَ آتَيْنَاهُمُ الْكِتَابَ يَتْلُونَهُ حَقَّ تِلَاوَتِهِ أُولَٰئِكَ يُؤْمِنُونَ بِهِ", ref:"Al-Baqarah 2:121"},
+    {type:"quran", text:"Verily, We, it is We Who have sent down the Dhikr and surely, We will guard it.", arabic:"إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ", ref:"Al-Hijr 15:9"},
+  ],
+  asr:[
+    {type:"book", text:"Persistence in revision is a great foundation, for how many have abandoned revising that which they memorized.", attr:"Ibn al-Jawzi"},
+    {type:"hadith", text:"Verily, Allah elevates a people by way of this book and lowers others by way of it.", src:"Muslim 817"},
+    {type:"hadith", text:"Whoever gathers the Qur'an has been entrusted with a great affair. The Prophethood has been piled up within him.", attr:"Abdullah ibn Amr"},
+    {type:"book", text:"Old age does not prevent one from memorizing the Qur'an. Abu Bakr memorized at 61, Abu Abdullah ibn Umar at 80."},
+    {type:"hadith", text:"He who does not memorize anything in his heart of the Qur'an is like a destroyed house.", src:"At-Tirmidhi 2913"},
+    {type:"quran", text:"The clear Ayat are preserved in the breasts of those who have been given knowledge.", arabic:"بَلْ هُوَ آيَاتٌ بَيِّنَاتٌ فِي صُدُورِ الَّذِينَ أُوتُوا الْعِلْمَ", ref:"Al-'Ankabut 29:49"},
+    {type:"quran", text:"Verily, this Qur'an guides to that which is most just and right.", arabic:"إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ", ref:"Al-Isra 17:9"},
+  ],
+  maghrib:[
+    {type:"hadith", text:"Read the Qur'an, for it will come as an intercession for its companions on the Day of Resurrection.", src:"Muslim 804"},
+    {type:"hadith", text:"The character of Allah's Prophet was the Qur'an.", src:"Muslim 746"},
+    {type:"hadith", text:"The one who is proficient in the Qur'an will be with the honorable and obedient Angels.", src:"Bukhari 4937"},
+    {type:"hadith", text:"No group come together reciting Allah's Book except that tranquility descends upon them, mercy encompasses them, and the angels surround them.", src:"Muslim 2699"},
+    {type:"quran", text:"When the Qur'an is recited, listen to it, and be silent that you may receive mercy.", arabic:"وَإِذَا قُرِئَ الْقُرْآنُ فَاسْتَمِعُوا لَهُ وَأَنصِتُوا لَعَلَّكُمْ تُرْحَمُونَ", ref:"Al-A'raf 7:204"},
+    {type:"quran", text:"The skins of those who fear their Lord shiver from it. Then their skin and their heart soften to the remembrance of Allah.", arabic:"تَقْشَعِرُّ مِنْهُ جُلُودُ الَّذِينَ يَخْشَوْنَ رَبَّهُمْ ثُمَّ تَلِينُ جُلُودُهُمْ وَقُلُوبُهُمْ إِلَىٰ ذِكْرِ اللَّهِ", ref:"Az-Zumar 39:23"},
+  ],
+  isha:[
+    {type:"hadith", text:"The companion of the Qur'an will be told: 'Read and ascend in ranks. Your rank will be at the last verse you read.'", src:"At-Tirmidhi 2914"},
+    {type:"hadith", text:"The people of the Qur'an are the people of Allah and His specific servants.", src:"Ahmad 12292"},
+    {type:"hadith", text:"It is not befitting for the one who possesses the Qur'an to become extremely angry, while he is the bearer of the Speech of Allah.", attr:"Abdullah ibn Amr"},
+    {type:"book", text:"The superiority of Allah's Speech over the speech of the Creation is like the superiority of the Creator over the Creation."},
+    {type:"book", text:"Memorization does not solidify except by way of revision.", attr:"Ibn al-Jawzi"},
+    {type:"quran", text:"O mankind! There has come to you a good advice from your Lord, and a healing for that which is in your breasts — a guidance and a mercy for the believers.", arabic:"يَا أَيُّهَا النَّاسُ قَدْ جَاءَتْكُم مَّوْعِظَةٌ مِّن رَّبِّكُمْ وَشِفَاءٌ لِّمَا فِي الصُّدُورِ وَهُدًى وَرَحْمَةٌ لِّلْمُؤْمِنِينَ", ref:"Yunus 10:57"},
+    {type:"quran", text:"We have not sent down the Qur'an unto you to cause you distress.", arabic:"مَا أَنزَلْنَا عَلَيْكَ الْقُرْآنَ لِتَشْقَىٰ", ref:"Ta-Ha 20:2"},
+  ],
+};
+// Get today's wisdom for a session — rotates daily through the pool
+function getSessionWisdom(sessionId){
+  const pool=SESSION_WISDOM[sessionId]; if(!pool||!pool.length) return null;
+  const day=Math.floor(Date.now()/86400000);
+  return pool[day%pool.length];
+}
+
 const SURAH_EN = {
   1:"Al-Fatiha",2:"Al-Baqarah",3:"Aal Imran",4:"An-Nisa",5:"Al-Ma'idah",6:"Al-An'am",7:"Al-A'raf",8:"Al-Anfal",9:"At-Tawbah",10:"Yunus",
   11:"Hud",12:"Yusuf",13:"Ar-Ra'd",14:"Ibrahim",15:"Al-Hijr",16:"An-Nahl",17:"Al-Isra",18:"Al-Kahf",19:"Maryam",20:"Ta-Ha",
@@ -354,7 +409,7 @@ const RAMADAN_NIGHTS_MADINAH = Array.from({length:30},(_,i)=>{
 const MAKKAH_IMAMS = [
   // ── Current Imams ──
   { id:"sudais2",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  quranicaudio:"abdurrahmaan_as-sudays",          surahCount:114, note:"Full Quran (114 surahs)", status:"current", role:"Chief Imam" },
-  { id:"muaiqly2",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     quranicaudio:"maher_almuaiqly",                 surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"muaiqly2",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     mp3quran:"https://server12.mp3quran.net/maher",  surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"juhany2",   name:"Abdullah Al-Juhany",      arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee",   surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"baleela",   name:"Bandar Baleela",          arabic:"بندر بليلة",        quranicaudio:"bandar_baleela/complete",         surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"dossary2",  name:"Yasser Al-Dosari",        arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
@@ -364,8 +419,8 @@ const MAKKAH_IMAMS = [
   { id:"shamsan",   name:"Waleed Al-Shamsan",       arabic:"وليد الشمسان",      archive:null,                                   surahCount:null, note:"Prayer recordings — no full Quran archive", status:"current" },
   // ── Former Imams ──
   { id:"shuraim2",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       quranicaudio:"sa3ood_al-shuraym",               surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Retired 2022" },
-  { id:"ghamdi",    name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      quranicaudio:"khalid_alghamdi",                 surahCount:null, note:"Partial — not all surahs available", status:"former", retired:"Retired 2018" },
-  { id:"salehtaleb",name:"Saleh Al-Taleb",          arabic:"صالح آل طالب",      quranicaudio:"saleh_al_taleb",                  surahCount:null, note:"Partial — not all surahs available", status:"former", retired:"Retired 2018" },
+  { id:"ghamdi",    name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      quranicaudio:"khalid_alghamdi",                 surahCount:21, availableSurahs:[9,14,25,32,39,42,58,59,60,61,62,66,68,69,76,85,88,90,91,93,95], note:"Partial — 21 of 114 surahs", status:"former", retired:"Retired 2018" },
+  { id:"salehtaleb",name:"Saleh Al-Taleb",          arabic:"صالح آل طالب",      quranicaudio:"saleh_al_taleb",                  surahCount:32, availableSurahs:[1,25,34,38,39,44,45,46,47,55,56,57,58,59,60,61,70,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86], note:"Partial — 32 of 114 surahs", status:"former", retired:"Retired 2018" },
   { id:"kalbani",   name:"Adel Kalbani",            arabic:"عادل الكلباني",     quranicaudio:"adel_kalbani",                    surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Guest Imam · Taraweeh 2008" },
 ];
 const MADINAH_IMAMS = [
@@ -376,9 +431,9 @@ const MADINAH_IMAMS = [
   { id:"thubaity",  name:"Abdul Bari Ath-Thubaity", arabic:"عبدالباري الثبيتي", quranicaudio:"thubaity",                        surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"muhanna",   name:"Khalid Al-Muhanna",       arabic:"خالد المهنا",       archive:"HaramainMuhanna",                      surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"qarafi2",   name:"Abdullah Al-Qarafi",      arabic:"عبدالله القرافي",   archive:"HaramainQuraafi",                      surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"buayjaan",  name:"Abdullah Bu'ayjaan",      arabic:"عبدالله البعيجان",  archive:"HaramainBuayjaan",                     surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"buayjaan",  name:"Abdullah Al-Bu'ayjan",      arabic:"عبدالله البعيجان",  archive:"HaramainBuayjaan",                     surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"imadhafez", name:"Imad Zuhair Hafez",       arabic:"عماد زهير حافظ",    quranicaudio:"imad_zuhair_hafez",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"ahmadhudhayfi",name:"Ahmad Al-Hudhaify",    arabic:"أحمد الحذيفي",      quranicaudio:"ahmad_alhuthayfi",                surahCount:null, note:"Partial — not all surahs available", status:"current" },
+  { id:"ahmadhudhayfi",name:"Ahmad Al-Hudhaify",    arabic:"أحمد الحذيفي",      quranicaudio:"ahmad_alhuthayfi",                surahCount:69, availableSurahs:[1,14,15,17,18,19,21,22,23,26,27,29,32,35,38,44,45,49,50,51,55,56,57,62,63,64,65,66,69,72,73,74,75,76,77,78,81,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114], note:"Partial — 69 of 114 surahs", status:"current" },
   // ── Former Imams (rahimahullah / retired) ──
   { id:"alijaber",  name:"Ali Jaber",               arabic:"علي جابر",          quranicaudio:"ali_jaber",                       surahCount:114, note:"Full Quran (114 surahs)", status:"former", deceased:"1932–2005 · rahimahullah" },
   { id:"ayyoub2",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         archive:"HaramainAyub",                         surahCount:114, note:"Full Quran (114 surahs)", status:"former", deceased:"1952–2016 · rahimahullah" },
@@ -704,7 +759,7 @@ export default function RihlatAlHifz() {
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSessionIndex,setActiveSessionIndex]=useState(0);
-  const SESSION_CTA=["Complete Fajr Memorization","Complete Dhuhr Revision","Complete Asr Revision","Complete Maghrib Listening","Complete Isha Review"];
+  const SESSION_CTA=["Finish Fajr — Well Done","Finish Dhuhr — Solid Review","Finish Asr — Great Effort","Finish Maghrib — Beautifully Done","Finish Isha — Day Complete"];
   const [sessionsCompleted,setSessionsCompleted]=useState({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab]=useState("myhifz");
@@ -1903,7 +1958,9 @@ export default function RihlatAlHifz() {
     if(haramainPlaying===key){ haramainRef.current?.pause(); setHaramainPlaying(null); return; }
     if(haramainRef.current){ haramainRef.current.pause(); haramainRef.current=null; }
     let url;
-    if(imam.quranicaudio){
+    if(imam.mp3quran){
+      url = `${imam.mp3quran}/${String(surahNum).padStart(3,"0")}.mp3`;
+    } else if(imam.quranicaudio){
       url = `https://download.quranicaudio.com/quran/${imam.quranicaudio}/${String(surahNum).padStart(3,"0")}.mp3`;
     } else if(imam.archive){
       url = `https://archive.org/download/${imam.archive}/${String(surahNum).padStart(3,"0")}.mp3`;
@@ -2322,9 +2379,9 @@ export default function RihlatAlHifz() {
         ].map(t=>(
           <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
             {t.img?(
-              <img src={t.img} alt={t.label} style={{width:36,height:36,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
+              <img src={t.img} alt={t.label} style={{width:54,height:54,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
             ):(
-              <span style={{fontSize:28,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
+              <span style={{fontSize:38,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
             <span style={{fontSize:11,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
           </div>
@@ -2374,21 +2431,21 @@ export default function RihlatAlHifz() {
               const dhuhrLocked=sid==="dhuhr"&&yesterdayBatch.length===0;
 
               const sessionLabel=(()=>{
-                if(sid==="fajr") return isDone?"Fajr — Completed · Alhamdulillah":hasStarted?"Fajr — Continue your memorization":"Fajr — Start your new ayahs";
-                if(sid==="dhuhr") return dhuhrLocked?"Complete Fajr to unlock review":"Dhuhr — Review what you learned";
-                if(sid==="asr") return "Asr — Strengthen your memorization";
-                if(sid==="maghrib") return "Maghrib — Review again for retention";
-                if(sid==="isha") return "Isha — Lock in today's memorization";
+                if(sid==="fajr") return isDone?"Fajr — Completed · Alhamdulillah":hasStarted?"Fajr — Keep going, you're building it":"Fajr — Fresh start, fresh ayahs";
+                if(sid==="dhuhr") return dhuhrLocked?"Finish Fajr first, then we review":"Dhuhr — Let's revisit what you learned";
+                if(sid==="asr") return "Asr — Time to reinforce what you know";
+                if(sid==="maghrib") return "Maghrib — Listen, absorb, and reconnect";
+                if(sid==="isha") return "Isha — One last pass to seal it in";
                 return `${sess.time} — ${sess.title}`;
               })();
 
               const microGuide=(()=>{
                 if(isDone) return null;
-                if(sid==="fajr") return "Repeat each ayah until it sticks";
-                if(sid==="dhuhr") return dhuhrLocked?null:"Go over what you memorized earlier";
-                if(sid==="asr") return "Cycle through completed sections";
-                if(sid==="maghrib") return "Listen carefully and follow along";
-                if(sid==="isha") return "Recite everything one final time";
+                if(sid==="fajr") return "Take your time — say each ayah until it feels natural";
+                if(sid==="dhuhr") return dhuhrLocked?null:"Run through this morning's ayahs and see how much stuck";
+                if(sid==="asr") return "Revisit what you've completed — consistency is the key";
+                if(sid==="maghrib") return "Close your eyes, listen, and let the words settle in";
+                if(sid==="isha") return "Recite it all one more time — you've got this";
                 return null;
               })();
 
@@ -2406,6 +2463,18 @@ export default function RihlatAlHifz() {
                       <div style={{fontSize:12,color:dark?"rgba(230,184,74,0.60)":"#6B645A",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length} of {batch.length||dailyNew}</div>
                     </div>
                     {microGuide&&<div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:5}}>{microGuide}</div>}
+                    {(()=>{
+                      const w=getSessionWisdom(sid); if(!w||isDone) return null;
+                      return (
+                        <div style={{marginTop:8,padding:"8px 10px",borderRadius:8,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(140,100,20,0.08)"}`}}>
+                          {w.type==="quran"&&<div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"rgba(232,200,120,0.65)":"rgba(140,100,20,0.70)",direction:"rtl",textAlign:"right",lineHeight:1.8,marginBottom:4}}>{w.arabic}</div>}
+                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#5A4A2A",lineHeight:1.5,fontStyle:w.type==="quran"?"italic":"normal"}}>"{w.text}"</div>
+                          <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.35)":"rgba(140,100,20,0.40)",marginTop:3}}>
+                            {w.type==="quran"?`— ${w.ref}`:w.type==="hadith"?`— ${w.src||w.attr}`:w.attr?`— ${w.attr}`:"— Sheikh Abdul Muhsin Al-Qasim"}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );
@@ -2772,7 +2841,7 @@ export default function RihlatAlHifz() {
       {activeTab==="rihlah"&&rihlahTab==="home"&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-        const joinYear=2025;
+        const joinYear=2026;
         const goalLabel=goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
         const radius=52, circ=2*Math.PI*radius;
         const filled=circ*(pct/100);
@@ -4442,7 +4511,7 @@ export default function RihlatAlHifz() {
               {imams.filter(i=>i.status==="current").map((imam)=>{
                 const isOpen = openImam===imam.id;
                 const isFull = imam.surahCount===114;
-                const hasAudio = !!(imam.archive || imam.quranicaudio);
+                const hasAudio = !!(imam.archive || imam.quranicaudio || imam.mp3quran);
                 const audioSource = imam.archive?"Archive":imam.quranicaudio?"QuranicAudio":null;
                 const badgeColor = isFull ? "#F0C040" : hasAudio ? "#F6A623" : "#E5534B";
                 const badgeLabel = isFull ? "✓ Full Quran" : hasAudio ? "◦ Partial" : "✕ Prayer only";
@@ -4486,6 +4555,7 @@ export default function RihlatAlHifz() {
                         <div className="fi" style={{background:T.surface,borderTop:`1px solid ${mosqueColor}20`,padding:"8px 8px 12px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:4}}>
                           {HARAMAIN_SURAHS.map((name,si)=>{
                             const sNum=si+1;
+                            if(imam.availableSurahs&&!imam.availableSurahs.includes(sNum)) return null;
                             const pkey=`${imam.id}-${sNum}`;
                             const isP=haramainPlaying===pkey;
                             return (
@@ -4500,11 +4570,6 @@ export default function RihlatAlHifz() {
                               </div>
                             );
                           })}
-                          {!isFull&&(
-                            <div style={{gridColumn:"1/-1",marginTop:4,padding:"7px 10px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:5,fontSize:10,color:T.dim,fontStyle:"italic"}}>
-                              ⓘ Partial collection — not all 114 surahs available. Some tracks may not load.
-                            </div>
-                          )}
                         </div>
                       )
                     )}
@@ -4520,7 +4585,7 @@ export default function RihlatAlHifz() {
               {imams.filter(i=>i.status==="former").map((imam)=>{
                 const isOpen = openImam===imam.id;
                 const isFull = imam.surahCount===114;
-                const hasAudio = !!(imam.archive || imam.quranicaudio);
+                const hasAudio = !!(imam.archive || imam.quranicaudio || imam.mp3quran);
                 const badgeColor = isFull ? "#F0C040" : hasAudio ? "#F6A623" : "#E5534B";
                 const badgeLabel = isFull ? "✓ Full Quran" : hasAudio ? "◦ Partial" : "✕ Prayer only";
                 return (
@@ -4541,6 +4606,7 @@ export default function RihlatAlHifz() {
                       <div className="fi" style={{background:T.surface,borderTop:`1px solid ${mosqueColor}20`,padding:"8px 8px 12px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:4}}>
                         {HARAMAIN_SURAHS.map((name,si)=>{
                           const sNum=si+1;
+                          if(imam.availableSurahs&&!imam.availableSurahs.includes(sNum)) return null;
                           const pkey=`${imam.id}-${sNum}`;
                           const isP=haramainPlaying===pkey;
                           return (
