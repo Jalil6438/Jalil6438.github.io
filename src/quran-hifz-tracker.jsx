@@ -3617,7 +3617,7 @@ export default function RihlatAlHifz() {
                           <div
                             onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
                             style={{
-                              padding:"14px 12px",
+                              padding:"14px 4px 14px 12px",
                               background:isSelected?(dark?"rgba(212,175,55,0.05)":"rgba(0,0,0,0.06)"):"transparent",
                               transition:"background .15s",
                               cursor:"pointer",
