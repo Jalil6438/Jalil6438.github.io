@@ -2537,8 +2537,9 @@ export default function RihlatAlHifz() {
             <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div>
-                  <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:14}}>Session Juz · Juz {sessionJuz||""}</div>
+                  <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:4}}>Session Juz · Juz {sessionJuz||""}</div>
                   <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} of {totalSV} ayahs</div>
+                  <div style={{fontSize:11,color:T.accent,marginTop:2}}>{dailyNew} ayahs per day</div>
                 </div>
                 <div style={{color:T.dim,fontSize:14}}>›</div>
               </div>
