@@ -3968,7 +3968,7 @@ export default function RihlatAlHifz() {
               {[
                 "Memorization becomes firm with constant repetition",
                 "Reviewing what you have memorized is more important than taking on new material",
-                "Do not move forward until what you have memorized is solid",
+                "Do not move forward until what you have memorized is firm",
                 "Small, consistent efforts lead to great results",
               ].map((t,i)=>(
                 <div key={i} style={{display:"flex",gap:8,fontSize:12,color:"rgba(243,231,200,0.55)",lineHeight:1.6}}>
