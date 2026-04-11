@@ -2722,16 +2722,17 @@ export default function RihlatAlHifz() {
                     return (
                       <div key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
                         style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                          <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),direction:"rtl",unicodeBidi:"bidi-override"}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                        <div style={{display:"flex",alignItems:"flex-start",gap:8,direction:"rtl",marginBottom:6}}>
+                          <div style={{flexShrink:0,marginTop:4}}>
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848")}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                           </div>
-                          <span style={{flex:1,fontSize:12,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
-                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>
-                          <span style={{fontSize:12,color:"rgba(255,255,255,0.18)"}}>›</span>
+                          <div style={{flex:1,fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(255,255,255,0.88)":"#2D2A26",lineHeight:2,textAlign:"right"}}>
+                            {v.text_uthmani}
+                          </div>
                         </div>
-                        <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:"rgba(255,255,255,0.88)",direction:"rtl",textAlign:"right",lineHeight:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                          {v.text_uthmani}
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",direction:"ltr"}}>
+                          <span style={{fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
+                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":"rgba(255,255,255,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps}/20</span>
                         </div>
                       </div>
                     );
