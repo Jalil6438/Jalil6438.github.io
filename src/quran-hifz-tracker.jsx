@@ -3259,7 +3259,7 @@ export default function RihlatAlHifz() {
                     <div style={{width:20,height:20,borderRadius:5,background:activeDone?"linear-gradient(135deg,#4ADE80,#22C55E)":(dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.06)"),border:activeDone?"none":`1px solid ${dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)"}`,boxShadow:activeDone?"0 0 10px rgba(74,222,128,0.3)":"none",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12,color:activeDone?"#fff":(dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)")}}>
                       {activeDone?"✓":""}
                     </div>
-                    <span style={{fontSize:11,color:activeDone?(dark?"rgba(245,231,184,0.7)":"rgba(40,30,10,0.50)"):(dark?"rgba(255,255,255,0.85)":"#2D2A26"),textDecoration:activeDone?"line-through":"none",opacity:activeDone?0.6:1}}>{step}</span>
+                    <span style={{fontSize:12,color:activeDone?(dark?"rgba(245,231,184,0.7)":"rgba(40,30,10,0.50)"):(dark?"rgba(255,255,255,0.85)":"#2D2A26"),textDecoration:activeDone?"line-through":"none",opacity:activeDone?0.6:1}}>{step}</span>
                   </div>
                 ))
               )}
