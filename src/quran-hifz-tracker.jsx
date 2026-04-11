@@ -618,15 +618,15 @@ function AsrSessionView({
                   <div style={{height:1,margin:"8px 16px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
                 </div>
                 {/* Flowing ayahs */}
-                <div style={{direction:"rtl",textAlign:"justify",lineHeight:2.0,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2.0,wordBreak:"keep-all",overflowWrap:"normal"}}>
                   {currentGroup.ayahs.map(v=>{
                     const vKey=v.verse_key;
                     const aNum=parseInt(vKey.split(":")[1],10);
                     return (
                       <span key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
                         style={{cursor:"pointer",borderRadius:6,padding:"2px 4px"}}>
-                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:21,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                        <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:15,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                        <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                       </span>
                     );
                   })}
