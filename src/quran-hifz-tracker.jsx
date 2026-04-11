@@ -1677,18 +1677,22 @@ export default function RihlatAlHifz() {
         });
       }
 
-      // Step 5 — sort by descending surah then ascending ayah (backwards memorization order)
-      allVerses.sort((a,b)=>{
+      // Remove Al-Fatiha from revision — it's recited 17+ times daily in salah
+      const filtered=allVerses.filter(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);return s!==1;});
+
+      // Step 5 — sort in mushaf order for revision (Al-Baqarah → An-Nas)
+      // The book says: memorize 114→1, but revise from Al-Baqarah to An-Nas (natural reading order)
+      filtered.sort((a,b)=>{
         const sa=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
         const sb=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
-        if(sa!==sb) return sb-sa; // higher surah first (114 → 78)
+        if(sa!==sb) return sa-sb; // ascending surah (1 → 114)
         const aa=parseInt(a.verse_key?.split(":")?.[1],10);
         const ab=parseInt(b.verse_key?.split(":")?.[1],10);
         return aa-ab; // ayahs ascending within surah
       });
       setAsrSelectedJuz(juzPool);
       setAsrSelectedSurahs(eligibleSurahs);
-      setAsrReviewBatch(allVerses);
+      setAsrReviewBatch(filtered);
       setAsrStarted(true);
       setAsrPage(0);
       setAsrExpandedAyah(null);
@@ -2428,7 +2432,7 @@ export default function RihlatAlHifz() {
             </div>
           </div>
 
-          <div style={{flex:1,padding:"10px 16px 64px"}}>
+          <div style={{flex:1,padding:"10px 16px 100px"}}>
 
             {/* ── SESSION JUZ ROW ── */}
             <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
@@ -2489,10 +2493,10 @@ export default function RihlatAlHifz() {
                     {(()=>{
                       const w=getSessionWisdom(sid); if(!w||isDone) return null;
                       return (
-                        <div style={{marginTop:8,padding:"8px 10px",borderRadius:8,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(140,100,20,0.08)"}`}}>
-                          {w.type==="quran"&&<div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"rgba(232,200,120,0.65)":"rgba(140,100,20,0.70)",direction:"rtl",textAlign:"right",lineHeight:1.8,marginBottom:4}}>{w.arabic}</div>}
+                        <div style={{marginTop:8,padding:"10px 12px",borderRadius:8,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(140,100,20,0.08)"}`,textAlign:"center"}}>
+                          {w.type==="quran"&&<div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"rgba(232,200,120,0.65)":"rgba(140,100,20,0.70)",direction:"rtl",lineHeight:1.8,marginBottom:6}}>{w.arabic}</div>}
                           <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#5A4A2A",lineHeight:1.5,fontStyle:w.type==="quran"?"italic":"normal"}}>"{w.text}"</div>
-                          <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.35)":"rgba(140,100,20,0.40)",marginTop:3}}>
+                          <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.35)":"rgba(140,100,20,0.40)",marginTop:4}}>
                             {w.type==="quran"?`— ${w.ref}`:w.type==="hadith"?`— ${w.src||w.attr}`:w.attr?`— ${w.attr}`:"— Sheikh Abdul Muhsin Al-Qasim"}
                           </div>
                         </div>
@@ -3031,7 +3035,7 @@ export default function RihlatAlHifz() {
               </div>
             </div>
 
-            <div style={{padding:"12px 14px 64px",position:"relative",zIndex:1}}>
+            <div style={{padding:"12px 14px 100px",position:"relative",zIndex:1}}>
 
             {/* ── 2 & 3. OVERALL PROGRESS + DAILY GOALS — single card ── */}
             <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px",marginBottom:10}}>
@@ -3281,7 +3285,7 @@ export default function RihlatAlHifz() {
         }));
 
         return (
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"14px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"14px 16px 100px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:20}}>
@@ -3526,7 +3530,7 @@ export default function RihlatAlHifz() {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:"10px 12px 80px"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:"10px 12px 100px"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
@@ -3845,7 +3849,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ TIMELINE ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="timeline"&&(
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 100px"}} className="fi gold-particles">
 
           {/* Header */}
           <div style={{marginBottom:22}}>
@@ -3966,7 +3970,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ ADJUST PLAN ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 64px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 100px"}} className="fi gold-particles">
           {/* Header */}
           <div style={{marginBottom:20}}>
             <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back to My Plan</div>
@@ -4457,7 +4461,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* Night list */}
-            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 80px"}}>
+            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 100px"}}>
 
               {/* Nights 1–20 */}
               <div style={{fontSize:9,color:T.dim,letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",alignItems:"center",gap:7}}>
@@ -4582,7 +4586,7 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* Imam list */}
-            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 80px"}}>
+            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 100px"}}>
               <div style={{fontSize:10,color:T.dim,marginBottom:10,lineHeight:1.6}}>
                 Tap an imam to browse their surah recordings. Source: haramain.info / Internet Archive.
               </div>
@@ -4720,7 +4724,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ ABOUT & CREDITS ═══ */}
       {activeTab==="masjidayn"&&masjidaynTab==="about"&&(
-        <div style={{flex:1,overflowY:"auto",padding:"20px 18px 80px",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"20px 18px 100px",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
           <div style={{textAlign:"center",marginBottom:20}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Rihlat Al-Hifz</div>
             <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.60)":"#6B645A",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
