@@ -866,7 +866,7 @@ export default function RihlatAlHifz() {
         // Use same source as My Hifz — qurancdn returns clean text_uthmani, no stray tokens
         const [textRes, transRes] = await Promise.all([
           fetch(`https://api.qurancdn.com/api/qdc/verses/by_page/${mushafPage}?words=false&fields=text_uthmani,verse_key,juz_number&per_page=50`),
-          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?per_page=50&translations=203&fields=verse_key`)
+          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?per_page=50&translations=151&fields=verse_key`)
         ]);
         if (!textRes.ok) throw new Error();
         const textData = await textRes.json();
@@ -886,9 +886,10 @@ export default function RihlatAlHifz() {
         if (vs.length > 0) {
           setMushafJuzNum(vs[0].juz_number || 1);
           const surahNums = [...new Set(vs.map(v => parseInt(v.verse_key.split(":")[0], 10)))];
-          setMushafSurahNum(surahNums[0]||1);
+          // Only auto-detect surah if user didn't explicitly pick one (surah selector sets it directly)
+          setMushafSurahNum(prev => surahNums.includes(prev) ? prev : surahNums[0]||1);
           setMushafSurahInfo(surahNums.map(n => SURAH_EN[n] || "").filter(Boolean).join(" · "));
-          if(surahNums.length>0) setSelectedSurahNum(surahNums[0]);
+          setSelectedSurahNum(prev => surahNums.includes(prev) ? prev : surahNums[0]||1);
         } else {
           setMushafJuzNum(1); setMushafSurahInfo("");
         }
@@ -4286,7 +4287,7 @@ export default function RihlatAlHifz() {
                 const n=Number(num);
                 const isSel=mushafSurahNum===n;
                 return(
-                  <div key={n} className="sbtn" onClick={()=>{setMushafPage(pg);setShowQuranSurahModal(false);}}
+                  <div key={n} className="sbtn" onClick={()=>{setMushafPage(pg);setMushafSurahNum(n);setSelectedSurahNum(n);setShowQuranSurahModal(false);}}
                     style={{padding:"13px 16px",borderRadius:14,textAlign:"center",
                       background:isSel?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)",
                       border:`1px solid ${isSel?"rgba(232,200,120,0.65)":"rgba(217,177,95,0.12)"}`,
