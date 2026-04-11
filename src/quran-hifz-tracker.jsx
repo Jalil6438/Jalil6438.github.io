@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import MUTASHABIHAT from "./mutashabihat.json";
 // react-quran removed — custom renderer
 // Font via Google Fonts (injected in QuranPageView)
 // Mushaf images served from github.com/Jalil6438/mushaf-images
@@ -523,7 +524,7 @@ function AsrSessionView({
     asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
     asrVisibleAyahs,asrBatch,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
-    audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,
+    audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,completedAyahs,
   }) {
     const [asrViewMode,setAsrViewMode]=useState("mushaf"); // "mushaf" default, "study" for cards
     const asrMushafScrollRef=useRef(null);
@@ -726,11 +727,25 @@ function AsrSessionView({
                 <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
                   {evTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:evTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
                 </div>
-                <div style={{display:"flex",justifyContent:"center"}}>
+                <div style={{display:"flex",justifyContent:"center",marginBottom:MUTASHABIHAT[evKey]&&MUTASHABIHAT[evKey].some(sk=>completedAyahs?.has(sk))?12:0}}>
                   <div className="sbtn" onClick={()=>playAyah(evKey,evKey)} style={{width:42,height:42,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:evPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${evPlaying?"rgba(217,177,95,0.30)":"rgba(255,255,255,0.08)"}`,color:evPlaying?T2.goldBright:"rgba(243,231,200,0.56)",fontSize:16}}>
                     {evLoading?"…":evPlaying?"⏸":"▶"}
                   </div>
                 </div>
+                {MUTASHABIHAT[evKey]&&MUTASHABIHAT[evKey].some(sk=>completedAyahs?.has(sk))&&(
+                  <div style={{padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
+                    <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
+                    {MUTASHABIHAT[evKey].filter(sk=>completedAyahs?.has(sk)).map(simKey=>{
+                      const [ss]=simKey.split(":");
+                      return (
+                        <div key={simKey} style={{padding:"6px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
+                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A"}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
+                        </div>
+                      );
+                    })}
+                    <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.25)":"rgba(0,0,0,0.25)",marginTop:4}}>Compare these verses to strengthen your memorization</div>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -2206,6 +2221,7 @@ export default function RihlatAlHifz() {
             setAsrIsCustomized(true); // open customize picker
           }}
           asrIsCustomized={asrIsCustomized}
+          completedAyahs={completedAyahs}
         />
       )}
 
@@ -2957,6 +2973,21 @@ export default function RihlatAlHifz() {
                           )}
                         </div>
                         {mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Restart</div>}
+                        {/* Similar verses (المتشابهات) */}
+                        {MUTASHABIHAT[mvKey]&&MUTASHABIHAT[mvKey].some(sk=>completedAyahs.has(sk))&&(
+                          <div style={{marginTop:12,padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
+                            <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
+                            {MUTASHABIHAT[mvKey].filter(sk=>completedAyahs.has(sk)).map(simKey=>{
+                              const [ss,sa]=simKey.split(":");
+                              return (
+                                <div key={simKey} style={{padding:"6px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
+                                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:2}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
+                                </div>
+                              );
+                            })}
+                            <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.25)":"rgba(0,0,0,0.25)",marginTop:4}}>Compare these verses to strengthen your memorization</div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -3728,7 +3759,7 @@ export default function RihlatAlHifz() {
                             {/* Ayah: number badge inline at start (RTL = right side), then Arabic text */}
                             <div style={{display:"flex",alignItems:"flex-start",gap:8,direction:"rtl"}}>
                               {/* Ayah ornament — Quranic end-marker with Arabic-Indic digits */}
-                              <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",width:40,alignSelf:"stretch",background:dark?"rgba(194,160,90,0.12)":"rgba(8,14,26,0.06)",borderLeft:dark?"1px solid rgba(194,160,90,0.18)":"1px solid rgba(8,14,26,0.08)"}}>
+                              <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",marginTop:4,lineHeight:1}}>
                                 <span style={{
                                   fontFamily:"'Amiri Quran','Amiri',serif",
                                   fontSize:20,
