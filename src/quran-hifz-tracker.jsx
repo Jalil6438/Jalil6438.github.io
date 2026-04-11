@@ -785,7 +785,7 @@ export default function RihlatAlHifz() {
   const quranContentRef=useRef(null);
   const quranPageRef=useRef(null);
   const [quranContainerH,setQuranContainerH]=useState(0);
-  const [mushafPage,setMushafPage]=useState(1);
+  const [mushafPage,setMushafPage]=useState(()=>{try{return parseInt(localStorage.getItem("jalil-quran-lastpage"))||1;}catch{return 1;}});
   const [mushafSwipeAnim,setMushafSwipeAnim]=useState("idle"); // "idle"|"exit-left"|"exit-right"
   const [croppedPages,setCroppedPages]=useState({});
   const [quranMode,setQuranMode]=useState("interactive"); // "mushaf" | "interactive"
@@ -856,6 +856,9 @@ export default function RihlatAlHifz() {
   useEffect(()=>{
     fetch("/quran-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
   },[]);
+
+  // Bookmark last mushaf page
+  useEffect(()=>{try{localStorage.setItem("jalil-quran-lastpage",String(mushafPage));}catch{}},[mushafPage]);
 
   useEffect(() => {
     if (activeTab !== "quran") return;
