@@ -927,7 +927,7 @@ export default function RihlatAlHifz() {
   const [croppedPages,setCroppedPages]=useState({});
   const [quranMode,setQuranMode]=useState("interactive"); // "mushaf" | "interactive"
   const [selectedAyah,setSelectedAyah]=useState(null);
-  const [drawerView,setDrawerView]=useState("default"); // "default"|"tafsir"|"reflect"
+  const [drawerView,setDrawerView]=useState("default"); // "default"|"tafsir"|"reflect"|"bookmarks"
   const [showTranslation,setShowTranslation]=useState(true);
   const [showReflect,setShowReflect]=useState(false); // legacy, replaced by drawerView
   const [reflections,setReflections]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-reflections")||"{}");}catch{return {};}});
@@ -3946,8 +3946,8 @@ export default function RihlatAlHifz() {
                               action:()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }},
                             {icon:"⏭", label:"Range", action:()=>{ stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true); }},
                             {icon:"🎙️", label:"Reciter", action:()=>{ setReciterMode("quran");setShowReciterModal(true); }},
-                            {icon:isBookmarkedPage?"✦":"🔖", label:isBookmarkedPage?"Saved":"Bookmark",
-                              action:()=>{ const updated=isBookmarkedPage?mushafBookmarks.filter(p=>p!==mushafPage):[...mushafBookmarks,mushafPage].sort((a,b)=>a-b); setMushafBookmarks(updated); try{localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(updated));}catch{} }},
+                            {icon:"🔖", label:"Bookmark",
+                              action:()=>{ setDrawerView("bookmarks"); }},
                           ].map(btn=>(
                             <div key={btn.label} className="sbtn" onClick={e=>{e.stopPropagation();btn.action();}}
                               style={{
@@ -4050,6 +4050,66 @@ export default function RihlatAlHifz() {
                         {reflections[selectedAyah]&&(
                           <div style={{fontSize:9,color:"rgba(217,177,95,0.35)",textAlign:"right",fontFamily:"'DM Sans',sans-serif",marginTop:4}}>Saved ✓</div>
                         )}
+                      </div>
+                    )}
+
+                    {/* ── BOOKMARKS VIEW ── */}
+                    {drawerView==="bookmarks"&&(
+                      <div style={{flex:1,display:"flex",flexDirection:"column",padding:"12px 20px 16px",overflow:"hidden"}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                          <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.55)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700}}>Bookmarks & Saved</div>
+                          <div className="sbtn" onClick={()=>setDrawerView("default")} style={{fontSize:12,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A"}}>×</div>
+                        </div>
+                        <div style={{flex:1,overflowY:"auto"}}>
+                          {/* Saved Ayahs */}
+                          {mushafBookmarks.filter(b=>typeof b==="string").length>0&&(
+                            <div style={{marginBottom:12}}>
+                              <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",fontWeight:600,marginBottom:6}}>Saved Ayahs</div>
+                              {mushafBookmarks.filter(b=>typeof b==="string").map(vk=>{
+                                const [s]=vk.split(":");
+                                return (
+                                  <div key={vk} className="sbtn" onClick={()=>{const pg=SURAH_PAGES[Number(s)]||1;setMushafPage(pg);setSelectedAyah(vk);setDrawerView("default");}}
+                                    style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(255,255,255,0.05)":"1px solid rgba(0,0,0,0.06)"}}>
+                                    <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{SURAH_EN[Number(s)]} · {vk}</span>
+                                    <span style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>→</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {/* Bookmarked Pages */}
+                          {mushafBookmarks.filter(b=>typeof b==="number").length>0&&(
+                            <div style={{marginBottom:12}}>
+                              <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",fontWeight:600,marginBottom:6}}>Bookmarked Pages</div>
+                              {mushafBookmarks.filter(b=>typeof b==="number").sort((a,b)=>a-b).map(pg=>(
+                                <div key={pg} className="sbtn" onClick={()=>{setMushafPage(pg);setDrawerView("default");setSelectedAyah(null);}}
+                                  style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(255,255,255,0.05)":"1px solid rgba(0,0,0,0.06)"}}>
+                                  <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>Page {pg}</span>
+                                  <span style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>→</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {/* Reflections */}
+                          {Object.keys(reflections||{}).filter(k=>reflections[k]).length>0&&(
+                            <div>
+                              <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",fontWeight:600,marginBottom:6}}>Reflections</div>
+                              {Object.entries(reflections||{}).filter(([,v])=>v).map(([vk,note])=>{
+                                const [s]=vk.split(":");
+                                return (
+                                  <div key={vk} className="sbtn" onClick={()=>{const pg=SURAH_PAGES[Number(s)]||1;setMushafPage(pg);setSelectedAyah(vk);setDrawerView("reflect");}}
+                                    style={{padding:"8px 10px",borderRadius:8,marginBottom:4,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(255,255,255,0.05)":"1px solid rgba(0,0,0,0.06)"}}>
+                                    <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",marginBottom:2}}>{SURAH_EN[Number(s)]} · {vk}</div>
+                                    <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.40)":"#6B645A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{note}</div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {mushafBookmarks.length===0&&Object.keys(reflections||{}).filter(k=>reflections[k]).length===0&&(
+                            <div style={{textAlign:"center",padding:"20px 0",fontSize:12,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A"}}>No saved items yet</div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
