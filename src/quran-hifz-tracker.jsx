@@ -1752,13 +1752,6 @@ export default function RihlatAlHifz() {
       audioRef.current=audio;
       audio.oncanplay=()=>{setAudioLoading(null);setPlayingKey(key);};
       audio.onended=()=>{
-        setRepCounts(prev=>{
-          const newCount=Math.min(20,(prev[verseKey]||0)+1);
-          if(newCount>=20 && !completedAyahs.has(verseKey)){
-            setCompletedAyahs(ca=>{const next=new Set(ca);next.add(verseKey);saveCompletedAyahs(next);return next;});
-          }
-          return {...prev,[verseKey]:newCount};
-        });
         if(looping){
           audio.currentTime=0;
           audio.play().catch(()=>{setPlayingKey(null);});
@@ -2853,7 +2846,7 @@ export default function RihlatAlHifz() {
                             <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ 20/20 Complete — MashaAllah!</div>
                           ):(
                             <div>
-                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Repeat <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/20</span></div>
+                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Recited <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/20</span> · Tap after each recitation</div>
                               <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                                 <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:mvPct>=100?"linear-gradient(90deg,#D4AF37,#F6E27A)":"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.4s cubic-bezier(.4,0,.2,1)"}}/>
                               </div>
