@@ -3946,7 +3946,7 @@ export default function RihlatAlHifz() {
                               action:()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }},
                             {icon:"⏭", label:"Range", action:()=>{ stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true); }},
                             {icon:"🎙️", label:"Reciter", action:()=>{ setReciterMode("quran");setShowReciterModal(true); }},
-                            {icon:"🔖", label:"Bookmark",
+                            {icon:"🔖", label:"Bookmarks",
                               action:()=>{ setDrawerView("bookmarks"); }},
                           ].map(btn=>(
                             <div key={btn.label} className="sbtn" onClick={e=>{e.stopPropagation();btn.action();}}
