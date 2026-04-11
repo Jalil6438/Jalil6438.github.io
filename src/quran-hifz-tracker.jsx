@@ -3942,7 +3942,7 @@ export default function RihlatAlHifz() {
                 {icon:"\u{1F305}",name:"Fajr",label:"Begin your memorization",desc:`Memorize ${dailyNew} new ayahs \u2014 repeat each until it sticks`,glow:"rgba(240,192,64,0.35)"},
                 {icon:"\u2600\uFE0F",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier",glow:"rgba(246,166,35,0.30)"},
                 {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Cycle through completed sections",glow:"rgba(78,205,196,0.25)"},
-                {icon:"\u{1F306}",name:"Maghrib",label:"Listen and follow along attentively",desc:"Listen and follow along (15\u201320 min)",glow:"rgba(183,148,244,0.25)"},
+                {icon:"\u{1F306}",name:"Maghrib",label:"Sit with the Qur'an and listen",desc:"Listen and follow along (15\u201320 min)",glow:"rgba(183,148,244,0.25)"},
                 {icon:"\u{1F319}",name:"Isha",label:"Complete today's journey",desc:"Recite everything one final time",glow:"rgba(104,211,145,0.25)"},
               ].map((s,i,arr)=>(
                 <div key={s.name}>
