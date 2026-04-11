@@ -1385,6 +1385,16 @@ export default function RihlatAlHifz() {
     (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
     // then older days from recentBatches (excluding the last entry which is today's/yesterday's)
     (recentBatches.slice(0,-1)||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    // Fallback: if no rolling batches yet, pull from today's Fajr batch or already-completed ayahs in current juz
+    if(combined.length===0&&fajrBatch.length>0){
+      // Use today's fajr ayahs that have been started (any reps > 0) or all if session was completed
+      const fajrDone=sessionsCompleted?.fajr;
+      fajrBatch.forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)&&(fajrDone||(repCounts[v.verse_key]||0)>0)){ seen.add(v.verse_key); combined.push(v); }});
+    }
+    if(combined.length===0&&sessionVerses.length>0){
+      // Pull recently completed ayahs from current juz (up to sessionIdx)
+      sessionVerses.slice(Math.max(0,sessionIdx-dailyNew*5),sessionIdx).forEach(v=>{ if(v.verse_key&&completedAyahs.has(v.verse_key)&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    }
     batch=combined.length>0?combined:[];
   }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
@@ -2441,7 +2451,7 @@ export default function RihlatAlHifz() {
               const sid=sess.id;
               const isDone=sessionsCompleted[sid];
               const hasStarted=batch.some(v=>(repCounts[v.verse_key]||0)>0);
-              const dhuhrLocked=sid==="dhuhr"&&yesterdayBatch.length===0;
+              const dhuhrLocked=sid==="dhuhr"&&batch.length===0;
 
               const sessionLabel=(()=>{
                 if(sid==="fajr") return isDone?"Fajr — Completed · Alhamdulillah":hasStarted?"Fajr — Keep going, you're building it":"Fajr — Fresh start, fresh ayahs";
