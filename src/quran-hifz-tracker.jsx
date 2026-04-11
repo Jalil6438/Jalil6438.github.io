@@ -3617,7 +3617,7 @@ export default function RihlatAlHifz() {
                           <div
                             onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
                             style={{
-                              padding:"14px 4px 14px 12px",
+                              padding:"14px 0 14px 12px",
                               background:isSelected?(dark?"rgba(212,175,55,0.05)":"rgba(0,0,0,0.06)"):"transparent",
                               transition:"background .15s",
                               cursor:"pointer",
@@ -3627,7 +3627,7 @@ export default function RihlatAlHifz() {
                             {/* Ayah: number badge inline at start (RTL = right side), then Arabic text */}
                             <div style={{display:"flex",alignItems:"flex-start",gap:8,direction:"rtl"}}>
                               {/* Ayah ornament — Quranic end-marker with Arabic-Indic digits */}
-                              <div style={{flexShrink:0,marginTop:4,lineHeight:1}}>
+                              <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",width:40,alignSelf:"stretch",background:dark?"rgba(212,175,55,0.03)":"rgba(140,100,20,0.03)",borderLeft:dark?"1px solid rgba(212,175,55,0.06)":"1px solid rgba(140,100,20,0.06)"}}>
                                 <span style={{
                                   fontFamily:"'Amiri Quran','Amiri',serif",
                                   fontSize:20,
