@@ -2300,7 +2300,7 @@ export default function RihlatAlHifz() {
             {nextJuz&&<div style={{textAlign:"right"}}><div style={{fontSize:12,color:"#8FA3B8",letterSpacing:"1px",marginBottom:1}}>Next Target</div><div style={{fontSize:11,color:T.sub}}>Juz {nextJuz.num}</div></div>}
             <div style={{textAlign:"right"}}>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:34,fontWeight:700,color:"#F0C040",lineHeight:1}}>{pct}%</div>
-              <div style={{fontSize:12,color:"#6B7280"}}>{memorizedAyahs} of {totalAyahsInQuran} ayahs</div>
+              <div style={{fontSize:12,color:"#6B7280"}}>{completedCount} of 30 Juz memorized</div>
               <div style={{height:3,width:60,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:2}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
             </div>
             <div className="sbtn" onClick={()=>setDark(d=>!d)} style={{padding:"5px 10px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,display:"flex",alignItems:"center",gap:5,fontSize:11,color:T.dim}}>
@@ -2901,11 +2901,11 @@ export default function RihlatAlHifz() {
                     strokeDasharray={`${2*Math.PI*40*(pct/100)} ${2*Math.PI*40}`} strokeLinecap="round"
                     transform="rotate(-90 50 50)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease",filter:dark?"":"drop-shadow(0 0 6px rgba(200,74,47,0.40))"}}/>
                   <text x={50} y={44} textAnchor="middle" fill={dark?"#E6B84A":"#2B2118"} fontSize={20} fontWeight={900} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={50} y={62} textAnchor="middle" fill={dark?"rgba(255,255,255,0.5)":"#6B645A"} fontSize={9} fontWeight={600} fontFamily="'DM Sans',sans-serif">{memorizedAyahs} ayahs</text>
+                  <text x={50} y={62} textAnchor="middle" fill={dark?"rgba(255,255,255,0.5)":"#6B645A"} fontSize={9} fontWeight={600} fontFamily="'DM Sans',sans-serif">{completedCount} of 30 Juz</text>
                 </svg>
                 <div style={{flex:1}}>
-                  {[{label:"Memorized",val:`${memorizedAyahs} ayahs`,color:dark?"#E6B84A":"#2B2118"},{label:"Juz",val:`${completedCount} of 30`,color:dark?"#E6B84A":"#2B2118"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:dark?"#E6B84A":"#2B2118"},{label:"Remaining",val:`${totalAyahsInQuran-memorizedAyahs} ayahs`,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}].map((s,i)=>(
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:i<3?"1px solid rgba(255,255,255,0.06)":"none"}}>
+                  {[{label:"Memorized",val:`${completedCount} Juz`,color:dark?"#E6B84A":"#2B2118"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:dark?"#E6B84A":"#2B2118"},{label:"Remaining",val:`${30-completedCount} Juz`,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}].map((s,i)=>(
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.06)":"none"}}>
                       <span style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
                       <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:s.color,fontWeight:700}}>{s.val}</span>
                     </div>
@@ -3088,16 +3088,16 @@ export default function RihlatAlHifz() {
             </div>
 
             {/* ── 7. NAV BUTTONS ── */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#EADFC8",border:"1px solid rgba(74,222,128,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#EADFC8",border:dark?"1px solid rgba(74,222,128,0.2)":"1px solid rgba(0,0,0,0.10)",borderRadius:18,textAlign:"center",boxShadow:dark?"0 10px 25px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.06)",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>📖</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Memorization</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Track your progress</div>
+                <div style={{fontSize:13,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Memorization</div>
+                <div style={{fontSize:10,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:2}}>Track your progress</div>
               </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#EADFC8",border:"1px solid rgba(240,192,64,0.2)",borderRadius:18,textAlign:"center",boxShadow:"0 10px 25px rgba(0,0,0,0.25)",filter:"drop-shadow(0 0 10px rgba(255,255,255,0.15))",transition:"all .2s"}}>
+              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#EADFC8",border:dark?"1px solid rgba(240,192,64,0.2)":"1px solid rgba(0,0,0,0.10)",borderRadius:18,textAlign:"center",boxShadow:dark?"0 10px 25px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.06)",transition:"all .2s"}}>
                 <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#EDE8DC"}}>My Plan</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.35)",marginTop:2}}>Your hifz timeline</div>
+                <div style={{fontSize:13,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Plan</div>
+                <div style={{fontSize:10,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:2}}>Your hifz timeline</div>
               </div>
             </div>
 
@@ -3562,7 +3562,7 @@ export default function RihlatAlHifz() {
                         </div>
 
                         {/* Page action row */}
-                        <div style={{flexShrink:0,display:"flex",gap:6,paddingBottom:12,borderTop:"1px solid rgba(139,106,16,0.15)",paddingTop:8}}>
+                        <div style={{flexShrink:0,display:"flex",gap:6,paddingBottom:12,borderTop:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.08)",paddingTop:8}}>
                           {[
                             {icon:mushafAudioPlaying?"⏹":"▶", label:mushafAudioPlaying?"Stop":"Page",
                               action:()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }},
@@ -3576,7 +3576,7 @@ export default function RihlatAlHifz() {
                                 flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,
                                 padding:"8px 4px",borderRadius:10,fontSize:8,fontWeight:700,
                                 letterSpacing:".06em",textTransform:"uppercase",
-                                color:"rgba(0,0,0,0.70)",
+                                color:dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.70)",
                                 fontFamily:"'DM Sans',sans-serif",
                               }}
                             >
@@ -4444,9 +4444,10 @@ export default function RihlatAlHifz() {
               {imams.filter(i=>i.status==="current").map((imam)=>{
                 const isOpen = openImam===imam.id;
                 const isFull = imam.surahCount===114;
-                const hasArchive = !!(imam.archive || imam.quranicaudio);
-                const badgeColor = isFull ? "#F0C040" : hasArchive ? "#F6A623" : "#E5534B";
-                const badgeLabel = isFull ? "✓ Full Quran" : hasArchive ? "◦ Partial" : "✕ Prayer only";
+                const hasAudio = !!(imam.archive || imam.quranicaudio);
+                const audioSource = imam.archive?"Archive":imam.quranicaudio?"QuranicAudio":null;
+                const badgeColor = isFull ? "#F0C040" : hasAudio ? "#F6A623" : "#E5534B";
+                const badgeLabel = isFull ? "✓ Full Quran" : hasAudio ? "◦ Partial" : "✕ Prayer only";
                 return (
                   <div key={imam.id} style={{marginBottom:6,border:`1px solid ${isOpen?mosqueColor+"40":T.border}`,borderLeft:`3px solid ${isOpen?mosqueColor:T.border2}`,borderRadius:isOpen?"6px 6px 0 0":"6px",overflow:"hidden"}}>
                     <div className="srow" onClick={()=>setOpenImam(isOpen?null:imam.id)} style={{padding:"11px 14px",background:isOpen?T.surface2:T.surface,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -4460,15 +4461,18 @@ export default function RihlatAlHifz() {
                         </div>
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        {hasArchive&&(
+                        {imam.archive&&(
                           <a href={`https://archive.org/details/${imam.archive}`} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{fontSize:9,color:T.accent,textDecoration:"none",padding:"3px 8px",border:`1px solid ${T.accent}40`,borderRadius:4}}>Archive ↗</a>
+                        )}
+                        {imam.quranicaudio&&!imam.archive&&(
+                          <span style={{fontSize:8,color:T.dim,padding:"2px 6px",border:`1px solid ${T.border}`,borderRadius:4}}>QuranicAudio</span>
                         )}
                         <div style={{color:isOpen?mosqueColor:T.dim,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(90deg)":"none"}}>›</div>
                       </div>
                     </div>
 
                     {isOpen&&(
-                      !hasArchive ? (
+                      !hasAudio ? (
                         <div className="fi" style={{background:T.surface,borderTop:`1px solid ${T.border}`,padding:"16px 14px"}}>
                           <div style={{fontSize:12,color:T.sub,lineHeight:1.7,marginBottom:10}}>
                             📿 <strong style={{color:mosqueColor}}>{imam.name}</strong> leads prayers at the Haramain but does not have a compiled full Quran archive on haramain.info.
@@ -4518,9 +4522,9 @@ export default function RihlatAlHifz() {
               {imams.filter(i=>i.status==="former").map((imam)=>{
                 const isOpen = openImam===imam.id;
                 const isFull = imam.surahCount===114;
-                const hasArchive = !!(imam.archive || imam.quranicaudio);
-                const badgeColor = isFull ? "#F0C040" : hasArchive ? "#F6A623" : "#E5534B";
-                const badgeLabel = isFull ? "✓ Full Quran" : hasArchive ? "◦ Partial" : "✕ Prayer only";
+                const hasAudio = !!(imam.archive || imam.quranicaudio);
+                const badgeColor = isFull ? "#F0C040" : hasAudio ? "#F6A623" : "#E5534B";
+                const badgeLabel = isFull ? "✓ Full Quran" : hasAudio ? "◦ Partial" : "✕ Prayer only";
                 return (
                   <div key={imam.id} style={{marginBottom:6,border:`1px solid ${isOpen?mosqueColor+"40":T.border}`,borderLeft:`3px solid ${isOpen?mosqueColor:T.border2}`,borderRadius:isOpen?"6px 6px 0 0":"6px",overflow:"hidden",opacity:0.85}}>
                     <div className="srow" onClick={()=>setOpenImam(isOpen?null:imam.id)} style={{padding:"11px 14px",background:isOpen?T.surface2:T.surface,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -4535,7 +4539,7 @@ export default function RihlatAlHifz() {
                       </div>
                       <div style={{color:isOpen?mosqueColor:T.dim,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(90deg)":"none"}}>›</div>
                     </div>
-                    {isOpen&&hasArchive&&(
+                    {isOpen&&hasAudio&&(
                       <div className="fi" style={{background:T.surface,borderTop:`1px solid ${mosqueColor}20`,padding:"8px 8px 12px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:4}}>
                         {HARAMAIN_SURAHS.map((name,si)=>{
                           const sNum=si+1;
