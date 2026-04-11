@@ -69,8 +69,8 @@ const SESSIONS = [
     desc:"Review what you memorized over the last 5 days. The Sheikh says: review the previous five days before starting anything new.",
     steps:["Review what you memorized the previous five days","It escapes from hearts faster than the camel from its rope","Do not become sad if you lose memorization — this is the assembly stage"] },
   { id:"asr",     time:"Asr",     arabic:"العصر",  icon:"🌤️", color:"#4ECDC4",
-    title:"Review Previous Juz",
-    desc:"Cycle through completed Juz. Every Juz should be touched every 7-10 days.",
+    title:"Progressive Revision",
+    desc:"Your revision scales as you progress — every juz touched every 10 days.",
     steps:["Persistence in revision is a great foundation — Ibn al-Jawzi","Cycle through completed sections consistently","Allah elevates a people by way of this book"] },
   { id:"maghrib", time:"Maghrib", arabic:"المغرب", icon:"🌆", color:"#B794F4",
     title:"Listening",
@@ -1650,14 +1650,22 @@ export default function RihlatAlHifz() {
         return;
       }
 
-      // Step 2 — cap: max 2 juz, rotate by day of year
+      // Step 2 — Sheikh Al-Qasim's progressive revision table
+      // Daily revision amount scales with how much you've memorized:
+      // 1-5 juz → 0.5 juz/day | 6-10 → 1 juz/day | 11-15 → 1.5 juz/day
+      // 16-20 → 2 juz/day | 21-25 → 2.5 juz/day | 26-30 → 3 juz/day
+      const totalCompleted = eligibleJuz.length;
+      const dailyJuzAmount = totalCompleted <= 5 ? 0.5 : totalCompleted <= 10 ? 1 : totalCompleted <= 15 ? 1.5 : totalCompleted <= 20 ? 2 : totalCompleted <= 25 ? 2.5 : 3;
+      // Sort eligible juz in mushaf order for cycling
+      const sortedEligible = [...eligibleJuz].sort((a,b) => a - b);
+      // Rotate through all completed juz — each day shifts the window
       const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
-      const juzPool = eligibleJuz.length <= 2
-        ? eligibleJuz
-        : [
-            eligibleJuz[dayOfYear % eligibleJuz.length],
-            eligibleJuz[(dayOfYear + 1) % eligibleJuz.length],
-          ].filter((v,i,a)=>a.indexOf(v)===i);
+      const juzCount = Math.max(1, Math.ceil(dailyJuzAmount));
+      const startIdx = (dayOfYear * juzCount) % sortedEligible.length;
+      const juzPool = [];
+      for(let i = 0; i < juzCount && i < sortedEligible.length; i++) {
+        juzPool.push(sortedEligible[(startIdx + i) % sortedEligible.length]);
+      }
 
       // Step 3 — fetch verses for selected juz
       const allVerses = [];
@@ -3950,7 +3958,7 @@ export default function RihlatAlHifz() {
               {[
                 {icon:"\u{1F305}",name:"Fajr",label:"Begin your memorization",desc:`Memorize ${dailyNew} new ayahs \u2014 the foundation is repetition`,glow:"rgba(240,192,64,0.35)"},
                 {icon:"\u2600\uFE0F",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier",glow:"rgba(246,166,35,0.30)"},
-                {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Cycle through completed sections",glow:"rgba(78,205,196,0.25)"},
+                {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Revision scales as you progress",glow:"rgba(78,205,196,0.25)"},
                 {icon:"\u{1F306}",name:"Maghrib",label:"Sit with the Qur'an and listen",desc:"Listen and follow along (15\u201320 min)",glow:"rgba(183,148,244,0.25)"},
                 {icon:"\u{1F319}",name:"Isha",label:"Complete today's journey",desc:"Recite everything one final time",glow:"rgba(104,211,145,0.25)"},
               ].map((s,i,arr)=>(
