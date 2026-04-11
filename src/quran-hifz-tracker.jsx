@@ -2373,18 +2373,16 @@ export default function RihlatAlHifz() {
       {/* TOP BAR */}
       {activeTab!=="quran"&&activeTab!=="masjidayn"&&(
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 16px",flexShrink:0}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>{localStorage.getItem("rihlat-username")||"Abdul Jalil"} · Hifz Journey</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Al-Hifz · <span style={{fontSize:12,fontStyle:"italic",opacity:.7}}>Your journey to memorizing the Qur'an</span></div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>Al-Hifz</div>
+            {nextJuz&&<div style={{fontSize:10,color:T.sub,marginTop:2}}>Next Target · Juz {nextJuz.num}</div>}
           </div>
-          <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-            {nextJuz&&<div style={{textAlign:"right"}}><div style={{fontSize:12,color:"#8FA3B8",letterSpacing:"1px",marginBottom:1}}>Next Target</div><div style={{fontSize:11,color:T.sub}}>Juz {nextJuz.num}</div></div>}
-            <div style={{textAlign:"right"}}>
-              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:34,fontWeight:700,color:"#F0C040",lineHeight:1}}>{pct}%</div>
-              <div style={{fontSize:12,color:"#6B7280"}}>{completedCount} of 30 Juz memorized</div>
-              <div style={{height:3,width:60,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:2}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
-            </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:28,fontWeight:700,color:"#F0C040",lineHeight:1}}>{pct}%</div>
+            <div style={{fontSize:10,color:"#6B7280",marginTop:2}}>{completedCount}/30 Juz</div>
+            <div style={{height:3,width:50,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:3,marginLeft:"auto"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
           </div>
         </div>
       </div>
