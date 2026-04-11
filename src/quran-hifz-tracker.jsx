@@ -2783,17 +2783,17 @@ export default function RihlatAlHifz() {
                           const pct=Math.min((cr/10)*100,100);
                           return (
                             <div key={step.key} className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[step.key]:Math.min(10,(prev[step.key]||0)+1)}))}
-                              style={{padding:"10px 12px",borderRadius:10,background:dark?(crDone?"rgba(74,222,128,0.06)":"rgba(255,255,255,0.02)"):(crDone?"rgba(74,222,128,0.06)":"rgba(0,0,0,0.02)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.25)":"rgba(46,204,113,0.30)"):(dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.08)")}`,transition:"all .15s"}}>
-                              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+                              style={{padding:"12px 14px",borderRadius:10,background:dark?(crDone?"rgba(74,222,128,0.06)":"rgba(255,255,255,0.02)"):(crDone?"rgba(74,222,128,0.06)":"rgba(0,0,0,0.02)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.25)":"rgba(46,204,113,0.30)"):(dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.08)")}`,transition:"all .15s"}}>
+                              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
                                 <div style={{fontSize:11,fontWeight:600,color:crDone?(dark?"#4ADE80":"#2ECC71"):(dark?"rgba(243,231,200,0.65)":"#3D2E0A")}}>{step.label}</div>
                                 <div style={{fontSize:11,fontFamily:"'IBM Plex Mono',monospace",color:crDone?"#4ADE80":"rgba(230,184,74,0.60)"}}>{cr}/10</div>
                               </div>
-                              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                                {step.ayahs.map(a=>(
-                                  <div key={a.verse_key} style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.60)",direction:"rtl",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"48%"}}>{a.text_uthmani}</div>
+                              <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
+                                {step.ayahs.map((a,ai)=>(
+                                  <span key={a.verse_key}><span style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"rgba(243,231,200,0.75)":"rgba(40,30,10,0.75)"}}>{a.text_uthmani}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
                                 ))}
                               </div>
-                              <div style={{height:3,marginTop:6,borderRadius:999,background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",overflow:"hidden"}}>
+                              <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",overflow:"hidden"}}>
                                 <div style={{height:"100%",width:`${pct}%`,background:crDone?"#4ADE80":"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .3s"}}/>
                               </div>
                             </div>
