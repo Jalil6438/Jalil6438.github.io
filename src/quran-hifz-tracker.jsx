@@ -2322,13 +2322,13 @@ export default function RihlatAlHifz() {
         ].map(t=>(
           <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
             {t.img?(
-              <div style={{width:38,height:38,borderRadius:9,overflow:"hidden",opacity:activeTab===t.id?1:0.65,transition:"all .15s",boxShadow:activeTab===t.id?"0 0 20px rgba(212,175,55,0.60), 0 0 8px rgba(212,175,55,0.35), 0 0 40px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)",border:activeTab===t.id?"1px solid rgba(212,175,55,0.50)":"1px solid rgba(212,175,55,0.10)"}}>
+              <div style={{width:44,height:44,borderRadius:10,overflow:"hidden",opacity:activeTab===t.id?1:0.65,transition:"all .15s",boxShadow:activeTab===t.id?"0 0 20px rgba(212,175,55,0.60), 0 0 8px rgba(212,175,55,0.35), 0 0 40px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)",border:activeTab===t.id?"1px solid rgba(212,175,55,0.50)":"1px solid rgba(212,175,55,0.10)"}}>
                 <img src={t.img} alt={t.label} style={{width:"100%",height:"100%",objectFit:"cover",filter:activeTab===t.id?"brightness(1.3)":"brightness(0.85)"}}/>
               </div>
             ):(
-              <span style={{fontSize:24,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
+              <span style={{fontSize:28,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
-            <span style={{fontSize:10,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
+            <span style={{fontSize:11,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
           </div>
         ))}
       </div>
