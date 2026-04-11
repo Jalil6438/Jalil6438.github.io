@@ -2315,16 +2315,14 @@ export default function RihlatAlHifz() {
       {/* TABS — fixed bottom bar with icons */}
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
         {[
-          {id:"myhifz",  img:"/tab-hifz.jpg",   label:"My Hifz"},
-          {id:"rihlah",  img:"/tab-rihlah.jpg",  label:"My Rihlah"},
-          {id:"quran",   img:"/tab-quran.jpg",   label:"Al-Qur'an"},
+          {id:"myhifz",  img:"/tab-hifz.png",   label:"My Hifz"},
+          {id:"rihlah",  img:"/tab-rihlah.png",  label:"My Rihlah"},
+          {id:"quran",   img:"/tab-quran.png",   label:"Al-Qur'an"},
           {id:"masjidayn",icon:"\uD83D\uDD4B",  label:"More"},
         ].map(t=>(
           <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
             {t.img?(
-              <div style={{width:44,height:44,borderRadius:10,overflow:"hidden",opacity:activeTab===t.id?1:0.65,transition:"all .15s",boxShadow:activeTab===t.id?"0 0 20px rgba(212,175,55,0.60), 0 0 8px rgba(212,175,55,0.35), 0 0 40px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)",border:activeTab===t.id?"1px solid rgba(212,175,55,0.50)":"1px solid rgba(212,175,55,0.10)"}}>
-                <img src={t.img} alt={t.label} style={{width:"100%",height:"100%",objectFit:"cover",filter:activeTab===t.id?"brightness(1.3)":"brightness(0.85)"}}/>
-              </div>
+              <img src={t.img} alt={t.label} style={{width:36,height:36,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
             ):(
               <span style={{fontSize:28,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
@@ -3951,13 +3949,13 @@ export default function RihlatAlHifz() {
         return (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowJuzModal(false)}>
           <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
-            <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
+            <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
 
             {/* Header divider */}
             <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
-              <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>Select Juz</div>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
+              <div style={{flex:1,height:1,background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)":"linear-gradient(90deg,rgba(140,100,20,0) 0%,rgba(140,100,20,0.30) 100%)"}}/>
+              <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.70)":"rgba(100,70,10,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap"}}>Select Juz</div>
+              <div style={{flex:1,height:1,background:dark?"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(140,100,20,0.30) 0%,rgba(140,100,20,0) 100%)"}}/>
             </div>
 
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,paddingBottom:8}}>
@@ -3968,14 +3966,14 @@ export default function RihlatAlHifz() {
                 return (
                   <div key={j.num} className={unlocked?"sbtn":""} onClick={()=>{ if(!unlocked)return; setJuzProgress(prev=>({...prev,[sessionJuz]:sessionIdx})); setSessionJuz(j.num); setSessionIdx(juzProgress[j.num]||0); setRepCounts({}); setOpenAyah(null); setShowJuzModal(false); }}
                     style={{padding:"13px 16px",borderRadius:14,textAlign:"center",transition:"all .18s",
-                      background:isSel?"rgba(217,177,95,0.12)":isDone?"rgba(217,177,95,0.06)":unlocked?"rgba(255,255,255,0.03)":"rgba(255,255,255,0.02)",
-                      border:`1px solid ${isSel?"rgba(232,200,120,0.65)":isDone?"rgba(217,177,95,0.25)":unlocked?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)"}`,
+                      background:isSel?(dark?"rgba(217,177,95,0.14)":"rgba(180,140,40,0.12)"):isDone?(dark?"rgba(217,177,95,0.06)":"rgba(180,140,40,0.06)"):unlocked?(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.03)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.02)"),
+                      border:`1px solid ${isSel?(dark?"rgba(232,200,120,0.65)":"rgba(160,120,20,0.55)"):isDone?(dark?"rgba(217,177,95,0.25)":"rgba(160,120,20,0.25)"):unlocked?(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.12)"):(dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)")}`,
                       boxShadow:isSel?"0 0 28px rgba(232,200,120,0.30),0 0 8px rgba(217,177,95,0.20),inset 0 0 14px rgba(217,177,95,0.08)":"none",
                       opacity:unlocked?1:0.3,
                       pointerEvents:unlocked?"auto":"none"}}>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F6E27A":isDone?"#E2BC72":unlocked?"rgba(243,231,200,0.70)":"rgba(243,231,200,0.30)",fontWeight:600}}>Juz {j.num}</div>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?(dark?"#F6E27A":"#6B4F00"):isDone?(dark?"#E2BC72":"#8B6914"):unlocked?(dark?"rgba(243,231,200,0.70)":"rgba(40,30,10,0.65)"):(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.25)"),fontWeight:600}}>Juz {j.num}</div>
                     {isDone&&(
-                      <div style={{fontSize:10,color:isSel?"rgba(246,226,122,0.60)":"rgba(230,184,74,0.55)",marginTop:4,textShadow:"0 0 8px rgba(230,184,74,0.15)"}}>Complete — Alhamdulillah</div>
+                      <div style={{fontSize:10,color:isSel?(dark?"rgba(246,226,122,0.60)":"rgba(107,79,0,0.60)"):(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.60)"),marginTop:4,textShadow:dark?"0 0 8px rgba(230,184,74,0.15)":"none"}}>Complete — Alhamdulillah</div>
                     )}
                   </div>
                 );
@@ -4118,16 +4116,16 @@ export default function RihlatAlHifz() {
 
       {/* ── Handle + Header ── */}
       <div style={{padding:"12px 18px 0",textAlign:"center"}}>
-        <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
-        <div style={{fontSize:13,fontWeight:700,color:"#F3E7C8",letterSpacing:".03em"}}>Select Reciter</div>
-        <div style={{fontSize:11,color:"rgba(243,231,200,0.40)",marginTop:4,marginBottom:10}}>
-          Currently: <span style={{color:"rgba(230,184,74,0.75)",fontWeight:600}}>{reciterMode==="quran"?(QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Unknown"):currentReciter.name}</span>
+        <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
+        <div style={{fontSize:13,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A",letterSpacing:".03em"}}>Select Reciter</div>
+        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.40)":"rgba(40,30,10,0.50)",marginTop:4,marginBottom:10}}>
+          Currently: <span style={{color:dark?"rgba(230,184,74,0.75)":"rgba(140,100,20,0.85)",fontWeight:600}}>{reciterMode==="quran"?(QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Unknown"):currentReciter.name}</span>
         </div>
       </div>
 
       {/* ── Reciter list ── */}
       <div style={{overflowY:"auto",padding:"0 12px 28px"}}>
-        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
           {QURAN_RECITERS.map(r=>{
             const isSelected=(reciterMode==="quran"?quranReciter:reciter)===r.id;
             return (
@@ -4139,13 +4137,13 @@ export default function RihlatAlHifz() {
                 } else { setReciter(r.id); }
                 setShowReciterModal(false);
               }} style={{display:"flex",alignItems:"center",gap:10,padding:"13px 12px",borderRadius:12,transition:"all .15s",
-                background:isSelected?"rgba(230,184,74,0.08)":"rgba(255,255,255,0.02)",
-                border:`1px solid ${isSelected?"rgba(230,184,74,0.30)":"rgba(255,255,255,0.04)"}`,
+                background:isSelected?(dark?"rgba(230,184,74,0.10)":"rgba(180,140,40,0.08)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
+                border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.35)":"rgba(160,120,20,0.40)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
                 boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?"rgba(230,184,74,0.12)":"rgba(255,255,255,0.04)",border:`1px solid ${isSelected?"rgba(230,184,74,0.25)":"rgba(255,255,255,0.06)"}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12}}>🎙️</div>
+                <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12}}>🎙️</div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?"#F3E7C8":"rgba(243,231,200,0.65)"}}>{r.name}</div>
-                  <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:isSelected?"rgba(230,184,74,0.55)":"rgba(243,231,200,0.30)",marginTop:1}}>{r.arabic}</div>
+                  <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.65)":"rgba(40,30,10,0.65)")}}>{r.name}</div>
+                  <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:isSelected?(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.70)"):(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.40)"),marginTop:1}}>{r.arabic}</div>
                 </div>
                 {isSelected&&<div style={{fontSize:14,color:"#E6B84A",fontWeight:700,flexShrink:0}}>✓</div>}
               </div>
