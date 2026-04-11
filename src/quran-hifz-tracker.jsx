@@ -1938,6 +1938,7 @@ export default function RihlatAlHifz() {
       if(!res.ok) throw new Error();
       const data=await res.json();
       const verses=data.verses||[];
+      verses.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
       setAsrSelectedSurahs(prev=>[...prev,surahNum]);
       setAsrReviewBatch(prev=>{
         const merged=[...prev,...verses];
@@ -1968,6 +1969,7 @@ export default function RihlatAlHifz() {
         const data=await res.json();
         all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
       } while(page<=tp);
+      all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
       const juzSurahNums=(JUZ_SURAHS[juzNum]||[]).map(s=>s.s);
       // Remove individually selected surahs from this Juz before adding whole Juz
       setAsrSelectedSurahs(prev=>prev.filter(n=>!juzSurahNums.includes(n)));
@@ -2696,7 +2698,7 @@ export default function RihlatAlHifz() {
                           style={{cursor:"pointer",transition:"all .15s",borderRadius:6,padding:"2px 4px",
                             background:repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent"),
                           }}>
-                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{v.text_uthmani}</span>
+                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                           <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                         </span>
                       );
@@ -2734,7 +2736,7 @@ export default function RihlatAlHifz() {
                           <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>
                         </div>
                         <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{v.text_uthmani}</span>
+                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                           <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                         </div>
                       </div>
@@ -2790,7 +2792,7 @@ export default function RihlatAlHifz() {
                               </div>
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                                 {step.ayahs.map((a,ai)=>(
-                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.75)":"rgba(40,30,10,0.75)"}}>{a.text_uthmani}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
+                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.75)":"rgba(40,30,10,0.75)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
                                 ))}
                               </div>
                               <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",overflow:"hidden"}}>
@@ -2826,7 +2828,7 @@ export default function RihlatAlHifz() {
                         <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
                         {/* Arabic */}
                         <div style={{direction:"rtl",textAlign:"center",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
-                          {mv.text_uthmani}
+                          {(mv.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                         </div>
                         {/* Reference */}
                         <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:20}}>
