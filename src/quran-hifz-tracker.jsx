@@ -2385,9 +2385,6 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:12,color:"#6B7280"}}>{completedCount} of 30 Juz memorized</div>
               <div style={{height:3,width:60,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:2}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
             </div>
-            <div className="sbtn" onClick={()=>setDark(d=>!d)} style={{padding:"5px 10px",background:T.surface2,border:`1px solid ${T.border}`,borderRadius:20,display:"flex",alignItems:"center",gap:5,fontSize:11,color:T.dim}}>
-              <span>{dark?"🌙":"☀️"}</span><span>{dark?"Dark":"Light"}</span>
-            </div>
             <div className="sbtn" onClick={()=>setShowDua(true)} style={{width:28,height:28,borderRadius:"50%",background:T.accentDim,border:`1px solid ${T.accent}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🤲</div>
           </div>
         </div>
@@ -2417,16 +2414,19 @@ export default function RihlatAlHifz() {
       {activeTab==="myhifz"&&(
         <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",position:"relative"}} className="fi gold-particles">
 
-          {/* ── STICKY RECITER BUTTON ── */}
-          <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,paddingBottom:2}}>
-            <div className="sbtn" onClick={()=>{setReciterMode("hifz");setShowReciterModal(true);}} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,margin:"0 0 0 0"}}>
-              <div style={{fontSize:16}}>🎙️</div>
-              <div style={{flex:1,textAlign:"center"}}>
-                <div style={{fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{currentReciter.name}</div>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:"#9CA3AF",textAlign:"center"}}>{currentReciter.arabic}</div>
+          {/* ── STICKY TOP BAR — Reciter + Dark/Light toggle ── */}
+          <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,padding:"6px 14px",display:"flex",alignItems:"center",gap:8}}>
+            <div className="sbtn" onClick={()=>{setReciterMode("hifz");setShowReciterModal(true);}} style={{flex:1,display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
+              <div style={{fontSize:12}}>🎙️</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:11,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{currentReciter.name}</div>
               </div>
-              <div style={{fontSize:9,color:T.accent,background:T.accentDim,border:`1px solid ${T.accent}30`,padding:"4px 10px",fontSize:12,borderRadius:8}}>Selected ✓</div>
-              <div style={{fontSize:12,color:T.dim}}>▼</div>
+              <div style={{fontSize:10,color:T.dim}}>▾</div>
+            </div>
+            <div style={{position:"relative",display:"flex",borderRadius:999,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28,width:80,flexShrink:0}}>
+              <div style={{position:"absolute",top:2,left:dark?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:22,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 14px rgba(212,175,55,0.45)",transition:"left .25s ease"}}/>
+              <div className="sbtn" onClick={()=>setDark(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:dark?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>🌙</div>
+              <div className="sbtn" onClick={()=>setDark(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:!dark?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>☀️</div>
             </div>
           </div>
 
