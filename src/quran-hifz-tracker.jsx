@@ -2409,7 +2409,7 @@ export default function RihlatAlHifz() {
             {t.img?(
               <img src={t.img} alt={t.label} style={{width:64,height:64,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
             ):(
-              <span style={{fontSize:32,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
+              <span style={{fontSize:28,opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
             <span style={{fontSize:11,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
           </div>
