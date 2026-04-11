@@ -4028,9 +4028,10 @@ export default function RihlatAlHifz() {
                     {/* ── VIEW: REFLECT ── */}
                     {drawerView==="reflect"&&(
                       <div style={{flex:1,display:"flex",flexDirection:"column",padding:"12px 20px 16px",overflow:"hidden"}}>
-                        <div style={{fontSize:9,color:"rgba(217,177,95,0.45)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:8,fontFamily:"'DM Sans',sans-serif"}}>
+                        <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.55)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,fontFamily:"'DM Sans',sans-serif"}}>
                           Your Reflection · {SURAH_EN[surahN]||""} {sNum}:{aNum}
                         </div>
+                        {selVerse&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",direction:"rtl",textAlign:"center",lineHeight:1.8,marginBottom:8,padding:"6px 0",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)"}}>{(selVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</div>}
                         <textarea
                           value={reflections[selectedAyah]||""}
                           onChange={e=>{
@@ -4088,7 +4089,7 @@ export default function RihlatAlHifz() {
                               {mushafBookmarks.filter(b=>typeof b==="string").map(vk=>{
                                 const [s]=vk.split(":");
                                 return (
-                                  <div key={vk} className="sbtn" onClick={()=>{const pg=SURAH_PAGES[Number(s)]||1;setMushafPage(pg);setSelectedAyah(vk);setDrawerView("default");}}
+                                  <div key={vk} className="sbtn" onClick={()=>{const pg=SURAH_PAGES[Number(s)]||1;setMushafPage(pg);setSelectedAyah(null);setDrawerView("default");}}
                                     style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(255,255,255,0.05)":"1px solid rgba(0,0,0,0.06)"}}>
                                     <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{SURAH_EN[Number(s)]} · {vk}</span>
                                     <span style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>→</span>
