@@ -600,7 +600,7 @@ function AsrSessionView({
                   <div style={{height:1,margin:"8px 16px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
                 </div>
                 {/* Flowing ayahs */}
-                <div style={{direction:"rtl",textAlign:"center",lineHeight:2.4}}>
+                <div style={{direction:"rtl",textAlign:"justify",lineHeight:2.6}}>
                   {currentGroup.ayahs.map(v=>{
                     const vKey=v.verse_key;
                     const aNum=parseInt(vKey.split(":")[1],10);
@@ -835,13 +835,17 @@ export default function RihlatAlHifz() {
   const [connectionPhase,setConnectionPhase]=useState(false); // true = linking ayahs together
   const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
   const [hifzViewMode,setHifzViewMode]=useState("interactive"); // "interactive" or "mushaf"
+  const [todayFajrBatch,setTodayFajrBatch]=useState([]); // saved when Fajr has ayahs, used by Maghrib/Isha
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
-  const [activeSessionIndex,setActiveSessionIndex]=useState(0);
+  const [activeSessionIndex,setActiveSessionIndex_]=useState(0);
+  const setActiveSessionIndex=(v)=>{setActiveSessionIndex_(v);scrollAllToTop();};
   const SESSION_CTA=["Finish Fajr — Well Done","Finish Dhuhr — Solid Review","Finish Asr — Great Effort","Finish Maghrib — Beautifully Done","Finish Isha — Day Complete"];
   const [sessionsCompleted,setSessionsCompleted]=useState({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
-  const [activeTab,setActiveTab]=useState("myhifz");
+  const [activeTab,setActiveTab_]=useState("myhifz");
+  const scrollAllToTop=()=>{setTimeout(()=>{document.querySelectorAll('.fi, [class*="fi"]').forEach(el=>el.scrollTop=0);document.querySelectorAll('div').forEach(el=>{const s=getComputedStyle(el);if(s.overflowY==='auto'||s.overflowY==='scroll')el.scrollTop=0;});window.scrollTo(0,0);},50);};
+  const setActiveTab=(tab)=>{setActiveTab_(tab);scrollAllToTop();};
   const [selectedJuz,setSelectedJuz]=useState(30);
   const [allVerses,setAllVerses]=useState([]);
   const [loading,setLoading]=useState(false);
@@ -911,13 +915,15 @@ export default function RihlatAlHifz() {
   const [sessLoading,setSessLoading]=useState(false);
   const [sessError,setSessError]=useState(false);
   const AYAHS_PER_PAGE = 5;
-  const [ayahPage, setAyahPage] = useState(0);
+  const [ayahPage, setAyahPage_] = useState(0);
+  const setAyahPage=(v)=>{setAyahPage_(v);scrollAllToTop();};
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrIsCustomized,setAsrIsCustomized]=useState(false); // session-scoped, never persisted
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrSurahShowCount,setAsrSurahShowCount]=useState(10);
   const [memSections,setMemSections]=useState({completed:false,inprogress:true,upcoming:false,upcomingAll:false});
-  const [asrPage,setAsrPage]=useState(0);
+  const [asrPage,setAsrPage_]=useState(0);
+  const setAsrPage=(v)=>{setAsrPage_(v);scrollAllToTop();};
   const [asrSlideDir,setAsrSlideDir]=useState(null);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const [juzCompletedInSession,setJuzCompletedInSession]=useState(new Set());
@@ -1136,10 +1142,11 @@ export default function RihlatAlHifz() {
   const [reciterMode,setReciterMode]=useState("hifz");
   const [showJuzModal,setShowJuzModal]=useState(false);
   const [activeStream,setActiveStream]=useState(0);
-  const [masjidaynTab, setMasjidaynTab]=useState("live");
+  const [masjidaynTab, setMasjidaynTab_]=useState("live");
+  const setMasjidaynTab=(tab)=>{setMasjidaynTab_(tab);scrollAllToTop();};
   const [rihlahTab, setRihlahTab_]=useState("juz");
   const rihlahScrollRef=useRef(null);
-  const setRihlahTab=(tab)=>{setRihlahTab_(tab);setTimeout(()=>{if(rihlahScrollRef.current)rihlahScrollRef.current.scrollTop=0;},0);};
+  const setRihlahTab=(tab)=>{setRihlahTab_(tab);scrollAllToTop();};
   const [haramainMosque,setHaramainMosque]=useState("makkah");
   const [openImam,setOpenImam]=useState(null);
   const [haramainPlaying,setHaramainPlaying]=useState(null);
@@ -1455,6 +1462,8 @@ export default function RihlatAlHifz() {
   const bStart=sessionIdx;
   const bEnd=Math.min(sessionIdx+dailyNew,totalSV);
   const fajrBatch=sessionVerses.slice(bStart,bEnd);
+  // Save Fajr batch so Maghrib/Isha can use it even after sessionIdx advances
+  useEffect(()=>{if(fajrBatch.length>0&&todayFajrBatch.length===0)setTodayFajrBatch(fajrBatch);},[fajrBatch.length]);
   const currentSessionId=SESSIONS[activeSessionIndex]?.id;
   const isDhuhr=currentSessionId==="dhuhr";
   const isAsr=currentSessionId==="asr";
@@ -1463,27 +1472,29 @@ export default function RihlatAlHifz() {
 
   let batch=fajrBatch;
   if(isDhuhr){
-    // 5-day rolling review: combine yesterdayBatch + older recentBatches (deduplicated)
+    // 5-day rolling review: ONLY Fajr memorization batches — not completed juz (that's Asr's job)
     const seen=new Set();
     const combined=[];
     // yesterdayBatch first (most recent, full objects)
     (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
     // then older days from recentBatches (excluding the last entry which is today's/yesterday's)
     (recentBatches.slice(0,-1)||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
-    // Fallback: if no rolling batches yet, pull from today's Fajr batch or already-completed ayahs in current juz
-    if(combined.length===0&&fajrBatch.length>0){
-      // Use today's fajr ayahs that have been started (any reps > 0) or all if session was completed
-      const fajrDone=sessionsCompleted?.fajr;
-      fajrBatch.forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)&&(fajrDone||(repCounts[v.verse_key]||0)>0)){ seen.add(v.verse_key); combined.push(v); }});
+    // Fallback: if no rolling batches yet, use today's Fajr batch (if completed)
+    if(combined.length===0&&fajrBatch.length>0&&sessionsCompleted?.fajr){
+      fajrBatch.forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
     }
-    if(combined.length===0&&sessionVerses.length>0){
-      // Pull recently completed ayahs from current juz (up to sessionIdx)
-      sessionVerses.slice(Math.max(0,sessionIdx-dailyNew*5),sessionIdx).forEach(v=>{ if(v.verse_key&&completedAyahs.has(v.verse_key)&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    // Fallback for new/onboarded users: pull last 5 days worth from current juz session verses
+    if(combined.length===0&&sessionVerses.length>0&&sessionIdx>0){
+      const reviewCount=dailyNew*5;
+      // Take the last reviewCount ayahs before current position (most recently memorized)
+      sessionVerses.slice(Math.max(0,sessionIdx-reviewCount),sessionIdx).forEach(v=>{
+        if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }
+      });
     }
     batch=combined.length>0?combined:[];
   }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
-  else if(isMaghrib||isIsha){ batch=fajrBatch; }
+  else if(isMaghrib||isIsha){ batch=fajrBatch.length>0?fajrBatch:todayFajrBatch; }
 
   const totalPages=Math.max(1,Math.ceil(batch.length/AYAHS_PER_PAGE));
   const safePage=Math.min(ayahPage,totalPages-1);
@@ -1734,10 +1745,11 @@ export default function RihlatAlHifz() {
       const dailyJuzAmount = totalCompleted <= 5 ? 0.5 : totalCompleted <= 10 ? 1 : totalCompleted <= 15 ? 1.5 : totalCompleted <= 20 ? 2 : totalCompleted <= 25 ? 2.5 : 3;
       // Sort eligible juz in mushaf order for cycling
       const sortedEligible = [...eligibleJuz].sort((a,b) => a - b);
-      // Rotate through all completed juz — each day shifts the window
-      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+      // Rotate through all completed juz — advances each session
+      const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
+      localStorage.setItem("jalil-asr-cycle",String(asrCycle+1));
       const juzCount = Math.max(1, Math.ceil(dailyJuzAmount));
-      const startIdx = (dayOfYear * juzCount) % sortedEligible.length;
+      const startIdx = (asrCycle * juzCount) % sortedEligible.length;
       const juzPool = [];
       for(let i = 0; i < juzCount && i < sortedEligible.length; i++) {
         juzPool.push(sortedEligible[(startIdx + i) % sortedEligible.length]);
