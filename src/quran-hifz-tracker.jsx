@@ -65,9 +65,9 @@ const SESSIONS = [
     desc:"Your peak retention window. Memorize new ayahs right after salah while the mind is completely fresh.",
     steps:["Read each ayah with its translation first","Recite aloud until the words feel natural","Cover the text and recite from memory","Repeat until you can recite without hesitation","Write it once to solidify the connection"] },
   { id:"dhuhr",   time:"Dhuhr",   arabic:"الظهر",  icon:"☀️", color:"#F6A623",
-    title:"Review Yesterday's Ayahs",
-    desc:"New ayahs fade fastest in 24 hours. Revision only — no new memorization.",
-    steps:["Recite yesterday's ayahs from memory","If you stumble, revisit and repeat until smooth","Connect yesterday's ayahs to today's as one passage"] },
+    title:"5-Day Review",
+    desc:"Review what you memorized over the last 5 days. The Sheikh says: review the previous five days before starting anything new.",
+    steps:["Start with yesterday's ayahs — they fade fastest","Then run through the previous days","If you stumble, repeat until smooth before moving on"] },
   { id:"asr",     time:"Asr",     arabic:"العصر",  icon:"🌤️", color:"#4ECDC4",
     title:"Review Previous Juz",
     desc:"Cycle through completed Juz. Every Juz should be touched every 7-10 days.",
@@ -756,6 +756,8 @@ export default function RihlatAlHifz() {
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
   const [repCounts,setRepCounts]=useState({});
+  const [connectionPhase,setConnectionPhase]=useState(false); // true = linking ayahs together
+  const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSessionIndex,setActiveSessionIndex]=useState(0);
@@ -825,6 +827,7 @@ export default function RihlatAlHifz() {
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
+  const [recentBatches,setRecentBatches]=useState([]); // last 5 days of fajr batches
   const [asrSelectedSurahs,setAsrSelectedSurahs]=useState([]);
   const [asrSelectedJuz,setAsrSelectedJuz]=useState([]);
   const [asrReviewBatch,setAsrReviewBatch]=useState([]);
@@ -1096,6 +1099,7 @@ export default function RihlatAlHifz() {
         setJuzProgress(p.juzProgress||{});
         setSessionDone(p.sessionDone||[]);
         setYesterdayBatch(p.yesterdayBatch||[]);
+        setRecentBatches(p.recentBatches||[]);
         setAsrSelectedSurahs(p.asrSelectedSurahs||[]);
         setAsrSelectedJuz(p.asrSelectedJuz||[]);
         setAsrReviewBatch(p.asrReviewBatch||[]);
@@ -1149,8 +1153,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+  },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
   useEffect(()=>{
@@ -1373,7 +1377,16 @@ export default function RihlatAlHifz() {
   const isIsha=currentSessionId==="isha";
 
   let batch=fajrBatch;
-  if(isDhuhr){ batch=yesterdayBatch.length>0?yesterdayBatch:[]; }
+  if(isDhuhr){
+    // 5-day rolling review: combine yesterdayBatch + older recentBatches (deduplicated)
+    const seen=new Set();
+    const combined=[];
+    // yesterdayBatch first (most recent, full objects)
+    (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    // then older days from recentBatches (excluding the last entry which is today's/yesterday's)
+    (recentBatches.slice(0,-1)||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    batch=combined.length>0?combined:[];
+  }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
   else if(isMaghrib||isIsha){ batch=fajrBatch; }
 
@@ -2432,7 +2445,7 @@ export default function RihlatAlHifz() {
 
               const sessionLabel=(()=>{
                 if(sid==="fajr") return isDone?"Fajr — Completed · Alhamdulillah":hasStarted?"Fajr — Keep going, you're building it":"Fajr — Fresh start, fresh ayahs";
-                if(sid==="dhuhr") return dhuhrLocked?"Finish Fajr first, then we review":"Dhuhr — Let's revisit what you learned";
+                if(sid==="dhuhr") return dhuhrLocked?"Finish Fajr first, then we review":"Dhuhr — Review your last 5 days";
                 if(sid==="asr") return "Asr — Time to reinforce what you know";
                 if(sid==="maghrib") return "Maghrib — Listen, absorb, and reconnect";
                 if(sid==="isha") return "Isha — One last pass to seal it in";
@@ -2442,7 +2455,7 @@ export default function RihlatAlHifz() {
               const microGuide=(()=>{
                 if(isDone) return null;
                 if(sid==="fajr") return "Take your time — say each ayah until it feels natural";
-                if(sid==="dhuhr") return dhuhrLocked?null:"Run through this morning's ayahs and see how much stuck";
+                if(sid==="dhuhr") return dhuhrLocked?null:"Run through the last 5 days — see how much stuck";
                 if(sid==="asr") return "Revisit what you've completed — consistency is the key";
                 if(sid==="maghrib") return "Close your eyes, listen, and let the words settle in";
                 if(sid==="isha") return "Recite it all one more time — you've got this";
@@ -2678,6 +2691,66 @@ export default function RihlatAlHifz() {
                   )}
                 </div>);})()}
 
+                {/* ── CONNECTION PHASE (الربط) — from Sheikh Al-Qasim's method ── */}
+                {currentSessionId==="fajr"&&(()=>{
+                  const APS=5;
+                  const aPages=Math.max(1,Math.ceil(batch.length/APS));
+                  const aSafe=Math.min(ayahPage,aPages-1);
+                  const aStart=aSafe*APS;
+                  const aEnd=Math.min(aStart+APS,batch.length);
+                  const pageAyahs=batch.slice(aStart,aEnd);
+                  const allIndividualDone=pageAyahs.length>0&&pageAyahs.every(v=>(repCounts[v.verse_key]||0)>=20);
+                  if(!allIndividualDone||pageAyahs.length<2) return null;
+
+                  // Build connection steps: pairs + full group
+                  const pairs=[];
+                  for(let i=0;i<pageAyahs.length-1;i++){
+                    pairs.push({key:`pair-${aStart+i}-${aStart+i+1}`,label:`Ayah ${aStart+i+1} + ${aStart+i+2}`,ayahs:[pageAyahs[i],pageAyahs[i+1]]});
+                  }
+                  const allGroup={key:`all-${aStart}`,label:`All ${pageAyahs.length} ayahs together`,ayahs:pageAyahs};
+                  const steps=[...pairs,allGroup];
+                  const allConnectionsDone=steps.every(s=>(connectionReps[s.key]||0)>=10);
+
+                  return (
+                    <div style={{marginBottom:16,padding:"14px",borderRadius:14,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.12)"}`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                        <div style={{fontSize:14}}>🔗</div>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Connection Phase (الربط)</div>
+                          <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"rgba(100,70,10,0.50)"}}>Now link the ayahs together — recite each pair 10 times</div>
+                        </div>
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                        {steps.map(step=>{
+                          const cr=connectionReps[step.key]||0;
+                          const crDone=cr>=10;
+                          const pct=Math.min((cr/10)*100,100);
+                          return (
+                            <div key={step.key} className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[step.key]:Math.min(10,(prev[step.key]||0)+1)}))}
+                              style={{padding:"10px 12px",borderRadius:10,background:dark?(crDone?"rgba(74,222,128,0.06)":"rgba(255,255,255,0.02)"):(crDone?"rgba(74,222,128,0.06)":"rgba(0,0,0,0.02)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.25)":"rgba(46,204,113,0.30)"):(dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.08)")}`,transition:"all .15s"}}>
+                              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+                                <div style={{fontSize:11,fontWeight:600,color:crDone?(dark?"#4ADE80":"#2ECC71"):(dark?"rgba(243,231,200,0.65)":"#3D2E0A")}}>{step.label}</div>
+                                <div style={{fontSize:11,fontFamily:"'IBM Plex Mono',monospace",color:crDone?"#4ADE80":"rgba(230,184,74,0.60)"}}>{cr}/10</div>
+                              </div>
+                              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                                {step.ayahs.map(a=>(
+                                  <div key={a.verse_key} style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.60)",direction:"rtl",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"48%"}}>{a.text_uthmani}</div>
+                                ))}
+                              </div>
+                              <div style={{height:3,marginTop:6,borderRadius:999,background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",overflow:"hidden"}}>
+                                <div style={{height:"100%",width:`${pct}%`,background:crDone?"#4ADE80":"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .3s"}}/>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {allConnectionsDone&&(
+                        <div style={{textAlign:"center",marginTop:10,fontSize:12,fontWeight:700,color:"#4ADE80"}}>✓ Connections complete — ayahs are linked! MashaAllah</div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* ── AYAH POPUP MODAL (all non-ASR sessions) ── */}
                 {currentSessionId!=="asr"&&openAyah&&(()=>{
                   const mv=batch.find(v=>v.verse_key===openAyah);
@@ -2766,11 +2839,12 @@ export default function RihlatAlHifz() {
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                     toggleCheck(sess.id);
-                    setRepCounts({});
+                    setRepCounts({});setConnectionReps({});
                     setOpenAyah(null);
                     setAyahPage(0);
                     if(activeSessionIndex>=SESSIONS.length-1){
                       setYesterdayBatch(fajrBatch);
+                      setRecentBatches(prev=>[...prev.slice(-4),fajrBatch.map(v=>({verse_key:v.verse_key,text_uthmani:v.text_uthmani,surah_number:v.surah_number}))].slice(-5));
                       if(bEnd>=totalSV&&totalSV>0&&sessionJuz){
                         setSessionIdx(totalSV);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
@@ -2810,13 +2884,13 @@ export default function RihlatAlHifz() {
             {/* ── JUZ COMPLETE ── */}
             {!sessLoading&&currentSessionId==="dhuhr"&&batch.length===0&&(
               <div style={{padding:"16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:12}}>
-                <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>No Dhuhr review batch yet</div>
-                <div style={{fontSize:11,color:T.sub,lineHeight:1.6,marginBottom:12}}>Complete a full day through Isha so tomorrow's Dhuhr can review the previous Fajr batch.</div>
+                <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>No review batch yet</div>
+                <div style={{fontSize:11,color:T.sub,lineHeight:1.6,marginBottom:12}}>Complete a full day through Isha to build your 5-day review pool. The Sheikh says: review the previous five days before starting anything new.</div>
                 <div className="sbtn" onClick={()=>{
                   const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                   setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                   toggleCheck(sess.id);
-                  setRepCounts({});
+                  setRepCounts({});setConnectionReps({});
                   setOpenAyah(null);
                   setActiveSessionIndex(i=>i+1);
                 }} style={{width:"100%",padding:"14px",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#0B1220",textAlign:"center",boxShadow:"0 6px 14px rgba(230,184,74,0.2)"}}>
@@ -4033,7 +4107,7 @@ export default function RihlatAlHifz() {
                 const isDone=juzStatus[j.num]==="complete"||(JUZ_SURAHS[j.num]||[]).every(s=>juzStatus[`s${s.s}`]==="complete");
                 const unlocked=isJuzUnlocked(j.num);
                 return (
-                  <div key={j.num} className={unlocked?"sbtn":""} onClick={()=>{ if(!unlocked)return; setJuzProgress(prev=>({...prev,[sessionJuz]:sessionIdx})); setSessionJuz(j.num); setSessionIdx(juzProgress[j.num]||0); setRepCounts({}); setOpenAyah(null); setShowJuzModal(false); }}
+                  <div key={j.num} className={unlocked?"sbtn":""} onClick={()=>{ if(!unlocked)return; setJuzProgress(prev=>({...prev,[sessionJuz]:sessionIdx})); setSessionJuz(j.num); setSessionIdx(juzProgress[j.num]||0); setRepCounts({});setConnectionReps({}); setOpenAyah(null); setShowJuzModal(false); }}
                     style={{padding:"13px 16px",borderRadius:14,textAlign:"center",transition:"all .18s",
                       background:isSel?(dark?"rgba(217,177,95,0.14)":"rgba(180,140,40,0.12)"):isDone?(dark?"rgba(217,177,95,0.06)":"rgba(180,140,40,0.06)"):unlocked?(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.03)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.02)"),
                       border:`1px solid ${isSel?(dark?"rgba(232,200,120,0.65)":"rgba(160,120,20,0.55)"):isDone?(dark?"rgba(217,177,95,0.25)":"rgba(160,120,20,0.25)"):unlocked?(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.12)"):(dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)")}`,
