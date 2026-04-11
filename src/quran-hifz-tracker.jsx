@@ -2374,7 +2374,7 @@ export default function RihlatAlHifz() {
       {activeTab!=="quran"&&activeTab!=="masjidayn"&&(
       <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 16px",flexShrink:0}}>
         <div style={{textAlign:"center",marginBottom:4}}>
-          <div style={{fontSize:8,color:T.accent,letterSpacing:".2em",textTransform:"uppercase",marginBottom:1}}>Al-Hifz · Your journey to memorizing the Qur'an</div>
+          <div style={{fontSize:11,color:T.accent,letterSpacing:".15em",textTransform:"uppercase",fontWeight:700,marginBottom:2}}>Al-Hifz · <span style={{fontWeight:400,fontSize:9}}>Your journey to memorizing the Qur'an</span></div>
         </div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
