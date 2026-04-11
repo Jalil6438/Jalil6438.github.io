@@ -107,6 +107,7 @@ const SESSION_WISDOM = {
     {type:"book", text:"Persistence in revision is a great foundation, for how many have abandoned revising that which they memorized.", attr:"Ibn al-Jawzi"},
     {type:"hadith", text:"Verily, Allah elevates a people by way of this book and lowers others by way of it.", src:"Muslim 817"},
     {type:"hadith", text:"Whoever gathers the Qur'an has been entrusted with a great affair. The Prophethood has been piled up within him.", attr:"Abdullah ibn Amr"},
+    {type:"book", text:"Your revision grows with your progress — this is by design. The more you memorize, the more you protect."},
     {type:"book", text:"Old age does not prevent one from memorizing the Qur'an. Abu Bakr memorized at 61, Abu Abdullah ibn Umar at 80."},
     {type:"hadith", text:"He who does not memorize anything in his heart of the Qur'an is like a destroyed house.", src:"At-Tirmidhi 2913"},
     {type:"quran", text:"The clear Ayat are preserved in the breasts of those who have been given knowledge.", arabic:"بَلْ هُوَ آيَاتٌ بَيِّنَاتٌ فِي صُدُورِ الَّذِينَ أُوتُوا الْعِلْمَ", ref:"Al-'Ankabut 29:49"},
