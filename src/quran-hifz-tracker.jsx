@@ -1305,7 +1305,7 @@ export default function RihlatAlHifz() {
     const updated={};
     for(const surahNum of surahSet){
       try{
-        const res=await fetch(`https://api.quran.com/api/v4/quran/translations/203?chapter_number=${surahNum}`);
+        const res=await fetch(`https://api.quran.com/api/v4/quran/translations/151?chapter_number=${surahNum}`);
         if(!res.ok) continue;
         const data=await res.json();
         if(!data.translations?.length) continue;
