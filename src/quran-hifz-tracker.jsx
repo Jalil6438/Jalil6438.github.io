@@ -2385,7 +2385,6 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:12,color:"#6B7280"}}>{completedCount} of 30 Juz memorized</div>
               <div style={{height:3,width:60,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:2}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
             </div>
-            <div className="sbtn" onClick={()=>setShowDua(true)} style={{width:28,height:28,borderRadius:"50%",background:T.accentDim,border:`1px solid ${T.accent}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🤲</div>
           </div>
         </div>
       </div>
