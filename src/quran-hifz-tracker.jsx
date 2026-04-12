@@ -2412,12 +2412,12 @@ export default function RihlatAlHifz() {
                 </div>
                 {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:8}}>Next Target · Juz {nextJuz.num}</div>}
               </div>
-              {/* Progress */}
-              <div style={{textAlign:"right",flexShrink:0}}>
-                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:24,fontWeight:700,color:"#F0C040",lineHeight:1}}>{pct}%</div>
-                <div style={{fontSize:9,color:dark?"#6B7280":"#6B645A",marginTop:2}}>{completedCount}/30 Juz</div>
-                <div style={{height:3,width:40,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:3,marginLeft:"auto"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
-              </div>
+            </div>
+            {/* Progress row */}
+            <div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}>
+              <div style={{flex:1,height:4,background:T.surface2,borderRadius:999,overflow:"hidden"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:999}}/></div>
+              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:"#F0C040",flexShrink:0}}>{pct}%</div>
+              <div style={{fontSize:9,color:dark?"#6B7280":"#6B645A",flexShrink:0}}>{completedCount}/30 Juz</div>
             </div>
           </div>
         </div>
