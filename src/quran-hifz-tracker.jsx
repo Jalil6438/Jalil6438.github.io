@@ -857,7 +857,7 @@ export default function RihlatAlHifz() {
           const transData = await transRes.json();
           const transMap = {};
           (transData.verses||[]).forEach(v => { transMap[v.verse_key] = v.translations?.[0]?.text || ""; });
-          vs.forEach(v => { v._translation = (transMap[v.verse_key]||"").replace(/<[^>]*>/g,"").trim(); });
+          vs.forEach(v => { v._translation = (transMap[v.verse_key]||"").replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").replace(/\s*,\s*,/g,",").replace(/\s*,\s*$/,"").replace(/\s{2,}/g," ").trim(); });
         }
         // Fix U+06DF (small high rounded zero) → remove it for UthmanicHafs compatibility
         vs.forEach(v => { if(v.text_uthmani) v.text_uthmani = v.text_uthmani.replace(/\u06DF/g, "\u0652"); });
