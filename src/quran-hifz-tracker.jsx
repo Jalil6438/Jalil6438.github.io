@@ -2403,11 +2403,11 @@ export default function RihlatAlHifz() {
                 <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif",marginBottom:6}}>{username}</div>
                 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
                   {[
-                    {label:"📅 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
+                    {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
                     {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
-                    {label:"🔥 "+streak+"-Day", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
+                    {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
                   ].map((pill,i)=>(
-                    <div key={i} style={{fontSize:8,color:pill.color,background:pill.bg,padding:"2px 6px",borderRadius:20,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
+                    <div key={i} style={{fontSize:10,color:pill.color,background:pill.bg,padding:"3px 9px",borderRadius:20,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
                   ))}
                 </div>
                 {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:8}}>Next Target · Juz {nextJuz.num}</div>}
@@ -2415,7 +2415,7 @@ export default function RihlatAlHifz() {
             </div>
             {/* Progress row */}
             <div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}>
-              <div style={{flex:1,height:4,background:T.surface2,borderRadius:999,overflow:"hidden"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:999}}/></div>
+              <div style={{flex:1,height:8,background:T.surface2,borderRadius:999,overflow:"hidden"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:999}}/></div>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:"#F0C040",flexShrink:0}}>{pct}%</div>
               <div style={{fontSize:9,color:dark?"#6B7280":"#6B645A",flexShrink:0}}>{completedCount}/30 Juz</div>
             </div>
