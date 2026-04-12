@@ -2377,8 +2377,8 @@ export default function RihlatAlHifz() {
         );
       })()}
 
-      {/* ── UNIVERSAL HEADER — shows on all tabs ── */}
-      {(()=>{
+      {/* ── UNIVERSAL HEADER — hidden on Quran tab ── */}
+      {activeTab!=="quran"&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
         const goalLabel=goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
@@ -2388,14 +2388,14 @@ export default function RihlatAlHifz() {
           <div style={{position:"relative",zIndex:1}}>
             {/* Title */}
             <div style={{textAlign:"center",marginBottom:12}}>
-              <div style={{fontSize:10,color:T.accent,letterSpacing:".15em",textTransform:"uppercase",fontWeight:700}}>Al-Hifz · <span style={{fontWeight:400,fontSize:8}}>Your journey to memorizing the Qur'an</span></div>
+              <div style={{fontSize:13,color:T.accent,letterSpacing:".12em",textTransform:"uppercase",fontWeight:800,fontFamily:"'Playfair Display',serif",textShadow:"0 0 12px rgba(212,175,55,0.40)"}}>Al-Hifz <span style={{fontWeight:400,fontSize:9,fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em",textShadow:"none"}}>· Your journey to memorizing the Qur'an</span></div>
             </div>
             {/* Profile row */}
             <div style={{display:"flex",alignItems:"center",gap:14}}>
               {/* Avatar */}
               <div style={{position:"relative",flexShrink:0}}>
-                <div style={{width:48,height:48,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
-                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
+                <div style={{width:58,height:58,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:19,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
                 </div>
               </div>
               {/* Name + badges */}
@@ -2410,7 +2410,7 @@ export default function RihlatAlHifz() {
                     <div key={i} style={{fontSize:9,color:pill.color,background:pill.bg,padding:"2px 7px",borderRadius:20,border:`1px solid ${pill.border}`}}>{pill.label}</div>
                   ))}
                 </div>
-                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:6}}>Next Target · Juz {nextJuz.num}</div>}
+                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:8}}>Next Target · Juz {nextJuz.num}</div>}
               </div>
               {/* Progress */}
               <div style={{textAlign:"right",flexShrink:0}}>
