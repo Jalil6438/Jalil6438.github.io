@@ -3611,7 +3611,8 @@ export default function RihlatAlHifz() {
                       au.play();
                       au.onended=()=>setPlayingKey(null);
                     };
-                    return (mushafVerses||[]).map((verse,vi)=>{
+                    return (<div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2.0,wordBreak:"keep-all",overflowWrap:"normal",padding:"0 12px"}}>
+                    {(mushafVerses||[]).map((verse,vi)=>{
                       const [sNum,aNum] = verse.verse_key.split(":");
                       const surahN = parseInt(sNum,10);
                       const isSelected = selectedAyah === verse.verse_key;
@@ -3620,10 +3621,9 @@ export default function RihlatAlHifz() {
                       lastSurah = surahN;
 
                       return (
-                        <div key={verse.verse_key}>
-                          {/* Surah header */}
+                        <span key={verse.verse_key}>
                           {showSurahHeader&&(
-                            <div style={{textAlign:"center",padding:"16px 16px 12px"}}>
+                            <div style={{direction:"ltr",textAlign:"center",padding:"16px 4px 12px"}}>
                               <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
                               <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
                               {isFirstAyah&&surahN!==9&&surahN!==1&&(
@@ -3634,46 +3634,18 @@ export default function RihlatAlHifz() {
                               <div style={{height:1,margin:"10px 16px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
                             </div>
                           )}
-
-                          {/* Ayah reading block — tap to open bottom drawer */}
-                          <div
+                          <span className="sbtn"
                             onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
-                            style={{
-                              padding:"14px 0 14px 12px",
-                              background:isSelected?(dark?"rgba(212,175,55,0.05)":"rgba(0,0,0,0.06)"):"transparent",
-                              transition:"background .15s",
-                              cursor:"pointer",
-                              direction:"rtl",
-                            }}
-                          >
-                            {/* Ayah: number badge inline at start (RTL = right side), then Arabic text */}
-                            <div style={{display:"flex",alignItems:"flex-start",gap:8,direction:"rtl"}}>
-                              {/* Ayah ornament — Quranic end-marker with Arabic-Indic digits */}
-                              <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",marginTop:4,lineHeight:1}}>
-                                <span style={{
-                                  fontFamily:"'Amiri Quran','Amiri',serif",
-                                  fontSize:20,
-                                  color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),
-                                }}>﴿{toArabicDigits(aNum)}﴾</span>
-                              </div>
-                              {/* Arabic text */}
-                              <div style={{
-                                flex:1,
-                                fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",
-                                fontSize:22,
-                                lineHeight:2.2,
-                                color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26"),
-                                textAlign:"right",
-                              }}>
-                                {(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Divider removed — continuous flow */}
-                        </div>
+                            style={{cursor:"pointer",borderRadius:6,padding:"2px 3px",
+                              background:isSelected?(dark?"rgba(212,175,55,0.08)":"rgba(0,0,0,0.06)"):"transparent",
+                            }}>
+                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                          </span>
+                        </span>
                       );
-                    });
+                    })}
+                    </div>);
                   })()}
                 </div>
               )}
