@@ -2387,11 +2387,11 @@ export default function RihlatAlHifz() {
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
           <div style={{position:"relative",zIndex:1}}>
             {/* Title */}
-            <div style={{textAlign:"center",marginBottom:8}}>
+            <div style={{textAlign:"center",marginBottom:12}}>
               <div style={{fontSize:10,color:T.accent,letterSpacing:".15em",textTransform:"uppercase",fontWeight:700}}>Al-Hifz · <span style={{fontWeight:400,fontSize:8}}>Your journey to memorizing the Qur'an</span></div>
             </div>
             {/* Profile row */}
-            <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:14}}>
               {/* Avatar */}
               <div style={{position:"relative",flexShrink:0}}>
                 <div style={{width:48,height:48,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
@@ -2400,7 +2400,7 @@ export default function RihlatAlHifz() {
               </div>
               {/* Name + badges */}
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif",marginBottom:3}}>{username}</div>
+                <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif",marginBottom:5}}>{username}</div>
                 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
                   {[
                     {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
