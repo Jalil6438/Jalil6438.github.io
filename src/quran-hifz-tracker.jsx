@@ -738,7 +738,7 @@ export default function RihlatAlHifz() {
   const SESSION_CTA=["Finish Fajr — Well Done","Finish Dhuhr — Solid Review","Finish Asr — Great Effort","Finish Maghrib — Beautifully Done","Finish Isha — Day Complete"];
   const [sessionsCompleted,setSessionsCompleted]=useState({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
-  const [activeTab,setActiveTab_]=useState("myhifz");
+  const [activeTab,setActiveTab_]=useState("rihlah");
   const scrollAllToTop=()=>{if(showOnboarding) return;setTimeout(()=>{document.querySelectorAll('.fi, [class*="fi"]').forEach(el=>el.scrollTop=0);document.querySelectorAll('div').forEach(el=>{const s=getComputedStyle(el);if(s.overflowY==='auto'||s.overflowY==='scroll')el.scrollTop=0;});window.scrollTo(0,0);},50);};
   const setActiveTab=(tab)=>{setActiveTab_(tab);scrollAllToTop();};
   const [selectedJuz,setSelectedJuz]=useState(30);
@@ -2377,25 +2377,52 @@ export default function RihlatAlHifz() {
         );
       })()}
 
-      {/* TOP BAR */}
-      {activeTab!=="quran"&&activeTab!=="masjidayn"&&(
-      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 16px",flexShrink:0}}>
-        <div style={{textAlign:"center",marginBottom:4}}>
-          <div style={{fontSize:11,color:T.accent,letterSpacing:".15em",textTransform:"uppercase",fontWeight:700,marginBottom:2}}>Al-Hifz · <span style={{fontWeight:400,fontSize:9}}>Your journey to memorizing the Qur'an</span></div>
-        </div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:T.text}}>{localStorage.getItem("rihlat-username")||"Abdul Jalil"}</div>
-            {nextJuz&&<div style={{fontSize:10,color:T.sub,marginTop:2}}>Next Target · Juz {nextJuz.num}</div>}
+      {/* ── UNIVERSAL HEADER — shows on all tabs ── */}
+      {(()=>{
+        const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
+        const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+        const goalLabel=goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
+        return (
+        <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8",padding:"18px 16px 16px",flexShrink:0,borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
+          <div style={{position:"relative",zIndex:1}}>
+            {/* Title */}
+            <div style={{textAlign:"center",marginBottom:8}}>
+              <div style={{fontSize:10,color:T.accent,letterSpacing:".15em",textTransform:"uppercase",fontWeight:700}}>Al-Hifz · <span style={{fontWeight:400,fontSize:8}}>Your journey to memorizing the Qur'an</span></div>
+            </div>
+            {/* Profile row */}
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              {/* Avatar */}
+              <div style={{position:"relative",flexShrink:0}}>
+                <div style={{width:48,height:48,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
+                </div>
+              </div>
+              {/* Name + badges */}
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif",marginBottom:3}}>{username}</div>
+                <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                  {[
+                    {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
+                    {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
+                    {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
+                  ].map((pill,i)=>(
+                    <div key={i} style={{fontSize:9,color:pill.color,background:pill.bg,padding:"2px 7px",borderRadius:20,border:`1px solid ${pill.border}`}}>{pill.label}</div>
+                  ))}
+                </div>
+                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:3}}>Next Target · Juz {nextJuz.num}</div>}
+              </div>
+              {/* Progress */}
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:24,fontWeight:700,color:"#F0C040",lineHeight:1}}>{pct}%</div>
+                <div style={{fontSize:9,color:dark?"#6B7280":"#6B645A",marginTop:2}}>{completedCount}/30 Juz</div>
+                <div style={{height:3,width:40,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:3,marginLeft:"auto"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
+              </div>
+            </div>
           </div>
-          <div style={{textAlign:"right"}}>
-            <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:28,fontWeight:700,color:"#F0C040",lineHeight:1}}>{pct}%</div>
-            <div style={{fontSize:10,color:"#6B7280",marginTop:2}}>{completedCount}/30 Juz</div>
-            <div style={{height:3,width:50,background:T.surface2,borderRadius:2,overflow:"hidden",marginTop:3,marginLeft:"auto"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:2}}/></div>
-          </div>
         </div>
-      </div>
-      )}
+        );
+      })()}
 
       {/* TABS — fixed bottom bar with icons */}
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
@@ -3073,33 +3100,7 @@ export default function RihlatAlHifz() {
               <div style={{position:"absolute",bottom:"25%",right:"10%",width:250,height:250,background:"rgba(212,175,55,0.05)",borderRadius:"50%",filter:"blur(60px)"}}/>
             </div>
 
-            {/* ── 1. PROFILE HEADER ── */}
-            <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8",padding:"20px 16px 24px",position:"relative",overflow:"hidden",zIndex:1}}>
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
-              <div style={{display:"flex",alignItems:"center",gap:14,position:"relative",zIndex:1}}>
-                <div style={{position:"relative"}}>
-                  <div style={{width:64,height:64,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#EADFC8",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 20px rgba(212,175,55,0.15)"}}>
-                    <span style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
-                  </div>
-                  <div style={{position:"absolute",bottom:-2,right:-2,width:20,height:20,background:"linear-gradient(135deg,#D4AF37,#E6B84A)",borderRadius:"50%",border:dark?"2px solid #0D1020":"2px solid #EDE4CC",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <span style={{fontSize:9,fontWeight:700,color:"#0B1220"}}>1</span>
-                  </div>
-                </div>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:19,fontWeight:700,color:"#EDE8DC",fontFamily:"'Playfair Display',serif",marginBottom:2}}>{username}</div>
-                  <div style={{fontSize:11,color:"#E6B84A",marginBottom:8,letterSpacing:".06em"}}>Al-Hifz · رحلة الحفظ</div>
-                  <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-                    {[
-                      {label:"📅 Joined "+joinYear, bg:"rgba(255,255,255,0.08)", color:"rgba(255,255,255,0.6)", border:"rgba(255,255,255,0.1)"},
-                      {label:"🎯 "+goalLabel, bg:"rgba(56,189,248,0.12)", color:"#38BDF8", border:"rgba(56,189,248,0.25)"},
-                      {label:"🔥 "+streak+"-Day Streak", bg:"rgba(246,166,35,0.12)", color:"#F6A623", border:"rgba(246,166,35,0.25)"},
-                    ].map((pill,i)=>(
-                      <div key={i} style={{fontSize:10,color:pill.color,background:pill.bg,padding:"3px 9px",borderRadius:20,border:`1px solid ${pill.border}`}}>{pill.label}</div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Profile header removed — now in universal header */}
 
             <div style={{padding:"12px 14px 120px",position:"relative",zIndex:1}}>
 
