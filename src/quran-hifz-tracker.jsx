@@ -438,14 +438,15 @@ function AsrSessionView({
             if(!currentGroup) return null;
             return (
             <div style={{flex:1,overflow:"hidden",position:"relative"}}
-              onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
+              onTouchStart={e=>{asrTouchStartRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY};}}
               onTouchEnd={e=>{
-                if(asrTouchStartRef.current==null) return;
-                const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
+                if(!asrTouchStartRef.current) return;
+                const dx=e.changedTouches[0].clientX-asrTouchStartRef.current.x;
+                const dy=e.changedTouches[0].clientY-asrTouchStartRef.current.y;
                 asrTouchStartRef.current=null;
-                if(Math.abs(delta)<40) return;
-                if(delta>0&&safeSurahPage<totalSurahPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalSurahPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
-                else if(delta<0&&safeSurahPage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
+                if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)) return;
+                if(dx>0&&safeSurahPage<totalSurahPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalSurahPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
+                else if(dx<0&&safeSurahPage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
               }}>
               <div ref={asrMushafScrollRef} style={{overflowY:"auto",padding:"12px 14px",height:"100%"}}>
                 {/* Surah header */}
