@@ -739,7 +739,7 @@ export default function RihlatAlHifz() {
   const [sessionsCompleted,setSessionsCompleted]=useState({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab_]=useState("myhifz");
-  const scrollAllToTop=()=>{setTimeout(()=>{document.querySelectorAll('.fi, [class*="fi"]').forEach(el=>el.scrollTop=0);document.querySelectorAll('div').forEach(el=>{const s=getComputedStyle(el);if(s.overflowY==='auto'||s.overflowY==='scroll')el.scrollTop=0;});window.scrollTo(0,0);},50);};
+  const scrollAllToTop=()=>{if(showOnboarding) return;setTimeout(()=>{document.querySelectorAll('.fi, [class*="fi"]').forEach(el=>el.scrollTop=0);document.querySelectorAll('div').forEach(el=>{const s=getComputedStyle(el);if(s.overflowY==='auto'||s.overflowY==='scroll')el.scrollTop=0;});window.scrollTo(0,0);},50);};
   const setActiveTab=(tab)=>{setActiveTab_(tab);scrollAllToTop();};
   const [selectedJuz,setSelectedJuz]=useState(30);
   const [allVerses,setAllVerses]=useState([]);
@@ -1296,7 +1296,7 @@ export default function RihlatAlHifz() {
         if(!data.translations?.length) continue;
         data.translations.forEach((t,i)=>{
           const key=`${surahNum}:${i+1}`;
-          updated[key]=(t.text||"").replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").trim();
+          updated[key]=(t.text||"").replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").replace(/\s*,\s*,/g,",").replace(/\s*,\s*$/,"").replace(/\s{2,}/g," ").trim();
         });
       }catch{}
     }
@@ -3727,7 +3727,7 @@ export default function RihlatAlHifz() {
                             {SURAH_EN[surahN]||""} · {sNum}:{aNum}
                           </div>
                         )}
-                        <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");if(audioRef.current){audioRef.current.pause();audioRef.current=null;setPlayingKey(null);}}}
+                        <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");}}
                           style={{fontSize:18,color:dark?"rgba(243,231,200,0.20)":"rgba(0,0,0,0.30)",lineHeight:1,padding:"0 4px"}}>×</div>
                       </div>
                     </div>
