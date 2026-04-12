@@ -3629,9 +3629,9 @@ export default function RihlatAlHifz() {
                       lastSurah = surahN;
 
                       return (
-                        <span key={verse.verse_key}>
+                        <span key={verse.verse_key} style={{display:"contents"}}>
                           {showSurahHeader&&(
-                            <div style={{direction:"ltr",textAlign:"center",padding:"16px 4px 12px"}}>
+                            <div style={{direction:"ltr",textAlign:"center",padding:"16px 4px 12px",width:"100%"}}>
                               <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[surahN]||""}</div>
                               <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[surahN]||""}</div>
                               {isFirstAyah&&surahN!==9&&surahN!==1&&(
