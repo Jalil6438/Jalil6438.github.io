@@ -2391,27 +2391,28 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:13,color:T.accent,letterSpacing:".12em",textTransform:"uppercase",fontWeight:800,fontFamily:"'Playfair Display',serif",textShadow:"0 0 12px rgba(212,175,55,0.40)"}}>Al-Hifz <span style={{fontWeight:400,fontSize:9,fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em",textShadow:"none"}}>· Your journey to memorizing the Qur'an</span></div>
             </div>
             {/* Profile row */}
-            <div style={{display:"flex",alignItems:"center",gap:14}}>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
               {/* Avatar */}
               <div style={{position:"relative",flexShrink:0}}>
-                <div style={{width:58,height:58,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
-                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:19,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
+                <div style={{width:48,height:48,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
                 </div>
               </div>
-              {/* Name + badges */}
+              {/* Name + next target */}
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif",marginBottom:6}}>{username}</div>
-                <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                  {[
-                    {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
-                    {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
-                    {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
-                  ].map((pill,i)=>(
-                    <div key={i} style={{fontSize:10,color:pill.color,background:pill.bg,padding:"3px 9px",borderRadius:20,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
-                  ))}
-                </div>
-                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:8}}>Next Target · Juz {nextJuz.num}</div>}
+                <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif"}}>{username}</div>
+                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:2}}>Next Target · Juz {nextJuz.num}</div>}
               </div>
+            </div>
+            {/* Badges row — full width */}
+            <div style={{display:"flex",gap:6,marginTop:8}}>
+              {[
+                {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
+                {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
+                {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
+              ].map((pill,i)=>(
+                <div key={i} style={{fontSize:9,color:pill.color,background:pill.bg,padding:"3px 8px",borderRadius:20,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
+              ))}
             </div>
             {/* Progress row */}
             <div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}>
