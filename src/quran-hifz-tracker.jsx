@@ -2400,7 +2400,7 @@ export default function RihlatAlHifz() {
               </div>
               {/* Name + badges */}
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif",marginBottom:5}}>{username}</div>
+                <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif",marginBottom:6}}>{username}</div>
                 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
                   {[
                     {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
@@ -2410,7 +2410,7 @@ export default function RihlatAlHifz() {
                     <div key={i} style={{fontSize:9,color:pill.color,background:pill.bg,padding:"2px 7px",borderRadius:20,border:`1px solid ${pill.border}`}}>{pill.label}</div>
                   ))}
                 </div>
-                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:3}}>Next Target · Juz {nextJuz.num}</div>}
+                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:6}}>Next Target · Juz {nextJuz.num}</div>}
               </div>
               {/* Progress */}
               <div style={{textAlign:"right",flexShrink:0}}>
