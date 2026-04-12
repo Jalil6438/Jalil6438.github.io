@@ -3107,33 +3107,34 @@ export default function RihlatAlHifz() {
             <div style={{padding:"12px 14px 120px",position:"relative",zIndex:1}}>
 
             {/* ── 2 & 3. OVERALL PROGRESS + DAILY GOALS — single card ── */}
-            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px",marginBottom:10}}>
+            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
 
               {/* ── Overall Progress ── */}
-              <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:12}}>Overall Progress</div>
-              <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:16}}>
-                <svg width={100} height={100} style={{flexShrink:0,overflow:"visible"}}>
-                  <defs>
-                    <linearGradient id="ringgrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={dark?"#F6E27A":"#E07A5F"}/>
-                      <stop offset="100%" stopColor={dark?"#D4AF37":"#9F2F1F"}/>
-                    </linearGradient>
-                    <filter id="glow2"><feGaussianBlur stdDeviation={dark?"3":"4"} result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                  </defs>
-                  <circle cx={50} cy={50} r={40} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={9}/>
-                  <circle cx={50} cy={50} r={40} fill="none" stroke="url(#ringgrad)" strokeWidth={9}
-                    strokeDasharray={`${2*Math.PI*40*(pct/100)} ${2*Math.PI*40}`} strokeLinecap="round"
-                    transform="rotate(-90 50 50)" filter="url(#glow2)" style={{transition:"stroke-dasharray 1s ease",filter:dark?"":"drop-shadow(0 0 6px rgba(200,74,47,0.40))"}}/>
-                  <text x={50} y={44} textAnchor="middle" fill={dark?"#E6B84A":"#2B2118"} fontSize={20} fontWeight={900} fontFamily="'IBM Plex Mono',monospace">{pct}%</text>
-                  <text x={50} y={62} textAnchor="middle" fill={dark?"rgba(255,255,255,0.5)":"#6B645A"} fontSize={9} fontWeight={600} fontFamily="'DM Sans',sans-serif">{completedCount} of 30 Juz</text>
-                </svg>
-                <div style={{flex:1}}>
-                  {[{label:"Memorized",val:`${completedCount} Juz`,color:dark?"#E6B84A":"#2B2118"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:dark?"#E6B84A":"#2B2118"},{label:"Remaining",val:`${30-completedCount} Juz`,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}].map((s,i)=>(
-                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:i<2?"1px solid rgba(255,255,255,0.06)":"none"}}>
-                      <span style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{s.label}</span>
-                      <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:13,color:s.color,fontWeight:700}}>{s.val}</span>
-                    </div>
-                  ))}
+              <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:6}}>Overall Progress</div>
+              <div style={{marginBottom:12}}>
+                {[{label:"Memorized",val:`${completedCount} Juz`,color:dark?"#E6B84A":"#2B2118"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:dark?"#E6B84A":"#2B2118"},{label:"Remaining",val:`${30-completedCount} Juz`,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}].map((s,i)=>(
+                  <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:i<2?`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)"}` :"none"}}>
+                    <span style={{fontSize:10,color:dark?"rgba(255,255,255,0.5)":"#6B645A"}}>{s.label}</span>
+                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:s.color,fontWeight:700}}>{s.val}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Nav buttons ── */}
+              <div style={{display:"flex",gap:8,marginBottom:14}}>
+                <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{flex:1,display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(74,222,128,0.15)":"1px solid rgba(0,0,0,0.08)",borderRadius:10}}>
+                  <span style={{fontSize:16}}>📖</span>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Memorization</div>
+                    <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.30)":"#6B645A"}}>Track progress</div>
+                  </div>
+                </div>
+                <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{flex:1,display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(240,192,64,0.15)":"1px solid rgba(0,0,0,0.08)",borderRadius:10}}>
+                  <span style={{fontSize:16}}>⏱️</span>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Plan</div>
+                    <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.30)":"#6B645A"}}>Hifz timeline</div>
+                  </div>
                 </div>
               </div>
 
@@ -3250,7 +3251,7 @@ export default function RihlatAlHifz() {
 
 
             {/* ── 5. ACTIVE SESSION CHECKLIST ── */}
-            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px",marginBottom:10}}>
+            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
                   <div style={{width:36,height:36,borderRadius:12,background:`linear-gradient(135deg,${activeSess.color}88,${activeSess.color}44)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 4px 12px ${activeSess.color}40`}}>
@@ -3311,19 +3312,7 @@ export default function RihlatAlHifz() {
               </div>
             </div>
 
-            {/* ── 7. NAV BUTTONS ── */}
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
-              <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#EADFC8",border:dark?"1px solid rgba(74,222,128,0.2)":"1px solid rgba(0,0,0,0.10)",borderRadius:18,textAlign:"center",boxShadow:dark?"0 10px 25px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.06)",transition:"all .2s"}}>
-                <div style={{fontSize:24,marginBottom:4}}>📖</div>
-                <div style={{fontSize:13,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Memorization</div>
-                <div style={{fontSize:10,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:2}}>Track your progress</div>
-              </div>
-              <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{padding:"16px",background:dark?"linear-gradient(145deg,#0B1020,#111A33)":"#EADFC8",border:dark?"1px solid rgba(240,192,64,0.2)":"1px solid rgba(0,0,0,0.10)",borderRadius:18,textAlign:"center",boxShadow:dark?"0 10px 25px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.06)",transition:"all .2s"}}>
-                <div style={{fontSize:24,marginBottom:4}}>⏱️</div>
-                <div style={{fontSize:13,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Plan</div>
-                <div style={{fontSize:10,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:2}}>Your hifz timeline</div>
-              </div>
-            </div>
+            {/* Nav buttons moved to after Overall Progress */}
 
             </div>
           </div>
