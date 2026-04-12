@@ -2406,7 +2406,7 @@ export default function RihlatAlHifz() {
               </div>
             </div>
             {/* Badges row — full width */}
-            <div style={{display:"flex",gap:6,marginTop:8}}>
+            <div style={{display:"flex",gap:6,marginTop:8,justifyContent:"center"}}>
               {[
                 {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
                 {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
