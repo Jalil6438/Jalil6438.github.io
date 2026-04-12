@@ -3172,82 +3172,201 @@ export default function RihlatAlHifz() {
               </div>
             </div>
 
-            {/* ── 4. HIFZ JOURNEY ── */}
-            <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"#D8CCB0",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(160,136,72,0.25)",borderRadius:20,boxShadow:dark?"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)":"0 4px 12px rgba(0,0,0,0.08)",padding:"16px",marginBottom:10,overflow:"hidden",position:"relative"}}>
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 10% 20%, rgba(46,230,197,0.05) 0, transparent 40%), radial-gradient(circle at 85% 75%, rgba(230,184,74,0.05) 0, transparent 40%)":"none"}}/>
-              <div style={{position:"relative",zIndex:1,marginBottom:12}}>
-                <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.5)":"#2D2A26",fontWeight:700}}>Your Hifz Journey</div>
-                <div style={{fontSize:10,color:"rgba(230,184,74,0.45)",marginTop:3}}>You are currently on Juz {sessionJuz||"—"}</div>
-              </div>
-              {(()=>{
-                const journeyPct=Math.round((completedCount/30)*100);
-                const pathD="M20 110 C 55 105, 78 78, 110 72 S 175 45, 210 42 S 265 28, 300 18";
-                const pathLength=320;
-                const revealed=(journeyPct/100)*pathLength;
-                const hidden=pathLength-revealed;
-                // Interpolate position along the path curve using sampled points
-                const pathPoints=[{p:0,x:20,y:110},{p:10,x:50,y:102},{p:20,x:75,y:85},{p:33,x:110,y:72},{p:50,x:160,y:52},{p:67,x:210,y:42},{p:80,x:245,y:32},{p:90,x:275,y:24},{p:100,x:300,y:18}];
-                let cp={x:20,y:110};
-                for(let i=0;i<pathPoints.length-1;i++){
-                  if(journeyPct>=pathPoints[i].p&&journeyPct<=pathPoints[i+1].p){
-                    const t=(journeyPct-pathPoints[i].p)/(pathPoints[i+1].p-pathPoints[i].p);
-                    cp={x:pathPoints[i].x+(pathPoints[i+1].x-pathPoints[i].x)*t,y:pathPoints[i].y+(pathPoints[i+1].y-pathPoints[i].y)*t};
-                    break;
-                  }
-                }
-                if(journeyPct>=100) cp={x:300,y:18};
-                return (
-                  <svg width="100%" viewBox="0 0 320 140" style={{display:"block",marginBottom:8}}>
+            {/* ── 4. HIFZ JOURNEY — Progress Path ── */}
+            {(()=>{
+              const completed=completedCount;
+              // 6 waypoints — S-curves climbing diagonally from bottom-left to top-right
+              const waypoints=[
+                {x:140,y:168,juz:5},   // swing right from bottom-left
+                {x:40, y:140,juz:10},  // swing left
+                {x:200,y:105,juz:15},  // swing right, shifted right
+                {x:130,y:72, juz:20},  // swing left, shifted right
+                {x:260,y:42, juz:25},  // swing right, further right
+                {x:260,y:10, juz:30},  // peak — above juz 25
+              ];
+              const startPt={x:30,y:195};
+              // Path ends at juz 25 waypoint — Quran floats above with breathing room
+              const pathD=`M ${startPt.x} ${startPt.y} C 70 195 170 185 ${waypoints[0].x} ${waypoints[0].y} C 180 155 0 155 ${waypoints[1].x} ${waypoints[1].y} C -5 120 235 118 ${waypoints[2].x} ${waypoints[2].y} C 235 88 95 85 ${waypoints[3].x} ${waypoints[3].y} C 95 55 285 52 ${waypoints[4].x} ${waypoints[4].y}`;
+              const litCount=waypoints.filter(w=>completed>=w.juz).length;
+              // Find current waypoint (which one are we heading toward)
+              const currentWpIdx=waypoints.findIndex(w=>completed<w.juz);
+              const currentWp=currentWpIdx>=0?waypoints[currentWpIdx]:waypoints[5];
+              return (
+                <div style={{borderRadius:20,overflow:"hidden",marginBottom:10,position:"relative",padding:"16px"}}>
+                  {/* Header */}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.6)":"#6B645A",fontWeight:700}}>Your Memorization Journey</div>
+                      <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"#8B7355",marginTop:2}}>You are currently on Juz {sessionJuz||"—"}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,fontWeight:700,color:"#F0C040",lineHeight:1}}>{timeline.juzLeft}</div>
+                      <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.4)":"#6B645A"}}>Juz remaining</div>
+                    </div>
+                  </div>
+                  {/* SVG Path */}
+                  <svg viewBox="-10 -20 360 240" style={{width:"100%",height:"auto"}}>
                     <defs>
-                      <linearGradient id="journeyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#2EE6C5"/>
-                        <stop offset="75%" stopColor="#8EF0A8"/>
-                        <stop offset="100%" stopColor="#E6B84A"/>
+                      {/* Dark-to-bright gold gradient along the path */}
+                      <linearGradient id="pathGold" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#5C4A1E"/>
+                        <stop offset="30%" stopColor="#8B6914"/>
+                        <stop offset="60%" stopColor="#D4AF37"/>
+                        <stop offset="85%" stopColor="#F6E27A"/>
+                        <stop offset="100%" stopColor="#FFFBEA"/>
                       </linearGradient>
-                      <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="4.5" result="blur"/>
+                      {/* Unlit path — dim gold hint */}
+                      <linearGradient id="pathDim" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor={dark?"rgba(92,74,30,0.15)":"rgba(0,0,0,0.04)"}/>
+                        <stop offset="100%" stopColor={dark?"rgba(92,74,30,0.08)":"rgba(0,0,0,0.06)"}/>
+                      </linearGradient>
+                      <filter id="pathGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
                         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                       </filter>
-                      <filter id="currentGlow" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="4" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                      </filter>
-                      <filter id="goalGlow" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="5" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      <filter id="fireGlow" x="-100%" y="-100%" width="300%" height="300%">
+                        <feGaussianBlur stdDeviation="8" result="blur1"/>
+                        <feGaussianBlur stdDeviation="16" in="SourceGraphic" result="blur2"/>
+                        <feMerge>
+                          <feMergeNode in="blur2"/>
+                          <feMergeNode in="blur1"/>
+                          <feMergeNode in="blur1"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
                       </filter>
                     </defs>
-                    <path d={pathD} fill="none" stroke={dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.15)"} strokeWidth="3" strokeLinecap="round"/>
-                    <path d={pathD} fill="none" stroke="url(#journeyGradient)" strokeWidth="6" strokeLinecap="round" filter="url(#lineGlow)" strokeDasharray={`${revealed} ${hidden}`}/>
-                    {[{x:105,y:73,juz:10,label:"Juz 10"},{x:170,y:50,juz:20,label:"Juz 20"},{x:245,y:32,juz:30,label:"Juz 30"}].map((m,i)=>{
-                      const reached=completedCount>=m.juz;
+                    {/* Full unlit path */}
+                    {/* Full path — soft golden glow like the mountain image */}
+                    <path d={pathD} fill="none" stroke="rgba(229,170,30,0.08)" strokeWidth="14" strokeLinecap="round" filter="url(#fireGlow)"/>
+                    <path d={pathD} fill="none" stroke="rgba(229,170,30,0.15)" strokeWidth="5" strokeLinecap="round" filter="url(#pathGlow)"/>
+                    <path d={pathD} fill="none" stroke="rgba(245,197,24,0.25)" strokeWidth="2" strokeLinecap="round"/>
+                    {/* Lit path — proportional to juz completed (1-30) */}
+                    {completed>0&&(()=>{
+                      // Use full path, clip with strokeDasharray based on progress fraction
+                      const totalLen=1000; // approximate path length (ends at juz 25)
+                      const litLen=totalLen*(Math.min(completed,25)/25);
+                      return (<>
+                        {/* Mid golden glow */}
+                        <path d={pathD} fill="none" stroke="#F5C518" strokeWidth="10" strokeLinecap="round" opacity="0.8" filter="url(#fireGlow)" strokeDasharray={`${litLen} ${totalLen}`}/>
+                        {/* Hot bright core */}
+                        <path d={pathD} fill="none" stroke="#FFEAA0" strokeWidth="4" strokeLinecap="round" filter="url(#pathGlow)" strokeDasharray={`${litLen} ${totalLen}`}/>
+                      </>);
+                    })()}
+                    {/* Hidden path to measure position */}
+                    <path ref={el=>{
+                      if(el&&completed>0&&completed<30){
+                        const len=el.getTotalLength();
+                        const pt=el.getPointAtLength(len*(completed/30));
+                        const marker=el.parentNode.querySelector('#juzMarker');
+                        if(marker){
+                          marker.setAttribute('transform',`translate(${pt.x},${pt.y})`);
+                          marker.style.display='';
+                        }
+                      }
+                    }} d={pathD} fill="none" stroke="none"/>
+                    {/* Current juz marker at tip of glow */}
+                    <g id="juzMarker" style={{display:completed>0&&completed<30?'':'none'}}>
+                      {/* Outer radiant glow */}
+                      <circle cx="0" cy="0" r="14" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
+                      <circle cx="0" cy="0" r="10" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
+                      {/* Core dot */}
+                      <circle cx="0" cy="0" r="5" fill="#D4AF37" stroke="#F6E27A" strokeWidth="1.5" filter="url(#pathGlow)"/>
+                      <text x="0" y="16" textAnchor="middle" fill="#F0C040" fontSize="10" fontWeight="700">Juz {completed}</text>
+                      {/* Pulsing rings */}
+                      <circle cx="0" cy="0" r="14" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="1.5">
+                        <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
+                      </circle>
+                      <circle cx="0" cy="0" r="18" fill="none" stroke="rgba(240,192,64,0.3)" strokeWidth="1">
+                        <animate attributeName="r" values="16;26;16" dur="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.4;0;0.4" dur="2.5s" repeatCount="indefinite"/>
+                      </circle>
+                    </g>
+{/* 5 waypoint dots + Quran at juz 30 */}
+                    {waypoints.map((w,i)=>{
+                      const done=completed>=w.juz;
+                      const isCurrent=currentWpIdx===i;
+                      const isLast=i===5;
+                      if(isLast) return (
+                        <g key={i} transform={`translate(${w.x},${w.y})`}>
+                          {/* Outer radiant halo — soft pulsing glow */}
+                          <circle cx="0" cy="0" r="28" fill="none" stroke="rgba(240,192,64,0.12)" strokeWidth="1">
+                            <animate attributeName="r" values="26;32;26" dur="3s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.3;0.08;0.3" dur="3s" repeatCount="indefinite"/>
+                          </circle>
+                          <circle cx="0" cy="0" r="22" fill="none" stroke="rgba(240,192,64,0.2)" strokeWidth="0.8">
+                            <animate attributeName="r" values="20;26;20" dur="2.5s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2.5s" repeatCount="indefinite"/>
+                          </circle>
+                          {/* Inner golden glow */}
+                          <circle cx="0" cy="0" r="16" fill="rgba(240,192,64,0.08)"/>
+                          <circle cx="0" cy="0" r="12" fill="rgba(212,175,55,0.15)"/>
+                          {/* Open Quran — two pages spread */}
+                          <defs>
+                            <linearGradient id="quranPage" x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" stopColor="#FEF3C7"/>
+                              <stop offset="100%" stopColor="#F59E0B"/>
+                            </linearGradient>
+                          </defs>
+                          {/* Left page */}
+                          <path d="M -1 -7 Q -7 -8 -12 -6 L -12 6 Q -7 4 -1 5 Z" fill={done?"url(#quranPage)":"rgba(255,255,255,0.08)"} stroke={done?"#B45309":"rgba(255,255,255,0.15)"} strokeWidth="0.6"/>
+                          {/* Right page */}
+                          <path d="M 1 -7 Q 7 -8 12 -6 L 12 6 Q 7 4 1 5 Z" fill={done?"url(#quranPage)":"rgba(255,255,255,0.08)"} stroke={done?"#B45309":"rgba(255,255,255,0.15)"} strokeWidth="0.6"/>
+                          {/* Spine */}
+                          <line x1="0" y1="-7" x2="0" y2="5" stroke={done?"#92400E":"rgba(255,255,255,0.1)"} strokeWidth="0.8"/>
+                          {/* Text lines — left page */}
+                          <line x1="-10" y1="-3" x2="-3" y2="-3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="-10" y1="0" x2="-3" y2="0" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="-9" y1="3" x2="-3" y2="3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.4"/>
+                          {/* Text lines — right page */}
+                          <line x1="3" y1="-3" x2="10" y2="-3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="3" y1="0" x2="10" y2="0" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="3" y1="3" x2="9" y2="3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.4"/>
+                          {/* Pulsing target ring if current */}
+                          {isCurrent&&!done&&(
+                            <circle cx="0" cy="0" r="16" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5">
+                              <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/>
+                              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                          )}
+                        </g>
+                      );
                       return (
-                        <g key={i} opacity={reached?1:0.4}>
-                          <circle cx={m.x} cy={m.y} r="5.5" fill={dark?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.25)"}/>
-                          <text x={m.x} y={m.y+16} textAnchor="middle" fontSize="8" fill={dark?"rgba(255,255,255,0.5)":"#6B645A"}>{m.label}</text>
+                        <g key={i}>
+                          {done&&<>
+                            <circle cx={w.x} cy={w.y} r="16" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
+                            <circle cx={w.x} cy={w.y} r="12" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
+                          </>}
+                          <circle cx={w.x} cy={w.y} r={done?"7":"5"} fill={done?"#D4AF37":isCurrent?"rgba(240,192,64,0.4)":(dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)")} stroke={done?"#F6E27A":isCurrent?"rgba(240,192,64,0.3)":"none"} strokeWidth="1.5" filter={done?"url(#pathGlow)":"none"}/>
+                          <text x={w.juz===10||w.juz===20?w.x-12:w.x+12} y={w.y+2} textAnchor={w.juz===10||w.juz===20?"end":"start"} dominantBaseline="middle" fill={done?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="10" fontWeight="700">Juz {w.juz}</text>
+                          {done&&(
+                            <circle cx={w.x} cy={w.y} r="14" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1">
+                              <animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite"/>
+                              <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                          )}
+                          {isCurrent&&!done&&(
+                            <circle cx={w.x} cy={w.y} r="12" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5">
+                              <animate attributeName="r" values="10;16;10" dur="2s" repeatCount="indefinite"/>
+                              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                          )}
                         </g>
                       );
                     })}
-                    {completedCount>0&&(
-                      <g>
-                        <circle cx={cp.x} cy={cp.y} r="9" fill="#E6B84A" filter="url(#currentGlow)"/>
-                        <circle cx={cp.x} cy={cp.y} r="5.5" fill="#FFF6D6"/>
-                        <text x={cp.x} y={cp.y-13} textAnchor="middle" fontSize="8" fontWeight="700" fill="#E6B84A">{completedCount}</text>
-                      </g>
-                    )}
-                    <g transform="translate(300 18)">
-                      <circle cx="0" cy="0" r="16" fill="rgba(230,184,74,0.10)" stroke="rgba(230,184,74,0.70)" strokeWidth="1.5" filter="url(#goalGlow)"/>
-                      <text x="0" y="5" textAnchor="middle" fontSize="13" fill="#F0C040">📖</text>
-                    </g>
-                    <text x="20" y="126" textAnchor="middle" fontSize="8" fill={dark?"rgba(255,255,255,0.4)":"#6B645A"}>Juz 1</text>
                   </svg>
-                );
-              })()}
-              <div style={{display:"flex",justifyContent:"space-between",position:"relative",zIndex:1,marginTop:4}}>
-                <div style={{fontSize:10,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}}>Goal: Complete Qur'an in {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths} month${goalMonths!==1?"s":""}`:""}</div>
-                <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.6)":"#6B645A",fontWeight:600}}>{timeline.juzLeft} Juz remaining</div>
-              </div>
-            </div>
+                  {/* Footer */}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:4}}>
+                    <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A"}}>
+                      {pct}% · {completedCount} of 30 Juz
+                    </div>
+                    <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.50)":"#8B7355"}}>
+                      Goal: {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths}mo`:""}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
 
             {/* ── 5. ACTIVE SESSION CHECKLIST ── */}
