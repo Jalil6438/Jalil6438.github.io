@@ -3697,6 +3697,8 @@ export default function RihlatAlHifz() {
                   au.play(); au.onended=()=>setPlayingKey(null);
                 };
                 return (
+                  <>
+                  <div onClick={()=>{setSelectedAyah(null);setDrawerView("default");}} style={{position:"fixed",inset:0,zIndex:199,background:"transparent"}}/>
                   <div
                     onClick={e=>e.stopPropagation()}
                     style={{
@@ -3972,6 +3974,7 @@ export default function RihlatAlHifz() {
                       </div>
                     )}
                   </div>
+                  </>
                 );
               })()}
             </div>
