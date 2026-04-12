@@ -783,6 +783,7 @@ export default function RihlatAlHifz() {
   const [mushafLayout,setMushafLayout]=useState(null); // loaded from /quran-layout.json
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafPageLines,setMushafPageLines]=useState([]);
+  const [qpcPages,setQpcPages]=useState(null);
   const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
   const [showMushafSheet,setShowMushafSheet]=useState(false);
   const [mushafBookmarks,setMushafBookmarks]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-mushaf-bookmarks")||"[]");}catch{return [];}});
@@ -836,6 +837,12 @@ export default function RihlatAlHifz() {
 
   // Bookmark last mushaf page
   useEffect(()=>{try{localStorage.setItem("jalil-quran-lastpage",String(mushafPage));}catch{}},[mushafPage]);
+
+  // Load QPC mushaf pages data
+  useEffect(()=>{
+    if(qpcPages) return;
+    fetch("/mushaf-pages.json").then(r=>r.json()).then(d=>setQpcPages(d)).catch(()=>{});
+  },[]);
 
   useEffect(() => {
     if (activeTab !== "quran") return;
@@ -1063,7 +1070,7 @@ export default function RihlatAlHifz() {
     l.href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap";
     // Load UthmanicHafs for Interactive Quran mode — served locally to avoid CORS
     const ufs=document.createElement("style");
-    ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;}";
+    ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;}@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}@font-face{font-family:'KFGQPC Uthmanic Script HAFS';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}";
     document.head.appendChild(ufs);
     document.head.appendChild(l);
   },[]);
