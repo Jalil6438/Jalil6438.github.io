@@ -2,20 +2,23 @@
 
 // ── QURAN RECITERS (Al-Quran Al-Karim tab) ──
 export const QURAN_RECITERS = [
-  { id:"dosari",   name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary" },
-  { id:"alafasy",  name:"Mishary Rashid Alafasy",  arabic:"مشاري راشد العفاسي", quranicaudio:"mishaari_raashid_al_3afaasy" },
-  { id:"juhany",   name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee" },
-  { id:"sudais",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  quranicaudio:"abdurrahmaan_as-sudays" },
-  { id:"shuraim",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       quranicaudio:"sa3ood_al-shuraym" },
-  { id:"muaiqly",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     quranicaudio:"maher_almuaiqly" },
-  { id:"hudhaify", name:"Ali Al-Hudhaify",        arabic:"علي الحذيفي",       quranicaudio:"huthayfi" },
-  { id:"ayyoub",   name:"Muhammad Ayyoub",        arabic:"محمد أيوب",         quranicaudio:"muhammad_ayyoub" },
-  { id:"budair",   name:"Salah Al-Budair",        arabic:"صلاح البدير",       quranicaudio:"salahbudair" },
-  { id:"shatri",   name:"Abu Bakr Ash-Shatri",   arabic:"أبو بكر الشاطري",   quranicaudio:"abu_bakr_ash-shaatree" },
-  { id:"rifai",    name:"Hani Ar-Rifai",          arabic:"هاني الرفاعي",      quranicaudio:"hani_ar-rifai" },
-  { id:"qasim",    name:"Abdul Muhsin Al-Qasim",  arabic:"عبدالمحسن القاسم",  quranicaudio:"muhsin_al_qasim" },
-  { id:"abbad",    name:"Fares Abbad",            arabic:"فارس عباد",         quranicaudio:"fares_abbad" },
-  { id:"qatami",   name:"Nasser Al-Qatami",       arabic:"ناصر القطامي",      quranicaudio:"nasser_alqatami" },
+  // ── Masjid Al-Haram ──
+  { id:"dosari",   name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary",             tag:"Masjid Al-Haram" },
+  { id:"juhany",   name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee", tag:"Masjid Al-Haram" },
+  { id:"sudais",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  quranicaudio:"abdurrahmaan_as-sudays",        tag:"Masjid Al-Haram" },
+  { id:"shuraim",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       quranicaudio:"sa3ood_al-shuraym",             tag:"Masjid Al-Haram" },
+  { id:"muaiqly",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     quranicaudio:"maher_almuaiqly",               tag:"Masjid Al-Haram" },
+  { id:"shatri",   name:"Abu Bakr Ash-Shatri",   arabic:"أبو بكر الشاطري",   quranicaudio:"abu_bakr_ash-shaatree",         tag:"Masjid Al-Haram" },
+  { id:"rifai",    name:"Hani Ar-Rifai",          arabic:"هاني الرفاعي",      quranicaudio:"hani_ar-rifai",                 tag:"Masjid Al-Haram" },
+  // ── Masjid An-Nabawi ──
+  { id:"hudhaify", name:"Ali Al-Hudhaify",        arabic:"علي الحذيفي",       quranicaudio:"huthayfi",                      tag:"Masjid An-Nabawi" },
+  { id:"ayyoub",   name:"Muhammad Ayyoub",        arabic:"محمد أيوب",         quranicaudio:"muhammad_ayyoub",               tag:"Masjid An-Nabawi" },
+  { id:"budair",   name:"Salah Al-Budair",        arabic:"صلاح البدير",       quranicaudio:"salahbudair",                   tag:"Masjid An-Nabawi" },
+  { id:"qasim",    name:"Abdul Muhsin Al-Qasim",  arabic:"عبدالمحسن القاسم",  quranicaudio:"muhsin_al_qasim",               tag:"Masjid An-Nabawi" },
+  { id:"abbad",    name:"Fares Abbad",            arabic:"فارس عباد",         quranicaudio:"fares_abbad",                   tag:"Masjid An-Nabawi" },
+  // ── Popular ──
+  { id:"alafasy",  name:"Mishary Rashid Alafasy",  arabic:"مشاري راشد العفاسي", quranicaudio:"mishaari_raashid_al_3afaasy",  tag:"Popular" },
+  { id:"qatami",   name:"Nasser Al-Qatami",       arabic:"ناصر القطامي",      quranicaudio:"nasser_alqatami",               tag:"Popular" },
 ];
 
 // ── RECITERS (My Hifz tab — ayah by ayah confirmed) ──

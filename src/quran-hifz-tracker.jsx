@@ -4408,9 +4408,12 @@ export default function RihlatAlHifz() {
 
       {/* ── Reciter list ── */}
       <div style={{overflowY:"auto",padding:"0 12px 28px"}}>
-        <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          {QURAN_RECITERS.map(r=>{
-            const isSelected=(reciterMode==="quran"?quranReciter:reciter)===r.id;
+        {(()=>{
+          const list=reciterMode==="quran"?QURAN_RECITERS:RECITERS;
+          const selectedId=reciterMode==="quran"?quranReciter:reciter;
+          const groups=["Masjid Al-Haram","Masjid An-Nabawi","Hifz Favorite","Popular"];
+          const renderReciter=(r)=>{
+            const isSelected=selectedId===r.id;
             return (
               <div key={r.id} className="sbtn" onClick={()=>{
                 if(reciterMode==="quran"){
@@ -4419,7 +4422,7 @@ export default function RihlatAlHifz() {
                   if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
                 } else { setReciter(r.id); }
                 setShowReciterModal(false);
-              }} style={{display:"flex",alignItems:"center",gap:10,padding:"13px 12px",borderRadius:12,transition:"all .15s",
+              }} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,transition:"all .15s",
                 background:isSelected?(dark?"rgba(230,184,74,0.10)":"rgba(180,140,40,0.08)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
                 border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.35)":"rgba(160,120,20,0.40)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
                 boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
@@ -4431,8 +4434,23 @@ export default function RihlatAlHifz() {
                 {isSelected&&<div style={{fontSize:14,color:"#E6B84A",fontWeight:700,flexShrink:0}}>✓</div>}
               </div>
             );
-          })}
-        </div>
+          };
+          return groups.map(group=>{
+            const groupReciters=list.filter(r=>r.tag===group);
+            if(!groupReciters.length) return null;
+            return (
+              <div key={group} style={{marginBottom:12}}>
+                <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.50)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:8}}>
+                  <span>{group==="Masjid Al-Haram"?"🕋":group==="Masjid An-Nabawi"?"🌙":"🎙️"} {group}</span>
+                  <div style={{flex:1,height:1,background:dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.06)"}}/>
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                  {groupReciters.map(renderReciter)}
+                </div>
+              </div>
+            );
+          });
+        })()}
       </div>
     </div>
   </div>
