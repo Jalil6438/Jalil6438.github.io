@@ -3637,7 +3637,9 @@ export default function RihlatAlHifz() {
                           <span className="sbtn"
                             onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
                             style={{cursor:"pointer",borderRadius:6,padding:"2px 3px",
-                              background:isSelected?(dark?"rgba(212,175,55,0.08)":"rgba(0,0,0,0.06)"):"transparent",
+                              background:isSelected?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent",
+                              boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",
+                              transition:"background .15s",
                             }}>
                             <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                             <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
