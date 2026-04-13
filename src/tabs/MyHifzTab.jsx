@@ -336,7 +336,7 @@ export default function MyHifzTab(props) {
 
                 {/* ── AYAH ROWS — Interactive mode (5 per page, swipeable) ── */}
                 {(hifzViewMode==="interactive"||currentSessionId!=="fajr")&&(()=>{
-                  const APS=5;
+                  const APS=7;
                   const aPages=Math.max(1,Math.ceil(batch.length/APS));
                   const aSafe=Math.min(ayahPage,aPages-1);
                   const aStart=aSafe*APS;
@@ -375,7 +375,7 @@ export default function MyHifzTab(props) {
 
                 {/* ── CONNECTION PHASE (الربط) — from Sheikh Al-Qasim's method ── */}
                 {currentSessionId==="fajr"&&(()=>{
-                  const APS=5;
+                  const APS=7;
                   const aPages=Math.max(1,Math.ceil(batch.length/APS));
                   const aSafe=Math.min(ayahPage,aPages-1);
                   const aStart=aSafe*APS;
@@ -532,14 +532,14 @@ export default function MyHifzTab(props) {
                       // Not on last page — advance to next batch of ayahs
                       setAyahPage(p=>p+1);
                       // V9: add current page's ayahs to completedAyahs
-                      const pageSize=5;
+                      const pageSize=7;
                       const pageStart2=ayahPage*pageSize;
                       const pageEnd2=Math.min(pageStart2+pageSize,batch.length);
                       setCompletedAyahs(prev=>{const next=new Set(prev);batch.slice(pageStart2,pageEnd2).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
                       return;
                     }
                     // On last page — complete the session + add last page ayahs to V9
-                    {const ps=5;const ps2=ayahPage*ps;const pe2=Math.min(ps2+ps,batch.length);
+                    {const ps=7;const ps2=ayahPage*ps;const pe2=Math.min(ps2+ps,batch.length);
                     setCompletedAyahs(prev=>{const next=new Set(prev);batch.slice(ps2,pe2).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});}
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));

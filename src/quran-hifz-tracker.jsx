@@ -141,7 +141,7 @@ export default function RihlatAlHifz() {
   const [asrReviewBatch,setAsrReviewBatch]=useState([]);
   const [sessLoading,setSessLoading]=useState(false);
   const [sessError,setSessError]=useState(false);
-  const AYAHS_PER_PAGE = 5;
+  const AYAHS_PER_PAGE = 7;
   const [ayahPage, setAyahPage_] = useState(0);
   const setAyahPage=(v)=>{setAyahPage_(v);scrollAllToTop();};
   const [asrStarted,setAsrStarted]=useState(false);
