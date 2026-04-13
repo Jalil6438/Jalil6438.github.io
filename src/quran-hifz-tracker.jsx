@@ -14,6 +14,7 @@ import MasjidaynTab from "./tabs/MasjidaynTab";
 
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
+  const [showSettings,setShowSettings]=useState(false);
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [onboardStep,setOnboardStep]=useState(1);
@@ -360,7 +361,7 @@ export default function RihlatAlHifz() {
   const [reciterMode,setReciterMode]=useState("hifz");
   const [showJuzModal,setShowJuzModal]=useState(false);
   const [activeStream,setActiveStream]=useState(0);
-  const [masjidaynTab, setMasjidaynTab_]=useState("live");
+  const [masjidaynTab, setMasjidaynTab_]=useState("ramadan");
   const setMasjidaynTab=(tab)=>{setMasjidaynTab_(tab);scrollAllToTop();};
   const [rihlahTab, setRihlahTab_]=useState("juz");
   const rihlahScrollRef=useRef(null);
@@ -1478,6 +1479,10 @@ export default function RihlatAlHifz() {
                 <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif"}}>{username}</div>
                 {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:2}}>Next Target · Juz {nextJuz.num}</div>}
               </div>
+              {/* Settings gear */}
+              <div className="sbtn" onClick={()=>setShowSettings(true)} style={{flexShrink:0,width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.05)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <span style={{fontSize:16,color:T.dim}}>⚙️</span>
+              </div>
             </div>
             {/* Badges row — full width */}
             <div style={{display:"flex",gap:6,marginTop:8,justifyContent:"flex-start"}}>
@@ -1507,7 +1512,7 @@ export default function RihlatAlHifz() {
           {id:"myhifz",  img:"/tab-hifz.png",   label:"My Hifz"},
           {id:"rihlah",  img:"/tab-rihlah.png",  label:"My Rihlah"},
           {id:"quran",   img:"/tab-quran.png",   label:"Al-Qur'an"},
-          {id:"masjidayn",icon:"\uD83D\uDD4B",  label:"More"},
+          {id:"masjidayn",icon:"\uD83D\uDD4B",  label:"Haramain"},
         ].map(t=>(
           <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
             {t.img?(
@@ -1532,11 +1537,6 @@ export default function RihlatAlHifz() {
                 <div style={{fontSize:11,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{currentReciter.name}</div>
               </div>
               <div style={{fontSize:10,color:T.dim}}>▾</div>
-            </div>
-            <div style={{position:"relative",display:"flex",borderRadius:999,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28,width:80,flexShrink:0}}>
-              <div style={{position:"absolute",top:2,left:dark?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:22,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 14px rgba(212,175,55,0.45)",transition:"left .25s ease"}}/>
-              <div className="sbtn" onClick={()=>setDark(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:dark?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>🌙</div>
-              <div className="sbtn" onClick={()=>setDark(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:!dark?"#0A0E1A":"rgba(212,175,55,0.35)",transition:"color .2s ease",fontWeight:700}}>☀️</div>
             </div>
           </div>
 
@@ -3536,6 +3536,39 @@ export default function RihlatAlHifz() {
       )}
 
       {/* Quran Reciter Modal */}
+{/* ── SETTINGS MODAL ── */}
+{showSettings&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowSettings(false)}>
+    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"80vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+      <div style={{padding:"12px 18px 0",textAlign:"center",flexShrink:0}}>
+        <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
+        <div style={{fontSize:15,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A"}}>Settings</div>
+      </div>
+      <div style={{overflowY:"auto",padding:"14px 18px 28px"}}>
+        {/* Dark mode toggle */}
+        <div className="sbtn" onClick={()=>setDark(!dark)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
+          <div style={{fontSize:13,color:T.text}}>{dark?"🌙 Dark Mode":"☀️ Light Mode"}</div>
+          <div style={{width:36,height:20,borderRadius:10,background:dark?"#D4AF37":"rgba(0,0,0,0.15)",padding:2,display:"flex",alignItems:`center`,justifyContent:dark?"flex-end":"flex-start"}}>
+            <div style={{width:16,height:16,borderRadius:"50%",background:"#fff",transition:"all .2s"}}/>
+          </div>
+        </div>
+        {/* About */}
+        <div className="sbtn" onClick={()=>{setShowSettings(false);setActiveTab("masjidayn");setMasjidaynTab("about");}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
+          <div style={{fontSize:13,color:T.text}}>ℹ️ About</div>
+        </div>
+        {/* Terms — placeholder */}
+        <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6,opacity:0.5}}>
+          <div style={{fontSize:13,color:T.text}}>📄 Terms & Privacy</div>
+        </div>
+        {/* Version */}
+        <div style={{textAlign:"center",marginTop:14,fontSize:10,color:T.dim}}>
+          Rihlat Al-Hifz · Version 1.0 · 2026
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 {showReciterModal&&(
   <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
     <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"68vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
