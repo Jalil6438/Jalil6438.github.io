@@ -1487,7 +1487,6 @@ export default function RihlatAlHifz() {
             {/* Badges row — full width */}
             <div style={{display:"flex",gap:6,marginTop:8,justifyContent:"flex-start"}}>
               {[
-                {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
                 {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
                 {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
               ].map((pill,i)=>(
@@ -3124,7 +3123,6 @@ export default function RihlatAlHifz() {
           <div style={{marginBottom:22}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)"}}>← Back</div>
-              <div className="sbtn" onClick={()=>setRihlahTab("adjust")} style={{padding:"6px 12px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(217,177,95,0.12)",borderRadius:8,fontSize:11,color:"rgba(243,231,200,0.50)"}}>⚙️ Adjust</div>
             </div>
             <div style={{fontSize:9,color:"rgba(217,177,95,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>My Plan</div>
           </div>
@@ -3237,18 +3235,13 @@ export default function RihlatAlHifz() {
         </div>
       )}
 
-      {/* ═══ ADJUST PLAN ═══ */}
+      {/* ═══ ADJUST PLAN (opened from settings gear) ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
         <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 120px"}} className="fi gold-particles">
-          {/* Header */}
           <div style={{marginBottom:20}}>
-            <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back to My Plan</div>
+            <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back</div>
           </div>
-
-          {/* ── HERO CARD ── */}
-          <div style={{padding:"22px 18px",borderRadius:20,marginBottom:16,textAlign:"center",position:"relative",overflow:"hidden",
-            background:dark?"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)":"#EADFC8",
-            border:dark?"1px solid rgba(217,177,95,0.22)":"1px solid rgba(0,0,0,0.08)",boxShadow:dark?"0 10px 40px rgba(0,0,0,0.40),0 0 20px rgba(217,177,95,0.08)":"0 4px 16px rgba(0,0,0,0.06)"}}>
+          <div style={{padding:"22px 18px",borderRadius:20,marginBottom:16,textAlign:"center",position:"relative",overflow:"hidden",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.22)":"1px solid rgba(0,0,0,0.08)",boxShadow:dark?"0 10px 40px rgba(0,0,0,0.40),0 0 20px rgba(217,177,95,0.08)":"0 4px 16px rgba(0,0,0,0.06)"}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 50% 20%,rgba(212,175,55,0.08) 0%,transparent 50%)":"none"}}/>
             <div style={{position:"relative",zIndex:1}}>
               <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:8}}>Complete Your Hifz In</div>
@@ -3258,8 +3251,6 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6B645A"}}>Your path to completion</div>
             </div>
           </div>
-
-          {/* ── SLIDERS ── */}
           <div style={{padding:"16px 18px",borderRadius:16,background:dark?"rgba(255,255,255,0.02)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(0,0,0,0.08)",marginBottom:16,boxShadow:dark?"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)":"0 2px 8px rgba(0,0,0,0.04)"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
               <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>Base Timeline</span>
@@ -3272,86 +3263,44 @@ export default function RihlatAlHifz() {
             </div>
             <input type="range" min={0} max={11} value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
           </div>
-
-          {/* ── STATS ── */}
           <div style={{padding:"16px 18px",borderRadius:16,background:dark?"rgba(255,255,255,0.02)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(0,0,0,0.08)",marginBottom:16,boxShadow:dark?"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)":"0 2px 8px rgba(0,0,0,0.04)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0"}}>
-              <span style={{fontSize:14}}>{"\uD83D\uDCD6"}</span>
-              <span style={{fontSize:13,color:dark?"rgba(243,231,200,0.60)":"#2D2A26"}}>{dailyNew} ayahs per day</span>
-            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0"}}><span style={{fontSize:14}}>📖</span><span style={{fontSize:13,color:dark?"rgba(243,231,200,0.60)":"#2D2A26"}}>{dailyNew} ayahs per day</span></div>
             <div style={{height:1,background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.25) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.08) 50%,rgba(0,0,0,0) 100%)"}}/>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",position:"relative"}}>
               <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(ellipse at 30% 50%,rgba(212,175,55,0.06) 0%,transparent 60%)":"none"}}/>
-              <span style={{fontSize:16,position:"relative",zIndex:1}}>{"\uD83D\uDCC6"}</span>
+              <span style={{fontSize:16,position:"relative",zIndex:1}}>📆</span>
               <span style={{fontSize:16,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,position:"relative",zIndex:1,textShadow:dark?"0 0 10px rgba(246,226,122,0.20)":"none"}}>~{timeline.daysPerJuz} days per juz</span>
             </div>
             <div style={{height:1,background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.25) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.08) 50%,rgba(0,0,0,0) 100%)"}}/>
-            <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0"}}>
-              <span style={{fontSize:14}}>{"\uD83D\uDCCA"}</span>
-              <span style={{fontSize:13,color:dark?"rgba(243,231,200,0.45)":"#2D2A26"}}>{timeline.juzPerMonth} juz per month</span>
-            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0"}}><span style={{fontSize:14}}>📊</span><span style={{fontSize:13,color:dark?"rgba(243,231,200,0.45)":"#2D2A26"}}>{timeline.juzPerMonth} juz per month</span></div>
           </div>
-
-          {/* ── CHOOSE YOUR PACE ── */}
           <div style={{marginBottom:16}}>
             <div style={{fontSize:11,color:dark?"rgba(217,177,95,0.55)":"#6B645A",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Choose Your Pace</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {[
-                {y:1,label:"Intense",icon:"\u26A1"},
-                {y:2,label:"Focused",icon:"\uD83D\uDD25"},
-              ].map(p=>{
-                const t=calcTimeline(p.y,memorizedAyahs,0,null,completedCount);
-                const isA=p.y===goalYears;
-                return (
-                  <div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}}
-                    style={{padding:"12px 8px",borderRadius:14,textAlign:"center",
-                      background:isA?(dark?"rgba(230,184,74,0.10)":"rgba(212,175,55,0.12)"):(dark?"rgba(255,255,255,0.02)":"#EADFC8"),
-                      border:`1px solid ${isA?(dark?"rgba(232,200,120,0.50)":"#D4AF37"):(dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.08)")}`,
-                      boxShadow:isA?"0 0 16px rgba(230,184,74,0.15)":"none",transition:"all .18s"}}>
-                    <div style={{fontSize:13,color:isA?(dark?"#F6E27A":"#D4AF37"):(dark?"rgba(243,231,200,0.50)":"#2D2A26"),fontWeight:700}}>{p.y} Year{p.y!==1?"s":""}</div>
-                    <div style={{fontSize:11,color:isA?(dark?"#E6B84A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#6B645A"),fontWeight:600,marginTop:2}}>{Math.round(parseFloat(t.ayahsPerDay))} ayahs/day</div>
-                    <div style={{height:1,margin:"6px 8px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.20) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.06) 50%,rgba(0,0,0,0) 100%)"}}/>
-                    <div style={{fontSize:9,color:isA?(dark?"rgba(230,184,74,0.65)":"#D4AF37"):(dark?"rgba(243,231,200,0.22)":"#6B645A"),marginTop:6}}>{p.icon} {p.label}</div>
-                  </div>
-                );
+              {[{y:1,label:"Intense",icon:"⚡"},{y:2,label:"Focused",icon:"🔥"}].map(p=>{
+                const t=calcTimeline(p.y,memorizedAyahs,0,null,completedCount);const isA=p.y===goalYears;
+                return (<div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}} style={{padding:"12px 8px",borderRadius:14,textAlign:"center",background:isA?(dark?"rgba(230,184,74,0.10)":"rgba(212,175,55,0.12)"):(dark?"rgba(255,255,255,0.02)":"#EADFC8"),border:`1px solid ${isA?(dark?"rgba(232,200,120,0.50)":"#D4AF37"):(dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.08)")}`,boxShadow:isA?"0 0 16px rgba(230,184,74,0.15)":"none"}}>
+                  <div style={{fontSize:13,color:isA?(dark?"#F6E27A":"#D4AF37"):(dark?"rgba(243,231,200,0.50)":"#2D2A26"),fontWeight:700}}>{p.y} Year{p.y!==1?"s":""}</div>
+                  <div style={{fontSize:11,color:isA?(dark?"#E6B84A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#6B645A"),fontWeight:600,marginTop:2}}>{Math.round(parseFloat(t.ayahsPerDay))} ayahs/day</div>
+                  <div style={{fontSize:9,color:isA?(dark?"rgba(230,184,74,0.65)":"#D4AF37"):(dark?"rgba(243,231,200,0.22)":"#6B645A"),marginTop:6}}>{p.icon} {p.label}</div>
+                </div>);
               })}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-              {[
-                {y:3,label:"Balanced",icon:"\u2705"},
-                {y:5,label:"Light",icon:"\uD83E\uDDD8"},
-                {y:7,label:"Gentle",icon:"\uD83C\uDF19"},
-              ].map(p=>{
-                const t=calcTimeline(p.y,memorizedAyahs,0,null,completedCount);
-                const isA=p.y===goalYears;
-                return (
-                  <div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}}
-                    style={{padding:"12px 8px",borderRadius:14,textAlign:"center",
-                      background:isA?(dark?"rgba(230,184,74,0.10)":"rgba(212,175,55,0.12)"):(dark?"rgba(255,255,255,0.02)":"#EADFC8"),
-                      border:`1px solid ${isA?(dark?"rgba(232,200,120,0.50)":"#D4AF37"):(dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.08)")}`,
-                      boxShadow:isA?"0 0 16px rgba(230,184,74,0.15)":"none",transition:"all .18s"}}>
-                    <div style={{fontSize:13,color:isA?(dark?"#F6E27A":"#D4AF37"):(dark?"rgba(243,231,200,0.50)":"#2D2A26"),fontWeight:700}}>{p.y} Year{p.y!==1?"s":""}</div>
-                    <div style={{fontSize:11,color:isA?(dark?"#E6B84A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#6B645A"),fontWeight:600,marginTop:2}}>{Math.round(parseFloat(t.ayahsPerDay))} ayahs/day</div>
-                    <div style={{height:1,margin:"6px 8px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.20) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.06) 50%,rgba(0,0,0,0) 100%)"}}/>
-                    <div style={{fontSize:9,color:isA?(dark?"rgba(230,184,74,0.65)":"#D4AF37"):(dark?"rgba(243,231,200,0.22)":"#6B645A"),marginTop:6}}>{p.icon} {p.label}</div>
-                  </div>
-                );
+              {[{y:3,label:"Balanced",icon:"✅"},{y:5,label:"Light",icon:"🧘"},{y:7,label:"Gentle",icon:"🌙"}].map(p=>{
+                const t=calcTimeline(p.y,memorizedAyahs,0,null,completedCount);const isA=p.y===goalYears;
+                return (<div key={p.y} className="sbtn" onClick={()=>{setGoalYears(p.y);setGoalMonths(0);}} style={{padding:"12px 8px",borderRadius:14,textAlign:"center",background:isA?(dark?"rgba(230,184,74,0.10)":"rgba(212,175,55,0.12)"):(dark?"rgba(255,255,255,0.02)":"#EADFC8"),border:`1px solid ${isA?(dark?"rgba(232,200,120,0.50)":"#D4AF37"):(dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.08)")}`,boxShadow:isA?"0 0 16px rgba(230,184,74,0.15)":"none"}}>
+                  <div style={{fontSize:13,color:isA?(dark?"#F6E27A":"#D4AF37"):(dark?"rgba(243,231,200,0.50)":"#2D2A26"),fontWeight:700}}>{p.y} Year{p.y!==1?"s":""}</div>
+                  <div style={{fontSize:11,color:isA?(dark?"#E6B84A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#6B645A"),fontWeight:600,marginTop:2}}>{Math.round(parseFloat(t.ayahsPerDay))} ayahs/day</div>
+                  <div style={{fontSize:9,color:isA?(dark?"rgba(230,184,74,0.65)":"#D4AF37"):(dark?"rgba(243,231,200,0.22)":"#6B645A"),marginTop:6}}>{p.icon} {p.label}</div>
+                </div>);
               })}
             </div>
           </div>
-
-          {/* ── MOTIVATIONAL LINE ── */}
           <div style={{textAlign:"center",padding:"14px 10px",marginBottom:20}}>
-            <div style={{fontSize:12,color:"rgba(243,231,200,0.35)",lineHeight:1.7}}>
-              This plan requires consistency, not perfection.<br/>
-              Small daily effort leads to completion — <span style={{fontFamily:"'Amiri',serif",fontSize:14,color:"rgba(230,184,74,0.50)"}}>{"\u0628\u0650\u0625\u0630\u0652\u0646\u0650 \u0627\u0644\u0644\u0651\u064E\u0647\u0650"}</span>
-            </div>
+            <div style={{fontSize:12,color:"rgba(243,231,200,0.35)",lineHeight:1.7}}>This plan requires consistency, not perfection.<br/>Small daily effort leads to completion — <span style={{fontFamily:"'Amiri',serif",fontSize:14,color:"rgba(230,184,74,0.50)"}}>بِإذْنِ اللَّهِ</span></div>
           </div>
-
-          {/* ── SAVE CTA ── */}
-          <div className="sbtn" onClick={()=>setRihlahTab("timeline")}
-            style={{width:"100%",padding:"15px",borderRadius:16,textAlign:"center",fontSize:15,fontWeight:700,
-              color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 8px 22px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.10)"}}>
+          <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{width:"100%",padding:"15px",borderRadius:16,textAlign:"center",fontSize:15,fontWeight:700,color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 8px 22px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.10)"}}>
             Save & Return
           </div>
         </div>
@@ -3543,6 +3492,7 @@ export default function RihlatAlHifz() {
       <div style={{padding:"12px 18px 0",textAlign:"center",flexShrink:0}}>
         <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
         <div style={{fontSize:15,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A"}}>Settings</div>
+        <div style={{fontSize:10,color:T.dim,marginTop:4}}>📅 Joined 2026</div>
       </div>
       <div style={{overflowY:"auto",padding:"14px 18px 28px"}}>
         {/* Dark mode toggle */}
@@ -3551,6 +3501,10 @@ export default function RihlatAlHifz() {
           <div style={{width:36,height:20,borderRadius:10,background:dark?"#D4AF37":"rgba(0,0,0,0.15)",padding:2,display:"flex",alignItems:`center`,justifyContent:dark?"flex-end":"flex-start"}}>
             <div style={{width:16,height:16,borderRadius:"50%",background:"#fff",transition:"all .2s"}}/>
           </div>
+        </div>
+        {/* Adjust Plan */}
+        <div className="sbtn" onClick={()=>{setShowSettings(false);setActiveTab("rihlah");setRihlahTab("adjust");}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
+          <div style={{fontSize:13,color:T.text}}>⚙️ Adjust Plan</div>
         </div>
         {/* About */}
         <div className="sbtn" onClick={()=>{setShowSettings(false);setActiveTab("masjidayn");setMasjidaynTab("about");}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
