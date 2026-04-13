@@ -2446,7 +2446,7 @@ export default function RihlatAlHifz() {
                 <JuzBadge count={completedCount||0} earned={completedCount>0}/>
                 <StreakBadge earned={streak>=7}/>
                 <HabituatedBadge earned={streak>=40}/>
-                <HifzGoalBadge earned={goalYears>0}/>
+                <HifzGoalBadge earned={completedCount>=30}/>
               </div>
             </div>
 
