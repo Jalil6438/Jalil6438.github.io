@@ -10,9 +10,12 @@ import AsrSessionView from "./components/AsrSessionView";
 import QuranPageView from "./components/QuranPageView";
 import SettingsModal from "./components/SettingsModal";
 import AdjustPlan from "./components/AdjustPlan";
+import RihlahProgressPath from "./components/RihlahProgressPath";
+import TwoPageWarningModal from "./components/TwoPageWarningModal";
 import useHifzProgress from "./hooks/useHifzProgress";
 import useAudio from "./hooks/useAudio";
 import MasjidaynTab from "./tabs/MasjidaynTab";
+import Onboarding from "./components/Onboarding";
 
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
@@ -1293,227 +1296,21 @@ export default function RihlatAlHifz() {
 
       {/* ── ONBOARDING FLOW ── */}
       {showOnboarding&&(
-        <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
-
-          {/* ── STEP 1 — BISMILLAH ── */}
-                    {onboardStep===1&&(
-            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)"}}>
-              {/* Top ambient glow */}
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
-              {/* Star field */}
-              <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(1px 1px at 15% 20%,rgba(212,175,55,0.20) 0%,transparent 100%),radial-gradient(1px 1px at 75% 15%,rgba(255,255,255,0.08) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 8%,rgba(212,175,55,0.18) 0%,transparent 100%),radial-gradient(1px 1px at 85% 35%,rgba(255,255,255,0.06) 0%,transparent 100%),radial-gradient(1px 1px at 25% 65%,rgba(212,175,55,0.08) 0%,transparent 100%)",pointerEvents:"none",zIndex:0}}/>
-              <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",alignItems:"center",width:"100%"}}>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(28px,6vw,44px)",color:"#F6E27A",direction:"rtl",lineHeight:1.7,marginBottom:24,textShadow:"0 0 22px rgba(212,175,55,0.18)"}}>
-                  بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-                </div>
-                <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent)",margin:"0 auto 24px"}}/>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85,textShadow:"0 0 10px rgba(212,175,55,0.12)"}}>
-                  وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
-                </div>
-                <div style={{fontSize:11,color:"rgba(243,231,191,0.5)",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
-                <div style={{fontSize:9,color:"rgba(212,175,55,0.35)",marginBottom:40}}>Al-Qamar · 54:17</div>
-
-                <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
-                  Begin Your Journey →
-                </div>
-                <div style={{width:40,height:1,background:"rgba(212,175,55,0.25)",margin:"16px auto 10px"}}/><div style={{fontSize:9,color:"rgba(243,231,191,0.7)",fontWeight:500,letterSpacing:".08em",textShadow:"0 0 8px rgba(212,175,55,0.12)"}}>© 2026 NoorTech Studio</div>
-              </div>
-            </div>
-          )}
-
-
-          {/* ── STEP 3 — NAME INPUT ── */}
-          {onboardStep===3&&(
-            <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",minHeight:0,position:"relative"}}>
-              <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 55%)",zIndex:0}}/>
-              <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",flex:1,justifyContent:"space-between"}}>
-                {/* TOP — progress + welcome + question + input */}
-                <div>
-                  <div style={{display:"flex",gap:5,marginBottom:32}}>
-                    {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
-                  </div>
-                  <div style={{textAlign:"center"}}>
-                    <div style={{fontFamily:"'Amiri',serif",fontSize:28,color:"#F6E27A",direction:"rtl",lineHeight:1.7,marginBottom:10,textShadow:"0 0 10px rgba(212,175,55,0.12)"}}>أَهْلًا وَسَهْلًا</div>
-                    <div style={{fontSize:14,color:"rgba(243,231,191,0.85)",marginBottom:24}}>Welcome to your Hifz journey</div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7BF",textShadow:"0 0 14px rgba(212,175,55,0.10)",marginBottom:20}}>What should we call you?</div>
-                    <input
-                      type="text"
-                      value={userName}
-                      onChange={e=>setUserName(e.target.value)}
-                      placeholder="Enter your name"
-                      style={{width:"100%",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",border:`1px solid ${userName?"rgba(212,175,55,0.35)":"rgba(255,255,255,0.08)"}`,borderRadius:12,padding:"14px 16px",fontSize:18,color:"#F3E7BF",fontFamily:"'DM Sans',sans-serif",outline:"none",transition:"border .2s",textAlign:"center",boxShadow:userName?"0 0 14px rgba(212,175,55,0.08),inset 0 0 12px rgba(212,175,55,0.06)":"inset 0 0 12px rgba(212,175,55,0.04)"}}
-                    />
-                  </div>
-                </div>
-                {/* MIDDLE — preview card floats centered */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  {userName&&(
-                    <div className="fi" style={{width:"100%",padding:"14px 18px",background:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99)), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.20)",borderRadius:14,textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-                      <div style={{fontSize:9,color:"rgba(212,175,55,0.55)",marginBottom:6,letterSpacing:".10em",textTransform:"uppercase"}}>Your name</div>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F6E27A",marginBottom:4,textShadow:"0 0 16px rgba(212,175,55,0.18)"}}>{userName}</div>
-                      <div style={{fontSize:10,color:"rgba(243,231,191,0.50)",fontStyle:"italic"}}>May Allah make it easy for you 🤲</div>
-                    </div>
-                  )}
-                </div>
-                {/* BOTTOM — buttons */}
-                <div>
-                  <div style={{display:"flex",gap:8,marginBottom:0}}>
-                    <div className="sbtn" onClick={()=>setOnboardStep(1)} style={{padding:"14px 18px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,fontSize:14,color:"rgba(243,231,191,0.50)"}}>←</div>
-                    <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
-                      Continue →
-                    </div>
-                  </div>
-                  <div className="sbtn" onClick={()=>setOnboardStep(4)} style={{textAlign:"center",fontSize:11,color:"rgba(212,175,55,0.35)",marginTop:10,opacity:0.5}}>Skip for now</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
-          {onboardStep===4&&!loaded&&(
-            <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)"}}>
-              <div className="spin" style={{width:24,height:24,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
-            </div>
-          )}
-          {onboardStep===4&&loaded&&(()=>{
-            try {
-            const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths,null,completedCount);
-            const remainingJuz=tl.juzLeft;
-            const apd=Math.round(parseFloat(tl.ayahsPerDay));
-            const daysPerJuz=tl.daysPerJuz;
-            const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
-            return (
-              <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
-                <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
-                <div style={{position:"relative",zIndex:1,display:"flex",gap:5,marginBottom:20}}>
-                  {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
-                </div>
-                <div style={{textAlign:"center",marginBottom:18}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8,textShadow:"0 0 18px rgba(212,175,55,0.15)"}}>Choose Your Timeline</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.75)",lineHeight:1.2}}>Mark Your Memorization</div>
-                </div>
-                <div style={{background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),0 12px 35px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-                  <div style={{fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Your Goal</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears>0?`${goalYears} Year${goalYears!==1?"s":""}`:""}{goalYears>0&&goalMonths>0?" • ":""}{goalMonths>0?`${goalMonths} Month${goalMonths!==1?"s":""}`:goalYears===0?"Set goal":""}</div>
-                  <div style={{fontSize:13,color:"rgba(243,231,191,0.75)",lineHeight:1.7,marginBottom:10}}>
-                    <span style={{color:"#F6E27A",fontWeight:700}}>{apd} ayahs per day</span><span style={{opacity:0.7}}>{" • "}{daysPerJuz} days per juz</span><span style={{opacity:0.7}}>{" • "}{remainingJuz} juz remaining</span>
-                  </div>
-                  <div className="sbtn" onClick={()=>setOpenMethod(openMethod==="timeline-adjust"?null:"timeline-adjust")} style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:12,color:"#D4AF37",padding:"6px 12px",borderRadius:999,border:"1px solid rgba(212,175,55,0.22)",background:"rgba(212,175,55,0.05)"}}>
-                    Adjust timeline <span style={{fontSize:11}}>{openMethod==="timeline-adjust"?"▴":"▾"}</span>
-                  </div>
-                </div>
-                {openMethod==="timeline-adjust"&&(
-                  <div className="fi" style={{background:"rgba(12,18,30,0.92)",border:"1px solid rgba(212,175,55,0.16)",borderRadius:16,padding:"14px 14px 12px",marginBottom:18}}>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                      <div>
-                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Years</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalYears}</span></div>
-                        <input type="range" min="0" max="10" value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%"}}/>
-                      </div>
-                      <div>
-                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Months</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalMonths}</span></div>
-                        <input type="range" min="0" max="11" value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                  <div style={{fontSize:9,color:"rgba(243,231,191,0.65)",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
-                  <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{completedCount} Juz completed</div>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
-                  {displayedJuz.map(j=>{
-                    const isOpen=openJuzPanel===j.num;
-                    const surahs=JUZ_SURAHS[j.num]||[];
-                    const allChecked=surahs.every(s=>juzStatus[`s${s.s}`]==="complete");
-                    const someChecked=surahs.some(s=>juzStatus[`s${s.s}`]==="complete");
-                    const juzComplete=v9IsJuzComplete(j.num);
-                    return (
-                      <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.12)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 20px rgba(212,175,55,0.14),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 0 12px rgba(212,175,55,0.05),0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
-                        {/* Juz header — tap to expand, long-press or ✓ button to mark complete */}
-                        <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                          <div>
-                            <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
-                            <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
-                          </div>
-                          <div style={{display:"flex",alignItems:"center",gap:10}}>
-                            <div className="sbtn" onClick={e=>{e.stopPropagation();const completing=!v9IsJuzComplete(j.num);setJuzStatus(prev=>{const next={...prev};if(!completing)delete next[j.num];else next[j.num]="complete";return next;});if(completing)v9MarkJuzComplete(j.num);else v9MarkJuzIncomplete(j.num);}} style={{width:22,height:22,borderRadius:"50%",background:juzComplete?"rgba(246,226,122,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${juzComplete?"rgba(246,226,122,0.45)":"rgba(212,175,55,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:juzComplete?"#F6E27A":"rgba(212,175,55,0.4)",fontSize:11,fontWeight:700}}>{juzComplete?"✓":"○"}</div>
-                            <div style={{color:"rgba(212,175,55,0.7)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg) translateY(-2px)":"translateY(2px)"}}>▾</div>
-                          </div>
-                        </div>
-                        {/* Surah list */}
-                        {isOpen&&(
-                          <div style={{borderTop:"1px solid rgba(212,175,55,0.12)",padding:"14px 14px 16px",background:"rgba(0,0,0,0.18)"}}>
-                            {/* Select All */}
-                            <div className="sbtn" onClick={()=>{
-                              const completing=!allChecked;
-                              setJuzStatus(prev=>{
-                                const next={...prev};
-                                if(!completing){ surahs.forEach(s=>{delete next[`s${s.s}`];}); delete next[j.num]; }
-                                else { surahs.forEach(s=>{next[`s${s.s}`]="complete";}); next[j.num]="complete"; }
-                                return next;
-                              });
-                              // V9: add/remove all ayahs for every surah in this juz
-                              if(completing) surahs.forEach(s=>v9MarkSurahComplete(s.s));
-                              else v9MarkJuzIncomplete(j.num);
-                            }} style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"8px 10px",borderRadius:10,background:"rgba(212,175,55,0.03)",border:"1px solid rgba(212,175,55,0.16)",boxShadow:"0 0 10px rgba(212,175,55,0.05)"}}>
-                              <div style={{width:18,height:18,borderRadius:5,background:allChecked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:allChecked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:allChecked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{allChecked?"✓":""}</div>
-                              <div style={{fontSize:12,color:allChecked?"#F6E27A":"rgba(212,175,55,0.8)",fontWeight:700,letterSpacing:".02em"}}>Select all surahs in Juz {j.num}</div>
-                            </div>
-                            {/* Surah grid */}
-                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-                              {surahs.map((s,si)=>{
-                                const checked=juzStatus[`s${s.s}`]==="complete";
-                                return (
-                                  <div key={s.s} className="sbtn" onClick={()=>{
-                                    const completing=!checked;
-                                    setJuzStatus(prev=>{
-                                      const next={...prev,[`s${s.s}`]:completing?"complete":undefined};
-                                      if(!completing) delete next[`s${s.s}`];
-                                      const allNow=surahs.every(sr=>next[`s${sr.s}`]==="complete");
-                                      if(allNow) next[j.num]="complete"; else delete next[j.num];
-                                      return next;
-                                    });
-                                    // V9: add/remove this surah's ayahs
-                                    if(completing) v9MarkSurahComplete(s.s);
-                                    else v9MarkSurahIncomplete(s.s);
-                                  }} style={{display:"flex",alignItems:"center",gap:7,padding:"9px 10px",borderRadius:10,background:checked?"linear-gradient(180deg,rgba(212,175,55,0.08) 0%,rgba(12,16,26,0.96) 100%)":"rgba(255,255,255,0.02)",border:checked?"1px solid rgba(212,175,55,0.38)":"1px solid rgba(255,255,255,0.05)",boxShadow:checked?"0 0 14px rgba(212,175,55,0.12)":"none",transform:checked?"scale(1.01)":"scale(1)",transition:"all .18s ease"}}>
-                                    <div style={{width:14,height:14,borderRadius:4,background:checked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:checked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:800,flexShrink:0,boxShadow:checked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{checked?"✓":""}</div>
-                                    <div style={{fontSize:10,color:checked?"#F6E27A":"rgba(255,255,255,0.65)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:checked?600:400}}>{s.name}</div>
-                                    <div style={{fontSize:8,color:"rgba(255,255,255,0.25)",flexShrink:0}}>{s.a}v</div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {visibleOnboardJuzCount<30&&(
-                  <div style={{textAlign:"center",marginBottom:18}}>
-                    <div className="sbtn" onClick={()=>setVisibleOnboardJuzCount(v=>Math.min(v+7,30))} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 16px",borderRadius:999,background:"rgba(212,175,55,0.03)",border:"1px solid rgba(212,175,55,0.12)",color:"rgba(212,175,55,0.85)",fontSize:12,fontWeight:600}}>
-                      Load More <span style={{fontSize:11}}>↓</span>
-                    </div>
-                  </div>
-                )}
-                <div style={{flex:1}}/>
-                <div style={{display:"flex",gap:8}}>
-                  <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:12,fontSize:14,color:"#A8B89A"}}>←</div>
-                  <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
-                    Select your starting point
-                  </div>
-                </div>
-              </div>
-            );
-            } catch(e) {
-              return <div style={{flex:1,padding:"24px",background:"#060A07",color:"#E5534B",fontSize:11,fontFamily:"monospace",whiteSpace:"pre-wrap",overflowY:"auto"}}>
-                ERROR IN STEP 4:{"\n"}{e?.message}{"\n\n"}{e?.stack}
-              </div>;
-            }
-          })()}
-
-        </div>
+      <Onboarding
+        userName={userName} setUserName={setUserName}
+        onboardStep={onboardStep} setOnboardStep={setOnboardStep}
+        visibleOnboardJuzCount={visibleOnboardJuzCount} setVisibleOnboardJuzCount={setVisibleOnboardJuzCount}
+        goalYears={goalYears} setGoalYears={setGoalYears}
+        goalMonths={goalMonths} setGoalMonths={setGoalMonths}
+        juzStatus={juzStatus} setJuzStatus={setJuzStatus}
+        memorizedAyahs={memorizedAyahs} completedCount={completedCount}
+        v9MarkJuzComplete={v9MarkJuzComplete} v9MarkJuzIncomplete={v9MarkJuzIncomplete}
+        v9IsJuzComplete={v9IsJuzComplete} v9MarkSurahComplete={v9MarkSurahComplete} v9MarkSurahIncomplete={v9MarkSurahIncomplete}
+        openMethod={openMethod} setOpenMethod={setOpenMethod}
+        openJuzPanel={openJuzPanel} setOpenJuzPanel={setOpenJuzPanel}
+        loaded={loaded}
+        setShowOnboarding={setShowOnboarding}
+      />
       )}
 
       {/* ── DAILY DUA MODAL (every launch, after onboarding) ── */}
@@ -2280,154 +2077,7 @@ export default function RihlatAlHifz() {
             <div style={{padding:"12px 14px 120px",position:"relative",zIndex:1}}>
 
             {/* ── YOUR MEMORIZATION JOURNEY — Progress Path ── */}
-            {(()=>{
-              const completed=completedCount;
-              const waypoints=[
-                {x:320,y:175,juz:5},
-                {x:-15, y:140,juz:10},
-                {x:300,y:90, juz:15},
-                {x:50, y:45, juz:20},
-                {x:340,y:10, juz:25},
-                {x:340,y:-25, juz:30},
-              ];
-              const startPt={x:-130,y:210};
-              const pathD=`M ${startPt.x} ${startPt.y} C -60 240 370 190 ${waypoints[0].x} ${waypoints[0].y} C 370 155 -50 145 ${waypoints[1].x} ${waypoints[1].y} C -50 105 340 98 ${waypoints[2].x} ${waypoints[2].y} C 340 65 20 55 ${waypoints[3].x} ${waypoints[3].y} C 20 22 380 15 ${waypoints[4].x} ${waypoints[4].y}`;
-              const litCount=waypoints.filter(w=>completed>=w.juz).length;
-              const currentWpIdx=waypoints.findIndex(w=>completed<w.juz);
-              const currentWp=currentWpIdx>=0?waypoints[currentWpIdx]:waypoints[5];
-              return (
-                <div style={{borderRadius:20,overflow:"visible",marginBottom:10,position:"relative",padding:"10px 16px 0"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:0}}>
-                    <div>
-                      <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.6)":"#6B645A",fontWeight:700}}>Your Memorization Journey</div>
-                      <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"#8B7355",marginTop:2}}>You are currently on Juz {sessionJuz||"—"}</div>
-                      <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:3}}>{completedCount} of 30 Juz · Goal: {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths}mo`:""}</div>
-                    </div>
-                  </div>
-                  <svg viewBox="-140 -50 540 280" style={{width:"80%",height:"auto",margin:"0 auto",display:"block",overflow:"visible"}}>
-                    <defs>
-                      <linearGradient id="pathGold" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#5C4A1E"/>
-                        <stop offset="30%" stopColor="#8B6914"/>
-                        <stop offset="60%" stopColor="#D4AF37"/>
-                        <stop offset="85%" stopColor="#F6E27A"/>
-                        <stop offset="100%" stopColor="#FFFBEA"/>
-                      </linearGradient>
-                      <linearGradient id="pathDim" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor={dark?"rgba(92,74,30,0.15)":"rgba(0,0,0,0.04)"}/>
-                        <stop offset="100%" stopColor={dark?"rgba(92,74,30,0.08)":"rgba(0,0,0,0.06)"}/>
-                      </linearGradient>
-                      <filter id="pathGlow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="3" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                      </filter>
-<filter id="fireGlow" x="-100%" y="-100%" width="300%" height="300%">
-                        <feGaussianBlur stdDeviation="8" result="blur1"/>
-                        <feMerge><feMergeNode in="blur1"/><feMergeNode in="blur1"/><feMergeNode in="SourceGraphic"/></feMerge>
-                      </filter>
-                    </defs>
-                    {/* Core golden path + glow — DO NOT CHANGE */}
-                    <path d={pathD} fill="none" stroke="rgba(212,175,55,0.35)" strokeWidth="5" strokeLinecap="round" filter="url(#fireGlow)"/>
-                    <path d={pathD} fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="3" strokeLinecap="round" filter="url(#pathGlow)"/>
-                    {completed>0&&(
-                      <path ref={el=>{
-                        if(el){
-                          const totalLen=el.getTotalLength();
-                          const litLen=totalLen*(Math.min(completed,25)/25);
-                          el.style.strokeDasharray=`${litLen} ${totalLen}`;
-                        }
-                      }} d={pathD} fill="none" stroke="#F5C518" strokeWidth="6" strokeLinecap="round" opacity="0.8" filter="url(#fireGlow)" strokeDasharray="0 9999"/>
-                    )}
-                    {completed>0&&(
-                      <path ref={el=>{
-                        if(el){
-                          const totalLen=el.getTotalLength();
-                          const litLen=totalLen*(Math.min(completed,25)/25);
-                          el.style.strokeDasharray=`${litLen} ${totalLen}`;
-                        }
-                      }} d={pathD} fill="none" stroke="#FFEAA0" strokeWidth="3" strokeLinecap="round" filter="url(#pathGlow)" strokeDasharray="0 9999"/>
-                    )}
-                    <path ref={el=>{
-                      if(el&&completed>0&&completed<30){
-                        const len=el.getTotalLength();
-                        const pt=el.getPointAtLength(len*(completed/30));
-                        const marker=el.parentNode.querySelector('#juzMarker');
-                        if(marker){marker.setAttribute('transform',`translate(${pt.x},${pt.y})`);marker.style.display='';}
-                      }
-                    }} d={pathD} fill="none" stroke="none"/>
-                    <g id="juzMarker" style={{display:completed>0&&completed<30?'':'none'}}>
-                      <circle cx="0" cy="0" r="14" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
-                      <circle cx="0" cy="0" r="10" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
-                      <circle cx="0" cy="0" r="5" fill="#D4AF37" stroke="#F6E27A" strokeWidth="1.5" filter="url(#pathGlow)"/>
-                      <text x="0" y="-14" textAnchor="middle" fill="#F0C040" fontSize="18" fontWeight="700">Juz {completed}</text>
-                      <circle cx="0" cy="0" r="14" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="1.5">
-                        <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
-                      </circle>
-                      <circle cx="0" cy="0" r="18" fill="none" stroke="rgba(240,192,64,0.3)" strokeWidth="1">
-                        <animate attributeName="r" values="16;26;16" dur="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.4;0;0.4" dur="2.5s" repeatCount="indefinite"/>
-                      </circle>
-                    </g>
-                    {/* Extra dot between Juz 20 and 25, closer to 25 */}
-                    {(()=>{const d25=completed>=25;return <><circle cx={260} cy={18} r={d25?"7":"6"} fill={d25?"#D4AF37":(dark?"rgba(200,180,100,0.35)":"rgba(0,0,0,0.15)")} stroke={d25?"#F6E27A":(dark?"rgba(200,180,100,0.5)":"rgba(0,0,0,0.2)")} strokeWidth="1.5" filter={d25?"url(#pathGlow)":"none"}/><text x={260} y={6} textAnchor="middle" fill={d25?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="18" fontWeight="700">Juz 25</text></>;})()}
-                    {waypoints.map((w,i)=>{
-                      const done=completed>=w.juz;
-                      const isCurrent=currentWpIdx===i;
-                      const isLast=i===5;
-                      if(isLast) return (
-                        <g key={i} transform={`translate(${w.x},${w.y}) scale(1.8)`}>
-                          {/* Radiant glow */}
-                          <circle cx="0" cy="0" r="22" fill="rgba(240,192,64,0.06)" filter="url(#fireGlow)"/>
-                          <circle cx="0" cy="0" r="16" fill="rgba(240,192,64,0.1)" filter="url(#pathGlow)"/>
-                          <circle cx="0" cy="0" r="28" fill="none" stroke="rgba(240,192,64,0.15)" strokeWidth="1">
-                            <animate attributeName="r" values="24;30;24" dur="3s" repeatCount="indefinite"/>
-                            <animate attributeName="opacity" values="0.4;0.1;0.4" dur="3s" repeatCount="indefinite"/>
-                          </circle>
-                          <circle cx="0" cy="0" r="20" fill="none" stroke="rgba(240,192,64,0.25)" strokeWidth="0.8">
-                            <animate attributeName="r" values="18;24;18" dur="2.5s" repeatCount="indefinite"/>
-                            <animate attributeName="opacity" values="0.5;0.15;0.5" dur="2.5s" repeatCount="indefinite"/>
-                          </circle>
-                          <circle cx="0" cy="0" r="12" fill="rgba(240,192,64,0.12)"/>
-                          <circle cx="0" cy="0" r="8" fill="rgba(212,175,55,0.2)"/>
-                          {/* Open Quran book */}
-                          <defs>
-                            <linearGradient id="quranPage" x1="0%" y1="0%" x2="0%" y2="100%">
-                              <stop offset="0%" stopColor="#FEF3C7"/>
-                              <stop offset="100%" stopColor="#F59E0B"/>
-                            </linearGradient>
-                          </defs>
-                          <path d="M -1 -10 Q -9 -12 -16 -9 L -16 8 Q -9 5 -1 7 Z" fill="url(#quranPage)" stroke="#B45309" strokeWidth="0.8"/>
-                          <path d="M 1 -10 Q 9 -12 16 -9 L 16 8 Q 9 5 1 7 Z" fill="url(#quranPage)" stroke="#B45309" strokeWidth="0.8"/>
-                          <line x1="0" y1="-10" x2="0" y2="7" stroke="#92400E" strokeWidth="1"/>
-                          <line x1="-13" y1="-5" x2="-3" y2="-5" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-                          <line x1="-13" y1="-2" x2="-3" y2="-2" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-                          <line x1="-12" y1="1" x2="-3" y2="1" stroke="#92400E" strokeWidth="0.5" opacity="0.4"/>
-                          <line x1="3" y1="-5" x2="13" y2="-5" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-                          <line x1="3" y1="-2" x2="13" y2="-2" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-                          <line x1="3" y1="1" x2="12" y2="1" stroke="#92400E" strokeWidth="0.5" opacity="0.4"/>
-                          {isCurrent&&!done&&(
-                            <circle cx="0" cy="0" r="16" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5">
-                              <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/>
-                              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
-                            </circle>
-                          )}
-                        </g>
-                      );
-                      return (
-                        <g key={i}>
-                          {done&&<><circle cx={w.x} cy={w.y} r="16" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/><circle cx={w.x} cy={w.y} r="12" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/></>}
-                          <circle cx={w.x} cy={w.y} r={done?"7":"6"} fill={done?"#D4AF37":isCurrent?"rgba(240,192,64,0.5)":(dark?"rgba(200,180,100,0.35)":"rgba(0,0,0,0.15)")} stroke={done?"#F6E27A":isCurrent?"rgba(240,192,64,0.5)":(dark?"rgba(200,180,100,0.5)":"rgba(0,0,0,0.2)")} strokeWidth="1.5" filter={done?"url(#pathGlow)":"none"}/>
-                          {w.juz!==25&&<text x={w.juz===10||w.juz===20?w.x-12:w.x+12} y={w.y+2} textAnchor={w.juz===10||w.juz===20?"end":"start"} dominantBaseline="middle" fill={done?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="18" fontWeight="700">Juz {w.juz}</text>}
-                          {done&&(<circle cx={w.x} cy={w.y} r="14" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1"><animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle>)}
-                          {isCurrent&&!done&&(<circle cx={w.x} cy={w.y} r="12" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5"><animate attributeName="r" values="10;16;10" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/></circle>)}
-                        </g>
-                      );
-                    })}
-                  </svg>
-                </div>
-              );
-            })()}
+            <RihlahProgressPath dark={dark} T={T} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} pct={pct} goalYears={goalYears} goalMonths={goalMonths}/>
 
             {/* ── DAILY GOALS + NAV — single card ── */}
             <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
@@ -3555,32 +3205,7 @@ export default function RihlatAlHifz() {
   onAbout={()=>{setTabBeforeAdjust({activeTab,rihlahTab});setShowSettings(false);setActiveTab("masjidayn");setMasjidaynTab("about");}}
 />
 
-{/* ── 2-PAGE WARNING MODAL ── */}
-{twoPageWarning&&(
-  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setTwoPageWarning(null)}>
-    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:20,maxWidth:380,width:"100%",border:"1px solid rgba(217,177,95,0.30)",boxShadow:"0 20px 60px rgba(0,0,0,0.60), 0 0 30px rgba(212,175,55,0.15)",padding:"22px 20px"}} onClick={e=>e.stopPropagation()}>
-      <div style={{textAlign:"center",marginBottom:12}}>
-        <div style={{fontSize:28,marginBottom:8}}>📖</div>
-        <div style={{fontSize:10,color:"#D4AF37",letterSpacing:".16em",textTransform:"uppercase",fontWeight:700,marginBottom:6}}>Sheikh Al-Qasim's Wisdom</div>
-      </div>
-      <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:dark?"#F6E27A":"#B45309",direction:"rtl",textAlign:"center",lineHeight:1.8,marginBottom:12}}>
-        لا تحفظ أكثر من صفحتين في اليوم
-      </div>
-      <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.80)":"#2D2A26",lineHeight:1.7,textAlign:"center",marginBottom:14,fontStyle:"italic"}}>
-        "Do not memorize more than two pages a day. Consistency and quality over quantity — this is the path that lasts."
-      </div>
-      <div style={{padding:"12px 14px",background:dark?"rgba(212,175,55,0.08)":"rgba(212,175,55,0.10)",border:`1px solid ${dark?"rgba(212,175,55,0.25)":"rgba(180,120,30,0.30)"}`,borderRadius:12,marginBottom:14,textAlign:"center"}}>
-        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.60)":"#6B645A",marginBottom:4}}>Your target was</div>
-        <div style={{fontSize:14,fontWeight:700,color:dark?"#F0C040":"#B45309",marginBottom:6}}>{twoPageWarning.target} ayahs today</div>
-        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.60)":"#6B645A",marginBottom:4}}>Adjusted to fit within 2 pages</div>
-        <div style={{fontSize:18,fontWeight:700,color:"#4ADE80"}}>{twoPageWarning.actual} ayahs today</div>
-      </div>
-      <div className="sbtn" onClick={()=>setTwoPageWarning(null)} style={{width:"100%",padding:"12px",borderRadius:12,textAlign:"center",fontSize:13,fontWeight:700,color:dark?"#0A0E1A":"#fff",background:"linear-gradient(180deg,#E6B84A,#D4A62A)"}}>
-        I understand · بارك الله فيك
-      </div>
-    </div>
-  </div>
-)}
+<TwoPageWarningModal warning={twoPageWarning} onClose={()=>setTwoPageWarning(null)} dark={dark} />
 
 {showReciterModal&&(
   <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
