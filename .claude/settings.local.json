@@ -3,7 +3,29 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git commit -m ':*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl -s \"https://api.qurancdn.com/api/qdc/verses/by_key/2:1?words=false&fields=text_uthmani\")",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s \"https://api.quran.com/api/v4/verses/by_key/2:1?fields=text_uthmani,text_imlaei\")",
+      "Bash(python3 -c ':*)",
+      "Bash(grep -n \"#0[0-9A-Fa-f]\\\\{5\\\\}\\\\|#0A1020\\\\|#0B1020\\\\|#0B1220\\\\|#0C1526\\\\|#0D1020\\\\|#0E1628\\\\|#0E1E3A\\\\|#0F1A2B\\\\|#111A33\\\\|#081220\\\\|rgba\\(243,231\\\\|rgba\\(230,184\\\\|rgba\\(217,177\\\\|rgba\\(0,0,0,0.4\" /c/Users/Mark/my-trackers/src/quran-hifz-tracker.jsx)",
+      "Read(//c/Users/Mark/my-trackers/**)",
+      "Bash(ls public/mountain* public/Mount* public/journey* public/hifz-journey*)",
+      "Bash(ls public/*.png public/*.jpg)",
+      "Bash(ls -la public/*.png public/*.jpg)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/mountain-background.png)",
+      "Bash(ls -la public/mountain-background* dist/mountain-background*)",
+      "Bash(ls -la /c/Users/Mark/my-trackers/public/mountain-background*)",
+      "Bash(ls -la /c/Users/Mark/my-trackers/dist/mountain-background*)",
+      "Bash(cat vite.config.*)",
+      "Bash(git checkout:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git -C /c/Users/Mark/my-trackers show HEAD:src/quran-hifz-tracker.jsx)",
+      "Bash(git -C /c/Users/Mark/my-trackers stash list)",
+      "Bash(python3)",
+      "Bash(node -c src/tabs/MasjidaynTab.jsx)",
+      "Bash(npx -y acorn --ecma2020 --module src/tabs/MasjidaynTab.jsx)"
     ]
   }
 }

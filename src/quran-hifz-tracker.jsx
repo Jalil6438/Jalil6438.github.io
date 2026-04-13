@@ -1,706 +1,16 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import MUTASHABIHAT from "./mutashabihat.json";
 import { QURAN_RECITERS, RECITERS, SURAH_EN, SURAH_AYAH_COUNTS, JUZ_RANGES, DARK, LIGHT, STATUS_CFG, MONTH_NAMES, TODAY, DATEKEY, FMTDATE } from "./data/constants";
+import { SESSIONS, getSessionWisdom } from "./data/sessions";
+import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
+import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
 import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys } from "./utils";
-
-// QURAN_RECITERS — imported from ./data/constants
-
-// RECITERS — imported from ./data/constants
-
-// audioUrl, audioUrlFallback — imported from ./utils
-
-// ── SESSIONS ──────────────────────────────────────────────────────────────────
-const SESSIONS = [
-  { id:"fajr",    time:"Fajr",    arabic:"الفجر",  icon:"🌅", color:"#F0C040",
-    title:"New Memorization",
-    desc:"Your peak retention window. Memorize new ayahs right after salah while the mind is completely fresh.",
-    steps:["Repeat each ayah 20 times until it feels natural","Do not proceed until you have perfected the previous ayah","Memorize every day — missing days weakens ambition"] },
-  { id:"dhuhr",   time:"Dhuhr",   arabic:"الظهر",  icon:"☀️", color:"#F6A623",
-    title:"5-Day Review",
-    desc:"Review what you memorized over the last 5 days. The Sheikh says: review the previous five days before starting anything new.",
-    steps:["Review what you memorized the previous five days","It escapes from hearts faster than the camel from its rope","Do not become sad if you lose memorization — this is the assembly stage"] },
-  { id:"asr",     time:"Asr",     arabic:"العصر",  icon:"🌤️", color:"#4ECDC4",
-    title:"Progressive Revision",
-    desc:"Your revision scales as you progress — every juz touched every 10 days.",
-    steps:["Persistence in revision is a great foundation — Ibn al-Jawzi","Cycle through completed sections consistently","Allah elevates a people by way of this book"] },
-  { id:"maghrib", time:"Maghrib", arabic:"المغرب", icon:"🌆", color:"#B794F4",
-    title:"Listening",
-    desc:"Follow along with your chosen reciter. Your ear reinforces what your tongue is learning.",
-    steps:["Listen to the reciter and follow along carefully","When the Qur'an is recited, listen and be silent — Al-A'raf 7:204","The character of the Prophet was the Qur'an"] },
-  { id:"isha",    time:"Isha",    arabic:"العشاء", icon:"🌙", color:"#68D391",
-    title:"Full Day Review",
-    desc:"Recite everything from today before sleep. Sleep consolidates what you review right before it.",
-    steps:["Recite everything one final time before sleep","Memorization does not solidify except by way of revision","It is a treasure that is not given to just anyone"] },
-];
-
-// ── SESSION WISDOM — from "The Easiest Way to Memorize the Noble Qur'an" by Sheikh Abdul Muhsin Al-Qasim ──
-const SESSION_WISDOM = {
-  fajr:[
-    {type:"book", text:"The foundation of memorization is repetition — the more the person repeats, the more proficient the memorization becomes."},
-    {type:"book", text:"Do not proceed to memorize a new page until you have perfected the previous one without error or hesitation."},
-    {type:"hadith", text:"The best of people are those who learn the Qur'an and teach it.", src:"Bukhari 5027"},
-    {type:"hadith", text:"Whoever recites a letter from Allah's Book will receive one hasanah, and each hasanah is multiplied by ten times fold.", src:"At-Tirmidhi 2910"},
-    {type:"book", text:"It is a treasure that is not given to just anyone."},
-    {type:"book", text:"Memorize every day; missing days weakens a person's ambition and memorization."},
-    {type:"quran", text:"And We have indeed made the Qur'an easy to understand and remember; then is there any one who will remember?", arabic:"وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ", ref:"Al-Qamar 54:17"},
-    {type:"quran", text:"And recite the Qur'an (aloud) in a slow, (pleasant tone and) style.", arabic:"وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا", ref:"Al-Muzzammil 73:4"},
-  ],
-  dhuhr:[
-    {type:"book", text:"Before starting a new lesson, review what you memorized the previous five days."},
-    {type:"book", text:"Everyone who memorizes the Qur'an will lose some within the first two years. This is the assembly stage. Do not become sad."},
-    {type:"book", text:"The devil plays a part in it to discourage you. So leave his whispers behind you and continue."},
-    {type:"book", text:"He who memorizes quickly, forgets quickly."},
-    {type:"hadith", text:"Review the Qur'an, for verily it escapes from the hearts of men faster than the camel from its rope.", src:"Bukhari 5032"},
-    {type:"quran", text:"Those to whom We gave the Book recite it as it should be recited, they are the ones who believe therein.", arabic:"الَّذِينَ آتَيْنَاهُمُ الْكِتَابَ يَتْلُونَهُ حَقَّ تِلَاوَتِهِ أُولَٰئِكَ يُؤْمِنُونَ بِهِ", ref:"Al-Baqarah 2:121"},
-    {type:"quran", text:"Verily, We, it is We Who have sent down the Dhikr and surely, We will guard it.", arabic:"إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ", ref:"Al-Hijr 15:9"},
-  ],
-  asr:[
-    {type:"book", text:"Persistence in revision is a great foundation, for how many have abandoned revising that which they memorized.", attr:"Ibn al-Jawzi"},
-    {type:"hadith", text:"Verily, Allah elevates a people by way of this book and lowers others by way of it.", src:"Muslim 817"},
-    {type:"hadith", text:"Whoever gathers the Qur'an has been entrusted with a great affair. The Prophethood has been piled up within him.", attr:"Abdullah ibn Amr"},
-    {type:"book", text:"Your revision grows with your progress — this is by design. The more you memorize, the more you protect."},
-    {type:"book", text:"Old age does not prevent one from memorizing the Qur'an. Abu Bakr memorized at 61, Abu Abdullah ibn Umar at 80."},
-    {type:"hadith", text:"He who does not memorize anything in his heart of the Qur'an is like a destroyed house.", src:"At-Tirmidhi 2913"},
-    {type:"quran", text:"The clear Ayat are preserved in the breasts of those who have been given knowledge.", arabic:"بَلْ هُوَ آيَاتٌ بَيِّنَاتٌ فِي صُدُورِ الَّذِينَ أُوتُوا الْعِلْمَ", ref:"Al-'Ankabut 29:49"},
-    {type:"quran", text:"Verily, this Qur'an guides to that which is most just and right.", arabic:"إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ", ref:"Al-Isra 17:9"},
-  ],
-  maghrib:[
-    {type:"hadith", text:"Read the Qur'an, for it will come as an intercession for its companions on the Day of Resurrection.", src:"Muslim 804"},
-    {type:"hadith", text:"The character of Allah's Prophet was the Qur'an.", src:"Muslim 746"},
-    {type:"hadith", text:"The one who is proficient in the Qur'an will be with the honorable and obedient Angels.", src:"Bukhari 4937"},
-    {type:"hadith", text:"No group come together reciting Allah's Book except that tranquility descends upon them, mercy encompasses them, and the angels surround them.", src:"Muslim 2699"},
-    {type:"quran", text:"When the Qur'an is recited, listen to it, and be silent that you may receive mercy.", arabic:"وَإِذَا قُرِئَ الْقُرْآنُ فَاسْتَمِعُوا لَهُ وَأَنصِتُوا لَعَلَّكُمْ تُرْحَمُونَ", ref:"Al-A'raf 7:204"},
-    {type:"quran", text:"The skins of those who fear their Lord shiver from it. Then their skin and their heart soften to the remembrance of Allah.", arabic:"تَقْشَعِرُّ مِنْهُ جُلُودُ الَّذِينَ يَخْشَوْنَ رَبَّهُمْ ثُمَّ تَلِينُ جُلُودُهُمْ وَقُلُوبُهُمْ إِلَىٰ ذِكْرِ اللَّهِ", ref:"Az-Zumar 39:23"},
-  ],
-  isha:[
-    {type:"hadith", text:"The companion of the Qur'an will be told: 'Read and ascend in ranks. Your rank will be at the last verse you read.'", src:"At-Tirmidhi 2914"},
-    {type:"hadith", text:"The people of the Qur'an are the people of Allah and His specific servants.", src:"Ahmad 12292"},
-    {type:"hadith", text:"It is not befitting for the one who possesses the Qur'an to become extremely angry, while he is the bearer of the Speech of Allah.", attr:"Abdullah ibn Amr"},
-    {type:"book", text:"The superiority of Allah's Speech over the speech of the Creation is like the superiority of the Creator over the Creation."},
-    {type:"book", text:"Memorization does not solidify except by way of revision.", attr:"Ibn al-Jawzi"},
-    {type:"quran", text:"O mankind! There has come to you a good advice from your Lord, and a healing for that which is in your breasts — a guidance and a mercy for the believers.", arabic:"يَا أَيُّهَا النَّاسُ قَدْ جَاءَتْكُم مَّوْعِظَةٌ مِّن رَّبِّكُمْ وَشِفَاءٌ لِّمَا فِي الصُّدُورِ وَهُدًى وَرَحْمَةٌ لِّلْمُؤْمِنِينَ", ref:"Yunus 10:57"},
-    {type:"quran", text:"We have not sent down the Qur'an unto you to cause you distress.", arabic:"مَا أَنزَلْنَا عَلَيْكَ الْقُرْآنَ لِتَشْقَىٰ", ref:"Ta-Ha 20:2"},
-  ],
-};
-// Get today's wisdom for a session — rotates daily through the pool
-function getSessionWisdom(sessionId){
-  const pool=SESSION_WISDOM[sessionId]; if(!pool||!pool.length) return null;
-  const day=Math.floor(Date.now()/86400000);
-  return pool[day%pool.length];
-}
-
-// SURAH_EN — imported from ./data/constants
-const SURAH_AR = {
-  1:"الفاتحة",2:"البقرة",3:"آل عمران",4:"النساء",5:"المائدة",6:"الأنعام",7:"الأعراف",8:"الأنفال",9:"التوبة",10:"يونس",
-  11:"هود",12:"يوسف",13:"الرعد",14:"إبراهيم",15:"الحجر",16:"النحل",17:"الإسراء",18:"الكهف",19:"مريم",20:"طه",
-  21:"الأنبياء",22:"الحج",23:"المؤمنون",24:"النور",25:"الفرقان",26:"الشعراء",27:"النمل",28:"القصص",29:"العنكبوت",30:"الروم",
-  31:"لقمان",32:"السجدة",33:"الأحزاب",34:"سبأ",35:"فاطر",36:"يس",37:"الصافات",38:"ص",39:"الزمر",40:"غافر",
-  41:"فصلت",42:"الشورى",43:"الزخرف",44:"الدخان",45:"الجاثية",46:"الأحقاف",47:"محمد",48:"الفتح",49:"الحجرات",50:"ق",
-  51:"الذاريات",52:"الطور",53:"النجم",54:"القمر",55:"الرحمن",56:"الواقعة",57:"الحديد",58:"المجادلة",59:"الحشر",60:"الممتحنة",
-  61:"الصف",62:"الجمعة",63:"المنافقون",64:"التغابن",65:"الطلاق",66:"التحريم",67:"الملك",68:"القلم",69:"الحاقة",70:"المعارج",
-  71:"نوح",72:"الجن",73:"المزمل",74:"المدثر",75:"القيامة",76:"الإنسان",77:"المرسلات",78:"النبأ",79:"النازعات",80:"عبس",
-  81:"التكوير",82:"الانفطار",83:"المطففين",84:"الانشقاق",85:"البروج",86:"الطارق",87:"الأعلى",88:"الغاشية",89:"الفجر",90:"البلد",
-  91:"الشمس",92:"الليل",93:"الضحى",94:"الشرح",95:"التين",96:"العلق",97:"القدر",98:"البينة",99:"الزلزلة",100:"العاديات",
-  101:"القارعة",102:"التكاثر",103:"العصر",104:"الهمزة",105:"الفيل",106:"قريش",107:"الماعون",108:"الكوثر",109:"الكافرون",110:"النصر",
-  111:"المسد",112:"الإخلاص",113:"الفلق",114:"الناس",
-};
-const JUZ_OPENERS={1:"الم",2:"سَيَقُولُ السُّفَهَاءُ",3:"تِلْكَ الرُّسُلُ",4:"لَنْ تَنَالُوا الْبِرَّ",5:"وَالْمُحْصَنَاتُ",6:"لَا يُحِبُّ اللَّهُ",7:"وَإِذَا سَمِعُوا",8:"وَلَوْ أَنَّنَا",9:"قَالَ الْمَلَأُ",10:"وَاعْلَمُوا",11:"يَعْتَذِرُونَ",12:"وَمَا مِنْ دَابَّةٍ",13:"وَمَا أُبَرِّئُ",14:"رُبَمَا",15:"سُبْحَانَ الَّذِي",16:"قَالَ أَلَمْ",17:"اقْتَرَبَ لِلنَّاسِ",18:"قَدْ أَفْلَحَ",19:"وَقَالَ الَّذِينَ",20:"أَمَّنْ خَلَقَ",21:"اتْلُ مَا أُوحِيَ",22:"وَمَنْ يَقْنُتْ",23:"وَمَا لِيَ",24:"فَمَنْ أَظْلَمُ",25:"إِلَيْهِ يُرَدُّ",26:"حم",27:"قَالَ فَمَا خَطْبُكُمْ",28:"قَدْ سَمِعَ اللَّهُ",29:"تَبَارَكَ الَّذِي بِيَدِهِ الْمُلْكُ",30:"عَمَّ يَتَسَاءَلُونَ"};
-
-const JUZ_META = [
-  {num:1,arabic:"الم",roman:"Alif Lam Mim",order:30},{num:2,arabic:"سَيَقُولُ",roman:"Sayaqool",order:29},
-  {num:3,arabic:"تِلْكَ الرُّسُل",roman:"Tilkal Rusul",order:28},{num:4,arabic:"لَن تَنَالُوا",roman:"Lan Tanaloo",order:27},
-  {num:5,arabic:"وَالْمُحْصَنَات",roman:"Wal Mohsanat",order:26},{num:6,arabic:"لَا يُحِبُّ",roman:"La Yuhibbu",order:25},
-  {num:7,arabic:"وَإِذَا سَمِعُوا",roman:"Wa Iza Samiu",order:24},{num:8,arabic:"وَلَوْ أَنَّنَا",roman:"Wa Lau Annana",order:23},
-  {num:9,arabic:"قَالَ الْمَلَأُ",roman:"Qalal Mala",order:22},{num:10,arabic:"وَاعْلَمُوا",roman:"Wa A'lamu",order:21},
-  {num:11,arabic:"يَعْتَذِرُونَ",roman:"Ya'taziroon",order:20},{num:12,arabic:"وَمَا مِن دَآبَّة",roman:"Wa Mamin Dabbah",order:19},
-  {num:13,arabic:"وَمَا أُبَرِّئُ",roman:"Wa Ma Ubarri'u",order:18},{num:14,arabic:"رُبَمَا",roman:"Rubama",order:17},
-  {num:15,arabic:"سُبْحَانَ الَّذِي",roman:"Subhanalladhi",order:16},{num:16,arabic:"قَالَ أَلَمْ",roman:"Qala Alam",order:15},
-  {num:17,arabic:"اقْتَرَبَ",roman:"Iqtaraba",order:14},{num:18,arabic:"قَدْ أَفْلَحَ",roman:"Qad Aflaha",order:13},
-  {num:19,arabic:"وَقَالَ الَّذِينَ",roman:"Wa Qalallazina",order:12},{num:20,arabic:"أَمَّنْ خَلَقَ",roman:"Amman Khalaq",order:11},
-  {num:21,arabic:"اتْلُ مَا أُوحِيَ",roman:"Utlu Ma Oohiya",order:10},{num:22,arabic:"وَمَن يَقْنُتْ",roman:"Wa Manyaqnut",order:9},
-  {num:23,arabic:"وَمَا لِيَ",roman:"Wa Mali",order:8},{num:24,arabic:"فَمَنْ أَظْلَمُ",roman:"Faman Azlam",order:7},
-  {num:25,arabic:"إِلَيْهِ يُرَدُّ",roman:"Ilayhi Yuraddu",order:6},{num:26,arabic:"حم",roman:"Ha Mim",order:5},
-  {num:27,arabic:"قَالَ فَمَا",roman:"Qala Fama Khatbukum",order:4},{num:28,arabic:"قَدْ سَمِعَ",roman:"Qad Sami'Allah",order:3},
-  {num:29,arabic:"تَبَارَكَ",roman:"Tabarakalladhi",order:2},{num:30,arabic:"عَمَّ",roman:"Amma",order:1},
-];
-
-// ── V9 AYAH ENGINE ───────────────────────────────────────────────────────────
-// Source of truth: every surah's exact ayah count. Verified against Quran MCP.
-// SURAH_AYAH_COUNTS, JUZ_RANGES — imported from ./data/constants
-// expandRangeToKeys, getJuzKeys, loadCompletedAyahs, saveCompletedAyahs — imported from ./utils
-
-// ── JUZ → SURAH MAPPING ──────────────────────────────────────────────────────
-const JUZ_SURAHS = {
-  1:[{s:1,name:"Al-Fatiha",a:7},{s:2,name:"Al-Baqarah",a:141}],
-  2:[{s:2,name:"Al-Baqarah",a:92}],
-  3:[{s:2,name:"Al-Baqarah",a:37},{s:3,name:"Aal Imran",a:92}],
-  4:[{s:3,name:"Aal Imran",a:88},{s:4,name:"An-Nisa",a:23}],
-  5:[{s:4,name:"An-Nisa",a:147}],
-  6:[{s:4,name:"An-Nisa",a:57},{s:5,name:"Al-Maidah",a:82}],
-  7:[{s:5,name:"Al-Maidah",a:38},{s:6,name:"Al-Anam",a:110}],
-  8:[{s:6,name:"Al-Anam",a:51},{s:7,name:"Al-Araf",a:87}],
-  9:[{s:7,name:"Al-Araf",a:87},{s:8,name:"Al-Anfal",a:40}],
-  10:[{s:8,name:"Al-Anfal",a:40},{s:9,name:"At-Tawbah",a:92}],
-  11:[{s:9,name:"At-Tawbah",a:40},{s:10,name:"Yunus",a:109},{s:11,name:"Hud",a:5}],
-  12:[{s:11,name:"Hud",a:78},{s:12,name:"Yusuf",a:52}],
-  13:[{s:12,name:"Yusuf",a:52},{s:13,name:"Ar-Rad",a:43},{s:14,name:"Ibrahim",a:52}],
-  14:[{s:15,name:"Al-Hijr",a:99},{s:16,name:"An-Nahl",a:128}],
-  15:[{s:17,name:"Al-Isra",a:111},{s:18,name:"Al-Kahf",a:74}],
-  16:[{s:18,name:"Al-Kahf",a:36},{s:19,name:"Maryam",a:98},{s:20,name:"Ta-Ha",a:135}],
-  17:[{s:21,name:"Al-Anbiya",a:112},{s:22,name:"Al-Hajj",a:78}],
-  18:[{s:23,name:"Al-Muminun",a:118},{s:24,name:"An-Nur",a:64},{s:25,name:"Al-Furqan",a:20}],
-  19:[{s:25,name:"Al-Furqan",a:57},{s:26,name:"Ash-Shuara",a:227},{s:27,name:"An-Naml",a:55}],
-  20:[{s:27,name:"An-Naml",a:26},{s:28,name:"Al-Qasas",a:88},{s:29,name:"Al-Ankabut",a:45}],
-  21:[{s:29,name:"Al-Ankabut",a:24},{s:30,name:"Ar-Rum",a:60},{s:31,name:"Luqman",a:34},{s:32,name:"As-Sajda",a:30},{s:33,name:"Al-Ahzab",a:30}],
-  22:[{s:33,name:"Al-Ahzab",a:43},{s:34,name:"Saba",a:54},{s:35,name:"Fatir",a:45},{s:36,name:"Ya-Sin",a:27}],
-  23:[{s:36,name:"Ya-Sin",a:56},{s:37,name:"As-Saffat",a:182},{s:38,name:"Sad",a:88},{s:39,name:"Az-Zumar",a:31}],
-  24:[{s:39,name:"Az-Zumar",a:44},{s:40,name:"Ghafir",a:85},{s:41,name:"Fussilat",a:46}],
-  25:[{s:41,name:"Fussilat",a:8},{s:42,name:"Ash-Shura",a:53},{s:43,name:"Az-Zukhruf",a:89},{s:44,name:"Ad-Dukhan",a:59},{s:45,name:"Al-Jathiya",a:37}],
-  26:[{s:46,name:"Al-Ahqaf",a:35},{s:47,name:"Muhammad",a:38},{s:48,name:"Al-Fath",a:29},{s:49,name:"Al-Hujurat",a:18},{s:50,name:"Qaf",a:45},{s:51,name:"Adh-Dhariyat",a:30}],
-  27:[{s:51,name:"Adh-Dhariyat",a:30},{s:52,name:"At-Tur",a:49},{s:53,name:"An-Najm",a:62},{s:54,name:"Al-Qamar",a:55},{s:55,name:"Ar-Rahman",a:78},{s:56,name:"Al-Waqiah",a:96},{s:57,name:"Al-Hadid",a:29}],
-  28:[{s:58,name:"Al-Mujadila",a:22},{s:59,name:"Al-Hashr",a:24},{s:60,name:"Al-Mumtahina",a:13},{s:61,name:"As-Saf",a:14},{s:62,name:"Al-Jumuah",a:11},{s:63,name:"Al-Munafiqun",a:11},{s:64,name:"At-Taghabun",a:18},{s:65,name:"At-Talaq",a:12},{s:66,name:"At-Tahrim",a:12}],
-  29:[{s:67,name:"Al-Mulk",a:30},{s:68,name:"Al-Qalam",a:52},{s:69,name:"Al-Haqqa",a:52},{s:70,name:"Al-Maarij",a:44},{s:71,name:"Nuh",a:28},{s:72,name:"Al-Jinn",a:28},{s:73,name:"Al-Muzzammil",a:20},{s:74,name:"Al-Muddathir",a:56},{s:75,name:"Al-Qiyama",a:40},{s:76,name:"Al-Insan",a:31},{s:77,name:"Al-Mursalat",a:50}],
-  30:[{s:78,name:"An-Naba",a:40},{s:79,name:"An-Naziat",a:46},{s:80,name:"Abasa",a:42},{s:81,name:"At-Takwir",a:29},{s:82,name:"Al-Infitar",a:19},{s:83,name:"Al-Mutaffifin",a:36},{s:84,name:"Al-Inshiqaq",a:25},{s:85,name:"Al-Buruj",a:22},{s:86,name:"At-Tariq",a:17},{s:87,name:"Al-Ala",a:19},{s:88,name:"Al-Ghashiya",a:26},{s:89,name:"Al-Fajr",a:30},{s:90,name:"Al-Balad",a:20},{s:91,name:"Ash-Shams",a:15},{s:92,name:"Al-Layl",a:21},{s:93,name:"Ad-Duha",a:11},{s:94,name:"Ash-Sharh",a:8},{s:95,name:"At-Tin",a:8},{s:96,name:"Al-Alaq",a:19},{s:97,name:"Al-Qadr",a:5},{s:98,name:"Al-Bayyina",a:8},{s:99,name:"Az-Zalzala",a:8},{s:100,name:"Al-Adiyat",a:11},{s:101,name:"Al-Qaria",a:11},{s:102,name:"At-Takathur",a:8},{s:103,name:"Al-Asr",a:3},{s:104,name:"Al-Humaza",a:9},{s:105,name:"Al-Fil",a:5},{s:106,name:"Quraysh",a:4},{s:107,name:"Al-Maun",a:7},{s:108,name:"Al-Kawthar",a:3},{s:109,name:"Al-Kafirun",a:6},{s:110,name:"An-Nasr",a:3},{s:111,name:"Al-Masad",a:5},{s:112,name:"Al-Ikhlas",a:4},{s:113,name:"Al-Falaq",a:5},{s:114,name:"An-Nas",a:6}],
-};
-
-// STATUS_CFG, DARK, LIGHT, MONTH_NAMES, TODAY, DATEKEY, FMTDATE — imported from ./data/constants
-// calcTimeline — imported from ./utils
-
-// ── LIVE STREAMS DATA ─────────────────────────────────────────────────────────
-// Source: haramain.info sidebar — official Saudi Broadcasting Authority streams
-const LIVE_STREAMS = [
-  {
-    id:"makkah",
-    name:"Masjid Al-Haram — Makkah",
-    arabic:"قناة القرآن الكريم",
-    color:"#E5534B",
-    icon:"🕋",
-    label:"Makkah",
-    aloula:"https://www.aloula.sa/live/qurantvsa",
-    aloulaEmbed:"https://www.aloula.sa/live/qurantvsa",
-    yt:"https://www.youtube.com/@saudiqurantv/live",
-    ytEmbed:"https://www.youtube-nocookie.com/embed/live_stream?channel=UCZ3E3TZHovVAbqKAJoTMUlw&autoplay=1",
-    desc:"Saudi Quran Channel (aloula.sa) · 24/7 Live",
-  },
-  {
-    id:"madinah",
-    name:"Masjid An-Nabawi — Madinah",
-    arabic:"قناة السنة النبوية",
-    color:"#F0C040",
-    icon:"🌙",
-    label:"Madinah",
-    aloula:"https://www.aloula.sa/live/sunnatvsa",
-    aloulaEmbed:"https://www.aloula.sa/live/sunnatvsa",
-    yt:"https://www.youtube.com/@saudisunnahtv/live",
-    ytEmbed:"https://www.youtube-nocookie.com/embed/live_stream?channel=UCnVN_JQAPCNbwFdDe7bNL4w&autoplay=1",
-    desc:"Saudi Sunnah Channel (aloula.sa) · 24/7 Live",
-  },
-];
-
-// ── RAMADAN 1446 DATA ─────────────────────────────────────────────────────────
-// Ramadan 1446 AH ≈ March 1–30, 2025 CE
-// Full Taraweeh collections on archive.org — per surah audio from complete 1446 recording
-// Makkah: archive.org/details/MakkahTaraweeh1446  | Madinah: archive.org/details/MadeenahTaraweeh1446
-// Audio URL format: https://archive.org/download/[collection]/[NNN].mp3
-
-const RAMADAN_NIGHTS_MAKKAH = Array.from({length:30},(_,i)=>{
-  const n = i+1;
-  const date = new Date(2025,2,n);
-  const dateStr = date.toLocaleDateString("en-US",{month:"short",day:"numeric"});
-  const isLastTen = n >= 21;
-  const isOdd = n % 2 !== 0;
-  const isQadr = isLastTen && isOdd;
-  const isNight27 = n === 27;
-  // mirrors.quranicaudio.com Taraweeh URL pattern for 1446 Makkah
-  const dateStr2025 = `2025-03-${String(n).padStart(2,"0")}`;
-  return {
-    night: n,
-    date: dateStr,
-    isLastTen,
-    isQadr,
-    isNight27,
-    mirrorBase:`https://mirrors.quranicaudio.com/haramain/2025/03/makkah/`,
-    dateStr2025,
-    haramainLink:`https://www.haramain.info/${dateStr2025.replace(/-/g,"/").replace("2025/","2025/")}`,
-    ytSearch:`https://www.youtube.com/results?search_query=تراويح+مكة+رمضان+1446+ليلة+${n}`,
-  };
-});
-
-const RAMADAN_NIGHTS_MADINAH = Array.from({length:30},(_,i)=>{
-  const n = i+1;
-  const date = new Date(2025,2,n);
-  const dateStr = date.toLocaleDateString("en-US",{month:"short",day:"numeric"});
-  const isLastTen = n >= 21;
-  const isOdd = n % 2 !== 0;
-  const isQadr = isLastTen && isOdd;
-  const isNight27 = n === 27;
-  const dateStr2025 = `2025-03-${String(n).padStart(2,"0")}`;
-  return {
-    night: n,
-    date: dateStr,
-    isLastTen,
-    isQadr,
-    isNight27,
-    mirrorBase:`https://mirrors.quranicaudio.com/haramain/2025/03/madinah/`,
-    dateStr2025,
-    ytSearch:`https://www.youtube.com/results?search_query=تراويح+المدينة+رمضان+1446+ليلة+${n}`,
-  };
-});
-
-// ── HARAMAIN IMAMS DATA (cross-referenced with haramain.info) ────────────────
-const MAKKAH_IMAMS = [
-  // ── Current Imams ──
-  { id:"sudais2",   name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس",  quranicaudio:"abdurrahmaan_as-sudays",          surahCount:114, note:"Full Quran (114 surahs)", status:"current", role:"Chief Imam" },
-  { id:"muaiqly2",  name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",     mp3quran:"https://server12.mp3quran.net/maher",  surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"juhany2",   name:"Abdullah Al-Juhany",      arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee",   surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"baleela",   name:"Bandar Baleela",          arabic:"بندر بليلة",        quranicaudio:"bandar_baleela/complete",         surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"dossary2",  name:"Yasser Al-Dosari",        arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"humaid",    name:"Saleh Bin Humaid",        arabic:"صالح بن حميد",      archive:"HaramainHumaid",                       surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"khayat",    name:"Usama Khayat",            arabic:"أسامة خياط",        quranicaudio:"khayat",                          surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"turki",     name:"Badr Al-Turki",           arabic:"بدر التركي",        quranicaudio:"badr_al_turki/mp3",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"shamsan",   name:"Waleed Al-Shamsan",       arabic:"وليد الشمسان",      archive:null,                                   surahCount:null, note:"Prayer recordings — no full Quran archive", status:"current" },
-  // ── Former Imams ──
-  { id:"shuraim2",  name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",       quranicaudio:"sa3ood_al-shuraym",               surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Retired 2022" },
-  { id:"ghamdi",    name:"Khalid Al-Ghamdi",        arabic:"خالد الغامدي",      quranicaudio:"khalid_alghamdi",                 surahCount:21, availableSurahs:[9,14,25,32,39,42,58,59,60,61,62,66,68,69,76,85,88,90,91,93,95], note:"Partial — 21 of 114 surahs", status:"former", retired:"Retired 2018" },
-  { id:"salehtaleb",name:"Saleh Al-Taleb",          arabic:"صالح آل طالب",      quranicaudio:"saleh_al_taleb",                  surahCount:32, availableSurahs:[1,25,34,38,39,44,45,46,47,55,56,57,58,59,60,61,70,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86], note:"Partial — 32 of 114 surahs", status:"former", retired:"Retired 2018" },
-  { id:"kalbani",   name:"Adel Kalbani",            arabic:"عادل الكلباني",     quranicaudio:"adel_kalbani",                    surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Guest Imam · Taraweeh 2008" },
-];
-const MADINAH_IMAMS = [
-  // ── Current Imams ──
-  { id:"hudhaify2", name:"Ali Al-Hudhaify",         arabic:"علي الحذيفي",       quranicaudio:"huthayfi",                        surahCount:114, note:"Full Quran (114 surahs)", status:"current", role:"Chief Imam" },
-  { id:"budair2",   name:"Salah Al-Budair",         arabic:"صلاح البدير",       quranicaudio:"salahbudair",                     surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"qasim2",    name:"Abdul Muhsin Al-Qasim",   arabic:"عبدالمحسن القاسم",  quranicaudio:"abdul_muhsin_alqasim",            surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"thubaity",  name:"Abdul Bari Ath-Thubaity", arabic:"عبدالباري الثبيتي", quranicaudio:"thubaity",                        surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"muhanna",   name:"Khalid Al-Muhanna",       arabic:"خالد المهنا",       archive:"HaramainMuhanna",                      surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"qarafi2",   name:"Abdullah Al-Qarafi",      arabic:"عبدالله القرافي",   archive:"HaramainQuraafi",                      surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"buayjaan",  name:"Abdullah Al-Bu'ayjan",      arabic:"عبدالله البعيجان",  archive:"HaramainBuayjaan",                     surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"imadhafez", name:"Imad Zuhair Hafez",       arabic:"عماد زهير حافظ",    quranicaudio:"imad_zuhair_hafez",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"ahmadhudhayfi",name:"Ahmad Al-Hudhaify",    arabic:"أحمد الحذيفي",      quranicaudio:"ahmad_alhuthayfi",                surahCount:69, availableSurahs:[1,14,15,17,18,19,21,22,23,26,27,29,32,35,38,44,45,49,50,51,55,56,57,62,63,64,65,66,69,72,73,74,75,76,77,78,81,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114], note:"Partial — 69 of 114 surahs", status:"current" },
-  // ── Former Imams (rahimahullah / retired) ──
-  { id:"alijaber",  name:"Ali Jaber",               arabic:"علي جابر",          quranicaudio:"ali_jaber",                       surahCount:114, note:"Full Quran (114 surahs)", status:"former", deceased:"1932–2005 · rahimahullah" },
-  { id:"ayyoub2",   name:"Muhammad Ayyoub",         arabic:"محمد أيوب",         archive:"HaramainAyub",                         surahCount:114, note:"Full Quran (114 surahs)", status:"former", deceased:"1952–2016 · rahimahullah" },
-  { id:"alakhdar",  name:"Ibrahim Al-Akhdar",       arabic:"إبراهيم الأخضر",    quranicaudio:"ibrahim_al_akhdar",               surahCount:114, note:"Full Quran (114 surahs)", status:"former", retired:"Former Imam · appointed 1986" },
-];
-
-const HARAMAIN_SURAHS = [
-  "Al-Fatiha","Al-Baqarah","Aal Imran","An-Nisa","Al-Ma'idah","Al-An'am","Al-A'raf","Al-Anfal","At-Tawbah","Yunus",
-  "Hud","Yusuf","Ar-Ra'd","Ibrahim","Al-Hijr","An-Nahl","Al-Isra","Al-Kahf","Maryam","Ta-Ha",
-  "Al-Anbiya","Al-Hajj","Al-Mu'minun","An-Nur","Al-Furqan","Ash-Shu'ara","An-Naml","Al-Qasas","Al-Ankabut","Ar-Rum",
-  "Luqman","As-Sajda","Al-Ahzab","Saba","Fatir","Ya-Sin","As-Saffat","Sad","Az-Zumar","Ghafir",
-  "Fussilat","Ash-Shura","Az-Zukhruf","Ad-Dukhan","Al-Jathiya","Al-Ahqaf","Muhammad","Al-Fath","Al-Hujurat","Qaf",
-  "Adh-Dhariyat","At-Tur","An-Najm","Al-Qamar","Ar-Rahman","Al-Waqi'ah","Al-Hadid","Al-Mujadila","Al-Hashr","Al-Mumtahina",
-  "As-Saf","Al-Jumu'ah","Al-Munafiqun","At-Taghabun","At-Talaq","At-Tahrim","Al-Mulk","Al-Qalam","Al-Haqqa","Al-Ma'arij",
-  "Nuh","Al-Jinn","Al-Muzzammil","Al-Muddathir","Al-Qiyama","Al-Insan","Al-Mursalat","An-Naba","An-Nazi'at","Abasa",
-  "At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiya","Al-Fajr","Al-Balad",
-  "Ash-Shams","Al-Layl","Ad-Duha","Ash-Sharh","At-Tin","Al-Alaq","Al-Qadr","Al-Bayyina","Az-Zalzala","Al-Adiyat",
-  "Al-Qari'a","At-Takathur","Al-Asr","Al-Humaza","Al-Fil","Quraysh","Al-Ma'un","Al-Kawthar","Al-Kafirun","An-Nasr",
-  "Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"
-];
-
-// ── HLS PLAYER COMPONENT (standalone — clean) ────────────────────────────────
-function HlsPlayer({ src, T }) {
-  const videoRef = useRef(null);
-  const hlsRef = useRef(null);
-  const [status, setStatus] = useState("loading");
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    setStatus("loading");
-
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
-      video.play().then(()=>setStatus("playing")).catch(()=>setStatus("error"));
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.7/hls.min.js";
-    script.onload = () => {
-      if (!window.Hls || !window.Hls.isSupported()) { setStatus("error"); return; }
-      const hls = new window.Hls({ lowLatencyMode:true });
-      hlsRef.current = hls;
-      hls.loadSource(src);
-      hls.attachMedia(video);
-      hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
-        video.play().then(()=>setStatus("playing")).catch(()=>setStatus("error"));
-      });
-      hls.on(window.Hls.Events.ERROR, (_, d) => { if (d.fatal) setStatus("error"); });
-    };
-    script.onerror = () => setStatus("error");
-    document.head.appendChild(script);
-
-    return () => {
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-      video.src = "";
-    };
-  }, [src]);
-
-  return (
-    <div style={{flex:1,background:"#000",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",minHeight:220}}>
-      <video ref={videoRef} style={{width:"100%",height:"100%",maxHeight:380,objectFit:"contain"}} controls playsInline />
-      {status==="loading"&&(
-        <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.75)",gap:10}}>
-          <div className="spin" style={{width:28,height:28,border:"3px solid #333",borderTopColor:T.accent,borderRadius:"50%"}}/>
-          <div style={{fontSize:11,color:"#aaa"}}>Connecting to stream...</div>
-        </div>
-      )}
-      {status==="error"&&(
-        <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.88)",gap:10,padding:20}}>
-          <div style={{fontSize:24}}>📡</div>
-          <div style={{fontSize:13,color:"#ccc",textAlign:"center"}}>Stream unavailable in this browser</div>
-          <div style={{fontSize:11,color:"#777",textAlign:"center"}}>Use the YouTube button below to watch live</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// toArabicDigits — imported from ./utils
-
-// ── ASR SESSION VIEW (must be outside parent to avoid remount on every render) ─
-function AsrSessionView({
-    asrSelectionSummary,asrSafePage,asrPages,asrPageStart,asrPageEnd,
-    asrVisibleAyahs,asrBatch,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
-    setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
-    audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,completedAyahs,
-  }) {
-    const [asrViewMode,setAsrViewMode]=useState("mushaf"); // "mushaf" default, "study" for cards
-    const asrMushafScrollRef=useRef(null);
-    const [simVerseCache,setSimVerseCache]=useState({});
-    const fetchSimVerse=async(vk)=>{
-      if(simVerseCache[vk]) return;
-      const [s,a]=vk.split(":");
-      const nextKey=`${s}:${Number(a)+1}`;
-      try{
-        const [res1,res2]=await Promise.all([
-          fetch(`https://api.qurancdn.com/api/qdc/verses/by_key/${vk}?words=false&fields=text_uthmani`),
-          fetch(`https://api.qurancdn.com/api/qdc/verses/by_key/${nextKey}?words=false&fields=text_uthmani`)
-        ]);
-        const d1=res1.ok?await res1.json():null;
-        const d2=res2.ok?await res2.json():null;
-        const text=(d1?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-        const nextText=(d2?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-        if(text) setSimVerseCache(prev=>({...prev,[vk]:text,[nextKey+"_next"]:nextText}));
-      }catch{}
-    };
-    const T2={
-      gold:"#D2A85A",goldBright:"#E2BC72",
-      ivory:"#F3E7C8",ivoryDim:"rgba(243,231,200,0.74)",ivoryFaint:"rgba(243,231,200,0.46)",
-      green:"#59D98A",greenSoft:"rgba(89,217,138,0.16)",
-    };
-    return (
-      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto",padding:"16px 0 36px",background:dark?"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)":"#F3E9D2"}}>
-        <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-          {/* Exit button */}
-          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
-            <div className="sbtn" onClick={onChangeSelection} style={{padding:"6px 10px",fontSize:18,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
-          </div>
-          <div className="asr-title">ASR SESSION</div>
-          <div className="asr-title-line"/>
-
-          {/* Reviewing + selection + customize */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{width:10,height:10,borderRadius:"50%",background:T2.green,boxShadow:"0 0 10px rgba(89,217,138,0.26)",flexShrink:0}}/>
-              <div style={{color:"rgba(243,231,200,0.52)",fontSize:11,letterSpacing:".12em",textTransform:"uppercase",fontWeight:500}}>{asrIsCustomized?"Customized":"Auto"}</div>
-            </div>
-            <div className="sbtn" onClick={onChangeSelection}
-              style={{fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",
-              padding:"3px 9px",borderRadius:20,border:"1px solid rgba(217,177,95,0.22)",
-              color:"rgba(217,177,95,0.55)"}}>
-              Customize
-            </div>
-          </div>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-            <div style={{color:dark?T2.ivory:"#2D2A26",fontSize:14,fontWeight:600,lineHeight:1.25,maxWidth:"70%"}}>{asrSelectionSummary||"Asr Review"}</div>
-            <div style={{display:"flex",gap:4}}>
-              {["mushaf","study"].map(m=>(
-                <div key={m} className="sbtn" onClick={()=>setAsrViewMode(m)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:asrViewMode===m?700:400,letterSpacing:".06em",textTransform:"uppercase",color:asrViewMode===m?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.35)":"#9A8A6A"),background:asrViewMode===m?(dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)"):"transparent",border:`1px solid ${asrViewMode===m?(dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"):"transparent"}`}}>
-                  {m==="mushaf"?"Mushaf":"Study"}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── MUSHAF MODE — paged by surah ── */}
-          {asrViewMode==="mushaf"&&(()=>{
-            // Group ayahs by surah
-            const surahGroups=[];
-            let curGroup=null;
-            asrBatch.forEach(v=>{
-              const sNum=v.surah_number||parseInt(v.verse_key.split(":")[0],10);
-              if(!curGroup||curGroup.sNum!==sNum){ curGroup={sNum,ayahs:[]}; surahGroups.push(curGroup); }
-              curGroup.ayahs.push(v);
-            });
-            const totalSurahPages=surahGroups.length;
-            const safeSurahPage=Math.min(asrSafePage,totalSurahPages-1);
-            const currentGroup=surahGroups[safeSurahPage>=0?safeSurahPage:0];
-            if(!currentGroup) return null;
-            return (
-            <div style={{flex:1,overflow:"hidden",position:"relative"}}
-              onTouchStart={e=>{asrTouchStartRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY};}}
-              onTouchEnd={e=>{
-                if(!asrTouchStartRef.current) return;
-                const dx=e.changedTouches[0].clientX-asrTouchStartRef.current.x;
-                const dy=e.changedTouches[0].clientY-asrTouchStartRef.current.y;
-                asrTouchStartRef.current=null;
-                if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)) return;
-                if(dx>0&&safeSurahPage<totalSurahPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalSurahPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
-                else if(dx<0&&safeSurahPage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
-              }}>
-              <div ref={asrMushafScrollRef} style={{overflowY:"auto",padding:"12px 14px",height:"100%"}}>
-                {/* Surah header */}
-                <div style={{textAlign:"center",marginBottom:12}}>
-                  <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[currentGroup.sNum]||""}</div>
-                  <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.50)",letterSpacing:".12em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>{SURAH_EN[currentGroup.sNum]}</div>
-                  {currentGroup.sNum!==9&&currentGroup.sNum!==1&&<div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>}
-                  <div style={{height:1,margin:"8px 16px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
-                </div>
-                {/* Flowing ayahs */}
-                <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2.0,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                  {currentGroup.ayahs.map(v=>{
-                    const vKey=v.verse_key;
-                    const aNum=parseInt(vKey.split(":")[1],10);
-                    return (
-                      <span key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
-                        style={{cursor:"pointer",borderRadius:6,padding:"2px 4px"}}>
-                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                        <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
-                      </span>
-                    );
-                  })}
-                </div>
-              {/* Page nav */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",marginTop:8}}>
-                <div className={safeSurahPage<totalSurahPages-1?"sbtn":""} onClick={()=>{if(safeSurahPage<totalSurahPages-1){setAsrSlideDir("left");setAsrPage(p=>p+1);asrMushafScrollRef.current?.scrollTo(0,0);}}} style={{padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,color:safeSurahPage<totalSurahPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safeSurahPage<totalSurahPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safeSurahPage<totalSurahPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>← Next</div>
-                <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A"}}>{safeSurahPage+1} / {totalSurahPages}</div>
-                <div className={safeSurahPage>0?"sbtn":""} onClick={()=>{if(safeSurahPage>0){setAsrSlideDir("right");setAsrPage(p=>p-1);asrMushafScrollRef.current?.scrollTo(0,0);}}} style={{padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,color:safeSurahPage>0?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safeSurahPage>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safeSurahPage>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev →</div>
-              </div>
-              </div>
-            </div>
-            );
-          })()}
-
-          {/* ── STUDY MODE — card view with pagination ── */}
-          {asrViewMode==="study"&&(
-          <div>
-          {/* Ayah panel — frame is static, only content slides */}
-          <div
-            className="asr-ayah-panel"
-            style={{padding:"6px 0",marginBottom:0,borderRadius:0,borderTop:"1px solid rgba(217,177,95,0.32)",borderBottom:"1px solid rgba(217,177,95,0.32)",position:"relative",overflow:"hidden"}}
-            onTouchStart={e=>{asrTouchStartRef.current=e.touches[0].clientX;}}
-            onTouchEnd={e=>{
-              if(asrTouchStartRef.current==null) return;
-              const delta=e.changedTouches[0].clientX-asrTouchStartRef.current;
-              asrTouchStartRef.current=null;
-              if(Math.abs(delta)<40) return;
-              if(delta>0&&asrSafePage<asrPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(asrPages-1,p+1)); }
-              else if(delta<0&&asrSafePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); }
-            }}
-          >
-            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
-            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
-
-            {/* Ayah list — slides on page change */}
-            <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{display:"flex",flexDirection:"column",gap:8,padding:"4px 0"}}>
-              {asrVisibleAyahs.map((v,idx)=>{
-                const vKey=v.verse_key;
-                const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
-                return (
-                  <div key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
-                    style={{borderRadius:14,padding:"12px 14px",background:dark?"rgba(14,22,40,0.80)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.08)":"1px solid rgba(0,0,0,0.08)",boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",transition:"all .15s"}}>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                      <span style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>{SURAH_EN[sNum]||`Surah ${sNum}`} · {vKey}</span>
-                    </div>
-                    <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                      <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-          </div>
-          </div>
-          )}
-
-          <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
-
-          {/* Progress */}
-          <div style={{marginBottom:6,padding:"0 20px"}}>
-            <div style={{color:T2.goldBright,fontSize:12,fontWeight:800,marginBottom:8}}>Progress</div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
-              <div style={{padding:"6px 12px",borderRadius:999,background:T2.greenSoft,border:"1px solid rgba(89,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
-                {asrSurahProgress.filter(s=>s.state==="complete").length} Memorized
-              </div>
-              {asrSurahProgress.find(s=>s.state==="current")&&(
-                <div style={{padding:"6px 12px",borderRadius:999,background:"transparent",border:"1px solid rgba(210,168,90,0.18)",color:"rgba(226,188,114,0.65)",fontSize:11,fontWeight:400}}>
-                  {asrSurahProgress.find(s=>s.state==="current")?.label}
-                </div>
-              )}
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div style={{color:T2.ivoryFaint,fontSize:12}}>Pages</div>
-              <div style={{color:T2.goldBright,fontSize:12,fontWeight:600}}>Page {asrSafePage+1} of {asrPages}</div>
-            </div>
-            <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${Math.round(((asrSafePage+1)/asrPages)*100)}%`,background:"linear-gradient(90deg,#D2A85A,#E2BC72)",borderRadius:999}}/>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 20px"}}>
-            <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E0BD78 0%,#CEAA60 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.10),inset 0 1px 0 rgba(255,255,255,0.10)"}}>
-              Complete Asr Session
-            </div>
-            <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:18,textAlign:"center",fontSize:13,fontWeight:600,color:"rgba(226,188,114,0.82)",border:"1px solid rgba(210,170,95,0.14)",background:"rgba(8,16,30,0.22)"}}>
-              Change Selection
-            </div>
-          </div>
-        </div>{/* end flex column wrapper */}
-
-        {/* Ayah popup modal — outside scroll container */}
-        {asrExpandedAyah&&(()=>{
-          const ev=asrBatch.find(v=>v.verse_key===asrExpandedAyah);
-          if(!ev) return null;
-          const evKey=ev.verse_key;
-          const evSurah=ev.surah_number||parseInt(evKey.split(":")[0],10);
-          const evAyah=evKey.split(":")[1];
-          const evTrans=translations[evKey];
-          const evPlaying=playingKey===evKey;
-          const evLoading=audioLoading===evKey;
-          return (
-            <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setAsrExpandedAyah(null)}>
-              <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,borderRadius:24,padding:"28px 24px 24px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.12) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
-                <div className="sbtn" onClick={()=>setAsrExpandedAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
-                <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:26,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
-                  {ev.text_uthmani}
-                </div>
-                <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:20}}>
-                  Ayah {evAyah} of Surah {SURAH_EN[evSurah]||evSurah}
-                </div>
-                <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
-                  {evTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:evTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
-                </div>
-                <div style={{display:"flex",justifyContent:"center",marginBottom:MUTASHABIHAT[evKey]&&MUTASHABIHAT[evKey].some(sk=>completedAyahs?.has(sk))?12:0}}>
-                  <div className="sbtn" onClick={()=>playAyah(evKey,evKey)} style={{width:42,height:42,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:evPlaying?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${evPlaying?"rgba(217,177,95,0.30)":"rgba(255,255,255,0.08)"}`,color:evPlaying?T2.goldBright:"rgba(243,231,200,0.56)",fontSize:16}}>
-                    {evLoading?"…":evPlaying?"⏸":"▶"}
-                  </div>
-                </div>
-                {MUTASHABIHAT[evKey]&&MUTASHABIHAT[evKey].some(sk=>completedAyahs?.has(sk))&&(
-                  <div style={{padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
-                    <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
-                    {MUTASHABIHAT[evKey].filter(sk=>completedAyahs?.has(sk)).map(simKey=>{
-                      const [ss,sa]=simKey.split(":");
-                      const nextKey=`${ss}:${Number(sa)+1}`;
-                      const simVerse=asrBatch.find(v=>v.verse_key===simKey);
-                      const nextVerse=asrBatch.find(v=>v.verse_key===nextKey);
-                      const simText=simVerse?(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[simKey];
-                      const nextText=nextVerse?(nextVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[nextKey+"_next"];
-                      if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
-                      return (
-                        <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
-                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
-                          {simText?<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{simText} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(Number(sa))}﴾</span></div>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
-                          {nextText&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8,marginTop:2}}>{nextText} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(Number(sa)+1)}﴾</span></div>}
-                        </div>
-                      );
-                    })}
-                    <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.25)":"rgba(0,0,0,0.25)",marginTop:4}}>Compare these verses to strengthen your memorization</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })()}
-      </div>
-    );
-  }
-
-// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
-
-// ── QURAN PAGE RENDERER ────────────────────────────────────────────────────
-function QuranPageView({ pageLines, wordMap, fontSize }) {
-  const gold = "#E8D5A3";
-  const goldDim = "rgba(232,213,163,0.5)";
-  if (!pageLines || pageLines.length === 0) return null;
-  return (
-    <div style={{width:"100%",height:"100%",display:"flex",flexDirection:"column",
-      justifyContent:"space-between",padding:"4px 10px",boxSizing:"border-box"}}>
-      {pageLines.map((line,i)=>{
-        // Surah name
-        if(line.t==="s"){
-          return(
-            <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"center",
-              flex:1,borderTop:"1px solid rgba(217,177,95,0.25)",
-              borderBottom:"1px solid rgba(217,177,95,0.25)",color:gold,
-              fontSize:fontSize*0.72,fontFamily:"'DM Sans',sans-serif",
-              letterSpacing:"0.08em",direction:"rtl"}}>
-              {({"1":"الفاتحة","2":"البقرة","3":"آل عمران","4":"النساء","5":"المائدة",
-                "6":"الأنعام","7":"الأعراف","8":"الأنفال","9":"التوبة","10":"يونس",
-                "11":"هود","12":"يوسف","13":"الرعد","14":"إبراهيم","15":"الحجر",
-                "16":"النحل","17":"الإسراء","18":"الكهف","19":"مريم","20":"طه",
-                "21":"الأنبياء","22":"الحج","23":"المؤمنون","24":"النور","25":"الفرقان",
-                "26":"الشعراء","27":"النمل","28":"القصص","29":"العنكبوت","30":"الروم",
-                "31":"لقمان","32":"السجدة","33":"الأحزاب","34":"سبأ","35":"فاطر",
-                "36":"يس","37":"الصافات","38":"ص","39":"الزمر","40":"غافر",
-                "41":"فصلت","42":"الشورى","43":"الزخرف","44":"الدخان","45":"الجاثية",
-                "46":"الأحقاف","47":"محمد","48":"الفتح","49":"الحجرات","50":"ق",
-                "51":"الذاريات","52":"الطور","53":"النجم","54":"القمر","55":"الرحمن",
-                "56":"الواقعة","57":"الحديد","58":"المجادلة","59":"الحشر","60":"الممتحنة",
-                "61":"الصف","62":"الجمعة","63":"المنافقون","64":"التغابن","65":"الطلاق",
-                "66":"التحريم","67":"الملك","68":"القلم","69":"الحاقة","70":"المعارج",
-                "71":"نوح","72":"الجن","73":"المزمل","74":"المدثر","75":"القيامة",
-                "76":"الإنسان","77":"المرسلات","78":"النبأ","79":"النازعات","80":"عبس",
-                "81":"التكوير","82":"الانفطار","83":"المطففين","84":"الانشقاق","85":"البروج",
-                "86":"الطارق","87":"الأعلى","88":"الغاشية","89":"الفجر","90":"البلد",
-                "91":"الشمس","92":"الليل","93":"الضحى","94":"الشرح","95":"التين",
-                "96":"العلق","97":"القدر","98":"البينة","99":"الزلزلة","100":"العاديات",
-                "101":"القارعة","102":"التكاثر","103":"العصر","104":"الهمزة","105":"الفيل",
-                "106":"قريش","107":"الماعون","108":"الكوثر","109":"الكافرون","110":"النصر",
-                "111":"المسد","112":"الإخلاص","113":"الفلق","114":"الناس"})[String(line.s)]||""}
-            </div>
-          );
-        }
-        // Basmallah
-        if(line.t==="b"){
-          return(
-            <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"center",
-              flex:1,color:gold,fontSize:fontSize,fontFamily:"'Scheherazade New',serif",
-              direction:"rtl",lineHeight:1.2}}>
-              بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
-            </div>
-          );
-        }
-        // Ayah line
-        const words=[];
-        if(line.f&&line.l&&wordMap){
-          for(let wid=line.f;wid<=line.l;wid++){
-            const w=wordMap[wid];
-            if(w) words.push({id:wid,...w});
-          }
-        }
-        return(
-          <div key={i} style={{display:"flex",flexDirection:"row-reverse",
-            justifyContent:line.c?"center":"space-between",
-            alignItems:"center",flex:1,
-            gap:line.c?`${Math.round(fontSize*0.25)}px`:"0",
-            overflow:"hidden"}}>
-            {words.map(w=>(
-              <span key={w.id} style={{
-                color:w.type==="end"?goldDim:gold,
-                fontSize:w.type==="end"?fontSize*0.62:fontSize,
-                fontFamily:"'Scheherazade New',serif",
-                lineHeight:1,flexShrink:0,
-              }}>{w.text}</span>
-            ))}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+import HlsPlayer from "./components/HlsPlayer";
+import AsrSessionView from "./components/AsrSessionView";
+import QuranPageView from "./components/QuranPageView";
+import useHifzProgress from "./hooks/useHifzProgress";
+import useAudio from "./hooks/useAudio";
+import MasjidaynTab from "./tabs/MasjidaynTab";
 
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
@@ -785,7 +95,6 @@ export default function RihlatAlHifz() {
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafPageLines,setMushafPageLines]=useState([]);
   const [qpcPages,setQpcPages]=useState(null);
-  const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
   const [showMushafSheet,setShowMushafSheet]=useState(false);
   const [mushafBookmarks,setMushafBookmarks]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-mushaf-bookmarks")||"[]");}catch{return [];}});
   
@@ -830,6 +139,12 @@ export default function RihlatAlHifz() {
   const JUZ_PAGES=[1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582,605];
   const SURAH_PAGES={1:1,2:2,3:50,4:77,5:106,6:128,7:151,8:177,9:187,10:208,11:221,12:235,13:249,14:255,15:262,16:267,17:282,18:293,19:305,20:312,21:322,22:332,23:342,24:350,25:359,26:367,27:377,28:385,29:396,30:404,31:411,32:415,33:418,34:428,35:434,36:440,37:446,38:453,39:458,40:467,41:477,42:483,43:489,44:496,45:499,46:502,47:507,48:511,49:515,50:518,51:520,52:523,53:526,54:528,55:531,56:534,57:537,58:542,59:545,60:549,61:551,62:553,63:554,64:556,65:558,66:560,67:562,68:564,69:566,70:568,71:570,72:572,73:574,74:575,75:577,76:578,77:580,78:582,79:583,80:585,81:586,82:587,83:587,84:589,85:590,86:591,87:591,88:592,89:593,90:594,91:595,92:595,93:596,94:596,95:597,96:597,97:598,98:598,99:599,100:599,101:600,102:600,103:601,104:601,105:601,106:602,107:602,108:602,109:603,110:603,111:603,112:604,113:604,114:604};
   const TAFSIR_SOURCES=[{id:"sadi",apiId:91,name:"As-Sa'di",lang:"ar"},{id:"muyassar",apiId:16,name:"Al-Muyassar",lang:"ar"},{id:"kathir",apiId:169,name:"Ibn Kathir",lang:"en"}];
+
+  const {
+    v9MarkJuzComplete, v9MarkJuzIncomplete, v9MarkSurahComplete, v9MarkSurahIncomplete,
+    v9JuzProgress, v9IsJuzComplete, isSurahComplete, hasAnyAyahsInJuz,
+    memorizedAyahs, totalAyahsInQuran, pct, completedCount, completedSurahCount,
+  } = useHifzProgress(completedAyahs, setCompletedAyahs);
 
   // Load mushaf layout once
   useEffect(()=>{
@@ -1056,9 +371,6 @@ export default function RihlatAlHifz() {
   const haramainRef=useRef(null);
   const [showTrans,setShowTrans]=useState(true);
   const [translations,setTranslations]=useState({});
-  const [playingKey,setPlayingKey]=useState(null);
-  const [audioLoading,setAudioLoading]=useState(null);
-  const audioRef=useRef(null);
   const touchStartRef=useRef(0);
   const [ramadanMosque,setRamadanMosque]=useState("makkah");
   const [liveSource,setLiveSource]=useState("aloula");
@@ -1339,19 +651,6 @@ export default function RihlatAlHifz() {
   const surahGroups=[];let cur=null;
   allVerses.forEach(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);if(s!==cur){cur=s;surahGroups.push({surahNum:s,verses:[]});}surahGroups[surahGroups.length-1].verses.push(v);});
 
-  // ── V9 MATH — single source of truth (ayah-level) ──────────────────────
-  const memorizedAyahs = completedAyahs?.size ?? 0;
-  const totalAyahsInQuran = 6236;
-  const pct = totalAyahsInQuran>0?Math.round((memorizedAyahs / totalAyahsInQuran) * 100):0;
-  // Juz count — derived from ayah truth (every ayah in the juz must be in completedAyahs)
-  const completedCount = Object.keys(JUZ_RANGES).filter(j => v9IsJuzComplete(Number(j))).length;
-  // Surah count — derived from ayah truth
-  const completedSurahCount = Object.keys(SURAH_AYAH_COUNTS).filter(s => {
-    const total=SURAH_AYAH_COUNTS[s]||0;
-    if(total===0) return false;
-    for(let i=1;i<=total;i++){if(!completedAyahs.has(`${s}:${i}`)) return false;}
-    return true;
-  }).length;
   const nextIncompleteJuz = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].find(j=>!v9IsJuzComplete(j));
   const nextJuzAyahs = nextIncompleteJuz ? (JUZ_RANGES[nextIncompleteJuz]?.total ?? null) : null;
   const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>!v9IsJuzComplete(j.num));
@@ -1431,6 +730,13 @@ export default function RihlatAlHifz() {
   const checkedCount=SESSIONS.filter(s=>dailyChecks[s.id]).length;
   const allChecked=checkedCount===SESSIONS.length;
   const currentReciter=RECITERS.find(r=>r.id===reciter)||RECITERS[0];
+
+  const {
+    playingKey, setPlayingKey, audioLoading, setAudioLoading, audioRef,
+    playingSurah, setPlayingSurah, mushafAudioPlaying, setMushafAudioPlaying,
+    playAyah, playSurahQueue, playNextInQueue, getEveryayahFolder, getArchiveUrl,
+    hasPerAyah, stopMushafAudio, playMushafRange, getQuranSurahUrl, playQuranSurah,
+  } = useAudio({ reciter, currentReciter, looping, quranReciter });
 
   const ASR_PAGE_SIZE = 5;
   const asrPages = Math.max(1, Math.ceil(batch.length / ASR_PAGE_SIZE));
@@ -1532,72 +838,6 @@ export default function RihlatAlHifz() {
     surahs.forEach(s=>{ next[`s${s.s}`]="complete"; });
     next[juzNum]="complete";
     return next;
-  }
-
-  // ── V9 ayah-based mark functions ─────────────────────────────────────────
-  function v9MarkJuzComplete(juzNum) {
-    const keys = getJuzKeys(juzNum);
-    setCompletedAyahs(prev => {
-      const next = new Set(prev);
-      keys.forEach(k => next.add(k));
-      saveCompletedAyahs(next);
-      return next;
-    });
-  }
-
-  function v9MarkJuzIncomplete(juzNum) {
-    const keys = new Set(getJuzKeys(juzNum));
-    setCompletedAyahs(prev => {
-      const next = new Set([...prev].filter(k => !keys.has(k)));
-      saveCompletedAyahs(next);
-      return next;
-    });
-  }
-
-  function v9MarkSurahComplete(surahNum) {
-    setCompletedAyahs(prev => {
-      const next = new Set(prev);
-      const total = SURAH_AYAH_COUNTS[surahNum] || 0;
-      for(let i=1;i<=total;i++) next.add(`${surahNum}:${i}`);
-      saveCompletedAyahs(next);
-      return next;
-    });
-  }
-
-  function v9MarkSurahIncomplete(surahNum) {
-    setCompletedAyahs(prev => {
-      const total = SURAH_AYAH_COUNTS[surahNum] || 0;
-      const remove = new Set();
-      for(let i=1;i<=total;i++) remove.add(`${surahNum}:${i}`);
-      const next = new Set([...prev].filter(k => !remove.has(k)));
-      saveCompletedAyahs(next);
-      return next;
-    });
-  }
-
-  // V9 math helpers — O(1) or O(juz size), always ayah-based
-  function v9JuzProgress(juzNum) {
-    const keys = getJuzKeys(juzNum);
-    const done = keys.filter(k => completedAyahs.has(k)).length;
-    return { done, total: JUZ_RANGES[juzNum].total, pct: done / JUZ_RANGES[juzNum].total };
-  }
-
-  function v9IsJuzComplete(juzNum) {
-    if(!juzNum || !JUZ_RANGES[juzNum]) return false;
-    return getJuzKeys(juzNum).every(k => completedAyahs.has(k));
-  }
-
-  // ── Asr auto-pool helpers ─────────────────────────────────────────────────
-  function isSurahComplete(surahNum) {
-    const total = SURAH_AYAH_COUNTS[surahNum] || 0;
-    for(let i=1;i<=total;i++) {
-      if(!completedAyahs.has(`${surahNum}:${i}`)) return false;
-    }
-    return total > 0;
-  }
-
-  function hasAnyAyahsInJuz(juzNum) {
-    return getJuzKeys(juzNum).some(k => completedAyahs.has(k));
   }
 
   async function buildAsrAutoPool() {
@@ -1750,175 +990,9 @@ export default function RihlatAlHifz() {
     }
   }
 
-  async function playAyah(verseKey,key){
-    if(playingKey===key){ audioRef.current?.pause(); setPlayingKey(null); return; }
-    if(audioRef.current){audioRef.current.pause();audioRef.current=null;}
-    setAudioLoading(key);
-    const [surah,ayah]=verseKey.split(":");
 
-    function playDirect(url){
-      const audio=new Audio(url);
-      audioRef.current=audio;
-      audio.oncanplay=()=>{setAudioLoading(null);setPlayingKey(key);};
-      audio.onended=()=>{
-        if(looping){
-          audio.currentTime=0;
-          audio.play().catch(()=>{setPlayingKey(null);});
-        } else {
-          setPlayingKey(null);
-        }
-      };
-      audio.onerror=()=>{setAudioLoading(null);setPlayingKey(null);};
-      audio.play().catch(()=>{setAudioLoading(null);setPlayingKey(null);});
-    }
-
-    const everyayahUrl=`https://everyayah.com/data/${getEveryayahFolder(reciter)}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`;
-    if(!currentReciter.recitationId){ playDirect(everyayahUrl); return; }
-
-    try {
-      const res=await fetch(`https://api.qurancdn.com/api/qdc/audio/reciters/${currentReciter.recitationId}/audio_files?chapter_number=${surah}&juz_number=0&page_number=0&hizb_number=0&rub_el_hizb_number=0&verse_key=${verseKey}`);
-      if(res.ok){
-        const data=await res.json();
-        const url=data.audio_files?.[0]?.url;
-        if(url){ playDirect(url.startsWith("http")?url:`https://audio.qurancdn.com/${url}`); return; }
-      }
-    } catch {}
-    playDirect(everyayahUrl);
-  }
-
-  const [playingSurah, setPlayingSurah] = useState(null);
-  const surahQueueRef = useRef([]);
-  const surahIdxRef = useRef(0);
-
-  function playSurahQueue(verses, surahNum, startIdx=0, reciterId=reciter) {
-    if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
-    if(playingSurah===surahNum){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
-    surahQueueRef.current=verses; surahIdxRef.current=startIdx;
-    setPlayingSurah(surahNum);
-    playNextInQueue(verses,startIdx,surahNum,reciterId);
-  }
-
-  function playNextInQueue(verses, idx, surahNum, reciterId=reciter) {
-    if(idx>=verses.length){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
-    if(!hasPerAyah(reciterId)){
-      const archiveUrl=getArchiveUrl(reciterId,surahNum);
-      if(!archiveUrl){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
-      if(idx>0) return;
-      setPlayingKey(verses[0]?.verse_key); setAudioLoading(verses[0]?.verse_key);
-      const audio=new Audio(archiveUrl); audioRef.current=audio;
-      audio.oncanplay=()=>setAudioLoading(null);
-      audio.onended=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
-      audio.onerror=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
-      audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
-      return;
-    }
-    const v=verses[idx]; const vKey=v.verse_key; const [surah,ayah]=vKey.split(":");
-    setPlayingKey(vKey); setAudioLoading(vKey);
-    const folder=getEveryayahFolder(reciterId);
-    const url=`https://everyayah.com/data/${folder}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`;
-    // preload next 2 ayahs
-    for(let offset=1;offset<=2;offset++){
-      if(idx+offset<verses.length){
-        const nv=verses[idx+offset]; const [ns,na]=nv.verse_key.split(":");
-        const pre=new Audio(`https://everyayah.com/data/${folder}/${String(ns).padStart(3,"0")}${String(na).padStart(3,"0")}.mp3`);
-        pre.preload="auto";
-      }
-    }
-    const audio=new Audio(url); audio.preload="auto"; audioRef.current=audio;
-    audio.oncanplay=()=>setAudioLoading(null);
-    audio.onended=()=>{ surahIdxRef.current=idx+1; playNextInQueue(surahQueueRef.current,idx+1,surahNum,reciterId); };
-    audio.onerror=()=>{ surahIdxRef.current=idx+1; playNextInQueue(surahQueueRef.current,idx+1,surahNum,reciterId); };
-    audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
-  }
-
-  function getEveryayahFolder(id){
-    const r=RECITERS.find(x=>x.id===id);
-    if(r?.everyayah) return r.everyayah;
-    // Extra reciters only in QURAN_RECITERS
-    const extras={"alijaber":"Ali_Jaber_128kbps"};
-    return extras[id]||RECITERS[0].everyayah;
-  }
-
-  function stopMushafAudio(){
-    if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
-    setPlayingKey(null); setAudioLoading(null); setMushafAudioPlaying(false);
-  }
-
-  function playMushafRange(verses){
-    if(!verses||verses.length===0) return;
-    if(mushafAudioPlaying){ stopMushafAudio(); return; }
-    stopMushafAudio();
-    setMushafAudioPlaying(true);
-
-    const folder=getEveryayahFolder(quranReciter);
-    function urlFor(vKey){
-      const [s,a]=vKey.split(":");
-      return `https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
-    }
-
-    // Pre-load all ayahs upfront so transitions are instant
-    const preloaded=verses.map(v=>{
-      const a=new Audio(urlFor(v.verse_key));
-      a.preload="auto";
-      return a;
-    });
-
-    let nextTriggered=false;
-
-    function playIdx(idx){
-      if(idx>=verses.length){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
-      const vKey=verses[idx].verse_key;
-      const audio=preloaded[idx];
-      nextTriggered=false;
-      audioRef.current=audio;
-      setPlayingKey(vKey);
-      setAudioLoading(vKey);
-
-      audio.oncanplay=()=>setAudioLoading(null);
-      audio.onended=()=>playIdx(idx+1);
-      audio.onerror=()=>playIdx(idx+1);
-
-      // Start next ayah 0.25s before current ends — eliminates the gap
-      audio.ontimeupdate=()=>{
-        if(!nextTriggered && audio.duration>0 && audio.currentTime >= audio.duration - 0.25){
-          nextTriggered=true;
-          if(idx+1<verses.length){
-            const nextAudio=preloaded[idx+1];
-            nextAudio.currentTime=0;
-            nextAudio.play().catch(()=>{});
-          }
-        }
-      };
-
-      audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
-    }
-
-    playIdx(0);
-  }
-  function getArchiveUrl(id, surahNum){ const r=RECITERS.find(x=>x.id===id); if(!r?.archive) return null; return `https://archive.org/download/${r.archive}/${String(surahNum).padStart(3,"0")}.mp3`; }
 
   const MID_SURAH_JUZ=new Set([2,3,4,5,6,7,8,11,12,16,19,20,21,22,23,24,25,27]);
-
-  function getQuranSurahUrl(reciterId,surahNum){
-    const r=QURAN_RECITERS.find(x=>x.id===reciterId);
-    if(!r?.quranicaudio) return null;
-    return `https://download.quranicaudio.com/quran/${r.quranicaudio}/${String(surahNum).padStart(3,"0")}.mp3`;
-  }
-
-  function playQuranSurah(surahNum){
-    if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
-    if(playingSurah===surahNum){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); return; }
-    const url=getQuranSurahUrl(quranReciter,surahNum);
-    if(!url) return;
-    setPlayingSurah(surahNum); setPlayingKey(`surah-${surahNum}`); setAudioLoading(`surah-${surahNum}`);
-    const audio=new Audio(url);
-    audioRef.current=audio;
-    audio.oncanplay=()=>{ setAudioLoading(null); };
-    audio.onended=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
-    audio.onerror=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
-    audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
-  }
-  function hasPerAyah(id){ const r=RECITERS.find(x=>x.id===id); return !!r?.everyayah; }
 
   async function toggleAsrSurahReview(surahNum){
     try {
@@ -2406,21 +1480,23 @@ export default function RihlatAlHifz() {
               </div>
             </div>
             {/* Badges row — full width */}
-            <div style={{display:"flex",gap:6,marginTop:8,justifyContent:"center"}}>
+            <div style={{display:"flex",gap:6,marginTop:8,justifyContent:"flex-start"}}>
               {[
                 {label:"📅 Joined 2026", color:dark?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.5)", bg:dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.04)", border:dark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)"},
                 {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
-                {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
+                ...(activeTab!=="rihlah"&&activeTab!=="myhifz"?[{label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"}]:[]),
               ].map((pill,i)=>(
                 <div key={i} style={{fontSize:9,color:pill.color,background:pill.bg,padding:"3px 8px",borderRadius:20,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
               ))}
             </div>
-            {/* Progress row */}
+            {/* Progress row — hidden on Rihlah tab (shown in progress path instead) */}
+            {activeTab!=="rihlah"&&(
             <div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}>
               <div style={{flex:1,height:8,background:T.surface2,borderRadius:999,overflow:"hidden"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:999}}/></div>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:"#F0C040",flexShrink:0}}>{pct}%</div>
               <div style={{fontSize:9,color:dark?"#6B7280":"#6B645A",flexShrink:0}}>{completedCount}/30 Juz</div>
             </div>
+            )}
           </div>
         </div>
         );
@@ -3106,19 +2182,150 @@ export default function RihlatAlHifz() {
 
             <div style={{padding:"12px 14px 120px",position:"relative",zIndex:1}}>
 
-            {/* ── 2 & 3. OVERALL PROGRESS + DAILY GOALS — single card ── */}
-            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
-
-              {/* ── Overall Progress ── */}
-              <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:6}}>Overall Progress</div>
-              <div style={{marginBottom:12}}>
-                {[{label:"Memorized",val:`${completedCount} Juz`,color:dark?"#E6B84A":"#2B2118"},{label:"Surahs",val:`${completedSurahCount} of 114`,color:dark?"#E6B84A":"#2B2118"},{label:"Remaining",val:`${30-completedCount} Juz`,color:dark?"rgba(255,255,255,0.3)":"#6B645A"}].map((s,i)=>(
-                  <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",borderBottom:i<2?`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)"}` :"none"}}>
-                    <span style={{fontSize:10,color:dark?"rgba(255,255,255,0.5)":"#6B645A"}}>{s.label}</span>
-                    <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:s.color,fontWeight:700}}>{s.val}</span>
+            {/* ── YOUR MEMORIZATION JOURNEY — Progress Path ── */}
+            {(()=>{
+              const completed=completedCount;
+              const waypoints=[
+                {x:140,y:168,juz:5},
+                {x:40, y:140,juz:10},
+                {x:200,y:105,juz:15},
+                {x:130,y:72, juz:20},
+                {x:260,y:42, juz:25},
+                {x:260,y:10, juz:30},
+              ];
+              const startPt={x:30,y:195};
+              const pathD=`M ${startPt.x} ${startPt.y} C 70 195 170 185 ${waypoints[0].x} ${waypoints[0].y} C 180 155 0 155 ${waypoints[1].x} ${waypoints[1].y} C -5 120 235 118 ${waypoints[2].x} ${waypoints[2].y} C 235 88 95 85 ${waypoints[3].x} ${waypoints[3].y} C 95 55 285 52 ${waypoints[4].x} ${waypoints[4].y}`;
+              const litCount=waypoints.filter(w=>completed>=w.juz).length;
+              const currentWpIdx=waypoints.findIndex(w=>completed<w.juz);
+              const currentWp=currentWpIdx>=0?waypoints[currentWpIdx]:waypoints[5];
+              return (
+                <div style={{borderRadius:20,overflow:"hidden",marginBottom:10,position:"relative",padding:"16px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.6)":"#6B645A",fontWeight:700}}>Your Memorization Journey</div>
+                      <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"#8B7355",marginTop:2}}>You are currently on Juz {sessionJuz||"—"}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,fontWeight:700,color:"#F0C040",lineHeight:1}}>{timeline.juzLeft}</div>
+                      <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.4)":"#6B645A"}}>Juz remaining</div>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <svg viewBox="-10 -20 360 240" style={{width:"100%",height:"auto"}}>
+                    <defs>
+                      <linearGradient id="pathGold" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#5C4A1E"/>
+                        <stop offset="30%" stopColor="#8B6914"/>
+                        <stop offset="60%" stopColor="#D4AF37"/>
+                        <stop offset="85%" stopColor="#F6E27A"/>
+                        <stop offset="100%" stopColor="#FFFBEA"/>
+                      </linearGradient>
+                      <linearGradient id="pathDim" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor={dark?"rgba(92,74,30,0.15)":"rgba(0,0,0,0.04)"}/>
+                        <stop offset="100%" stopColor={dark?"rgba(92,74,30,0.08)":"rgba(0,0,0,0.06)"}/>
+                      </linearGradient>
+                      <filter id="pathGlow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                      <filter id="fireGlow" x="-100%" y="-100%" width="300%" height="300%">
+                        <feGaussianBlur stdDeviation="8" result="blur1"/>
+                        <feGaussianBlur stdDeviation="16" in="SourceGraphic" result="blur2"/>
+                        <feMerge><feMergeNode in="blur2"/><feMergeNode in="blur1"/><feMergeNode in="blur1"/><feMergeNode in="SourceGraphic"/></feMerge>
+                      </filter>
+                    </defs>
+                    <path d={pathD} fill="none" stroke="rgba(229,170,30,0.08)" strokeWidth="14" strokeLinecap="round" filter="url(#fireGlow)"/>
+                    <path d={pathD} fill="none" stroke="rgba(229,170,30,0.15)" strokeWidth="5" strokeLinecap="round" filter="url(#pathGlow)"/>
+                    <path d={pathD} fill="none" stroke="rgba(245,197,24,0.25)" strokeWidth="2" strokeLinecap="round"/>
+                    {completed>0&&(()=>{
+                      const totalLen=1000;
+                      const litLen=totalLen*(Math.min(completed,25)/25);
+                      return (<>
+                        <path d={pathD} fill="none" stroke="#F5C518" strokeWidth="10" strokeLinecap="round" opacity="0.8" filter="url(#fireGlow)" strokeDasharray={`${litLen} ${totalLen}`}/>
+                        <path d={pathD} fill="none" stroke="#FFEAA0" strokeWidth="4" strokeLinecap="round" filter="url(#pathGlow)" strokeDasharray={`${litLen} ${totalLen}`}/>
+                      </>);
+                    })()}
+                    <path ref={el=>{
+                      if(el&&completed>0&&completed<30){
+                        const len=el.getTotalLength();
+                        const pt=el.getPointAtLength(len*(completed/30));
+                        const marker=el.parentNode.querySelector('#juzMarker');
+                        if(marker){marker.setAttribute('transform',`translate(${pt.x},${pt.y})`);marker.style.display='';}
+                      }
+                    }} d={pathD} fill="none" stroke="none"/>
+                    <g id="juzMarker" style={{display:completed>0&&completed<30?'':'none'}}>
+                      <circle cx="0" cy="0" r="14" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
+                      <circle cx="0" cy="0" r="10" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
+                      <circle cx="0" cy="0" r="5" fill="#D4AF37" stroke="#F6E27A" strokeWidth="1.5" filter="url(#pathGlow)"/>
+                      <text x="0" y="16" textAnchor="middle" fill="#F0C040" fontSize="10" fontWeight="700">Juz {completed}</text>
+                      <circle cx="0" cy="0" r="14" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="1.5">
+                        <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
+                      </circle>
+                      <circle cx="0" cy="0" r="18" fill="none" stroke="rgba(240,192,64,0.3)" strokeWidth="1">
+                        <animate attributeName="r" values="16;26;16" dur="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.4;0;0.4" dur="2.5s" repeatCount="indefinite"/>
+                      </circle>
+                    </g>
+                    {waypoints.map((w,i)=>{
+                      const done=completed>=w.juz;
+                      const isCurrent=currentWpIdx===i;
+                      const isLast=i===5;
+                      if(isLast) return (
+                        <g key={i} transform={`translate(${w.x},${w.y})`}>
+                          <circle cx="0" cy="0" r="28" fill="none" stroke="rgba(240,192,64,0.12)" strokeWidth="1">
+                            <animate attributeName="r" values="26;32;26" dur="3s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.3;0.08;0.3" dur="3s" repeatCount="indefinite"/>
+                          </circle>
+                          <circle cx="0" cy="0" r="22" fill="none" stroke="rgba(240,192,64,0.2)" strokeWidth="0.8">
+                            <animate attributeName="r" values="20;26;20" dur="2.5s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2.5s" repeatCount="indefinite"/>
+                          </circle>
+                          <circle cx="0" cy="0" r="16" fill="rgba(240,192,64,0.08)"/>
+                          <circle cx="0" cy="0" r="12" fill="rgba(212,175,55,0.15)"/>
+                          <defs>
+                            <linearGradient id="quranPage" x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" stopColor="#FEF3C7"/>
+                              <stop offset="100%" stopColor="#F59E0B"/>
+                            </linearGradient>
+                          </defs>
+                          <path d="M -1 -7 Q -7 -8 -12 -6 L -12 6 Q -7 4 -1 5 Z" fill={done?"url(#quranPage)":"rgba(255,255,255,0.08)"} stroke={done?"#B45309":"rgba(255,255,255,0.15)"} strokeWidth="0.6"/>
+                          <path d="M 1 -7 Q 7 -8 12 -6 L 12 6 Q 7 4 1 5 Z" fill={done?"url(#quranPage)":"rgba(255,255,255,0.08)"} stroke={done?"#B45309":"rgba(255,255,255,0.15)"} strokeWidth="0.6"/>
+                          <line x1="0" y1="-7" x2="0" y2="5" stroke={done?"#92400E":"rgba(255,255,255,0.1)"} strokeWidth="0.8"/>
+                          <line x1="-10" y1="-3" x2="-3" y2="-3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="-10" y1="0" x2="-3" y2="0" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="-9" y1="3" x2="-3" y2="3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.4"/>
+                          <line x1="3" y1="-3" x2="10" y2="-3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="3" y1="0" x2="10" y2="0" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
+                          <line x1="3" y1="3" x2="9" y2="3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.4"/>
+                          {isCurrent&&!done&&(
+                            <circle cx="0" cy="0" r="16" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5">
+                              <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/>
+                              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                          )}
+                        </g>
+                      );
+                      return (
+                        <g key={i}>
+                          {done&&<><circle cx={w.x} cy={w.y} r="16" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/><circle cx={w.x} cy={w.y} r="12" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/></>}
+                          <circle cx={w.x} cy={w.y} r={done?"7":"5"} fill={done?"#D4AF37":isCurrent?"rgba(240,192,64,0.4)":(dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)")} stroke={done?"#F6E27A":isCurrent?"rgba(240,192,64,0.3)":"none"} strokeWidth="1.5" filter={done?"url(#pathGlow)":"none"}/>
+                          <text x={w.juz===10||w.juz===20?w.x-12:w.x+12} y={w.y+2} textAnchor={w.juz===10||w.juz===20?"end":"start"} dominantBaseline="middle" fill={done?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="10" fontWeight="700">Juz {w.juz}</text>
+                          {done&&(<circle cx={w.x} cy={w.y} r="14" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1"><animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle>)}
+                          {isCurrent&&!done&&(<circle cx={w.x} cy={w.y} r="12" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5"><animate attributeName="r" values="10;16;10" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/></circle>)}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:4}}>
+                    <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A"}}>{pct}% · {completedCount} of 30 Juz</div>
+                    <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.50)":"#8B7355"}}>Goal: {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths}mo`:""}</div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── DAILY GOALS + NAV — single card ── */}
+            <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
 
               {/* ── Nav buttons ── */}
               <div style={{display:"flex",gap:8,marginBottom:14}}>
@@ -3172,201 +2379,7 @@ export default function RihlatAlHifz() {
               </div>
             </div>
 
-            {/* ── 4. HIFZ JOURNEY — Progress Path ── */}
-            {(()=>{
-              const completed=completedCount;
-              // 6 waypoints — S-curves climbing diagonally from bottom-left to top-right
-              const waypoints=[
-                {x:140,y:168,juz:5},   // swing right from bottom-left
-                {x:40, y:140,juz:10},  // swing left
-                {x:200,y:105,juz:15},  // swing right, shifted right
-                {x:130,y:72, juz:20},  // swing left, shifted right
-                {x:260,y:42, juz:25},  // swing right, further right
-                {x:260,y:10, juz:30},  // peak — above juz 25
-              ];
-              const startPt={x:30,y:195};
-              // Path ends at juz 25 waypoint — Quran floats above with breathing room
-              const pathD=`M ${startPt.x} ${startPt.y} C 70 195 170 185 ${waypoints[0].x} ${waypoints[0].y} C 180 155 0 155 ${waypoints[1].x} ${waypoints[1].y} C -5 120 235 118 ${waypoints[2].x} ${waypoints[2].y} C 235 88 95 85 ${waypoints[3].x} ${waypoints[3].y} C 95 55 285 52 ${waypoints[4].x} ${waypoints[4].y}`;
-              const litCount=waypoints.filter(w=>completed>=w.juz).length;
-              // Find current waypoint (which one are we heading toward)
-              const currentWpIdx=waypoints.findIndex(w=>completed<w.juz);
-              const currentWp=currentWpIdx>=0?waypoints[currentWpIdx]:waypoints[5];
-              return (
-                <div style={{borderRadius:20,overflow:"hidden",marginBottom:10,position:"relative",padding:"16px"}}>
-                  {/* Header */}
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-                    <div>
-                      <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.6)":"#6B645A",fontWeight:700}}>Your Memorization Journey</div>
-                      <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"#8B7355",marginTop:2}}>You are currently on Juz {sessionJuz||"—"}</div>
-                    </div>
-                    <div style={{textAlign:"right"}}>
-                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,fontWeight:700,color:"#F0C040",lineHeight:1}}>{timeline.juzLeft}</div>
-                      <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.4)":"#6B645A"}}>Juz remaining</div>
-                    </div>
-                  </div>
-                  {/* SVG Path */}
-                  <svg viewBox="-10 -20 360 240" style={{width:"100%",height:"auto"}}>
-                    <defs>
-                      {/* Dark-to-bright gold gradient along the path */}
-                      <linearGradient id="pathGold" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#5C4A1E"/>
-                        <stop offset="30%" stopColor="#8B6914"/>
-                        <stop offset="60%" stopColor="#D4AF37"/>
-                        <stop offset="85%" stopColor="#F6E27A"/>
-                        <stop offset="100%" stopColor="#FFFBEA"/>
-                      </linearGradient>
-                      {/* Unlit path — dim gold hint */}
-                      <linearGradient id="pathDim" x1="0%" y1="100%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor={dark?"rgba(92,74,30,0.15)":"rgba(0,0,0,0.04)"}/>
-                        <stop offset="100%" stopColor={dark?"rgba(92,74,30,0.08)":"rgba(0,0,0,0.06)"}/>
-                      </linearGradient>
-                      <filter id="pathGlow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="3" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                      </filter>
-                      <filter id="fireGlow" x="-100%" y="-100%" width="300%" height="300%">
-                        <feGaussianBlur stdDeviation="8" result="blur1"/>
-                        <feGaussianBlur stdDeviation="16" in="SourceGraphic" result="blur2"/>
-                        <feMerge>
-                          <feMergeNode in="blur2"/>
-                          <feMergeNode in="blur1"/>
-                          <feMergeNode in="blur1"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    {/* Full unlit path */}
-                    {/* Full path — soft golden glow like the mountain image */}
-                    <path d={pathD} fill="none" stroke="rgba(229,170,30,0.08)" strokeWidth="14" strokeLinecap="round" filter="url(#fireGlow)"/>
-                    <path d={pathD} fill="none" stroke="rgba(229,170,30,0.15)" strokeWidth="5" strokeLinecap="round" filter="url(#pathGlow)"/>
-                    <path d={pathD} fill="none" stroke="rgba(245,197,24,0.25)" strokeWidth="2" strokeLinecap="round"/>
-                    {/* Lit path — proportional to juz completed (1-30) */}
-                    {completed>0&&(()=>{
-                      // Use full path, clip with strokeDasharray based on progress fraction
-                      const totalLen=1000; // approximate path length (ends at juz 25)
-                      const litLen=totalLen*(Math.min(completed,25)/25);
-                      return (<>
-                        {/* Mid golden glow */}
-                        <path d={pathD} fill="none" stroke="#F5C518" strokeWidth="10" strokeLinecap="round" opacity="0.8" filter="url(#fireGlow)" strokeDasharray={`${litLen} ${totalLen}`}/>
-                        {/* Hot bright core */}
-                        <path d={pathD} fill="none" stroke="#FFEAA0" strokeWidth="4" strokeLinecap="round" filter="url(#pathGlow)" strokeDasharray={`${litLen} ${totalLen}`}/>
-                      </>);
-                    })()}
-                    {/* Hidden path to measure position */}
-                    <path ref={el=>{
-                      if(el&&completed>0&&completed<30){
-                        const len=el.getTotalLength();
-                        const pt=el.getPointAtLength(len*(completed/30));
-                        const marker=el.parentNode.querySelector('#juzMarker');
-                        if(marker){
-                          marker.setAttribute('transform',`translate(${pt.x},${pt.y})`);
-                          marker.style.display='';
-                        }
-                      }
-                    }} d={pathD} fill="none" stroke="none"/>
-                    {/* Current juz marker at tip of glow */}
-                    <g id="juzMarker" style={{display:completed>0&&completed<30?'':'none'}}>
-                      {/* Outer radiant glow */}
-                      <circle cx="0" cy="0" r="14" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
-                      <circle cx="0" cy="0" r="10" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
-                      {/* Core dot */}
-                      <circle cx="0" cy="0" r="5" fill="#D4AF37" stroke="#F6E27A" strokeWidth="1.5" filter="url(#pathGlow)"/>
-                      <text x="0" y="16" textAnchor="middle" fill="#F0C040" fontSize="10" fontWeight="700">Juz {completed}</text>
-                      {/* Pulsing rings */}
-                      <circle cx="0" cy="0" r="14" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="1.5">
-                        <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
-                      </circle>
-                      <circle cx="0" cy="0" r="18" fill="none" stroke="rgba(240,192,64,0.3)" strokeWidth="1">
-                        <animate attributeName="r" values="16;26;16" dur="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.4;0;0.4" dur="2.5s" repeatCount="indefinite"/>
-                      </circle>
-                    </g>
-{/* 5 waypoint dots + Quran at juz 30 */}
-                    {waypoints.map((w,i)=>{
-                      const done=completed>=w.juz;
-                      const isCurrent=currentWpIdx===i;
-                      const isLast=i===5;
-                      if(isLast) return (
-                        <g key={i} transform={`translate(${w.x},${w.y})`}>
-                          {/* Outer radiant halo — soft pulsing glow */}
-                          <circle cx="0" cy="0" r="28" fill="none" stroke="rgba(240,192,64,0.12)" strokeWidth="1">
-                            <animate attributeName="r" values="26;32;26" dur="3s" repeatCount="indefinite"/>
-                            <animate attributeName="opacity" values="0.3;0.08;0.3" dur="3s" repeatCount="indefinite"/>
-                          </circle>
-                          <circle cx="0" cy="0" r="22" fill="none" stroke="rgba(240,192,64,0.2)" strokeWidth="0.8">
-                            <animate attributeName="r" values="20;26;20" dur="2.5s" repeatCount="indefinite"/>
-                            <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2.5s" repeatCount="indefinite"/>
-                          </circle>
-                          {/* Inner golden glow */}
-                          <circle cx="0" cy="0" r="16" fill="rgba(240,192,64,0.08)"/>
-                          <circle cx="0" cy="0" r="12" fill="rgba(212,175,55,0.15)"/>
-                          {/* Open Quran — two pages spread */}
-                          <defs>
-                            <linearGradient id="quranPage" x1="0%" y1="0%" x2="0%" y2="100%">
-                              <stop offset="0%" stopColor="#FEF3C7"/>
-                              <stop offset="100%" stopColor="#F59E0B"/>
-                            </linearGradient>
-                          </defs>
-                          {/* Left page */}
-                          <path d="M -1 -7 Q -7 -8 -12 -6 L -12 6 Q -7 4 -1 5 Z" fill={done?"url(#quranPage)":"rgba(255,255,255,0.08)"} stroke={done?"#B45309":"rgba(255,255,255,0.15)"} strokeWidth="0.6"/>
-                          {/* Right page */}
-                          <path d="M 1 -7 Q 7 -8 12 -6 L 12 6 Q 7 4 1 5 Z" fill={done?"url(#quranPage)":"rgba(255,255,255,0.08)"} stroke={done?"#B45309":"rgba(255,255,255,0.15)"} strokeWidth="0.6"/>
-                          {/* Spine */}
-                          <line x1="0" y1="-7" x2="0" y2="5" stroke={done?"#92400E":"rgba(255,255,255,0.1)"} strokeWidth="0.8"/>
-                          {/* Text lines — left page */}
-                          <line x1="-10" y1="-3" x2="-3" y2="-3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
-                          <line x1="-10" y1="0" x2="-3" y2="0" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
-                          <line x1="-9" y1="3" x2="-3" y2="3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.4"/>
-                          {/* Text lines — right page */}
-                          <line x1="3" y1="-3" x2="10" y2="-3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
-                          <line x1="3" y1="0" x2="10" y2="0" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.5"/>
-                          <line x1="3" y1="3" x2="9" y2="3" stroke={done?"#92400E":"rgba(255,255,255,0.06)"} strokeWidth="0.4" opacity="0.4"/>
-                          {/* Pulsing target ring if current */}
-                          {isCurrent&&!done&&(
-                            <circle cx="0" cy="0" r="16" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5">
-                              <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/>
-                              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
-                            </circle>
-                          )}
-                        </g>
-                      );
-                      return (
-                        <g key={i}>
-                          {done&&<>
-                            <circle cx={w.x} cy={w.y} r="16" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
-                            <circle cx={w.x} cy={w.y} r="12" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
-                          </>}
-                          <circle cx={w.x} cy={w.y} r={done?"7":"5"} fill={done?"#D4AF37":isCurrent?"rgba(240,192,64,0.4)":(dark?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)")} stroke={done?"#F6E27A":isCurrent?"rgba(240,192,64,0.3)":"none"} strokeWidth="1.5" filter={done?"url(#pathGlow)":"none"}/>
-                          <text x={w.juz===10||w.juz===20?w.x-12:w.x+12} y={w.y+2} textAnchor={w.juz===10||w.juz===20?"end":"start"} dominantBaseline="middle" fill={done?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="10" fontWeight="700">Juz {w.juz}</text>
-                          {done&&(
-                            <circle cx={w.x} cy={w.y} r="14" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1">
-                              <animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite"/>
-                              <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
-                            </circle>
-                          )}
-                          {isCurrent&&!done&&(
-                            <circle cx={w.x} cy={w.y} r="12" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5">
-                              <animate attributeName="r" values="10;16;10" dur="2s" repeatCount="indefinite"/>
-                              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
-                            </circle>
-                          )}
-                        </g>
-                      );
-                    })}
-                  </svg>
-                  {/* Footer */}
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:4}}>
-                    <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A"}}>
-                      {pct}% · {completedCount} of 30 Juz
-                    </div>
-                    <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.50)":"#8B7355"}}>
-                      Goal: {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths}mo`:""}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+            {/* Nav buttons moved to after Overall Progress */}
 
 
             {/* ── 5. ACTIVE SESSION CHECKLIST ── */}
@@ -4580,536 +3593,16 @@ export default function RihlatAlHifz() {
 )}
 
       {activeTab==="masjidayn"&&(
-        <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
-          {/* Sub-tab navigation */}
-          <div style={{display:"flex",background:T.surface,borderBottom:`1px solid ${T.border}` }}>
-            {[
-              {id:"live",     label:"📡 Now Live"},
-              {id:"ramadan",  label:"🌙 Ramadan 1447 · 2026"},
-              {id:"haramain", label:"🎙️ Imams"},
-              {id:"about",    label:"ℹ️ About"},
-            ].map(t=>(
-              <div key={t.id} onClick={()=>setMasjidaynTab(t.id)} style={{flex:1,padding:"10px 6px", textAlign:"center",fontSize:11,fontWeight:masjidaynTab===t.id?700:400,color:masjidaynTab===t.id?T.accent:T.dim,borderBottom:`2px solid ${masjidaynTab===t.id?T.accent:"transparent"}`,cursor:"pointer"}}>
-                {t.label}
-                </div>
-            ))}
-          </div>
-    
-      {/* ═══ LIVE TAB — embedded in-app ═══ */}
-      {activeTab==="masjidayn"&&masjidaynTab==="live"&&(()=>{
-        // Official channel IDs from Wikidata (verified)
-        // saudiqurantv  → UCos52azQNBgW63_9uDJoPDA (Makkah)
-        // saudisunnahtv → UCROKYPep-UuODNwyipe6JMw (Madinah)
-        const streams = [
-          { id:"makkah",  icon:"🕋", label:"Makkah",  name:"Masjid Al-Haram",     arabic:"قناة القرآن الكريم",  color:"#E5534B",
-            channelId:"UCos52azQNBgW63_9uDJoPDA",  handle:"@saudiqurantv" },
-          { id:"madinah", icon:"🌙", label:"Madinah", name:"Masjid An-Nabawi",    arabic:"قناة السنة النبوية",  color:"#F0C040",
-            channelId:"UCROKYPep-UuODNwyipe6JMw",  handle:"@saudisunnahtv" },
-        ];
-        const s = streams[activeStream];
-        const embedSrc = `https://www.youtube.com/embed/live_stream?channel=${s.channelId}&autoplay=1&rel=0`;
-
-        return (
-          <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
-
-            {/* Watch Live buttons */}
-            <div style={{flex:1,overflowY:"auto",padding:"16px 14px 120px",display:"flex",flexDirection:"column",gap:12}}>
-              {streams.map((st,i)=>(
-                <a key={i} href={`https://www.youtube.com/${st.handle}/live`} target="_blank" rel="noreferrer"
-                  style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                    padding:"32px 20px",borderRadius:12,textDecoration:"none",
-                    background:`${st.color}15`,border:`2px solid ${st.color}50`,gap:10}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <div className="pulse" style={{width:10,height:10,borderRadius:"50%",background:st.color}}/>
-                    <span style={{fontSize:10,color:st.color,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700,letterSpacing:".15em"}}>LIVE NOW</span>
-                  </div>
-                  <div style={{fontSize:22}}>{st.icon}</div>
-                  <div style={{fontSize:16,fontWeight:700,color:T.text}}>{st.name}</div>
-                  <div style={{fontSize:11,color:T.dim,direction:"rtl"}}>{st.arabic}</div>
-                  <div style={{marginTop:8,padding:"12px 32px",background:st.color,borderRadius:8,
-                    fontSize:14,fontWeight:700,color:dark?"#060A07":"#fff"}}>
-                    ▶ Watch {st.label} Live
-                  </div>
-                  <div style={{fontSize:10,color:T.dim}}>Opens official livestream on YouTube</div>
-                </a>
-              ))}
-              <div style={{padding:"12px 14px",background:T.surface,border:`1px solid ${T.accent}20`,borderRadius:8,textAlign:"center"}}>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:T.accent,direction:"rtl",marginBottom:4}}>اللَّهُمَّ ارْزُقْنَا زِيَارَةَ بَيْتِكَ الْحَرَامِ</div>
-                <div style={{fontSize:10,color:T.sub,fontStyle:"italic",marginBottom:2}}>"O Allah, grant us the visit to Your Sacred House"</div>
-                <div style={{fontSize:9,color:T.dim}}>Ameen 🤲</div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ═══ RAMADAN 1447 — Sheikh Badr Al-Turki all 30 nights ═══ */}
-      {activeTab==="masjidayn"&&masjidaynTab==="ramadan"&&(()=>{
-        // Ramadan 1447/2026 — Full night videos by Sheikh Badr Al-Turki
-        // ▶ = plays in app | null = opens his YouTube channel
-        // Add more IDs here as you get them — just share a link!
-        const NIGHTS = [
-          {n:1,  taraweeh:"lRwXLCF8Udk", tahajjud:null},
-          {n:2,  taraweeh:"aBzvj0UHXsQ", tahajjud:null},
-          {n:3,  taraweeh:"Vkd3P7PlsLQ", tahajjud:null},
-          {n:4,  taraweeh:"_q0DAbkKDEY", tahajjud:null},
-          {n:5,  taraweeh:"KzRlzHbsuUc", tahajjud:null},
-          {n:6,  taraweeh:"9f8tyJ7ZyIw", tahajjud:null},
-          {n:7,  taraweeh:"N1JHCv05Rhw", tahajjud:null},
-          {n:8,  taraweeh:"6BEn6PD2vjU", tahajjud:null},
-          {n:9,  taraweeh:"1nnvyGOjpx8", tahajjud:null},
-          {n:10, taraweeh:"wSnomeZ983I", tahajjud:null},
-          {n:11, taraweeh:"I-urbxpNqHU", tahajjud:null},
-          {n:12, taraweeh:"ODIE3PM6kSU", tahajjud:null},
-          {n:13, taraweeh:"PcDI7mbbC88", tahajjud:null},
-          {n:14, taraweeh:"-dAdc6dvafc", tahajjud:null},
-          {n:15, taraweeh:"vPJDsDCV4t8", tahajjud:null},
-          {n:16, taraweeh:"HsBdxGMgLs8", tahajjud:null},
-          {n:17, taraweeh:"b_MqX9kAcqE", tahajjud:null},
-          {n:18, taraweeh:"0NdZR0MdsSg", tahajjud:null},
-          {n:19, taraweeh:"rg5u3pyKXfM", tahajjud:null},
-          {n:20, taraweeh:"MbzjYKYjF1Q", tahajjud:null},
-          {n:21, taraweeh:"659qlvcZD4Y", tahajjud:null},
-          {n:22, taraweeh:"V5nYjrTWT5g", tahajjud:null},
-          {n:23, taraweeh:"gRtjM_cwAZc", tahajjud:null},
-          {n:24, taraweeh:"C2BOVH9FAus", tahajjud:null},
-          {n:25, taraweeh:"zwJvs3A6EjA", tahajjud:null},
-          {n:26, taraweeh:"BDlvfPriqu4", tahajjud:null},
-          {n:27, taraweeh:"WimoXE57I4g", tahajjud:null},
-          {n:28, taraweeh:"Ls7hQl40M-E", tahajjud:null},
-          {n:29, taraweeh:"15Mxmi_hmWY", tahajjud:null},
-          {n:30, taraweeh:"RSevando-yI", tahajjud:null},
-        ];
-        const sel = selectedRamadanNight ?? 1;
-        const selEntry = NIGHTS.find(x=>x.n===sel);
-        const activeId = selEntry?.[ramadanVideoType] ?? selEntry?.taraweeh;
-        const hasVideo = !!activeId;
-        const activeLabel = ramadanVideoType==="tahajjud" ? "Tahajjud + Witr" : "Taraweeh";
-
-        return (
-          <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
-
-            {/* Header */}
-            <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 14px",flexShrink:0}}>
-              <div style={{fontSize:9,color:"#E5534B",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Ramadan 1447 · 2026 · Masjid Al-Haram</div>
-              <div style={{fontSize:15,fontWeight:600,color:T.text,marginBottom:1}}>Sheikh Badr Al-Turki — بدر التركي</div>
-              <div style={{fontSize:10,color:T.dim}}>
-                <span style={{color:"#F0C040"}}>▶</span> Taraweeh  ·  <span style={{color:"#B794F4"}}>▶</span> Tahajjud + Witr  ·  <span style={{color:T.vdim}}>·</span> coming soon
-              </div>
-            </div>
-
-            {/* Player */}
-            <div style={{background:dark?"#000":"#D8CCB0",flexShrink:0}}>
-              {hasVideo ? (
-                <iframe
-                  key={`r${sel}-${ramadanVideoType}`}
-                  src={`https://www.youtube.com/embed/${activeId}?autoplay=1&rel=0&start=${activeId==="lRwXLCF8Udk"?2090:0}`}
-                  style={{width:"100%",height:220,border:"none",display:"block"}}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={`Night ${sel} ${activeLabel} 1447 — Badr Al-Turki`}
-                />
-              ) : (
-                <div style={{height:140,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
-                  <div style={{fontSize:11,color:dark?"#888":"#6B645A"}}>Night {sel} {ramadanVideoType} — opens on YouTube</div>
-                  <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
-                     style={{padding:"8px 18px",background:"#E5534B",color:"#fff",borderRadius:6,textDecoration:"none",fontSize:12,fontWeight:700}}>
-                    ▶ Open on YouTube
-                  </a>
-                </div>
-              )}
-              <div style={{padding:"6px 12px",background:dark?"#111":"#E0D5BC",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <span style={{fontSize:11,color:"#E5534B",fontWeight:600}}>Night {sel} · {activeLabel}</span>
-                {hasVideo
-                  ? <span style={{fontSize:9,color:dark?"#555":"#6B645A"}}>▶ in app</span>
-                  : <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
-                       style={{fontSize:9,color:"#E5534B",textDecoration:"none"}}>Open YouTube ↗</a>}
-              </div>
-            </div>
-
-            {/* Night list */}
-            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 120px"}}>
-
-              {/* Nights 1–20 */}
-              <div style={{fontSize:9,color:T.dim,letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",alignItems:"center",gap:7}}>
-                <span>Nights 1–20</span><div style={{flex:1,height:1,background:T.border}}/>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5,marginBottom:16}}>
-                {NIGHTS.filter(x=>x.n<=20).map(x=>(
-                  <div key={x.n} className="sbtn" onClick={()=>{setSelectedRamadanNight(x.n);setRamadanVideoType("taraweeh");}} style={{
-                    display:"flex",alignItems:"center",gap:8,padding:"7px 10px",
-                    background:sel===x.n?"#E5534B12":T.surface,
-                    border:`1px solid ${sel===x.n?"#E5534B":T.border}`,borderRadius:7,
-                  }}>
-                    <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,color:sel===x.n?"#E5534B":T.dim,width:22,flexShrink:0}}>{x.n}</div>
-                    <span style={{fontSize:10,fontWeight:600,color:sel===x.n?"#E5534B":T.sub}}>
-                      Night {x.n} ▶
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Last 10 */}
-              <div style={{fontSize:9,color:"#E5534B",letterSpacing:".14em",textTransform:"uppercase",marginBottom:7,display:"flex",alignItems:"center",gap:7}}>
-                <span>Last 10 Nights 🌙</span><div style={{flex:1,height:1,background:"#E5534B30"}}/>
-              </div>
-              <div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:14}}>
-                {NIGHTS.filter(x=>x.n>=21).map(x=>{
-                  const is27=x.n===27;
-                  return (
-                    <div key={x.n} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 10px",
-                      background:is27?"#E5534B12":T.surface,border:`1px solid ${is27?"#E5534B40":T.border}`,borderRadius:7}}>
-                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,fontWeight:700,
-                        color:is27?"#E5534B":T.dim,width:28,flexShrink:0}}>
-                        {x.n}{is27&&<span style={{fontSize:8}}> ★</span>}
-                      </div>
-                      <div className="sbtn" onClick={()=>{setSelectedRamadanNight(x.n);setRamadanVideoType("taraweeh");}} style={{
-                        flex:1,padding:"6px 8px",borderRadius:5,textAlign:"center",
-                        background:sel===x.n&&ramadanVideoType==="taraweeh"?"#E5534B":"#E5534B15",
-                        border:`1px solid ${sel===x.n&&ramadanVideoType==="taraweeh"?"#E5534B":"#E5534B30"}`,
-                      }}>
-                        <span style={{fontSize:10,fontWeight:600,color:sel===x.n&&ramadanVideoType==="taraweeh"?(dark?"#060A07":"#fff"):"#E5534B"}}>
-                          Night {x.n} Taraweeh {x.taraweeh?"▶":"↗"}
-                        </span>
-                      </div>
-                      <div className="sbtn" onClick={()=>{setSelectedRamadanNight(x.n);setRamadanVideoType("tahajjud");}} style={{
-                        flex:1,padding:"6px 8px",borderRadius:5,textAlign:"center",
-                        background:sel===x.n&&ramadanVideoType==="tahajjud"?"#B794F4":"#B794F415",
-                        border:`1px solid ${sel===x.n&&ramadanVideoType==="tahajjud"?"#B794F4":"#B794F430"}`,
-                      }}>
-                        <span style={{fontSize:10,fontWeight:600,color:sel===x.n&&ramadanVideoType==="tahajjud"?(dark?"#060A07":"#fff"):"#B794F4"}}>
-                          Night {x.n} Tahajjud {x.tahajjud?"▶":"↗"}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Channel link */}
-              <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
-                 style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"11px 14px",
-                   background:T.surface,border:"1px solid #E5534B30",borderRadius:7,textDecoration:"none",marginBottom:16}}>
-                <div>
-                  <div style={{fontSize:12,color:T.accent,fontWeight:600,marginBottom:1}}>@sheikh_badr_al_turki</div>
-                  <div style={{fontSize:10,color:T.dim}}>All 30 nights · Full playlist on YouTube</div>
-                </div>
-                <div style={{padding:"7px 14px",background:T.accent,color:dark?"#060A07":"#fff",borderRadius:5,fontSize:11,fontWeight:700}}>
-                  View All
-                </div>
-              </a>
-
-              {/* Dua */}
-              <div style={{padding:"14px 18px",background:T.surface,border:"1px solid #E5534B20",borderRadius:8,textAlign:"center"}}>
-                <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:T.accent,direction:"rtl",marginBottom:6}}>
-                  اللَّهُمَّ بَلِّغْنَا رَمَضَانَ وَتَقَبَّلْ مِنَّا
-                </div>
-                <div style={{fontSize:11,color:T.sub,fontStyle:"italic",marginBottom:2}}>"O Allah, allow us to reach Ramadan and accept it from us"</div>
-                <div style={{fontSize:9,color:T.dim}}>Ramadan 1447 · May Allah accept all your prayers and worship 🤲</div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ═══ HARAMAIN TAB — FIXED (correct position, accurate notes) ═══ */}
-      {activeTab==="masjidayn"&&masjidaynTab==="haramain"&&(()=>{
-        const imams = haramainMosque==="makkah" ? MAKKAH_IMAMS : MADINAH_IMAMS;
-        const mosqueColor = haramainMosque==="makkah" ? "#E5534B" : "#F0C040";
-
-        return (
-          <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
-
-            {/* Mosque selector */}
-            <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 14px",flexShrink:0}}>
-              <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Haramain Imams — Quran Recordings</div>
-              <div style={{display:"flex",gap:8}}>
-                {[
-                  {id:"makkah", label:"🕋 Masjid Al-Haram", arabic:"مكة المكرمة", color:"#E5534B"},
-                  {id:"madinah",label:"🌙 Masjid An-Nabawi",arabic:"المدينة المنورة",color:"#F0C040"},
-                ].map(m=>(
-                  <div key={m.id} className="sbtn" onClick={()=>{setHaramainMosque(m.id);setOpenImam(null);}} style={{flex:1,padding:"9px 12px",borderRadius:7,background:haramainMosque===m.id?`${m.color}18`:T.surface2,border:`1px solid ${haramainMosque===m.id?m.color+"60":T.border}`,textAlign:"center"}}>
-                    <div style={{fontSize:12,fontWeight:haramainMosque===m.id?600:400,color:haramainMosque===m.id?T.text:T.sub,marginBottom:2}}>{m.label}</div>
-                    <div style={{fontSize:9,color:haramainMosque===m.id?m.color:T.dim,direction:"rtl"}}>{m.arabic}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Legend */}
-            <div style={{padding:"8px 14px",borderBottom:`1px solid ${T.border}`,flexShrink:0,display:"flex",gap:14,flexWrap:"wrap"}}>
-              <div style={{display:"flex",alignItems:"center",gap:5}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:"#F0C040"}}/>
-                <span style={{fontSize:9,color:"#F0C040"}}>Full Quran (114 surahs)</span>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:5}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:"#F6A623"}}/>
-                <span style={{fontSize:9,color:"#F6A623"}}>Partial collection</span>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:5}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:"#E5534B"}}/>
-                <span style={{fontSize:9,color:"#E5534B"}}>Prayer recordings only</span>
-              </div>
-            </div>
-
-            {/* Imam list */}
-            <div style={{flex:1,overflowY:"auto",padding:"12px 14px 120px"}}>
-              <div style={{fontSize:10,color:T.dim,marginBottom:10,lineHeight:1.6}}>
-                Tap an imam to browse their surah recordings. Source: haramain.info / Internet Archive.
-              </div>
-              {/* Current Imams */}
-              {imams.filter(i=>i.status==="current").length>0&&(
-                <div style={{fontSize:9,color:mosqueColor,letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
-                  <span>Current Imams</span><div style={{flex:1,height:1,background:`${mosqueColor}30`}}/>
-                </div>
-              )}
-              {imams.filter(i=>i.status==="current").map((imam)=>{
-                const isOpen = openImam===imam.id;
-                const isFull = imam.surahCount===114;
-                const hasAudio = !!(imam.archive || imam.quranicaudio || imam.mp3quran);
-                const audioSource = imam.archive?"Archive":imam.quranicaudio?"QuranicAudio":null;
-                const badgeColor = isFull ? "#F0C040" : hasAudio ? "#F6A623" : "#E5534B";
-                const badgeLabel = isFull ? "✓ Full Quran" : hasAudio ? "◦ Partial" : "✕ Prayer only";
-                return (
-                  <div key={imam.id} style={{marginBottom:6,border:`1px solid ${isOpen?mosqueColor+"40":T.border}`,borderLeft:`3px solid ${isOpen?mosqueColor:T.border2}`,borderRadius:isOpen?"6px 6px 0 0":"6px",overflow:"hidden"}}>
-                    <div className="srow" onClick={()=>setOpenImam(isOpen?null:imam.id)} style={{padding:"11px 14px",background:isOpen?T.surface2:T.surface,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                      <div>
-                        <div style={{fontSize:13,fontWeight:500,color:isOpen?T.text:T.sub}}>{imam.name}</div>
-                        <div style={{display:"flex",gap:8,alignItems:"center",marginTop:3,flexWrap:"wrap"}}>
-                          <span style={{fontSize:11,color:isOpen?mosqueColor:T.dim,direction:"rtl"}}>{imam.arabic}</span>
-                          <span style={{fontSize:9,padding:"1px 6px",borderRadius:10,background:`${badgeColor}15`,border:`1px solid ${badgeColor}40`,color:badgeColor}}>
-                            {badgeLabel}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        {imam.archive&&(
-                          <a href={`https://archive.org/details/${imam.archive}`} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()} style={{fontSize:9,color:T.accent,textDecoration:"none",padding:"3px 8px",border:`1px solid ${T.accent}40`,borderRadius:4}}>Archive ↗</a>
-                        )}
-                        {imam.quranicaudio&&!imam.archive&&(
-                          <span style={{fontSize:8,color:T.dim,padding:"2px 6px",border:`1px solid ${T.border}`,borderRadius:4}}>QuranicAudio</span>
-                        )}
-                        <div style={{color:isOpen?mosqueColor:T.dim,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(90deg)":"none"}}>›</div>
-                      </div>
-                    </div>
-
-                    {isOpen&&(
-                      !hasAudio ? (
-                        <div className="fi" style={{background:T.surface,borderTop:`1px solid ${T.border}`,padding:"16px 14px"}}>
-                          <div style={{fontSize:12,color:T.sub,lineHeight:1.7,marginBottom:10}}>
-                            📿 <strong style={{color:mosqueColor}}>{imam.name}</strong> leads prayers at the Haramain but does not have a compiled full Quran archive on haramain.info.
-                          </div>
-                          <div style={{fontSize:11,color:T.dim,lineHeight:1.6,marginBottom:12}}>
-                            Daily prayer recordings (Fajr, Maghrib, Isha, Taraweeh) are posted on haramain.info. Check there for his latest recordings.
-                          </div>
-                          <a href={`https://www.haramain.info/search/label/Sheikh%20Shamsaan%20-%20%D9%84%D9%84%D8%B4%D9%8A%D8%AE%20%D8%A7%D9%84%D8%B4%D9%85%D8%B3%D8%A7%D9%86`} target="_blank" rel="noreferrer" style={{display:"inline-block",fontSize:11,color:T.accent,textDecoration:"none",padding:"7px 14px",border:`1px solid ${T.accent}40`,borderRadius:6}}>
-                            View Recordings on Haramain.info ↗
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="fi" style={{background:T.surface,borderTop:`1px solid ${mosqueColor}20`,padding:"8px 8px 12px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:4}}>
-                          {HARAMAIN_SURAHS.map((name,si)=>{
-                            const sNum=si+1;
-                            if(imam.availableSurahs&&!imam.availableSurahs.includes(sNum)) return null;
-                            const pkey=`${imam.id}-${sNum}`;
-                            const isP=haramainPlaying===pkey;
-                            return (
-                              <div key={sNum} className="sbtn" onClick={()=>playHaramainSurah(imam,sNum,pkey)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:5,background:isP?`${mosqueColor}15`:T.surface2,border:`1px solid ${isP?mosqueColor:T.border}`}}>
-                                <div style={{width:24,height:24,borderRadius:"50%",flexShrink:0,background:isP?mosqueColor:T.surface,border:`1px solid ${isP?mosqueColor:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:isP?"#fff":T.dim}}>
-                                  {isP?"⏸":"▶"}
-                                </div>
-                                <div style={{minWidth:0}}>
-                                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:isP?mosqueColor:T.vdim}}>{String(sNum).padStart(3,"0")}</div>
-                                  <div style={{fontSize:10,color:isP?T.text:T.sub,lineHeight:1.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{name}</div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )
-                    )}
-                  </div>
-                );
-              })}
-              {/* Former Imams */}
-              {imams.filter(i=>i.status==="former").length>0&&(
-                <div style={{fontSize:9,color:T.dim,letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginTop:18,marginBottom:8,display:"flex",alignItems:"center",gap:8}}>
-                  <span>Former Imams</span><div style={{flex:1,height:1,background:T.border}}/>
-                </div>
-              )}
-              {imams.filter(i=>i.status==="former").map((imam)=>{
-                const isOpen = openImam===imam.id;
-                const isFull = imam.surahCount===114;
-                const hasAudio = !!(imam.archive || imam.quranicaudio || imam.mp3quran);
-                const badgeColor = isFull ? "#F0C040" : hasAudio ? "#F6A623" : "#E5534B";
-                const badgeLabel = isFull ? "✓ Full Quran" : hasAudio ? "◦ Partial" : "✕ Prayer only";
-                return (
-                  <div key={imam.id} style={{marginBottom:6,border:`1px solid ${isOpen?mosqueColor+"40":T.border}`,borderLeft:`3px solid ${isOpen?mosqueColor:T.border2}`,borderRadius:isOpen?"6px 6px 0 0":"6px",overflow:"hidden",opacity:0.85}}>
-                    <div className="srow" onClick={()=>setOpenImam(isOpen?null:imam.id)} style={{padding:"11px 14px",background:isOpen?T.surface2:T.surface,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                      <div>
-                        <div style={{fontSize:13,fontWeight:500,color:isOpen?T.text:T.sub}}>{imam.name}</div>
-                        <div style={{display:"flex",gap:8,alignItems:"center",marginTop:3,flexWrap:"wrap"}}>
-                          <span style={{fontSize:11,color:isOpen?mosqueColor:T.dim,direction:"rtl"}}>{imam.arabic}</span>
-                          {imam.deceased&&<span style={{fontSize:8,padding:"1px 6px",borderRadius:10,background:T.surface2,border:`1px solid ${T.border}`,color:T.dim}}>{imam.deceased}</span>}
-                          {imam.retired&&!imam.deceased&&<span style={{fontSize:8,padding:"1px 6px",borderRadius:10,background:T.surface2,border:`1px solid ${T.border}`,color:T.dim}}>{imam.retired}</span>}
-                          <span style={{fontSize:9,padding:"1px 6px",borderRadius:10,background:`${badgeColor}15`,border:`1px solid ${badgeColor}40`,color:badgeColor}}>{badgeLabel}</span>
-                        </div>
-                      </div>
-                      <div style={{color:isOpen?mosqueColor:T.dim,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(90deg)":"none"}}>›</div>
-                    </div>
-                    {isOpen&&hasAudio&&(
-                      <div className="fi" style={{background:T.surface,borderTop:`1px solid ${mosqueColor}20`,padding:"8px 8px 12px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:4}}>
-                        {HARAMAIN_SURAHS.map((name,si)=>{
-                          const sNum=si+1;
-                          if(imam.availableSurahs&&!imam.availableSurahs.includes(sNum)) return null;
-                          const pkey=`${imam.id}-${sNum}`;
-                          const isP=haramainPlaying===pkey;
-                          return (
-                            <div key={sNum} className="sbtn" onClick={()=>playHaramainSurah(imam,sNum,pkey)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:5,background:isP?`${mosqueColor}15`:T.surface2,border:`1px solid ${isP?mosqueColor:T.border}`}}>
-                              <div style={{width:24,height:24,borderRadius:"50%",flexShrink:0,background:isP?mosqueColor:T.surface,border:`1px solid ${isP?mosqueColor:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:isP?"#fff":T.dim}}>
-                                {isP?"⏸":"▶"}
-                              </div>
-                              <div style={{minWidth:0}}>
-                                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:isP?mosqueColor:T.vdim}}>{String(sNum).padStart(3,"0")}</div>
-                                <div style={{fontSize:10,color:isP?T.text:T.sub,lineHeight:1.3,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{name}</div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
-
-    </div>
-  )}
-
-      {/* ═══ ABOUT & CREDITS ═══ */}
-      {activeTab==="masjidayn"&&masjidaynTab==="about"&&(
-        <div style={{flex:1,overflowY:"auto",padding:"20px 18px 120px",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
-          <div style={{textAlign:"center",marginBottom:20}}>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Rihlat Al-Hifz</div>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.60)":"#6B645A",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
-            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#6B645A",marginTop:4}}>Version 1.0 · 2026</div>
-          </div>
-
-          {/* ── Purpose Statement ── */}
-          <div style={{background:dark?"rgba(212,175,55,0.04)":"rgba(212,175,55,0.06)",border:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.06)",borderRadius:16,padding:"18px 16px",marginBottom:24,textAlign:"center"}}>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:dark?"#E8C76A":"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:14}}>
-              وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ
-            </div>
-            <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",fontStyle:"italic",marginBottom:16}}>
-              "And We have certainly made the Qur'an easy for remembrance, so is there any who will remember?" — Al-Qamar 54:17
-            </div>
-            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left"}}>
-              Rihlat Al-Hifz was born from a simple belief: that the path to memorizing the Qur'an should feel guided, personal, and connected to the living tradition of the Haramain.
-            </div>
-            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
-              Too many memorization tools treat hifz as a checklist. But hifz is a journey — a rihlah. It is built one ayah at a time, one breath at a time, through repetition, reflection, and du'a. Every ayah you commit to memory is a conversation with your Creator that you carry with you for life.
-            </div>
-            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
-              This app tracks your progress at the ayah level — because that is the truth of how memorization happens. Not juz by juz, not surah by surah, but ayah by ayah. Your timeline, your goals, and your daily sessions are all built around this reality.
-            </div>
-            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
-              We chose to feature the reciters and scholars of Masjid Al-Haram and Masjid An-Nabawi because hifz is not just about memorizing words — it is about connecting to the tradition. When you listen to the imams of the Haramain recite, you are hearing the same voices that lead millions in salah in the holiest places on earth. That connection strengthens your memorization and deepens your love for the Qur'an.
-            </div>
-            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
-              Every feature in this app — from the five daily sessions tied to salah times, to the Asr review that cycles through your completed surahs, to the interactive Qur'an with tafsir at your fingertips — is designed to serve one purpose: to make the Qur'an accessible, personal, and deeply rooted in your daily life.
-            </div>
-            <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.55)":"#6B645A",lineHeight:1.9,textAlign:"left",marginTop:10,fontStyle:"italic"}}>
-              We ask Allah to accept this effort, to make it a means of benefit for the Ummah, and to place it on the scale of good deeds for everyone who contributed to making it possible — the scholars, the reciters, the developers behind the open APIs, and every person who opens this app with the intention of drawing closer to His Book.
-            </div>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"#E8C76A":"#D4AF37",direction:"rtl",marginTop:14}}>
-              اللَّهُمَّ اجْعَلْنَا مِنْ أَهْلِ الْقُرْآنِ
-            </div>
-            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:4,fontStyle:"italic"}}>
-              O Allah, make us from the people of the Qur'an
-            </div>
-          </div>
-
-          {[
-            {title:"Quranic Text",items:[
-              "Uthmani text provided by Quran.com API (Quran Foundation)",
-              "Text data sourced from QuranCDN (api.qurancdn.com)",
-              "Mushaf page layout and verse mapping via Quran Foundation resources",
-            ]},
-            {title:"Translation",items:[
-              "English translation: Al-Hilali & Muhammad Muhsin Khan",
-              "Translation data served via Quran.com API (Quran Foundation)",
-              "Used for educational and da'wah purposes",
-            ]},
-            {title:"Tafsir",items:[
-              "Tafsir As-Sa'di — Shaykh Abdur-Rahman ibn Nasir As-Sa'di",
-              "Tafsir Al-Muyassar — King Fahd Complex for the Printing of the Holy Qur'an",
-              "Tafsir Ibn Kathir — Imam Isma'il ibn Umar ibn Kathir",
-              "All tafsir content served via Quran.com API (Quran Foundation)",
-            ]},
-            {title:"Recitations & Audio",items:[
-              "Ayah-by-ayah recitations via everyayah.com",
-              "Full surah recitations via quranicaudio.com (Quran Foundation)",
-              "Audio streaming via audio.qurancdn.com (Quran Foundation)",
-              "All reciters are credited by name throughout the application",
-              "Recitations used for educational purposes — memorization and review",
-            ]},
-            {title:"Reciters",items:[
-              "Masjid Al-Haram: Yasser Al-Dosari, Abdullah Al-Juhany, Abdul Rahman As-Sudais, Saud Ash-Shuraim, Maher Al-Muaiqly, Abu Bakr Ash-Shatri, Hani Ar-Rifai",
-              "Masjid An-Nabawi: Ali Al-Hudhaify, Muhammad Ayyoub, Salah Al-Budair, Abdul Muhsin Al-Qasim, Fares Abbad",
-              "Other: Mishary Rashid Alafasy, Nasser Al-Qatami",
-            ]},
-            {title:"Mushaf Images",items:[
-              "Mushaf page images based on the Madinah Mushaf",
-              "Published by the King Fahd Complex for the Printing of the Holy Qur'an",
-              "Used for educational and non-commercial purposes",
-            ]},
-            {title:"Live Streams & Ramadan Content",items:[
-              "Masjid Al-Haram & Masjid An-Nabawi live streams via Saudi Broadcasting Authority (aloula.sa)",
-              "Ramadan Taraweeh & Tahajjud recordings via Shaykh Badr Al-Turki YouTube channel (@sheikh_badr_al_turki)",
-              "Imam data referenced from haramain.info",
-            ]},
-            {title:"Fonts",items:[
-              "UthmanicHafs — Quranic script font (King Fahd Complex)",
-              "Amiri & Amiri Quran — Khaled Hosny (SIL Open Font License)",
-              "Scheherazade New — SIL International (SIL Open Font License)",
-              "DM Sans, Playfair Display, IBM Plex Mono — Google Fonts (Open Font License)",
-            ]},
-            {title:"Technology",items:[
-              "Built with React (Meta, MIT License)",
-              "HLS.js for live stream playback (Apache 2.0 License)",
-              "Hosted and deployed via Vercel",
-            ]},
-            {title:"Acknowledgements",items:[
-              "Quran Foundation (quran.com) — for their open API serving the global Muslim community",
-              "everyayah.com — for making ayah-by-ayah recitations freely accessible",
-              "King Fahd Complex for the Printing of the Holy Qur'an — for the Madinah Mushaf and UthmanicHafs font",
-              "The scholars whose tafsir works illuminate the meaning of the Qur'an",
-              "The blessed reciters of the Haramain whose voices guide millions in memorization",
-            ]},
-          ].map((section,i)=>(
-            <div key={i} style={{marginBottom:18}}>
-              <div style={{fontSize:10,color:dark?"rgba(212,175,55,0.60)":"#D4AF37",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>{section.title}</div>
-              <div style={{background:dark?"rgba(255,255,255,0.03)":"#EADFC8",border:dark?"1px solid rgba(212,175,55,0.10)":"1px solid rgba(0,0,0,0.08)",borderRadius:14,padding:"12px 14px"}}>
-                {section.items.map((item,j)=>(
-                  <div key={j} style={{fontSize:11,color:dark?"rgba(243,231,200,0.65)":"#2D2A26",lineHeight:1.7,padding:"4px 0",borderBottom:j<section.items.length-1?(dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"):"none"}}>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          <div style={{textAlign:"center",marginTop:20,padding:"16px",borderRadius:14,background:dark?"rgba(255,255,255,0.02)":"#EADFC8",border:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.06)"}}>
-            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",lineHeight:1.8}}>
-              This application is built as a service to the Muslim Ummah for the purpose of Quranic memorization and education. All Quranic content is used with respect for its sacred nature. No content is modified from its original source. All scholarly works are attributed to their authors.
-            </div>
-            <div style={{fontSize:10,color:dark?"rgba(212,175,55,0.40)":"#D4AF37",marginTop:10}}>NoorTech Studio · 2026</div>
-            <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.20)":"#6B645A",marginTop:4}}>Built with sincerity for the sake of Allah</div>
-          </div>
-        </div>
+        <MasjidaynTab
+          dark={dark} T={T}
+          masjidaynTab={masjidaynTab} setMasjidaynTab={setMasjidaynTab}
+          activeStream={activeStream}
+          selectedRamadanNight={selectedRamadanNight} setSelectedRamadanNight={setSelectedRamadanNight}
+          ramadanVideoType={ramadanVideoType} setRamadanVideoType={setRamadanVideoType}
+          haramainMosque={haramainMosque} setHaramainMosque={setHaramainMosque}
+          openImam={openImam} setOpenImam={setOpenImam}
+          haramainPlaying={haramainPlaying} playHaramainSurah={playHaramainSurah}
+        />
       )}
 
     </>)}

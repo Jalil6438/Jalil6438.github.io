@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ':*)",
+      "Bash(curl -s \"https://api.qurancdn.com/api/qdc/verses/by_key/68:42?words=false&fields=text_uthmani\")",
+      "Bash(python3 -c \"import sys,json;sys.stdout.reconfigure\\(encoding='utf-8',errors='replace'\\);d=json.load\\(sys.stdin\\);print\\('68:42:',d['verse']['text_uthmani']\\)\")",
+      "Bash(curl -s \"https://api.qurancdn.com/api/qdc/verses/by_key/70:43?words=false&fields=text_uthmani\")",
+      "Bash(python3 -c \"import sys,json;sys.stdout.reconfigure\\(encoding='utf-8',errors='replace'\\);d=json.load\\(sys.stdin\\);print\\('70:43:',d['verse']['text_uthmani']\\)\")"
+    ]
+  }
+}
