@@ -15,6 +15,7 @@ import MasjidaynTab from "./tabs/MasjidaynTab";
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showSettings,setShowSettings]=useState(false);
+  const [twoPageWarning,setTwoPageWarning]=useState(null); // {target, actual} | null
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
   const [onboardStep,setOnboardStep]=useState(1);
@@ -474,14 +475,20 @@ export default function RihlatAlHifz() {
     (async()=>{
       setSessLoading(true); setSessionVerses([]); setSessError(false);
       try {
-        let page=1,all=[],tp=1;
-        do {
-          const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${sessionJuz}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
-          if(!res.ok) throw new Error();
-          const data=await res.json();
-          if(cancelled) return;
-          all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
-        } while(page<=tp);
+        // Load full surahs (by chapter) for each surah in this juz — ensures surahs start at ayah 1
+        // even if they span multiple juz (e.g. Fussilat spans Juz 24 & 25)
+        const surahsInJuz=(JUZ_SURAHS[sessionJuz]||[]).map(item=>item.s);
+        let all=[];
+        for(const surahNum of surahsInJuz){
+          let page=1,tp=1;
+          do {
+            const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=${page}`);
+            if(!res.ok) throw new Error();
+            const data=await res.json();
+            if(cancelled) return;
+            all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
+          } while(page<=tp);
+        }
 
         // Fix U+06DF dots for UthmanicHafs font
         all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
@@ -659,15 +666,80 @@ export default function RihlatAlHifz() {
   const curStatus=juzStatus[selectedJuz]||"not_started";
   const curCfg=STATUS_CFG[curStatus];
   const timeline=calcTimeline(goalYears,memorizedAyahs,goalMonths,nextJuzAyahs,completedCount);
-  const dailyNew=Math.round(parseFloat(timeline.ayahsPerDay));
+  const targetDaily=Math.round(parseFloat(timeline.ayahsPerDay));
+
+  // Sheikh Al-Qasim's 2-page rule — allow up to 2 full pages worth of content
+  const twoPageLimit=(()=>{
+    if(!sessionVerses.length||sessionIdx>=sessionVerses.length) return {count:targetDaily,capped:false};
+    const startPage=sessionVerses[sessionIdx]?.page_number;
+    if(!startPage) return {count:targetDaily,capped:false};
+    // Check if user is starting at the beginning of a page
+    const prevAyah=sessionIdx>0?sessionVerses[sessionIdx-1]:null;
+    const startsAtPageBeginning=!prevAyah||prevAyah.page_number!==startPage;
+    // If starting at page beginning: allow pages startPage to startPage+1 (2 full pages)
+    // If starting mid-page: allow rest of startPage + next 2 pages (startPage+2)
+    const maxPage=startsAtPageBeginning?startPage+1:startPage+2;
+    let maxCount=0;
+    for(let i=sessionIdx;i<sessionVerses.length;i++){
+      const p=sessionVerses[i]?.page_number;
+      if(p&&p>maxPage) break;
+      maxCount++;
+    }
+    return {count:Math.min(targetDaily,maxCount),capped:targetDaily>maxCount,maxAllowed:maxCount};
+  })();
+  const dailyNew=twoPageLimit.count;
+  const currentSessionId=SESSIONS[activeSessionIndex]?.id;
+
+  // Show warning when 2-page cap kicks in — once per juz per day
+  useEffect(()=>{
+    if(!twoPageLimit.capped||!sessionVerses.length||currentSessionId!=="fajr") return;
+    const today=TODAY();
+    const key=`2page-warn-${sessionJuz}-${today}`;
+    if(localStorage.getItem(key)) return;
+    setTwoPageWarning({target:targetDaily,actual:twoPageLimit.count});
+    localStorage.setItem(key,"1");
+  },[sessionJuz,currentSessionId]);
 
     const totalSV=sessionVerses.length;
   const bStart=sessionIdx;
   const bEnd=Math.min(sessionIdx+dailyNew,totalSV);
-  const fajrBatch=sessionVerses.slice(bStart,bEnd);
+  // Build batch — prefer completing whole surahs, avoid starting a new surah with a partial
+  const fajrBatch=(()=>{
+    if(!sessionVerses.length||bStart>=sessionVerses.length) return [];
+    const result=[];
+    let i=bStart;
+    // Pack whole surahs into the batch while we have room
+    while(i<sessionVerses.length&&result.length<dailyNew){
+      const curSurah=sessionVerses[i].surah_number||parseInt(sessionVerses[i].verse_key?.split(":")?.[0],10);
+      // Collect all ayahs of this surah from position i
+      const surahAyahs=[];
+      let j=i;
+      while(j<sessionVerses.length){
+        const v=sessionVerses[j];
+        const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+        if(s!==curSurah) break;
+        surahAyahs.push(v);
+        j++;
+      }
+      // Can we fit the whole surah?
+      if(result.length+surahAyahs.length<=dailyNew){
+        result.push(...surahAyahs);
+        i=j;
+      } else {
+        // Surah doesn't fit entirely. Only add partial if we haven't started any surah yet
+        // (i.e., this is the first surah in the batch and bigger than dailyNew)
+        if(result.length===0){
+          const take=Math.min(dailyNew,surahAyahs.length);
+          result.push(...surahAyahs.slice(0,take));
+        }
+        // Otherwise stop — don't start a new surah we can't finish
+        break;
+      }
+    }
+    return result;
+  })();
   // Save Fajr batch so Maghrib/Isha can use it even after sessionIdx advances
   useEffect(()=>{if(fajrBatch.length>0&&todayFajrBatch.length===0)setTodayFajrBatch(fajrBatch);},[fajrBatch.length]);
-  const currentSessionId=SESSIONS[activeSessionIndex]?.id;
   const isDhuhr=currentSessionId==="dhuhr";
   const isAsr=currentSessionId==="asr";
   const isMaghrib=currentSessionId==="maghrib";
@@ -699,10 +771,27 @@ export default function RihlatAlHifz() {
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
   else if(isMaghrib||isIsha){ batch=fajrBatch.length>0?fajrBatch:todayFajrBatch; }
 
-  const totalPages=Math.max(1,Math.ceil(batch.length/AYAHS_PER_PAGE));
+  // Build pages — each page holds up to AYAHS_PER_PAGE ayahs AND stops at surah boundary
+  const batchPageRanges=(()=>{
+    const ranges=[];
+    let i=0;
+    while(i<batch.length){
+      const startSurah=batch[i].surah_number||parseInt(batch[i].verse_key?.split(":")?.[0],10);
+      let end=i;
+      while(end<batch.length&&end-i<AYAHS_PER_PAGE){
+        const s=batch[end].surah_number||parseInt(batch[end].verse_key?.split(":")?.[0],10);
+        if(s!==startSurah) break;
+        end++;
+      }
+      ranges.push({start:i,end});
+      i=end;
+    }
+    return ranges.length>0?ranges:[{start:0,end:0}];
+  })();
+  const totalPages=Math.max(1,batchPageRanges.length);
   const safePage=Math.min(ayahPage,totalPages-1);
-  const pageStart=safePage*AYAHS_PER_PAGE;
-  const pageEnd=Math.min(pageStart+AYAHS_PER_PAGE,batch.length);
+  const pageStart=batchPageRanges[safePage]?.start||0;
+  const pageEnd=batchPageRanges[safePage]?.end||0;
   const visibleAyahs=batch.slice(pageStart,pageEnd);
 
   useEffect(()=>{setAyahPage(0);},[currentSessionId,sessionJuz,sessionIdx,dailyNew,batch.length]);
@@ -963,10 +1052,11 @@ export default function RihlatAlHifz() {
       setJuzCompletedInSession(prev=>new Set([...prev,sessionJuz]));
       v9MarkJuzComplete(sessionJuz); // V9: add all ayahs of this juz to completedAyahs
     } else {
-      setSessionIdx(bEnd);
-      setJuzProgress(p=>({...p,[sessionJuz]:bEnd}));
-      // V9: add all completed ayahs up to bEnd (not just current batch)
-      setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(0,bEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
+      const actualEnd=sessionIdx+fajrBatch.length;
+      setSessionIdx(actualEnd);
+      setJuzProgress(p=>({...p,[sessionJuz]:actualEnd}));
+      // V9: add all completed ayahs up to actualEnd (not just current batch)
+      setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(0,actualEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
       setJuzStatus(prev=>{
         const next={...prev};
         let changed=false;
@@ -1296,7 +1386,7 @@ export default function RihlatAlHifz() {
                 </div>
                 <div style={{background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),0 12px 35px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
                   <div style={{fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Your Goal</div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?" • "+goalMonths+" Month"+(goalMonths!==1?"s":""):""}</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears>0?`${goalYears} Year${goalYears!==1?"s":""}`:""}{goalYears>0&&goalMonths>0?" • ":""}{goalMonths>0?`${goalMonths} Month${goalMonths!==1?"s":""}`:goalYears===0?"Set goal":""}</div>
                   <div style={{fontSize:13,color:"rgba(243,231,191,0.75)",lineHeight:1.7,marginBottom:10}}>
                     <span style={{color:"#F6E27A",fontWeight:700}}>{apd} ayahs per day</span><span style={{opacity:0.7}}>{" • "}{daysPerJuz} days per juz</span><span style={{opacity:0.7}}>{" • "}{remainingJuz} juz remaining</span>
                   </div>
@@ -1309,7 +1399,7 @@ export default function RihlatAlHifz() {
                     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                       <div>
                         <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Years</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalYears}</span></div>
-                        <input type="range" min="1" max="10" value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%"}}/>
+                        <input type="range" min="0" max="10" value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%"}}/>
                       </div>
                       <div>
                         <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Months</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalMonths}</span></div>
@@ -1457,7 +1547,7 @@ export default function RihlatAlHifz() {
       {activeTab!=="quran"&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-        const goalLabel=goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
+        const goalLabel=goalYears===0?`${goalMonths}-Month Hafiz`:goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
         return (
         <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8",padding:"18px 16px 16px",flexShrink:0,borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
@@ -2036,10 +2126,11 @@ export default function RihlatAlHifz() {
                         v9MarkJuzComplete(sessionJuz); // V9
                         setSessionJuz(null);
                       } else if(sessionJuz) {
-                        setSessionIdx(bEnd);
-                        setJuzProgress(prev=>({...prev,[sessionJuz]:bEnd}));
-                        // V9: add all completed ayahs up to bEnd + mark completed surahs
-                        setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(0,bEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
+                        const actualEnd=sessionIdx+fajrBatch.length;
+                        setSessionIdx(actualEnd);
+                        setJuzProgress(prev=>({...prev,[sessionJuz]:actualEnd}));
+                        // V9: add all completed ayahs up to actualEnd + mark completed surahs
+                        setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(0,actualEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
                         // Mark completed surahs in V9
                         const surahCounts={};const surahTotals={};
                         sessionVerses.forEach(v=>{const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);surahTotals[sn]=(surahTotals[sn]||0)+1;});
@@ -2099,7 +2190,7 @@ export default function RihlatAlHifz() {
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
         const joinYear=2026;
-        const goalLabel=goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
+        const goalLabel=goalYears===0?`${goalMonths}-Month Hafiz`:goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
         const radius=52, circ=2*Math.PI*radius;
         const filled=circ*(pct/100);
         const activeSess=SESSIONS.find(s=>!dailyChecks[s.id])||SESSIONS[SESSIONS.length-1];
@@ -3256,7 +3347,7 @@ export default function RihlatAlHifz() {
               <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>Base Timeline</span>
               <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:dark?"#E6B84A":"#D4AF37",fontWeight:600}}>{goalYears} Year{goalYears!==1?"s":""}</span>
             </div>
-            <input type="range" min={1} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:16}}/>
+            <input type="range" min={0} max={10} value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%",marginBottom:16}}/>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
               <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>Extra Buffer</span>
               <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:dark?"#E6B84A":"#D4AF37",fontWeight:600}}>+{goalMonths} Month{goalMonths!==1?"s":""}</span>
@@ -3485,6 +3576,33 @@ export default function RihlatAlHifz() {
       )}
 
       {/* Quran Reciter Modal */}
+{/* ── 2-PAGE WARNING MODAL ── */}
+{twoPageWarning&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setTwoPageWarning(null)}>
+    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:20,maxWidth:380,width:"100%",border:"1px solid rgba(217,177,95,0.30)",boxShadow:"0 20px 60px rgba(0,0,0,0.60), 0 0 30px rgba(212,175,55,0.15)",padding:"22px 20px"}} onClick={e=>e.stopPropagation()}>
+      <div style={{textAlign:"center",marginBottom:12}}>
+        <div style={{fontSize:28,marginBottom:8}}>📖</div>
+        <div style={{fontSize:10,color:"#D4AF37",letterSpacing:".16em",textTransform:"uppercase",fontWeight:700,marginBottom:6}}>Sheikh Al-Qasim's Wisdom</div>
+      </div>
+      <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:dark?"#F6E27A":"#B45309",direction:"rtl",textAlign:"center",lineHeight:1.8,marginBottom:12}}>
+        لا تحفظ أكثر من صفحتين في اليوم
+      </div>
+      <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.80)":"#2D2A26",lineHeight:1.7,textAlign:"center",marginBottom:14,fontStyle:"italic"}}>
+        "Do not memorize more than two pages a day. Consistency and quality over quantity — this is the path that lasts."
+      </div>
+      <div style={{padding:"12px 14px",background:dark?"rgba(212,175,55,0.08)":"rgba(212,175,55,0.10)",border:`1px solid ${dark?"rgba(212,175,55,0.25)":"rgba(180,120,30,0.30)"}`,borderRadius:12,marginBottom:14,textAlign:"center"}}>
+        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.60)":"#6B645A",marginBottom:4}}>Your target was</div>
+        <div style={{fontSize:14,fontWeight:700,color:dark?"#F0C040":"#B45309",marginBottom:6}}>{twoPageWarning.target} ayahs today</div>
+        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.60)":"#6B645A",marginBottom:4}}>Adjusted to fit within 2 pages</div>
+        <div style={{fontSize:18,fontWeight:700,color:"#4ADE80"}}>{twoPageWarning.actual} ayahs today</div>
+      </div>
+      <div className="sbtn" onClick={()=>setTwoPageWarning(null)} style={{width:"100%",padding:"12px",borderRadius:12,textAlign:"center",fontSize:13,fontWeight:700,color:dark?"#0A0E1A":"#fff",background:"linear-gradient(180deg,#E6B84A,#D4A62A)"}}>
+        I understand · بارك الله فيك
+      </div>
+    </div>
+  </div>
+)}
+
 {/* ── SETTINGS MODAL ── */}
 {showSettings&&(
   <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowSettings(false)}>
