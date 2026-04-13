@@ -2136,7 +2136,7 @@ export default function RihlatAlHifz() {
               <defs><linearGradient id="fg1" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stopColor="#DC2626"/><stop offset="40%" stopColor="#F97316"/><stop offset="80%" stopColor="#FBBF24"/><stop offset="100%" stopColor="#FEF08A"/></linearGradient></defs>
               <path d="M12 2C10 6 6 8 6 13C6 16.5 8.5 19 12 19C15.5 19 18 16.5 18 13C18 8 14 6 12 2ZM12 17C10.5 17 9 15.5 9 14C9 12 10 11 12 9C14 11 15 12 15 14C15 15.5 13.5 17 12 17Z" fill="url(#fg1)"/>
             </svg>
-            <span style={{fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:500,letterSpacing:".02em"}}>7 Day Streak</span>
+            <span style={{fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:500,letterSpacing:".02em"}}>{streak>=21?"21 Day Streak":streak>=14?"14 Day Streak":"7 Day Streak"}</span>
           </div>
         );
         const HifzGoalBadge=({earned})=>(
@@ -2444,8 +2444,8 @@ export default function RihlatAlHifz() {
               <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
               <div style={{display:"flex",justifyContent:"space-around",gap:8,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"12px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)"}}>
                 <JuzBadge count={completedCount||0} earned={completedCount>0}/>
-                <HabituatedBadge earned={streak>=14}/>
                 <StreakBadge earned={streak>=7}/>
+                <HabituatedBadge earned={streak>=40}/>
                 <HifzGoalBadge earned={goalYears>0}/>
               </div>
             </div>
