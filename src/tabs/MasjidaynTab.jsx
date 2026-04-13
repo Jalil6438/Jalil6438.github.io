@@ -143,8 +143,8 @@ export default function MasjidaynTab({
                         <div style={{fontSize:10,color:m.color,direction:"rtl",marginTop:1}}>{m.arabic}</div>
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:4}}>
-                        <div className="pulse" style={{width:6,height:6,borderRadius:"50%",background:m.color}}/>
-                        <span style={{fontSize:7,color:m.color,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700,letterSpacing:".1em"}}>LIVE</span>
+                        <div className="pulse" style={{width:7,height:7,borderRadius:"50%",background:"#FF3B30"}}/>
+                        <span style={{fontSize:9,color:"#FF3B30",fontFamily:"'IBM Plex Mono',monospace",fontWeight:700,letterSpacing:".12em",textShadow:"0 0 6px rgba(255,59,48,0.6)"}}>LIVE</span>
                       </div>
                     </div>
                   </div>

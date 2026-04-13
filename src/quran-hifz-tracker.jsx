@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import MUTASHABIHAT from "./mutashabihat.json";
-import { QURAN_RECITERS, RECITERS, SURAH_EN, SURAH_AYAH_COUNTS, JUZ_RANGES, DARK, LIGHT, STATUS_CFG, MONTH_NAMES, TODAY, DATEKEY, FMTDATE } from "./data/constants";
+import { RECITERS, SURAH_EN, SURAH_AYAH_COUNTS, JUZ_RANGES, DARK, LIGHT, STATUS_CFG, MONTH_NAMES, TODAY, DATEKEY, FMTDATE } from "./data/constants";
 import { SESSIONS, getSessionWisdom } from "./data/sessions";
 import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
@@ -15,6 +15,9 @@ import AdjustPlan from "./components/AdjustPlan";
 import RihlahProgressPath from "./components/RihlahProgressPath";
 import RihlahHome from "./tabs/RihlahHome";
 import TwoPageWarningModal from "./components/TwoPageWarningModal";
+import MushafRangePickerModal from "./components/MushafRangePickerModal";
+import QuranJuzModal from "./components/QuranJuzModal";
+import ReciterModal from "./components/ReciterModal";
 import useHifzProgress from "./hooks/useHifzProgress";
 import useAudio from "./hooks/useAudio";
 import MasjidaynTab from "./tabs/MasjidaynTab";
@@ -1867,99 +1870,27 @@ export default function RihlatAlHifz() {
       />
 
       {/* Mushaf Audio Range Picker */}
-      {showMushafRangePicker&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.82)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowMushafRangePicker(false)}>
-          <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
-            <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
-
-            {/* Header */}
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0),rgba(232,200,120,0.50))"}}/>
-              <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600}}>Select Ayah Range</div>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50),rgba(217,177,95,0))"}}/>
-            </div>
-            <div style={{fontSize:11,color:"rgba(217,177,95,0.40)",textAlign:"center",marginBottom:16}}>Page {mushafPage} · {mushafVerses.length} ayahs</div>
-
-            {/* Ayah list — tap to set start/end */}
-            <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:20}}>
-              {mushafVerses.map((v,i)=>{
-                const vKey=v.verse_key;
-                const [s,a]=vKey.split(":");
-                const ayahNum=Number(a);
-                const isStart=mushafRangeStart===i;
-                const isEnd=mushafRangeEnd===i;
-                const inRange=mushafRangeStart!==null&&mushafRangeEnd!==null&&i>=mushafRangeStart&&i<=mushafRangeEnd;
-                return(
-                  <div key={vKey} className="sbtn"
-                    onClick={()=>{
-                      if(mushafRangeStart===null||mushafRangeEnd!==null){
-                        setMushafRangeStart(i); setMushafRangeEnd(null);
-                      } else if(i<mushafRangeStart){
-                        setMushafRangeStart(i);
-                      } else {
-                        setMushafRangeEnd(i);
-                      }
-                    }}
-                    style={{padding:"10px 14px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",
-                      background:inRange?"rgba(217,177,95,0.10)":isStart||isEnd?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.03)",
-                      border:`1px solid ${isStart?"rgba(232,200,120,0.70)":isEnd?"rgba(232,200,120,0.50)":inRange?"rgba(217,177,95,0.20)":"rgba(217,177,95,0.08)"}`,
-                    }}>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{fontSize:10,fontFamily:"'IBM Plex Mono',monospace",color:"rgba(217,177,95,0.40)",width:24}}>{ayahNum}</div>
-                      <div style={{fontSize:12,color:inRange||isStart||isEnd?"#F5E6B3":"rgba(243,231,200,0.55)",direction:"rtl",maxWidth:220,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.text_uthmani||""}</div>
-                    </div>
-                    <div style={{fontSize:10,color:isStart?"#F6E27A":isEnd?"rgba(246,226,122,0.60)":"transparent",fontWeight:600,flexShrink:0}}>
-                      {isStart?"START":isEnd?"END":""}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Play button */}
-            <div className="sbtn"
-              onClick={()=>{
-                const start=mushafRangeStart??0;
-                const end=mushafRangeEnd??mushafVerses.length-1;
-                const slice=mushafVerses.slice(start,end+1);
-                setShowMushafRangePicker(false);
-                playMushafRange(slice);
-              }}
-              style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",background:mushafRangeStart!==null?"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)":"rgba(255,255,255,0.04)",color:mushafRangeStart!==null?"#060A07":"rgba(243,231,200,0.30)",fontSize:14,fontWeight:700,border:`1px solid ${mushafRangeStart!==null?"transparent":"rgba(217,177,95,0.12)"}`,boxShadow:mushafRangeStart!==null?"0 8px 24px rgba(212,175,55,0.22)":"none"}}>
-              {mushafRangeStart===null?"Tap an ayah to set start range":`Play Ayah ${Number(mushafVerses[mushafRangeStart]?.verse_key?.split(":")?.[1])} → ${Number(mushafVerses[mushafRangeEnd??mushafVerses.length-1]?.verse_key?.split(":")?.[1])}`}
-            </div>
-          </div>
-        </div>
-      )}
+      <MushafRangePickerModal
+        show={showMushafRangePicker}
+        onClose={()=>setShowMushafRangePicker(false)}
+        dark={dark}
+        mushafPage={mushafPage}
+        mushafVerses={mushafVerses}
+        mushafRangeStart={mushafRangeStart} setMushafRangeStart={setMushafRangeStart}
+        mushafRangeEnd={mushafRangeEnd} setMushafRangeEnd={setMushafRangeEnd}
+        playMushafRange={playMushafRange}
+      />
 
       {/* Quran Juz Picker Modal */}
-      {showQuranJuzModal&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowQuranJuzModal(false)}>
-          <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",padding:"16px 18px 32px",width:"100%",maxWidth:520,maxHeight:"70vh",overflowY:"auto",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
-            <div style={{width:36,height:4,background:"rgba(255,255,255,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
-            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.50) 100%)"}}/>
-              <div style={{fontSize:9,color:"rgba(217,177,95,0.70)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600}}>Select Juz</div>
-              <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,200,120,0.50) 0%,rgba(217,177,95,0) 100%)"}}/>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              {Array.from({length:30},(_,i)=>i+1).map(jNum=>{
-                const isSel=mushafJuzNum===jNum;
-                const pg=JUZ_PAGES[jNum-1]||1;
-                return(
-                  <div key={jNum} className="sbtn" onClick={()=>{setMushafJuzNum(jNum);setMushafPage(pg);setShowQuranJuzModal(false);}}
-                    style={{padding:"13px 16px",borderRadius:14,textAlign:"center",
-                      background:isSel?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)",
-                      border:`1px solid ${isSel?"rgba(232,200,120,0.65)":"rgba(217,177,95,0.12)"}`,
-                      boxShadow:isSel?"0 0 28px rgba(232,200,120,0.30),inset 0 0 14px rgba(217,177,95,0.08)":"none"}}>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:600,color:isSel?"#F6E27A":"rgba(243,231,200,0.70)"}}>Juz {jNum}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      <QuranJuzModal
+        show={showQuranJuzModal}
+        onClose={()=>setShowQuranJuzModal(false)}
+        dark={dark}
+        JUZ_PAGES={JUZ_PAGES}
+        mushafJuzNum={mushafJuzNum}
+        setMushafJuzNum={setMushafJuzNum}
+        setMushafPage={setMushafPage}
+      />
 
       {/* Quran Surah Picker Modal */}
       <SurahPickerModal
@@ -1990,68 +1921,19 @@ export default function RihlatAlHifz() {
 
 <TwoPageWarningModal warning={twoPageWarning} onClose={()=>setTwoPageWarning(null)} dark={dark} />
 
-{showReciterModal&&(
-  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowReciterModal(false)}>
-    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"68vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
-
-      {/* ── Handle + Header ── */}
-      <div style={{padding:"12px 18px 0",textAlign:"center"}}>
-        <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
-        <div style={{fontSize:13,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A",letterSpacing:".03em"}}>Select Reciter</div>
-        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.40)":"rgba(40,30,10,0.50)",marginTop:4,marginBottom:10}}>
-          Currently: <span style={{color:dark?"rgba(230,184,74,0.75)":"rgba(140,100,20,0.85)",fontWeight:600}}>{reciterMode==="quran"?(QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Unknown"):currentReciter.name}</span>
-        </div>
-      </div>
-
-      {/* ── Reciter list ── */}
-      <div style={{overflowY:"auto",padding:"0 12px 28px"}}>
-        {(()=>{
-          const list=reciterMode==="quran"?QURAN_RECITERS:RECITERS;
-          const selectedId=reciterMode==="quran"?quranReciter:reciter;
-          const groups=["Masjid Al-Haram","Masjid An-Nabawi","Hifz Favorite","Popular"];
-          const renderReciter=(r)=>{
-            const isSelected=selectedId===r.id;
-            return (
-              <div key={r.id} className="sbtn" onClick={()=>{
-                if(reciterMode==="quran"){
-                  setQuranReciter(r.id);
-                  setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null);
-                  if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
-                } else { setReciter(r.id); }
-                setShowReciterModal(false);
-              }} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,transition:"all .15s",
-                background:isSelected?(dark?"rgba(230,184,74,0.10)":"rgba(180,140,40,0.08)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
-                border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.35)":"rgba(160,120,20,0.40)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
-                boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12}}>🎙️</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.65)":"rgba(40,30,10,0.65)")}}>{r.name}</div>
-                  <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:isSelected?(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.70)"):(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.40)"),marginTop:1}}>{r.arabic}</div>
-                </div>
-                {isSelected&&<div style={{fontSize:14,color:"#E6B84A",fontWeight:700,flexShrink:0}}>✓</div>}
-              </div>
-            );
-          };
-          return groups.map(group=>{
-            const groupReciters=list.filter(r=>r.tag===group);
-            if(!groupReciters.length) return null;
-            return (
-              <div key={group} style={{marginBottom:12}}>
-                <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.50)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:8}}>
-                  <span>{group==="Masjid Al-Haram"?"🕋":group==="Masjid An-Nabawi"?"🌙":"🎙️"} {group}</span>
-                  <div style={{flex:1,height:1,background:dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.06)"}}/>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                  {groupReciters.map(renderReciter)}
-                </div>
-              </div>
-            );
-          });
-        })()}
-      </div>
-    </div>
-  </div>
-)}
+<ReciterModal
+  show={showReciterModal}
+  onClose={()=>setShowReciterModal(false)}
+  dark={dark}
+  reciterMode={reciterMode}
+  quranReciter={quranReciter} setQuranReciter={setQuranReciter}
+  reciter={reciter} setReciter={setReciter}
+  currentReciter={currentReciter}
+  setPlayingSurah={setPlayingSurah}
+  setPlayingKey={setPlayingKey}
+  setAudioLoading={setAudioLoading}
+  audioRef={audioRef}
+/>
 
       {activeTab==="masjidayn"&&(
         <MasjidaynTab
