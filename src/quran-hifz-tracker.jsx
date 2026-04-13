@@ -2261,7 +2261,7 @@ export default function RihlatAlHifz() {
                       <circle cx="0" cy="0" r="14" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
                       <circle cx="0" cy="0" r="10" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
                       <circle cx="0" cy="0" r="5" fill="#D4AF37" stroke="#F6E27A" strokeWidth="1.5" filter="url(#pathGlow)"/>
-                      <text x="0" y="-14" textAnchor="middle" fill="#F0C040" fontSize="14" fontWeight="700">Juz {completed}</text>
+                      <text x="0" y="-14" textAnchor="middle" fill="#F0C040" fontSize="18" fontWeight="700">Juz {completed}</text>
                       <circle cx="0" cy="0" r="14" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="1.5">
                         <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite"/>
                         <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
@@ -2272,7 +2272,7 @@ export default function RihlatAlHifz() {
                       </circle>
                     </g>
                     {/* Extra dot between Juz 20 and 25, closer to 25 */}
-                    {(()=>{const d25=completed>=25;return <><circle cx={260} cy={18} r={d25?"7":"6"} fill={d25?"#D4AF37":(dark?"rgba(200,180,100,0.35)":"rgba(0,0,0,0.15)")} stroke={d25?"#F6E27A":(dark?"rgba(200,180,100,0.5)":"rgba(0,0,0,0.2)")} strokeWidth="1.5" filter={d25?"url(#pathGlow)":"none"}/><text x={260} y={34} textAnchor="middle" fill={d25?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="14" fontWeight="700">Juz 25</text></>;})()}
+                    {(()=>{const d25=completed>=25;return <><circle cx={260} cy={18} r={d25?"7":"6"} fill={d25?"#D4AF37":(dark?"rgba(200,180,100,0.35)":"rgba(0,0,0,0.15)")} stroke={d25?"#F6E27A":(dark?"rgba(200,180,100,0.5)":"rgba(0,0,0,0.2)")} strokeWidth="1.5" filter={d25?"url(#pathGlow)":"none"}/><text x={260} y={6} textAnchor="middle" fill={d25?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="18" fontWeight="700">Juz 25</text></>;})()}
                     {waypoints.map((w,i)=>{
                       const done=completed>=w.juz;
                       const isCurrent=currentWpIdx===i;
@@ -2320,7 +2320,7 @@ export default function RihlatAlHifz() {
                         <g key={i}>
                           {done&&<><circle cx={w.x} cy={w.y} r="16" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/><circle cx={w.x} cy={w.y} r="12" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/></>}
                           <circle cx={w.x} cy={w.y} r={done?"7":"6"} fill={done?"#D4AF37":isCurrent?"rgba(240,192,64,0.5)":(dark?"rgba(200,180,100,0.35)":"rgba(0,0,0,0.15)")} stroke={done?"#F6E27A":isCurrent?"rgba(240,192,64,0.5)":(dark?"rgba(200,180,100,0.5)":"rgba(0,0,0,0.2)")} strokeWidth="1.5" filter={done?"url(#pathGlow)":"none"}/>
-                          {w.juz!==25&&<text x={w.juz===10||w.juz===20?w.x-12:w.x+12} y={w.y+2} textAnchor={w.juz===10||w.juz===20?"end":"start"} dominantBaseline="middle" fill={done?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="14" fontWeight="700">Juz {w.juz}</text>}
+                          {w.juz!==25&&<text x={w.juz===10||w.juz===20?w.x-12:w.x+12} y={w.y+2} textAnchor={w.juz===10||w.juz===20?"end":"start"} dominantBaseline="middle" fill={done?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="18" fontWeight="700">Juz {w.juz}</text>}
                           {done&&(<circle cx={w.x} cy={w.y} r="14" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1"><animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle>)}
                           {isCurrent&&!done&&(<circle cx={w.x} cy={w.y} r="12" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5"><animate attributeName="r" values="10;16;10" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/></circle>)}
                         </g>
