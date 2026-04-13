@@ -1790,7 +1790,7 @@ export default function RihlatAlHifz() {
 
                 {/* ── MUSHAF MODE — flowing Arabic text ── */}
                 {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(
-                  <div style={{padding:"12px 20px",borderRadius:14,background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${dark?"rgba(230,184,74,0.08)":"rgba(0,0,0,0.08)"}`,boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",marginBottom:16,direction:"rtl",textAlign:"center",lineHeight:2}}>
+                  <div style={{padding:"12px 20px",borderRadius:14,background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${dark?"rgba(230,184,74,0.08)":"rgba(0,0,0,0.08)"}`,boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",marginBottom:16,direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2,wordBreak:"keep-all",overflowWrap:"normal"}}>
                     {batch.map((v)=>{
                       const vKey=v.verse_key;
                       const aNum=parseInt(vKey.split(":")[1],10);
