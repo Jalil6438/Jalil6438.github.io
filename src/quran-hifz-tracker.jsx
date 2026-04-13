@@ -1494,7 +1494,6 @@ export default function RihlatAlHifz() {
             <div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}>
               <div style={{flex:1,height:8,background:T.surface2,borderRadius:999,overflow:"hidden"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:999}}/></div>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:"#F0C040",flexShrink:0}}>{pct}%</div>
-              <div style={{fontSize:9,color:dark?"#6B7280":"#6B645A",flexShrink:0}}>{completedCount}/30 Juz</div>
             </div>
             )}
           </div>
@@ -2186,31 +2185,28 @@ export default function RihlatAlHifz() {
             {(()=>{
               const completed=completedCount;
               const waypoints=[
-                {x:270,y:175,juz:5},
-                {x:25, y:140,juz:10},
-                {x:250,y:100,juz:15},
-                {x:80, y:60, juz:20},
-                {x:340,y:25, juz:25},
-                {x:340,y:-15, juz:30},
+                {x:320,y:175,juz:5},
+                {x:-15, y:140,juz:10},
+                {x:300,y:90, juz:15},
+                {x:50, y:45, juz:20},
+                {x:340,y:10, juz:25},
+                {x:340,y:-25, juz:30},
               ];
               const startPt={x:-130,y:210};
-              const pathD=`M ${startPt.x} ${startPt.y} C -40 230 340 190 ${waypoints[0].x} ${waypoints[0].y} C 340 160 -30 150 ${waypoints[1].x} ${waypoints[1].y} C -30 115 310 108 ${waypoints[2].x} ${waypoints[2].y} C 310 78 40 68 ${waypoints[3].x} ${waypoints[3].y} C 40 38 360 28 ${waypoints[4].x} ${waypoints[4].y}`;
+              const pathD=`M ${startPt.x} ${startPt.y} C -60 240 370 190 ${waypoints[0].x} ${waypoints[0].y} C 370 155 -50 145 ${waypoints[1].x} ${waypoints[1].y} C -50 105 340 98 ${waypoints[2].x} ${waypoints[2].y} C 340 65 20 55 ${waypoints[3].x} ${waypoints[3].y} C 20 22 380 15 ${waypoints[4].x} ${waypoints[4].y}`;
               const litCount=waypoints.filter(w=>completed>=w.juz).length;
               const currentWpIdx=waypoints.findIndex(w=>completed<w.juz);
               const currentWp=currentWpIdx>=0?waypoints[currentWpIdx]:waypoints[5];
               return (
-                <div style={{borderRadius:20,overflow:"visible",marginBottom:10,position:"relative",padding:"16px"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                <div style={{borderRadius:20,overflow:"visible",marginBottom:10,position:"relative",padding:"10px 16px 0"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:0}}>
                     <div>
                       <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.6)":"#6B645A",fontWeight:700}}>Your Memorization Journey</div>
                       <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"#8B7355",marginTop:2}}>You are currently on Juz {sessionJuz||"—"}</div>
-                    </div>
-                    <div style={{textAlign:"right"}}>
-                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:22,fontWeight:700,color:"#F0C040",lineHeight:1}}>{timeline.juzLeft}</div>
-                      <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.4)":"#6B645A"}}>Juz remaining</div>
+                      <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:3}}>{completedCount} of 30 Juz · Goal: {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths}mo`:""}</div>
                     </div>
                   </div>
-                  <svg viewBox="-140 -30 540 260" style={{width:"80%",height:"auto",margin:"0 auto",display:"block",overflow:"visible"}}>
+                  <svg viewBox="-140 -50 540 280" style={{width:"80%",height:"auto",margin:"0 auto",display:"block",overflow:"visible"}}>
                     <defs>
                       <linearGradient id="pathGold" x1="0%" y1="100%" x2="100%" y2="0%">
                         <stop offset="0%" stopColor="#5C4A1E"/>
@@ -2276,7 +2272,7 @@ export default function RihlatAlHifz() {
                       </circle>
                     </g>
                     {/* Extra dot between Juz 20 and 25, closer to 25 */}
-                    {(()=>{const d25=completed>=25;return <><circle cx={260} cy={32} r={d25?"7":"6"} fill={d25?"#D4AF37":(dark?"rgba(200,180,100,0.35)":"rgba(0,0,0,0.15)")} stroke={d25?"#F6E27A":(dark?"rgba(200,180,100,0.5)":"rgba(0,0,0,0.2)")} strokeWidth="1.5" filter={d25?"url(#pathGlow)":"none"}/><text x={260} y={54} textAnchor="middle" fill={d25?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="14" fontWeight="700">Juz 25</text></>;})()}
+                    {(()=>{const d25=completed>=25;return <><circle cx={260} cy={18} r={d25?"7":"6"} fill={d25?"#D4AF37":(dark?"rgba(200,180,100,0.35)":"rgba(0,0,0,0.15)")} stroke={d25?"#F6E27A":(dark?"rgba(200,180,100,0.5)":"rgba(0,0,0,0.2)")} strokeWidth="1.5" filter={d25?"url(#pathGlow)":"none"}/><text x={260} y={34} textAnchor="middle" fill={d25?"#F0C040":(dark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.2)")} fontSize="14" fontWeight="700">Juz 25</text></>;})()}
                     {waypoints.map((w,i)=>{
                       const done=completed>=w.juz;
                       const isCurrent=currentWpIdx===i;
@@ -2331,10 +2327,6 @@ export default function RihlatAlHifz() {
                       );
                     })}
                   </svg>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:4}}>
-                    <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A"}}>{pct}% · {completedCount} of 30 Juz</div>
-                    <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.50)":"#8B7355"}}>Goal: {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths}mo`:""}</div>
-                  </div>
                 </div>
               );
             })()}
