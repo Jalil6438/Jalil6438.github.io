@@ -15,6 +15,11 @@ import MasjidaynTab from "./tabs/MasjidaynTab";
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
   const [showSettings,setShowSettings]=useState(false);
+  const [tabBeforeAdjust,setTabBeforeAdjust]=useState(null); // {activeTab, rihlahTab}
+  const [editName,setEditName]=useState("");
+  const [showNameModal,setShowNameModal]=useState(false);
+  const [showResetConfirm,setShowResetConfirm]=useState(false);
+  const [showTerms,setShowTerms]=useState(false);
   const [twoPageWarning,setTwoPageWarning]=useState(null); // {target, actual} | null
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
@@ -64,7 +69,8 @@ export default function RihlatAlHifz() {
   const [completedAyahs,setCompletedAyahs]=useState(()=>loadCompletedAyahs());
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
-  const [fontSize,setFontSize]=useState(20);
+  const [fontSize,setFontSize]=useState(()=>{try{return parseInt(localStorage.getItem("rihlat-fontsize"))||20;}catch{return 20;}});
+  useEffect(()=>{try{localStorage.setItem("rihlat-fontsize",String(fontSize));}catch{}},[fontSize]);
   const [quranShowCount,setQuranShowCount]=useState(5);
   const [quranPage,setQuranPage]=useState(0);
   const [quranPageDir,setQuranPageDir]=useState(null);
@@ -1570,7 +1576,7 @@ export default function RihlatAlHifz() {
                 {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:2}}>Next Target · Juz {nextJuz.num}</div>}
               </div>
               {/* Settings gear */}
-              <div className="sbtn" onClick={()=>setShowSettings(true)} style={{flexShrink:0,width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.05)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <div className="sbtn" onClick={()=>{setEditName(localStorage.getItem("rihlat-username")||"Abdul Jalil");setShowSettings(true);}} style={{flexShrink:0,width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.05)",display:"flex",alignItems:"center",justifyContent:"center"}}>
                 <span style={{fontSize:16,color:T.dim}}>⚙️</span>
               </div>
             </div>
@@ -1890,7 +1896,7 @@ export default function RihlatAlHifz() {
                           style={{cursor:"pointer",transition:"all .15s",borderRadius:6,padding:"2px 4px",
                             background:repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent"),
                           }}>
-                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                           <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                         </span>
                       );
@@ -1928,7 +1934,7 @@ export default function RihlatAlHifz() {
                           <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>
                         </div>
                         <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                           <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                         </div>
                       </div>
@@ -2019,7 +2025,7 @@ export default function RihlatAlHifz() {
                       <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
                         <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
                         {/* Arabic */}
-                        <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
+                        <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
                           {(mv.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                         </div>
                         {/* Reference */}
@@ -2878,7 +2884,7 @@ export default function RihlatAlHifz() {
                                     boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",
                                     transition:"background .15s",
                                   }}>
-                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                                   <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                                 </span>
                               );
@@ -3025,7 +3031,7 @@ export default function RihlatAlHifz() {
                       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",padding:"8px 0 0"}}>
                         {/* Pinned ayah */}
                         <div style={{flexShrink:0,padding:"12px 20px 10px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)",background:dark?"rgba(0,0,0,0.15)":"rgba(0,0,0,0.03)"}}>
-                          <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
+                          <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
                             {(selVerse?.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                           </div>
                           {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
@@ -3330,7 +3336,16 @@ export default function RihlatAlHifz() {
       {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
         <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 120px"}} className="fi gold-particles">
           <div style={{marginBottom:20}}>
-            <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back</div>
+            <div className="sbtn" onClick={()=>{
+              if(tabBeforeAdjust){
+                setActiveTab(tabBeforeAdjust.activeTab);
+                setRihlahTab(tabBeforeAdjust.rihlahTab);
+                setTabBeforeAdjust(null);
+              } else {
+                setRihlahTab("home");
+              }
+              setShowSettings(true);
+            }} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back to Settings</div>
           </div>
           <div style={{padding:"22px 18px",borderRadius:20,marginBottom:16,textAlign:"center",position:"relative",overflow:"hidden",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.22)":"1px solid rgba(0,0,0,0.08)",boxShadow:dark?"0 10px 40px rgba(0,0,0,0.40),0 0 20px rgba(217,177,95,0.08)":"0 4px 16px rgba(0,0,0,0.06)"}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 50% 20%,rgba(212,175,55,0.08) 0%,transparent 50%)":"none"}}/>
@@ -3391,7 +3406,16 @@ export default function RihlatAlHifz() {
           <div style={{textAlign:"center",padding:"14px 10px",marginBottom:20}}>
             <div style={{fontSize:12,color:"rgba(243,231,200,0.35)",lineHeight:1.7}}>This plan requires consistency, not perfection.<br/>Small daily effort leads to completion — <span style={{fontFamily:"'Amiri',serif",fontSize:14,color:"rgba(230,184,74,0.50)"}}>بِإذْنِ اللَّهِ</span></div>
           </div>
-          <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{width:"100%",padding:"15px",borderRadius:16,textAlign:"center",fontSize:15,fontWeight:700,color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 8px 22px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.10)"}}>
+          <div className="sbtn" onClick={()=>{
+            if(tabBeforeAdjust){
+              setActiveTab(tabBeforeAdjust.activeTab);
+              setRihlahTab(tabBeforeAdjust.rihlahTab);
+              setTabBeforeAdjust(null);
+            } else {
+              setRihlahTab("home");
+            }
+            setShowSettings(true);
+          }} style={{width:"100%",padding:"15px",borderRadius:16,textAlign:"center",fontSize:15,fontWeight:700,color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 8px 22px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.10)"}}>
             Save & Return
           </div>
         </div>
@@ -3576,6 +3600,87 @@ export default function RihlatAlHifz() {
       )}
 
       {/* Quran Reciter Modal */}
+{/* ── TERMS & PRIVACY MODAL ── */}
+{showTerms&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(6px)",zIndex:1001,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setShowTerms(false)}>
+    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"85vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+      <div style={{padding:"12px 18px 0",flexShrink:0,position:"relative"}}>
+        <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
+        <div className="sbtn" onClick={()=>{setShowTerms(false);setShowSettings(true);}} style={{position:"absolute",top:16,left:14,padding:"4px 10px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.08)"}`,borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>← Back</div>
+        <div style={{textAlign:"center"}}>
+          <div style={{fontSize:15,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A"}}>Terms & Privacy</div>
+          <div style={{fontSize:10,color:T.dim,marginTop:4}}>Last updated: April 2026</div>
+        </div>
+      </div>
+      <div style={{overflowY:"auto",padding:"18px 20px 28px"}}>
+
+        <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Privacy</div>
+        <div style={{fontSize:12,color:T.sub,lineHeight:1.7,marginBottom:16}}>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>All your progress, goals, and preferences are stored <strong>only on your device</strong> using localStorage.</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>There is no account, no sign-up, and no sign-in required.</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>We do not collect, track, or transmit any personal data.</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>No analytics, no ads, no tracking cookies.</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Quran text, audio, and tafsir are fetched from Quran Foundation APIs only when you use those features.</span></div>
+          <div style={{display:"flex",gap:8}}><span>•</span><span>Your memorization data never leaves your device unless you explicitly export it.</span></div>
+        </div>
+
+        <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Terms of Use</div>
+        <div style={{fontSize:12,color:T.sub,lineHeight:1.7,marginBottom:16}}>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Rihlat Al-Hifz is free to use for personal hifz journey and reflection.</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>This app is a supplementary tool — it is not a substitute for guidance from a qualified Quran teacher.</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Rihlat Al-Hifz is an independent project and is <strong>not affiliated with, endorsed by, or sponsored by Quran Foundation, Quran.com, or any other organization</strong>. We gratefully use their public APIs to bring the Quran to you.</span></div>
+          <div style={{display:"flex",gap:8}}><span>•</span><span>May Allah accept your efforts and grant you success in memorizing His Book.</span></div>
+        </div>
+
+        <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Attribution</div>
+        <div style={{fontSize:12,color:T.sub,lineHeight:1.7,marginBottom:16}}>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Quranic text & metadata:</strong> Quran Foundation (quran.com / quran.foundation)</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Ayah-by-ayah audio:</strong> everyayah.com</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Full surah recitations:</strong> quranicaudio.com</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Tafsir:</strong> As-Sa'di, Al-Muyassar, Ibn Kathir (via Quran.com API)</span></div>
+          <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Methodology:</strong> "The Easiest Way to Memorize the Noble Qur'an" by Sheikh Abdul Muhsin Al-Qasim</span></div>
+          <div style={{display:"flex",gap:8}}><span>•</span><span><strong>Haramain imam recordings:</strong> haramain.info, Internet Archive</span></div>
+        </div>
+
+        <div style={{textAlign:"center",marginTop:14,fontSize:10,color:T.dim,fontStyle:"italic"}}>
+          بَارَكَ اللَّهُ فِيكُمْ
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* ── NAME CHANGE MODAL ── */}
+{showNameModal&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(6px)",zIndex:1001,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setShowNameModal(false)}>
+    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:20,maxWidth:360,width:"100%",border:"1px solid rgba(217,177,95,0.30)",boxShadow:"0 20px 60px rgba(0,0,0,0.60)",padding:"22px 20px"}} onClick={e=>e.stopPropagation()}>
+      <div style={{fontSize:15,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A",marginBottom:12,textAlign:"center"}}>Change Your Name</div>
+      <input type="text" value={editName} onChange={e=>setEditName(e.target.value)} placeholder="Your name" autoFocus style={{width:"100%",padding:"12px 14px",background:dark?"rgba(0,0,0,0.3)":"#fff",border:`1px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)"}`,borderRadius:10,color:T.text,fontSize:14,outline:"none",marginBottom:14,boxSizing:"border-box"}}/>
+      <div style={{display:"flex",gap:8}}>
+        <div className="sbtn" onClick={()=>setShowNameModal(false)} style={{flex:1,padding:"11px",borderRadius:10,textAlign:"center",fontSize:13,fontWeight:600,color:T.text,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",border:`1px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)"}`}}>Cancel</div>
+        <div className="sbtn" onClick={()=>{if(editName.trim()){localStorage.setItem("rihlat-username",editName.trim());setShowNameModal(false);setShowSettings(false);}}} style={{flex:1,padding:"11px",borderRadius:10,textAlign:"center",fontSize:13,fontWeight:700,color:"#0A0E1A",background:"#D4AF37"}}>Save</div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* ── RESET CONFIRM MODAL ── */}
+{showResetConfirm&&(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(6px)",zIndex:1001,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setShowResetConfirm(false)}>
+    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:20,maxWidth:360,width:"100%",border:"1px solid rgba(229,83,75,0.30)",boxShadow:"0 20px 60px rgba(0,0,0,0.60), 0 0 30px rgba(229,83,75,0.15)",padding:"22px 20px",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+      <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
+      <div style={{fontSize:16,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A",marginBottom:8}}>Reset All Progress?</div>
+      <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.60)":"#6B645A",lineHeight:1.6,marginBottom:18}}>
+        This will erase all your memorized juz, streaks, bookmarks, and settings. This cannot be undone.
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <div className="sbtn" onClick={()=>setShowResetConfirm(false)} style={{flex:1,padding:"11px",borderRadius:10,textAlign:"center",fontSize:13,fontWeight:600,color:T.text,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",border:`1px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)"}`}}>Cancel</div>
+        <div className="sbtn" onClick={()=>{localStorage.clear();location.reload();}} style={{flex:1,padding:"11px",borderRadius:10,textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",background:"#E5534B",border:"1px solid #E5534B"}}>Reset</div>
+      </div>
+    </div>
+  </div>
+)}
+
 {/* ── 2-PAGE WARNING MODAL ── */}
 {twoPageWarning&&(
   <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setTwoPageWarning(null)}>
@@ -3620,17 +3725,31 @@ export default function RihlatAlHifz() {
             <div style={{width:16,height:16,borderRadius:"50%",background:"#fff",transition:"all .2s"}}/>
           </div>
         </div>
+        {/* Font Size */}
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
+          <div style={{fontSize:12,color:T.text,flexShrink:0}}>🔤 Font Size</div>
+          <input type="range" min="14" max="32" value={fontSize} onChange={e=>setFontSize(Number(e.target.value))} style={{flex:1}}/>
+          <div style={{fontSize:11,color:"#F0C040",fontWeight:700,flexShrink:0,minWidth:26,textAlign:"right"}}>{fontSize}</div>
+        </div>
+        {/* Name Change */}
+        <div className="sbtn" onClick={()=>{setEditName(localStorage.getItem("rihlat-username")||"");setShowNameModal(true);}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
+          <div style={{fontSize:13,color:T.text}}>👤 Name Change</div>
+        </div>
         {/* Adjust Plan */}
-        <div className="sbtn" onClick={()=>{setShowSettings(false);setActiveTab("rihlah");setRihlahTab("adjust");}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
+        <div className="sbtn" onClick={()=>{setTabBeforeAdjust({activeTab,rihlahTab});setShowSettings(false);setActiveTab("rihlah");setRihlahTab("adjust");}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
           <div style={{fontSize:13,color:T.text}}>⚙️ Adjust Plan</div>
         </div>
         {/* About */}
-        <div className="sbtn" onClick={()=>{setShowSettings(false);setActiveTab("masjidayn");setMasjidaynTab("about");}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
+        <div className="sbtn" onClick={()=>{setTabBeforeAdjust({activeTab,rihlahTab});setShowSettings(false);setActiveTab("masjidayn");setMasjidaynTab("about");}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
           <div style={{fontSize:13,color:T.text}}>ℹ️ About</div>
         </div>
-        {/* Terms — placeholder */}
-        <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6,opacity:0.5}}>
+        {/* Terms & Privacy */}
+        <div className="sbtn" onClick={()=>setShowTerms(true)} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
           <div style={{fontSize:13,color:T.text}}>📄 Terms & Privacy</div>
+        </div>
+        {/* Reset Progress */}
+        <div className="sbtn" onClick={()=>setShowResetConfirm(true)} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:"rgba(229,83,75,0.08)",border:"1px solid rgba(229,83,75,0.30)",borderRadius:12,marginBottom:6,marginTop:10}}>
+          <div style={{fontSize:13,color:"#E5534B",fontWeight:600}}>🗑️ Reset All Progress</div>
         </div>
         {/* Version */}
         <div style={{textAlign:"center",marginTop:14,fontSize:10,color:T.dim}}>
@@ -3714,6 +3833,14 @@ export default function RihlatAlHifz() {
           haramainMosque={haramainMosque} setHaramainMosque={setHaramainMosque}
           openImam={openImam} setOpenImam={setOpenImam}
           haramainPlaying={haramainPlaying} playHaramainSurah={playHaramainSurah}
+          onBackToSettings={masjidaynTab==="about"?()=>{
+            if(tabBeforeAdjust){
+              setActiveTab(tabBeforeAdjust.activeTab);
+              setRihlahTab(tabBeforeAdjust.rihlahTab);
+              setTabBeforeAdjust(null);
+            }
+            setShowSettings(true);
+          }:null}
         />
       )}
 

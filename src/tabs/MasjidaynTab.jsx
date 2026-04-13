@@ -8,6 +8,7 @@ export default function MasjidaynTab({
   haramainMosque, setHaramainMosque,
   openImam, setOpenImam,
   haramainPlaying, playHaramainSurah,
+  onBackToSettings,
 }) {
   const [expandedMosque, setExpandedMosque] = useState(null); // "makkah" | "madinah" | null
   const [showNightPicker, setShowNightPicker] = useState(null); // null | "first20" | "last10"
@@ -328,6 +329,9 @@ export default function MasjidaynTab({
       {/* ═══ ABOUT & CREDITS ═══ */}
       {masjidaynTab==="about"&&(
         <div style={{flex:1,overflowY:"auto",padding:"20px 18px 120px",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
+          {onBackToSettings&&(
+            <div className="sbtn" onClick={onBackToSettings} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:14}}>← Back to Settings</div>
+          )}
           <div style={{textAlign:"center",marginBottom:20}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Rihlat Al-Hifz</div>
             <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.60)":"#6B645A",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
