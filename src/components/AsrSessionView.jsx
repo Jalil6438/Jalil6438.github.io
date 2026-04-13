@@ -20,8 +20,8 @@ function AsrSessionView({
       const nextKey=`${s}:${Number(a)+1}`;
       try{
         const [res1,res2]=await Promise.all([
-          fetch(`https://api.qurancdn.com/api/qdc/verses/by_key/${vk}?words=false&fields=text_uthmani`),
-          fetch(`https://api.qurancdn.com/api/qdc/verses/by_key/${nextKey}?words=false&fields=text_uthmani`)
+          fetch(`https://api.quran.com/api/v4/verses/by_key/${vk}?words=false&fields=text_uthmani`),
+          fetch(`https://api.quran.com/api/v4/verses/by_key/${nextKey}?words=false&fields=text_uthmani`)
         ]);
         const d1=res1.ok?await res1.json():null;
         const d2=res2.ok?await res2.json():null;

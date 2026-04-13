@@ -464,7 +464,7 @@ export default function MasjidaynTab({
           {[
             {title:"Quranic Text",items:[
               "Uthmani text provided by Quran.com API (Quran Foundation)",
-              "Text data sourced from QuranCDN (api.qurancdn.com)",
+              "Text data sourced from Quran Foundation API (api.quran.com)",
               "Mushaf page layout and verse mapping via Quran Foundation resources",
             ]},
             {title:"Translation",items:[
