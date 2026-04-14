@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_SURAHS } from "../data/quran-metadata";
@@ -6,6 +7,7 @@ import { saveCompletedAyahs, toArabicDigits } from "../utils";
 
 export default function MyHifzTab(props) {
   const {
+    asrSessionView,
     haramainMeta,
     // theme/constants
     dark, T, SESSIONS, fontSize,
@@ -47,6 +49,18 @@ export default function MyHifzTab(props) {
     // sim verses
     simVerseCache, fetchSimVerse,
   } = props;
+
+  // Wisdom rotation — after 10 min on fajr/dhuhr, bump to a random card for fresh encouragement
+  const activeSid = SESSIONS[activeSessionIndex]?.id;
+  const rotatingSession = activeSid === "fajr" || activeSid === "dhuhr" || activeSid === "asr";
+  const [wisdomOffset, setWisdomOffset] = useState(0);
+  useEffect(() => {
+    if (!rotatingSession) return;
+    const t = setTimeout(() => {
+      setWisdomOffset(o => o + 1 + Math.floor(Math.random() * 100));
+    }, 10 * 60 * 1000);
+    return () => clearTimeout(t);
+  }, [rotatingSession, wisdomOffset]);
 
   return (
         <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",position:"relative"}} className="fi gold-particles">
@@ -94,7 +108,6 @@ export default function MyHifzTab(props) {
 
               return (
                 <div style={{marginBottom:10}}>
-                  <div style={{fontSize:8,color:"rgba(230,184,74,0.40)",letterSpacing:".18em",textTransform:"uppercase",marginBottom:5}}>Current Session</div>
                   <div style={{padding:"11px 14px",
                     background:dark?"linear-gradient(180deg,rgba(15,26,43,0.95) 0%,rgba(12,21,38,0.98) 100%)":"#EADFC8",
                     border:`1px solid ${isDone?"rgba(74,222,128,0.20)":(dark?"rgba(230,184,74,0.18)":"rgba(0,0,0,0.18)")}`,borderLeft:`3px solid ${isDone?"#4ADE80":(dark?"#E6B84A":"#B83A1A")}`,borderRadius:"0 10px 10px 0",
@@ -107,7 +120,7 @@ export default function MyHifzTab(props) {
                     </div>
                     {microGuide&&<div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:5}}>{microGuide}</div>}
                     {(()=>{
-                      const w=getSessionWisdom(sid); if(!w||isDone) return null;
+                      const w=getSessionWisdom(sid,(sid==="fajr"||sid==="dhuhr"||sid==="asr")?wisdomOffset:0); if(!w||isDone) return null;
                       return (
                         <div style={{marginTop:8,padding:"10px 12px",borderRadius:8,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(140,100,20,0.08)"}`,textAlign:"center"}}>
                           {w.type==="quran"&&<div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"rgba(232,200,120,0.65)":"rgba(140,100,20,0.70)",direction:"rtl",lineHeight:1.8,marginBottom:6}}>{w.arabic}</div>}
@@ -122,6 +135,8 @@ export default function MyHifzTab(props) {
                 </div>
               );
             })()}
+
+            {asrSessionView}
 
             {/* ── ASR EMPTY STATE — shown when auto-pool has nothing ── */}
             {SESSIONS[activeSessionIndex]?.id==="asr"&&!sessLoading&&!asrStarted&&batch.length===0&&!asrIsCustomized&&(
@@ -143,7 +158,7 @@ export default function MyHifzTab(props) {
             )}
 
             {/* ── ASR PICKER — shown only when customizing ── */}
-            {SESSIONS[activeSessionIndex]?.id==="asr"&&asrIsCustomized&&(()=>{
+            {SESSIONS[activeSessionIndex]?.id==="asr"&&asrIsCustomized&&!asrStarted&&(()=>{
               const activeJuz=asrActiveJuzPanel||(completedJuzOptions.length>0?completedJuzOptions[0].num:null);
               const activeJuzSurahs=activeJuz?(JUZ_SURAHS[activeJuz]||[]).filter(s=>isSurahComplete(s.s)||v9IsJuzComplete(activeJuz)):[];
               const isJuzSelected=asrSelectedJuz.includes(activeJuz);

@@ -46,9 +46,9 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
             <feMerge><feMergeNode in="blur1"/><feMergeNode in="blur1"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
         </defs>
-        {/* Core golden path + glow — DO NOT CHANGE */}
-        <path d={pathD} fill="none" stroke="rgba(212,175,55,0.35)" strokeWidth="5" strokeLinecap="round" filter="url(#fireGlow)"/>
-        <path d={pathD} fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="3" strokeLinecap="round" filter="url(#pathGlow)"/>
+        {/* Core path + glow — theme-aware */}
+        <path d={pathD} fill="none" stroke={dark?"rgba(212,175,55,0.35)":"rgba(139,69,19,0.20)"} strokeWidth="5" strokeLinecap="round" filter="url(#fireGlow)"/>
+        <path d={pathD} fill="none" stroke={dark?"rgba(240,192,64,0.5)":"rgba(180,83,9,0.35)"} strokeWidth="3" strokeLinecap="round" filter="url(#pathGlow)"/>
         {completed>0&&(
           <path ref={el=>{
             if(el){
@@ -56,7 +56,7 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
               const litLen=totalLen*(Math.min(completed,25)/25);
               el.style.strokeDasharray=`${litLen} ${totalLen}`;
             }
-          }} d={pathD} fill="none" stroke="#F5C518" strokeWidth="6" strokeLinecap="round" opacity="0.8" filter="url(#fireGlow)" strokeDasharray="0 9999"/>
+          }} d={pathD} fill="none" stroke={dark?"#F5C518":"#B45309"} strokeWidth="6" strokeLinecap="round" opacity={dark?0.8:0.95} filter="url(#fireGlow)" strokeDasharray="0 9999"/>
         )}
         {completed>0&&(
           <path ref={el=>{
@@ -65,7 +65,7 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
               const litLen=totalLen*(Math.min(completed,25)/25);
               el.style.strokeDasharray=`${litLen} ${totalLen}`;
             }
-          }} d={pathD} fill="none" stroke="#FFEAA0" strokeWidth="3" strokeLinecap="round" filter="url(#pathGlow)" strokeDasharray="0 9999"/>
+          }} d={pathD} fill="none" stroke={dark?"#FFEAA0":"#D97706"} strokeWidth="3" strokeLinecap="round" filter="url(#pathGlow)" strokeDasharray="0 9999"/>
         )}
         <path ref={el=>{
           if(el&&completed>0&&completed<30){
@@ -76,10 +76,10 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
           }
         }} d={pathD} fill="none" stroke="none"/>
         <g id="juzMarker" style={{display:completed>0&&completed<30?'':'none'}}>
-          <circle cx="0" cy="0" r="14" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/>
-          <circle cx="0" cy="0" r="10" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/>
-          <circle cx="0" cy="0" r="5" fill="#D4AF37" stroke="#F6E27A" strokeWidth="1.5" filter="url(#pathGlow)"/>
-          <text x="0" y="-14" textAnchor="middle" fill="#F0C040" fontSize="18" fontWeight="700">Juz {completed}</text>
+          <circle cx="0" cy="0" r="14" fill={dark?"rgba(212,175,55,0.1)":"rgba(180,83,9,0.12)"} filter="url(#fireGlow)"/>
+          <circle cx="0" cy="0" r="10" fill={dark?"rgba(212,175,55,0.15)":"rgba(180,83,9,0.18)"} filter="url(#pathGlow)"/>
+          <circle cx="0" cy="0" r="5" fill={dark?"#D4AF37":"#B45309"} stroke={dark?"#F6E27A":"#78350F"} strokeWidth="1.5" filter="url(#pathGlow)"/>
+          <text x="0" y="-14" textAnchor="middle" fill={dark?"#F0C040":"#78350F"} fontSize="18" fontWeight="700">Juz {completed}</text>
           <circle cx="0" cy="0" r="14" fill="none" stroke="rgba(240,192,64,0.5)" strokeWidth="1.5">
             <animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite"/>
             <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>

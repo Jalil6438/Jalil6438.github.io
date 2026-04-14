@@ -72,8 +72,8 @@ export const SESSION_WISDOM = {
   ],
 };
 // Get today's wisdom for a session — rotates daily through the pool
-export function getSessionWisdom(sessionId){
+export function getSessionWisdom(sessionId,offset=0){
   const pool=SESSION_WISDOM[sessionId]; if(!pool||!pool.length) return null;
   const day=Math.floor(Date.now()/86400000);
-  return pool[day%pool.length];
+  return pool[(day+offset)%pool.length];
 }

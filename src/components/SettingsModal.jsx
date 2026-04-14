@@ -57,8 +57,9 @@ export default function SettingsModal({
       {show && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.40)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
           <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"80vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
-            <div style={{padding:"12px 18px 0",textAlign:"center",flexShrink:0}}>
+            <div style={{padding:"12px 18px 0",textAlign:"center",flexShrink:0,position:"relative"}}>
               <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
+              <div className="sbtn" onClick={onClose} style={{position:"absolute",top:10,right:14,width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:T.dim,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",border:`1px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)"}`,lineHeight:1}}>×</div>
               <div style={{fontSize:15,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A"}}>Settings</div>
               <div style={{fontSize:10,color:T.dim,marginTop:4}}>📅 Joined 2026</div>
             </div>

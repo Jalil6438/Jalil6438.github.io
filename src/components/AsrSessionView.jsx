@@ -36,7 +36,7 @@ function AsrSessionView({
       green:"#59D98A",greenSoft:"rgba(89,217,138,0.16)",
     };
     return (
-      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",position:"fixed",inset:0,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto",padding:"16px 0 36px",background:dark?"radial-gradient(circle at 50% 10%,rgba(44,72,130,0.12) 0%,rgba(44,72,130,0.04) 18%,rgba(0,0,0,0) 42%),linear-gradient(180deg,#060C18 0%,#040814 100%)":"#F3E9D2"}}>
+      <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",display:"flex",flexDirection:"column",padding:"4px 0 16px"}}>
         <div style={{flex:1,display:"flex",flexDirection:"column"}}>
           {/* Exit button */}
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>

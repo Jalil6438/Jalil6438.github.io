@@ -396,6 +396,8 @@ export default function RihlatAlHifz() {
   const [haramainDuration,setHaramainDuration]=useState(0);
   const [haramainRate,setHaramainRate]=useState(1);
   const [haramainExpanded,setHaramainExpanded]=useState(false);
+  // Auto-collapse the Haramain player whenever the user switches tabs
+  useEffect(()=>{ setHaramainExpanded(false); },[activeTab]);
   const [haramainIsPaused,setHaramainIsPaused]=useState(false);
   const [showTrans,setShowTrans]=useState(true);
   const [translations,setTranslations]=useState({});
@@ -1177,6 +1179,24 @@ export default function RihlatAlHifz() {
     finally { setSessLoading(false); }
   }
 
+  async function resolveArchiveFilename(archiveItem, surahNum){
+    if(!window.__archiveFileMapCache) window.__archiveFileMapCache={};
+    const cache=window.__archiveFileMapCache;
+    if(!cache[archiveItem]){
+      try{
+        const res=await fetch(`https://archive.org/metadata/${archiveItem}`);
+        const data=await res.json();
+        const map={};
+        (data.files||[]).forEach(f=>{
+          const m=/^(\d{3})(?:-\d+)?\.(mp3|MP3)$/.exec(f.name||"");
+          if(m){ const n=parseInt(m[1],10); if(n>=1&&n<=114&&!map[n]) map[n]=f.name; }
+        });
+        cache[archiveItem]=map;
+      }catch{ cache[archiveItem]={}; }
+    }
+    return cache[archiveItem][surahNum]||null;
+  }
+
   function playHaramainSurah(imam, surahNum, key, mosqueColor) {
     // Toggle: if same surah already playing → pause/resume
     if(haramainPlaying===key){
@@ -1201,14 +1221,7 @@ export default function RihlatAlHifz() {
       old.load();
       haramainRef.current=null;
     }
-    let url;
-    if(imam.mp3quran){
-      url = `${imam.mp3quran}/${String(surahNum).padStart(3,"0")}.mp3`;
-    } else if(imam.quranicaudio){
-      url = `https://download.quranicaudio.com/quran/${imam.quranicaudio}/${String(surahNum).padStart(3,"0")}.mp3`;
-    } else if(imam.archive){
-      url = `https://archive.org/download/${imam.archive}/${String(surahNum).padStart(3,"0")}.mp3`;
-    } else { return; }
+    const startWithUrl = (url) => {
     const audio = new Audio(url);
     audio.preload = "auto";
     audio.playbackRate = haramainRate;
@@ -1244,6 +1257,18 @@ export default function RihlatAlHifz() {
     setHaramainDuration(0);
     setHaramainIsPaused(false);
     audio.play().catch(()=>{});
+    };
+
+    if(imam.mp3quran){
+      startWithUrl(`${imam.mp3quran}/${String(surahNum).padStart(3,"0")}.mp3`);
+    } else if(imam.quranicaudio){
+      startWithUrl(`https://download.quranicaudio.com/quran/${imam.quranicaudio}/${String(surahNum).padStart(3,"0")}.mp3`);
+    } else if(imam.archive){
+      resolveArchiveFilename(imam.archive, surahNum).then(filename => {
+        if(!filename){ setHaramainPlaying(null); setHaramainMeta(null); return; }
+        startWithUrl(`https://archive.org/download/${imam.archive}/${filename}`);
+      });
+    }
   }
 
   function stopHaramain() {
@@ -1365,54 +1390,7 @@ export default function RihlatAlHifz() {
       `}</style>
 
       {/* ── ASR FULL-SCREEN MODE ── */}
-      {!sessLoading&&activeTab==="myhifz"&&currentSessionId==="asr"&&asrStarted&&batch.length>0&&(
-        <AsrSessionView
-          dark={dark}
-          asrSelectionSummary={asrSelectionSummary}
-          asrSafePage={asrSafePage}
-          asrPages={asrPages}
-          asrPageStart={asrPageStart}
-          asrPageEnd={asrPageEnd}
-          asrVisibleAyahs={asrVisibleAyahs}
-          asrBatch={batch}
-          asrExpandedAyah={asrExpandedAyah}
-          setAsrExpandedAyah={setAsrExpandedAyah}
-          asrTouchStartRef={asrTouchStartRef}
-          setAsrPage={setAsrPage}
-          asrSlideDir={asrSlideDir}
-          setAsrSlideDir={setAsrSlideDir}
-          translations={translations}
-          fetchTranslations={fetchTranslations}
-          playAyah={playAyah}
-          playingKey={playingKey}
-          audioLoading={audioLoading}
-          asrSurahProgress={asrSurahProgress}
-          onComplete={()=>{
-            const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
-            console.log('[ASR COMPLETE]', {activeSessionIndex, nextIndex: Math.min(SESSIONS.length-1,activeSessionIndex+1)});
-            // Advance Asr rotation for next session
-            const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
-            localStorage.setItem("jalil-asr-cycle",String(asrCycle+1));
-            setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
-            toggleCheck(sess.id);
-            setAsrStarted(false);
-            setAsrPage(0);
-            setAsrExpandedAyah(null);
-            setActiveSessionIndex(i=>Math.min(SESSIONS.length-1,i+1));
-          }}
-          onChangeSelection={()=>{
-            setAsrStarted(false);
-            setAsrPage(0);
-            setAsrExpandedAyah(null);
-            setAsrIsCustomized(true); // open customize picker
-          }}
-          asrIsCustomized={asrIsCustomized}
-          completedAyahs={completedAyahs}
-        />
-      )}
-
-      {/* Everything below is hidden during Asr full-screen */}
-      {!(activeTab==="myhifz"&&currentSessionId==="asr"&&asrStarted&&batch.length>0)&&(<>
+      {(<>
 
       {/* ── ONBOARDING FLOW ── */}
       {showOnboarding&&(
@@ -1472,7 +1450,7 @@ export default function RihlatAlHifz() {
       {activeTab!=="quran"&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-        const goalLabel=goalYears===0?`${goalMonths}-Month Hafiz`:goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
+        const goalLabel=goalYears===0?`${goalMonths}-Month Hafiz`:`${goalYears}-Year${goalYears!==1?"":""} Hafiz${goalMonths>0?` · ${goalMonths}mo`:""}`;
         return (
         <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8",padding:"18px 16px 16px",flexShrink:0,borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
@@ -1542,6 +1520,49 @@ export default function RihlatAlHifz() {
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&!showTerms&&(
         <MyHifzTab
+          asrSessionView={(!sessLoading&&currentSessionId==="asr"&&asrStarted&&batch.length>0)?(
+            <AsrSessionView
+              dark={dark}
+              asrSelectionSummary={asrSelectionSummary}
+              asrSafePage={asrSafePage}
+              asrPages={asrPages}
+              asrPageStart={asrPageStart}
+              asrPageEnd={asrPageEnd}
+              asrVisibleAyahs={asrVisibleAyahs}
+              asrBatch={batch}
+              asrExpandedAyah={asrExpandedAyah}
+              setAsrExpandedAyah={setAsrExpandedAyah}
+              asrTouchStartRef={asrTouchStartRef}
+              setAsrPage={setAsrPage}
+              asrSlideDir={asrSlideDir}
+              setAsrSlideDir={setAsrSlideDir}
+              translations={translations}
+              fetchTranslations={fetchTranslations}
+              playAyah={playAyah}
+              playingKey={playingKey}
+              audioLoading={audioLoading}
+              asrSurahProgress={asrSurahProgress}
+              onComplete={()=>{
+                const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
+                const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
+                localStorage.setItem("jalil-asr-cycle",String(asrCycle+1));
+                setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
+                toggleCheck(sess.id);
+                setAsrStarted(false);
+                setAsrPage(0);
+                setAsrExpandedAyah(null);
+                setActiveSessionIndex(i=>Math.min(SESSIONS.length-1,i+1));
+              }}
+              onChangeSelection={()=>{
+                setAsrStarted(false);
+                setAsrPage(0);
+                setAsrExpandedAyah(null);
+                setAsrIsCustomized(true);
+              }}
+              asrIsCustomized={asrIsCustomized}
+              completedAyahs={completedAyahs}
+            />
+          ):null}
           haramainMeta={haramainMeta}
           dark={dark} T={T} SESSIONS={SESSIONS} fontSize={fontSize}
           reciter={reciter} currentReciter={currentReciter} setReciterMode={setReciterMode} setShowReciterModal={setShowReciterModal} hasPerAyah={hasPerAyah}
