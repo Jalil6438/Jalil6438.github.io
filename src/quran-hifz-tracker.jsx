@@ -18,6 +18,7 @@ import TwoPageWarningModal from "./components/TwoPageWarningModal";
 import MushafRangePickerModal from "./components/MushafRangePickerModal";
 import QuranJuzModal from "./components/QuranJuzModal";
 import ReciterModal from "./components/ReciterModal";
+import HaramainPlayer from "./components/HaramainPlayer";
 import useHifzProgress from "./hooks/useHifzProgress";
 import useAudio from "./hooks/useAudio";
 import MasjidaynTab from "./tabs/MasjidaynTab";
@@ -65,13 +66,13 @@ export default function RihlatAlHifz() {
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSessionIndex,setActiveSessionIndex_]=useState(0);
-  const setActiveSessionIndex=(v)=>{setActiveSessionIndex_(v);scrollAllToTop();};
+  const setActiveSessionIndex=(v)=>{setActiveSessionIndex_(v);};
   const SESSION_CTA=["Finish Fajr — Well Done","Finish Dhuhr — Solid Review","Finish Asr — Great Effort","Finish Maghrib — Beautifully Done","Finish Isha — Day Complete"];
   const [sessionsCompleted,setSessionsCompleted]=useState({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
   const [activeTab,setActiveTab_]=useState("rihlah");
   const scrollAllToTop=()=>{if(showOnboarding) return;setTimeout(()=>{document.querySelectorAll('.fi, [class*="fi"]').forEach(el=>el.scrollTop=0);document.querySelectorAll('div').forEach(el=>{const s=getComputedStyle(el);if(s.overflowY==='auto'||s.overflowY==='scroll')el.scrollTop=0;});window.scrollTo(0,0);},50);};
-  const setActiveTab=(tab)=>{setActiveTab_(tab);scrollAllToTop();};
+  const setActiveTab=(tab)=>{setActiveTab_(tab);};
   const [selectedJuz,setSelectedJuz]=useState(30);
   const [allVerses,setAllVerses]=useState([]);
   const [loading,setLoading]=useState(false);
@@ -143,7 +144,7 @@ export default function RihlatAlHifz() {
   const [sessError,setSessError]=useState(false);
   const AYAHS_PER_PAGE = 7;
   const [ayahPage, setAyahPage_] = useState(0);
-  const setAyahPage=(v)=>{setAyahPage_(v);scrollAllToTop();};
+  const setAyahPage=(v)=>{setAyahPage_(v);};
   const [asrStarted,setAsrStarted]=useState(false);
   const [asrIsCustomized,setAsrIsCustomized]=useState(false); // session-scoped, never persisted
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
@@ -382,14 +383,20 @@ export default function RihlatAlHifz() {
   const [showJuzModal,setShowJuzModal]=useState(false);
   const [activeStream,setActiveStream]=useState(0);
   const [masjidaynTab, setMasjidaynTab_]=useState("ramadan");
-  const setMasjidaynTab=(tab)=>{setMasjidaynTab_(tab);scrollAllToTop();};
+  const setMasjidaynTab=(tab)=>{setMasjidaynTab_(tab);};
   const [rihlahTab, setRihlahTab_]=useState("juz");
   const rihlahScrollRef=useRef(null);
-  const setRihlahTab=(tab)=>{setRihlahTab_(tab);scrollAllToTop();};
+  const setRihlahTab=(tab)=>{setRihlahTab_(tab);};
   const [haramainMosque,setHaramainMosque]=useState("makkah");
   const [openImam,setOpenImam]=useState(null);
   const [haramainPlaying,setHaramainPlaying]=useState(null);
   const haramainRef=useRef(null);
+  const [haramainMeta,setHaramainMeta]=useState(null);
+  const [haramainTime,setHaramainTime]=useState(0);
+  const [haramainDuration,setHaramainDuration]=useState(0);
+  const [haramainRate,setHaramainRate]=useState(1);
+  const [haramainExpanded,setHaramainExpanded]=useState(false);
+  const [haramainIsPaused,setHaramainIsPaused]=useState(false);
   const [showTrans,setShowTrans]=useState(true);
   const [translations,setTranslations]=useState({});
   const touchStartRef=useRef(0);
@@ -1170,9 +1177,30 @@ export default function RihlatAlHifz() {
     finally { setSessLoading(false); }
   }
 
-  function playHaramainSurah(imam, surahNum, key) {
-    if(haramainPlaying===key){ haramainRef.current?.pause(); setHaramainPlaying(null); return; }
-    if(haramainRef.current){ haramainRef.current.pause(); haramainRef.current=null; }
+  function playHaramainSurah(imam, surahNum, key, mosqueColor) {
+    // Toggle: if same surah already playing → pause/resume
+    if(haramainPlaying===key){
+      if(haramainRef.current){
+        if(haramainRef.current.paused){ haramainRef.current.play().catch(()=>{}); }
+        else { haramainRef.current.pause(); }
+      }
+      return;
+    }
+    // New surah: fully tear down old audio, clear ALL handlers so they can't fire after
+    if(haramainRef.current){
+      const old=haramainRef.current;
+      old.onloadedmetadata=null;
+      old.ontimeupdate=null;
+      old.onratechange=null;
+      old.onplay=null;
+      old.onpause=null;
+      old.onended=null;
+      old.onerror=null;
+      old.pause();
+      old.src="";
+      old.load();
+      haramainRef.current=null;
+    }
     let url;
     if(imam.mp3quran){
       url = `${imam.mp3quran}/${String(surahNum).padStart(3,"0")}.mp3`;
@@ -1182,11 +1210,95 @@ export default function RihlatAlHifz() {
       url = `https://archive.org/download/${imam.archive}/${String(surahNum).padStart(3,"0")}.mp3`;
     } else { return; }
     const audio = new Audio(url);
+    audio.preload = "auto";
+    audio.playbackRate = haramainRate;
     haramainRef.current = audio;
-    audio.play().catch(()=>{});
+    // Use direct .on* assignments so they can be cleared on teardown
+    audio.onloadedmetadata = () => { if(haramainRef.current===audio) setHaramainDuration(audio.duration||0); };
+    audio.ontimeupdate = () => { if(haramainRef.current===audio) setHaramainTime(audio.currentTime||0); };
+    audio.onratechange = () => { if(haramainRef.current===audio) setHaramainRate(audio.playbackRate||1); };
+    audio.onplay = () => { if(haramainRef.current===audio) setHaramainIsPaused(false); };
+    audio.onpause = () => { if(haramainRef.current===audio) setHaramainIsPaused(true); };
+    audio.onended = () => {
+      if(haramainRef.current!==audio) return;
+      setHaramainPlaying(null);
+      setHaramainMeta(null);
+      setHaramainTime(0);
+      setHaramainDuration(0);
+      setHaramainIsPaused(false);
+    };
+    audio.onerror = () => {
+      if(haramainRef.current!==audio) return;
+      setHaramainPlaying(null);
+      setHaramainMeta(null);
+    };
     setHaramainPlaying(key);
-    audio.onended = () => setHaramainPlaying(null);
-    audio.onerror = () => setHaramainPlaying(null);
+    setHaramainMeta({
+      imam,
+      surahNum,
+      surahName: SURAH_EN[surahNum] || `Surah ${surahNum}`,
+      surahAr: SURAH_AR[surahNum] || "",
+      mosqueColor: mosqueColor || "#D4AF37",
+    });
+    setHaramainTime(0);
+    setHaramainDuration(0);
+    setHaramainIsPaused(false);
+    audio.play().catch(()=>{});
+  }
+
+  function stopHaramain() {
+    if(haramainRef.current){
+      haramainRef.current.pause();
+      haramainRef.current = null;
+    }
+    setHaramainPlaying(null);
+    setHaramainMeta(null);
+    setHaramainTime(0);
+    setHaramainDuration(0);
+    setHaramainExpanded(false);
+    setHaramainIsPaused(false);
+  }
+
+  function toggleHaramainPlayPause() {
+    if(!haramainRef.current) return;
+    if(haramainRef.current.paused) haramainRef.current.play().catch(()=>{});
+    else haramainRef.current.pause();
+  }
+
+  function seekHaramain(seconds) {
+    if(!haramainRef.current) return;
+    const d = haramainRef.current.duration || 0;
+    const next = Math.max(0, Math.min(d, seconds));
+    haramainRef.current.currentTime = next;
+    setHaramainTime(next);
+  }
+
+  function skipHaramain(deltaSec) {
+    if(!haramainRef.current) return;
+    seekHaramain((haramainRef.current.currentTime||0) + deltaSec);
+  }
+
+  function haramainNext() {
+    if(!haramainMeta) return;
+    const {imam,mosqueColor}=haramainMeta;
+    const next=haramainMeta.surahNum+1;
+    if(next>114) return;
+    if(imam.availableSurahs&&!imam.availableSurahs.includes(next)) return;
+    playHaramainSurah(imam,next,`${imam.id}-${next}`,mosqueColor);
+  }
+  function haramainPrev() {
+    if(!haramainMeta) return;
+    const {imam,mosqueColor}=haramainMeta;
+    const prev=haramainMeta.surahNum-1;
+    if(prev<1) return;
+    if(imam.availableSurahs&&!imam.availableSurahs.includes(prev)) return;
+    playHaramainSurah(imam,prev,`${imam.id}-${prev}`,mosqueColor);
+  }
+
+  function setHaramainPlaybackRate(r) {
+    if(!haramainRef.current) return;
+    haramainRef.current.playbackRate = r;
+    setHaramainRate(r);
   }
 
   const TABS=[
@@ -1945,6 +2057,7 @@ export default function RihlatAlHifz() {
           haramainMosque={haramainMosque} setHaramainMosque={setHaramainMosque}
           openImam={openImam} setOpenImam={setOpenImam}
           haramainPlaying={haramainPlaying} playHaramainSurah={playHaramainSurah}
+          stopHaramain={stopHaramain} haramainMeta={haramainMeta}
           onBackToSettings={masjidaynTab==="about"?()=>{
             if(tabBeforeAdjust){
               setActiveTab(tabBeforeAdjust.activeTab);
@@ -1953,6 +2066,27 @@ export default function RihlatAlHifz() {
             }
             setShowSettings(true);
           }:null}
+        />
+      )}
+
+      {/* ── GLOBAL HARAMAIN PLAYER ── */}
+      {haramainMeta && (
+        <HaramainPlayer
+          meta={haramainMeta}
+          isPlaying={!haramainIsPaused}
+          time={haramainTime}
+          duration={haramainDuration}
+          rate={haramainRate}
+          expanded={haramainExpanded}
+          setExpanded={setHaramainExpanded}
+          onPlayPause={toggleHaramainPlayPause}
+          onSeek={seekHaramain}
+          onSkip={skipHaramain}
+          onSetRate={setHaramainPlaybackRate}
+          onNext={haramainNext}
+          onPrev={haramainPrev}
+          onStop={stopHaramain}
+          dark={dark}
         />
       )}
 

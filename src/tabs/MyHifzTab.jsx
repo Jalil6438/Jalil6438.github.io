@@ -63,22 +63,7 @@ export default function MyHifzTab(props) {
 
           <div style={{flex:1,padding:"10px 16px 120px"}}>
 
-            {/* ── SESSION JUZ ROW ── */}
-            <div className="sbtn" onClick={()=>setShowJuzModal(true)} style={{padding:"12px 14px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,marginBottom:10}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <div>
-                  <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:4}}>Session Juz · Juz {sessionJuz||""}</div>
-                  <div style={{fontSize:12,color:T.sub}}>Progress: {sessionIdx} of {totalSV} ayahs</div>
-                  <div style={{fontSize:11,color:T.accent,marginTop:2}}>{dailyNew} ayahs per day</div>
-                </div>
-                <div style={{color:T.dim,fontSize:14}}>›</div>
-              </div>
-              <div style={{height:4,marginTop:6,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${totalSV>0?Math.round((sessionIdx/totalSV)*100):0}%`,background:"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .5s"}}/>
-              </div>
-            </div>
-
-            {/* ── CURRENT SESSION ── */}
+{/* ── CURRENT SESSION ── */}
             {(()=>{
               const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
               if(!sess) return null;

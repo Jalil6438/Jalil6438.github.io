@@ -32,7 +32,10 @@
       "WebFetch(domain:api.qurancdn.com)",
       "WebFetch(domain:launch.provisioncapital.com)",
       "WebFetch(domain:api-docs.quran.foundation)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(curl -sI \"https://archive.org/download/HaramainHumaid/001.mp3\")",
+      "Bash(curl -sIL \"https://archive.org/download/HaramainHumaid/001.mp3\")",
+      "Bash(curl -sL \"https://archive.org/metadata/HaramainHumaid\")"
     ]
   }
 }

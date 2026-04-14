@@ -8,6 +8,7 @@ export default function MasjidaynTab({
   haramainMosque, setHaramainMosque,
   openImam, setOpenImam,
   haramainPlaying, playHaramainSurah,
+  stopHaramain, haramainMeta,
   onBackToSettings,
 }) {
   const [expandedMosque, setExpandedMosque] = useState(null); // "makkah" | "madinah" | null
@@ -48,7 +49,7 @@ export default function MasjidaynTab({
                 const pkey=`${imam.id}-${sNum}`;
                 const isP=haramainPlaying===pkey;
                 return (
-                  <div key={sNum} className="sbtn" onClick={()=>playHaramainSurah(imam,sNum,pkey)} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",borderRadius:4,background:isP?`${mosqueColor}15`:T.surface2,border:`1px solid ${isP?mosqueColor:T.border}`}}>
+                  <div key={sNum} className="sbtn" onClick={()=>{playHaramainSurah(imam,sNum,pkey,mosqueColor);setExpandedMosque(null);}} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",borderRadius:4,background:isP?`${mosqueColor}15`:T.surface2,border:`1px solid ${isP?mosqueColor:T.border}`}}>
                     <div style={{width:22,height:22,borderRadius:"50%",flexShrink:0,background:isP?mosqueColor:T.surface,border:`1px solid ${isP?mosqueColor:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:isP?"#fff":T.dim}}>
                       {isP?"⏸":"▶"}
                     </div>
@@ -159,8 +160,8 @@ export default function MasjidaynTab({
                 const currentImams = imams.filter(i=>i.status==="current");
                 const formerImams = imams.filter(i=>i.status==="former");
                 return (
-                  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.80)",backdropFilter:"blur(4px)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setExpandedMosque(null)}>
-                    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"80vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
+                  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.40)",zIndex:999,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={()=>setExpandedMosque(null)}>
+                    <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",width:"100%",maxWidth:500,maxHeight:"50vh",display:"flex",flexDirection:"column",border:"1px solid rgba(217,177,95,0.12)",borderBottom:"none",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)"}} onClick={e=>e.stopPropagation()}>
                       {/* Handle + Header */}
                       <div style={{padding:"12px 18px 0",textAlign:"center",flexShrink:0}}>
                         <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
@@ -168,9 +169,10 @@ export default function MasjidaynTab({
                         <div style={{fontFamily:"'Amiri',serif",fontSize:14,color:mosqueColor,direction:"rtl",marginTop:2}}>{m.arabic}</div>
                         {/* Watch Live button */}
                         <a href={`https://www.youtube.com/${m.handle}/live`} target="_blank" rel="noreferrer"
-                          style={{display:"inline-flex",alignItems:"center",gap:6,marginTop:10,marginBottom:10,padding:"8px 20px",background:mosqueColor,borderRadius:8,fontSize:12,fontWeight:700,color:dark?"#060A07":"#fff",textDecoration:"none"}}>
-                          <div className="pulse" style={{width:8,height:8,borderRadius:"50%",background:dark?"#060A07":"#fff"}}/>
-                          Watch Live
+                          style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:10,marginBottom:10,padding:"8px 16px",background:mosqueColor,borderRadius:8,fontSize:12,fontWeight:700,color:dark?"#060A07":"#fff",textDecoration:"none"}}>
+                          <div className="pulse" style={{width:7,height:7,borderRadius:"50%",background:dark?"#060A07":"#fff"}}/>
+                          Watch Live on
+                          <svg viewBox="0 0 24 18" style={{width:18,height:13,flexShrink:0}}><path d="M23.5 3.5s-.2-1.7-.9-2.4C21.6.2 20.5.2 20 .1 16.7 0 12 0 12 0S7.3 0 4 .1c-.5.1-1.6.1-2.6 1C.7 1.8.5 3.5.5 3.5S.3 5.5.3 7.5v1.9c0 2 .2 4 .2 4s.2 1.7.9 2.4c1 .9 2.1.9 2.6 1 1.9.2 8 .2 8 .2s4.7 0 8-.2c.5-.1 1.6-.1 2.6-1 .7-.7.9-2.4.9-2.4s.2-2 .2-4V7.5c0-2-.2-4-.2-4z" fill="#FF0000"/><path d="M9.6 12.3V5l6.5 3.6-6.5 3.7z" fill="#fff"/></svg>
                         </a>
                       </div>
                       {/* Imam list */}
@@ -201,14 +203,23 @@ export default function MasjidaynTab({
               {/* ── Player ── */}
               <div style={{background:dark?"#000":"#D8CCB0",flexShrink:0,marginTop:12}}>
                 {hasVideo ? (
-                  <iframe
-                    key={`r${sel}-${ramadanVideoType}`}
-                    src={`https://www.youtube.com/embed/${activeId}?autoplay=1&rel=0&start=${activeId==="lRwXLCF8Udk"?2090:0}`}
-                    style={{width:"100%",height:220,border:"none",display:"block"}}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={`Night ${sel} ${activeLabel} 1447 — Badr Al-Turki`}
-                  />
+                  haramainMeta || expandedMosque ? (
+                    <div style={{height:220,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,background:dark?"#0A0E18":"#D8CCB0"}}>
+                      <div style={{fontSize:22,opacity:0.4}}>⏸</div>
+                      <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",textAlign:"center",maxWidth:260,lineHeight:1.5}}>
+                        {haramainMeta ? "Taraweeh paused — currently listening to an imam recording" : "Taraweeh paused while viewing mosque"}
+                      </div>
+                    </div>
+                  ) : (
+                    <iframe
+                      key={`r${sel}-${ramadanVideoType}`}
+                      src={`https://www.youtube.com/embed/${activeId}?autoplay=1&rel=0&start=${activeId==="lRwXLCF8Udk"?2090:0}`}
+                      style={{width:"100%",height:220,border:"none",display:"block"}}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={`Night ${sel} ${activeLabel} 1447 — Badr Al-Turki`}
+                    />
+                  )
                 ) : (
                   <div style={{height:140,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}>
                     <div style={{fontSize:11,color:dark?"#888":"#6B645A"}}>Night {sel} {ramadanVideoType} — opens on YouTube</div>

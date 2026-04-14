@@ -87,7 +87,7 @@ export const MAKKAH_IMAMS = [
   { id:"juhany2",   name:"Abdullah Al-Juhany",      arabic:"عبدالله الجهني",    quranicaudio:"abdullaah_3awwaad_al-juhaynee",   surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"baleela",   name:"Bandar Baleela",          arabic:"بندر بليلة",        quranicaudio:"bandar_baleela/complete",         surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"dossary2",  name:"Yasser Al-Dosari",        arabic:"ياسر الدوسري",      quranicaudio:"yasser_ad-dussary",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
-  { id:"humaid",    name:"Saleh Bin Humaid",        arabic:"صالح بن حميد",      archive:"HaramainHumaid",                       surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
+  { id:"humaid",    name:"Saleh Bin Humaid",        arabic:"صالح بن حميد",      archive:null,                                   surahCount:null, note:"Prayer recordings — no full Quran archive", status:"current" },
   { id:"khayat",    name:"Usama Khayat",            arabic:"أسامة خياط",        quranicaudio:"khayat",                          surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"turki",     name:"Badr Al-Turki",           arabic:"بدر التركي",        quranicaudio:"badr_al_turki/mp3",               surahCount:114, note:"Full Quran (114 surahs)", status:"current" },
   { id:"shamsan",   name:"Waleed Al-Shamsan",       arabic:"وليد الشمسان",      archive:null,                                   surahCount:null, note:"Prayer recordings — no full Quran archive", status:"current" },
