@@ -36,7 +36,8 @@
       "Bash(curl -sI \"https://archive.org/download/HaramainHumaid/001.mp3\")",
       "Bash(curl -sIL \"https://archive.org/download/HaramainHumaid/001.mp3\")",
       "Bash(curl -sL \"https://archive.org/metadata/HaramainHumaid\")",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(awk 'NR==1816 || NR==1770 {print NR\":\"$0}' src/quran-hifz-tracker.jsx)"
     ]
   }
 }

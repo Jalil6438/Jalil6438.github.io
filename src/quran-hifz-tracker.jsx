@@ -1540,7 +1540,7 @@ export default function RihlatAlHifz() {
       </div>
 
       {/* ═══ TODAY SESSION ═══ */}
-      {activeTab==="myhifz"&&(
+      {activeTab==="myhifz"&&!showTerms&&(
         <MyHifzTab
           haramainMeta={haramainMeta}
           dark={dark} T={T} SESSIONS={SESSIONS} fontSize={fontSize}
@@ -1571,7 +1571,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
-      {activeTab==="rihlah"&&rihlahTab==="home"&&(
+      {activeTab==="rihlah"&&rihlahTab==="home"&&!showTerms&&(
         <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta}/>
       )}
 
@@ -1776,7 +1776,7 @@ export default function RihlatAlHifz() {
       })()}
 
       {/* ═══ QURAN TEXT ═══ */}
-      {activeTab==="quran"&&(
+      {activeTab==="quran"&&!showTerms&&(
         <QuranTab
           haramainMeta={haramainMeta}
           dark={dark}
@@ -1940,7 +1940,49 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ ADJUST PLAN (opened from settings gear) ═══ */}
-      {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
+      {showTerms&&(
+        <div style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"20px 16px 120px"}} className="fi">
+          <div style={{marginBottom:14}}>
+            <div className="sbtn" onClick={()=>{setShowTerms(false);setShowSettings(true);}} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>← Back</div>
+          </div>
+          <div style={{maxWidth:500,margin:"0 auto"}}>
+            <div style={{textAlign:"center",marginBottom:18}}>
+              <div style={{fontSize:18,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A"}}>Terms & Privacy</div>
+              <div style={{fontSize:10,color:T.dim,marginTop:4}}>Last updated: April 2026</div>
+            </div>
+            <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Privacy</div>
+            <div style={{fontSize:13,color:T.sub,lineHeight:1.7,marginBottom:18}}>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>All your progress, goals, and preferences are stored <strong>only on your device</strong> using localStorage.</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>There is no account, no sign-up, and no sign-in required.</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>We do not collect, track, or transmit any personal data.</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>No analytics, no ads, no tracking cookies.</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Quran text, audio, and tafsir are fetched from Quran Foundation APIs only when you use those features.</span></div>
+              <div style={{display:"flex",gap:8}}><span>•</span><span>Your memorization data never leaves your device unless you explicitly export it.</span></div>
+            </div>
+            <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Terms of Use</div>
+            <div style={{fontSize:13,color:T.sub,lineHeight:1.7,marginBottom:18}}>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Rihlat Al-Hifz is free to use for personal hifz journey and reflection.</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>This app is a supplementary tool — it is not a substitute for guidance from a qualified Quran teacher.</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Rihlat Al-Hifz is an independent project and is <strong>not affiliated with, endorsed by, or sponsored by Quran Foundation, Quran.com, or any other organization</strong>. We gratefully use their public APIs to bring the Quran to you.</span></div>
+              <div style={{display:"flex",gap:8}}><span>•</span><span>May Allah accept your efforts and grant you success in memorizing His Book.</span></div>
+            </div>
+            <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Attribution</div>
+            <div style={{fontSize:13,color:T.sub,lineHeight:1.7,marginBottom:18}}>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Quranic text & metadata:</strong> Quran Foundation (quran.com / quran.foundation)</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Ayah-by-ayah audio:</strong> everyayah.com</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Full surah recitations:</strong> quranicaudio.com</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Tafsir:</strong> As-Sa'di, Al-Muyassar, Ibn Kathir (via Quran.com API)</span></div>
+              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Methodology:</strong> "The Easiest Way to Memorize the Noble Qur'an" by Sheikh Abdul Muhsin Al-Qasim</span></div>
+              <div style={{display:"flex",gap:8}}><span>•</span><span><strong>Haramain imam recordings:</strong> haramain.info, Internet Archive</span></div>
+            </div>
+            <div style={{textAlign:"center",marginTop:14,fontSize:11,color:T.dim,fontStyle:"italic"}}>
+              بَارَكَ اللَّهُ فِيكُمْ
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab==="rihlah"&&rihlahTab==="adjust"&&!showTerms&&(
         <AdjustPlan
           dark={dark}
           T={T}
@@ -2049,7 +2091,7 @@ export default function RihlatAlHifz() {
   audioRef={audioRef}
 />
 
-      {activeTab==="masjidayn"&&(
+      {activeTab==="masjidayn"&&!showTerms&&(
         <MasjidaynTab
           dark={dark} T={T}
           masjidaynTab={masjidaynTab} setMasjidaynTab={setMasjidaynTab}
