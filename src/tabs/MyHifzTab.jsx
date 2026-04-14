@@ -6,6 +6,7 @@ import { saveCompletedAyahs, toArabicDigits } from "../utils";
 
 export default function MyHifzTab(props) {
   const {
+    haramainMeta,
     // theme/constants
     dark, T, SESSIONS, fontSize,
     // reciter
@@ -61,7 +62,7 @@ export default function MyHifzTab(props) {
             </div>
           </div>
 
-          <div style={{flex:1,padding:"10px 16px 120px"}}>
+          <div style={{flex:1,padding:`10px 16px ${haramainMeta?"240px":"120px"}`}}>
 
 {/* ── CURRENT SESSION ── */}
             {(()=>{

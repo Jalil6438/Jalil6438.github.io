@@ -9,6 +9,7 @@ export default function RihlahHome({
   streak, checkedCount,
   dailyNew, allChecked,
   setRihlahTab,
+  haramainMeta,
 }) {
   const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
   const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
@@ -92,7 +93,7 @@ export default function RihlahHome({
 
       {/* Profile header removed — now in universal header */}
 
-      <div style={{padding:"12px 14px 120px",position:"relative",zIndex:1}}>
+      <div style={{padding:`12px 14px ${haramainMeta?"240px":"120px"}`,position:"relative",zIndex:1}}>
 
       {/* ── YOUR MEMORIZATION JOURNEY — Progress Path ── */}
       <RihlahProgressPath dark={dark} T={T} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} pct={pct} goalYears={goalYears} goalMonths={goalMonths}/>

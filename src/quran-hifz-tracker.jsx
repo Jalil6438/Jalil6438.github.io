@@ -1542,6 +1542,7 @@ export default function RihlatAlHifz() {
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&(
         <MyHifzTab
+          haramainMeta={haramainMeta}
           dark={dark} T={T} SESSIONS={SESSIONS} fontSize={fontSize}
           reciter={reciter} currentReciter={currentReciter} setReciterMode={setReciterMode} setShowReciterModal={setShowReciterModal} hasPerAyah={hasPerAyah}
           sessionJuz={sessionJuz} setSessionJuz={setSessionJuz} sessionIdx={sessionIdx} setSessionIdx={setSessionIdx} totalSV={totalSV} dailyNew={dailyNew}
@@ -1571,7 +1572,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="home"&&(
-        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab}/>
+        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
@@ -1777,6 +1778,7 @@ export default function RihlatAlHifz() {
       {/* ═══ QURAN TEXT ═══ */}
       {activeTab==="quran"&&(
         <QuranTab
+          haramainMeta={haramainMeta}
           dark={dark}
           SURAH_PAGES={SURAH_PAGES}
           TAFSIR_SOURCES={TAFSIR_SOURCES}

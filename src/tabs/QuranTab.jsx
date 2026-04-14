@@ -4,6 +4,7 @@ import { mushafImageUrl, toArabicDigits } from "../utils";
 
 export default function QuranTab(props) {
   const {
+    haramainMeta,
     // theme
     dark,
     // constants/helpers passed from parent (defined inside main component)
@@ -117,7 +118,7 @@ export default function QuranTab(props) {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:"10px 12px 120px"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`10px 12px ${haramainMeta?"240px":"120px"}`}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
