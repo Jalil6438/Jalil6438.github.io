@@ -1,6 +1,60 @@
 // ── UTILITY FUNCTIONS — extracted from quran-hifz-tracker.jsx ──
 import { SURAH_AYAH_COUNTS, JUZ_RANGES } from "./data/constants";
 
+// Auto-crop white margins from a mushaf page image. Returns a data URL, or the
+// original URL on any failure (tainted canvas / load error).
+export function cropMushafImage(imgUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = imgUrl;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      let imageData;
+      try { imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+      catch(e) { resolve(imgUrl); return; }
+      const data = imageData.data;
+      let top = 0, bottom = canvas.height - 1, left = 0, right = canvas.width - 1;
+      const isWhite = (r,g,b) => r > 240 && g > 240 && b > 240;
+      outer: for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const i = (y * canvas.width + x) * 4;
+          if (!isWhite(data[i],data[i+1],data[i+2])) { top = y; break outer; }
+        }
+      }
+      outer: for (let y = canvas.height - 1; y >= 0; y--) {
+        for (let x = 0; x < canvas.width; x++) {
+          const i = (y * canvas.width + x) * 4;
+          if (!isWhite(data[i],data[i+1],data[i+2])) { bottom = y; break outer; }
+        }
+      }
+      outer: for (let x = 0; x < canvas.width; x++) {
+        for (let y = 0; y < canvas.height; y++) {
+          const i = (y * canvas.width + x) * 4;
+          if (!isWhite(data[i],data[i+1],data[i+2])) { left = x; break outer; }
+        }
+      }
+      outer: for (let x = canvas.width - 1; x >= 0; x--) {
+        for (let y = 0; y < canvas.height; y++) {
+          const i = (y * canvas.width + x) * 4;
+          if (!isWhite(data[i],data[i+1],data[i+2])) { right = x; break outer; }
+        }
+      }
+      const w = right - left;
+      const h = bottom - top;
+      const out = document.createElement("canvas");
+      out.width = w; out.height = h;
+      out.getContext("2d").drawImage(canvas, left, top, w, h, 0, 0, w, h);
+      resolve(out.toDataURL());
+    };
+    img.onerror = () => resolve(imgUrl);
+  });
+}
+
 export function mushafImageUrl(page) {
   return `https://raw.githubusercontent.com/Jalil6438/mushaf-images/master/page-${String(page + 3).padStart(3,"0")}.png`;
 }

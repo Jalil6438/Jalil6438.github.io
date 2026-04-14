@@ -4,7 +4,7 @@ import { RECITERS, SURAH_EN, SURAH_AYAH_COUNTS, JUZ_RANGES, DARK, LIGHT, STATUS_
 import { SESSIONS, getSessionWisdom } from "./data/sessions";
 import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
-import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys } from "./utils";
+import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage } from "./utils";
 import HlsPlayer from "./components/HlsPlayer";
 import AsrSessionView from "./components/AsrSessionView";
 import QuranPageView from "./components/QuranPageView";
@@ -23,6 +23,9 @@ import useHifzProgress from "./hooks/useHifzProgress";
 import useAudio from "./hooks/useAudio";
 import MasjidaynTab from "./tabs/MasjidaynTab";
 import MyHifzTab from "./tabs/MyHifzTab";
+import MyMemorizationView from "./tabs/MyMemorizationView";
+import useHaramainPlayer from "./hooks/useHaramainPlayer";
+import { parseTafsirBlocks } from "./data/tafsir";
 import QuranTab from "./tabs/QuranTab";
 import Onboarding from "./components/Onboarding";
 
@@ -149,7 +152,7 @@ export default function RihlatAlHifz() {
   const [asrIsCustomized,setAsrIsCustomized]=useState(false); // session-scoped, never persisted
   const [asrActiveJuzPanel,setAsrActiveJuzPanel]=useState(null);
   const [asrSurahShowCount,setAsrSurahShowCount]=useState(10);
-  const [memSections,setMemSections]=useState({completed:false,inprogress:true,upcoming:false,upcomingAll:false});
+  const [memSections,setMemSections]=useState({completed:true,inprogress:true,upcoming:true,upcomingAll:false});
   const [asrPage,setAsrPage_]=useState(0);
   const setAsrPage=(v)=>{setAsrPage_(v);scrollAllToTop();};
   const [asrSlideDir,setAsrSlideDir]=useState(null);
@@ -227,59 +230,6 @@ export default function RihlatAlHifz() {
     return () => { cancelled = true; };
   }, [activeTab, mushafPage]);
 
-  // Auto-crop white margins from mushaf page image
-  function cropMushafImage(imgUrl) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = imgUrl;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        let imageData;
-        try { imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); }
-        catch(e) { resolve(imgUrl); return; }
-        const data = imageData.data;
-        let top = 0, bottom = canvas.height - 1, left = 0, right = canvas.width - 1;
-        const isWhite = (r,g,b) => r > 240 && g > 240 && b > 240;
-        outer: for (let y = 0; y < canvas.height; y++) {
-          for (let x = 0; x < canvas.width; x++) {
-            const i = (y * canvas.width + x) * 4;
-            if (!isWhite(data[i],data[i+1],data[i+2])) { top = y; break outer; }
-          }
-        }
-        outer: for (let y = canvas.height - 1; y >= 0; y--) {
-          for (let x = 0; x < canvas.width; x++) {
-            const i = (y * canvas.width + x) * 4;
-            if (!isWhite(data[i],data[i+1],data[i+2])) { bottom = y; break outer; }
-          }
-        }
-        outer: for (let x = 0; x < canvas.width; x++) {
-          for (let y = 0; y < canvas.height; y++) {
-            const i = (y * canvas.width + x) * 4;
-            if (!isWhite(data[i],data[i+1],data[i+2])) { left = x; break outer; }
-          }
-        }
-        outer: for (let x = canvas.width - 1; x >= 0; x--) {
-          for (let y = 0; y < canvas.height; y++) {
-            const i = (y * canvas.width + x) * 4;
-            if (!isWhite(data[i],data[i+1],data[i+2])) { right = x; break outer; }
-          }
-        }
-        const w = right - left;
-        const h = bottom - top;
-        const out = document.createElement("canvas");
-        out.width = w; out.height = h;
-        out.getContext("2d").drawImage(canvas, left, top, w, h, 0, 0, w, h);
-        resolve(out.toDataURL());
-      };
-      img.onerror = () => resolve(imgUrl);
-    });
-  }
-
   // Crop on page change (cache result so we don't re-crop)
   useEffect(() => {
     if (activeTab !== "quran" || quranMode !== "mushaf") return;
@@ -300,42 +250,6 @@ export default function RihlatAlHifz() {
     obs.observe(quranPageRef.current);
     return()=>obs.disconnect();
   },[quranMode,activeTab]);
-
-  // Parse tafsir text — separate Arabic from English into clean blocks
-  function parseTafsirBlocks(text) {
-    if(!text) return [];
-    const blocks = [];
-    // Match any sequence containing Arabic letters (including diacritics, spaces between Arabic words)
-    // This catches: standalone Arabic phrases, Arabic embedded in English, hadith quotes, ayah references
-    const arabicRun = /([\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF][\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640\s\u060C\u061B\u061F،؛؟\-.:!]*[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF])/g;
-    let lastIdx = 0;
-    let match;
-    while((match = arabicRun.exec(text)) !== null) {
-      const ar = match[0].trim();
-      // Only treat as a block if it has at least 2 actual Arabic characters (skip lone chars)
-      const arabicCharCount = (ar.match(/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g)||[]).length;
-      if(arabicCharCount < 2) continue;
-      // English before this Arabic block
-      if(match.index > lastIdx) {
-        const eng = text.slice(lastIdx, match.index).trim();
-        // Clean up dangling punctuation like trailing commas, quotes, brackets
-        const cleaned = eng.replace(/^[,\s;:]+|[,\s;:]+$/g,"").trim();
-        if(cleaned) blocks.push({type:"english", text:cleaned});
-      }
-      blocks.push({type:"arabic", text:ar});
-      lastIdx = match.index + match[0].length;
-    }
-    // Remaining English after last Arabic block
-    if(lastIdx < text.length) {
-      const tail = text.slice(lastIdx).trim().replace(/^[,\s;:()]+|[,\s;:()]+$/g,"").trim();
-      if(tail) blocks.push({type:"english", text:tail});
-    }
-    // If no Arabic found, split by paragraphs
-    if(blocks.length === 0) {
-      return text.split(/\n\n+/).filter(Boolean).map(p => ({type:"english", text:p.trim()}));
-    }
-    return blocks;
-  }
 
   async function fetchTafsir(verseKey){
     setTafsirAyah(verseKey);
@@ -389,16 +303,24 @@ export default function RihlatAlHifz() {
   const setRihlahTab=(tab)=>{setRihlahTab_(tab);};
   const [haramainMosque,setHaramainMosque]=useState("makkah");
   const [openImam,setOpenImam]=useState(null);
-  const [haramainPlaying,setHaramainPlaying]=useState(null);
-  const haramainRef=useRef(null);
-  const [haramainMeta,setHaramainMeta]=useState(null);
-  const [haramainTime,setHaramainTime]=useState(0);
-  const [haramainDuration,setHaramainDuration]=useState(0);
-  const [haramainRate,setHaramainRate]=useState(1);
-  const [haramainExpanded,setHaramainExpanded]=useState(false);
-  // Auto-collapse the Haramain player whenever the user switches tabs
-  useEffect(()=>{ setHaramainExpanded(false); },[activeTab]);
-  const [haramainIsPaused,setHaramainIsPaused]=useState(false);
+  const {
+    haramainPlaying, setHaramainPlaying,
+    haramainMeta, setHaramainMeta,
+    haramainTime,
+    haramainDuration,
+    haramainRate,
+    haramainExpanded, setHaramainExpanded,
+    haramainIsPaused,
+    haramainRef,
+    playHaramainSurah,
+    stopHaramain,
+    toggleHaramainPlayPause,
+    seekHaramain,
+    skipHaramain,
+    haramainNext,
+    haramainPrev,
+    setHaramainPlaybackRate,
+  } = useHaramainPlayer({ activeTab });
   const [showTrans,setShowTrans]=useState(true);
   const [translations,setTranslations]=useState({});
   const touchStartRef=useRef(0);
@@ -1179,152 +1101,6 @@ export default function RihlatAlHifz() {
     finally { setSessLoading(false); }
   }
 
-  async function resolveArchiveFilename(archiveItem, surahNum){
-    if(!window.__archiveFileMapCache) window.__archiveFileMapCache={};
-    const cache=window.__archiveFileMapCache;
-    if(!cache[archiveItem]){
-      try{
-        const res=await fetch(`https://archive.org/metadata/${archiveItem}`);
-        const data=await res.json();
-        const map={};
-        (data.files||[]).forEach(f=>{
-          const m=/^(\d{3})(?:-\d+)?\.(mp3|MP3)$/.exec(f.name||"");
-          if(m){ const n=parseInt(m[1],10); if(n>=1&&n<=114&&!map[n]) map[n]=f.name; }
-        });
-        cache[archiveItem]=map;
-      }catch{ cache[archiveItem]={}; }
-    }
-    return cache[archiveItem][surahNum]||null;
-  }
-
-  function playHaramainSurah(imam, surahNum, key, mosqueColor) {
-    // Toggle: if same surah already playing → pause/resume
-    if(haramainPlaying===key){
-      if(haramainRef.current){
-        if(haramainRef.current.paused){ haramainRef.current.play().catch(()=>{}); }
-        else { haramainRef.current.pause(); }
-      }
-      return;
-    }
-    // New surah: fully tear down old audio, clear ALL handlers so they can't fire after
-    if(haramainRef.current){
-      const old=haramainRef.current;
-      old.onloadedmetadata=null;
-      old.ontimeupdate=null;
-      old.onratechange=null;
-      old.onplay=null;
-      old.onpause=null;
-      old.onended=null;
-      old.onerror=null;
-      old.pause();
-      old.src="";
-      old.load();
-      haramainRef.current=null;
-    }
-    const startWithUrl = (url) => {
-    const audio = new Audio(url);
-    audio.preload = "auto";
-    audio.playbackRate = haramainRate;
-    haramainRef.current = audio;
-    // Use direct .on* assignments so they can be cleared on teardown
-    audio.onloadedmetadata = () => { if(haramainRef.current===audio) setHaramainDuration(audio.duration||0); };
-    audio.ontimeupdate = () => { if(haramainRef.current===audio) setHaramainTime(audio.currentTime||0); };
-    audio.onratechange = () => { if(haramainRef.current===audio) setHaramainRate(audio.playbackRate||1); };
-    audio.onplay = () => { if(haramainRef.current===audio) setHaramainIsPaused(false); };
-    audio.onpause = () => { if(haramainRef.current===audio) setHaramainIsPaused(true); };
-    audio.onended = () => {
-      if(haramainRef.current!==audio) return;
-      setHaramainPlaying(null);
-      setHaramainMeta(null);
-      setHaramainTime(0);
-      setHaramainDuration(0);
-      setHaramainIsPaused(false);
-    };
-    audio.onerror = () => {
-      if(haramainRef.current!==audio) return;
-      setHaramainPlaying(null);
-      setHaramainMeta(null);
-    };
-    setHaramainPlaying(key);
-    setHaramainMeta({
-      imam,
-      surahNum,
-      surahName: SURAH_EN[surahNum] || `Surah ${surahNum}`,
-      surahAr: SURAH_AR[surahNum] || "",
-      mosqueColor: mosqueColor || "#D4AF37",
-    });
-    setHaramainTime(0);
-    setHaramainDuration(0);
-    setHaramainIsPaused(false);
-    audio.play().catch(()=>{});
-    };
-
-    if(imam.mp3quran){
-      startWithUrl(`${imam.mp3quran}/${String(surahNum).padStart(3,"0")}.mp3`);
-    } else if(imam.quranicaudio){
-      startWithUrl(`https://download.quranicaudio.com/quran/${imam.quranicaudio}/${String(surahNum).padStart(3,"0")}.mp3`);
-    } else if(imam.archive){
-      resolveArchiveFilename(imam.archive, surahNum).then(filename => {
-        if(!filename){ setHaramainPlaying(null); setHaramainMeta(null); return; }
-        startWithUrl(`https://archive.org/download/${imam.archive}/${filename}`);
-      });
-    }
-  }
-
-  function stopHaramain() {
-    if(haramainRef.current){
-      haramainRef.current.pause();
-      haramainRef.current = null;
-    }
-    setHaramainPlaying(null);
-    setHaramainMeta(null);
-    setHaramainTime(0);
-    setHaramainDuration(0);
-    setHaramainExpanded(false);
-    setHaramainIsPaused(false);
-  }
-
-  function toggleHaramainPlayPause() {
-    if(!haramainRef.current) return;
-    if(haramainRef.current.paused) haramainRef.current.play().catch(()=>{});
-    else haramainRef.current.pause();
-  }
-
-  function seekHaramain(seconds) {
-    if(!haramainRef.current) return;
-    const d = haramainRef.current.duration || 0;
-    const next = Math.max(0, Math.min(d, seconds));
-    haramainRef.current.currentTime = next;
-    setHaramainTime(next);
-  }
-
-  function skipHaramain(deltaSec) {
-    if(!haramainRef.current) return;
-    seekHaramain((haramainRef.current.currentTime||0) + deltaSec);
-  }
-
-  function haramainNext() {
-    if(!haramainMeta) return;
-    const {imam,mosqueColor}=haramainMeta;
-    const next=haramainMeta.surahNum+1;
-    if(next>114) return;
-    if(imam.availableSurahs&&!imam.availableSurahs.includes(next)) return;
-    playHaramainSurah(imam,next,`${imam.id}-${next}`,mosqueColor);
-  }
-  function haramainPrev() {
-    if(!haramainMeta) return;
-    const {imam,mosqueColor}=haramainMeta;
-    const prev=haramainMeta.surahNum-1;
-    if(prev<1) return;
-    if(imam.availableSurahs&&!imam.availableSurahs.includes(prev)) return;
-    playHaramainSurah(imam,prev,`${imam.id}-${prev}`,mosqueColor);
-  }
-
-  function setHaramainPlaybackRate(r) {
-    if(!haramainRef.current) return;
-    haramainRef.current.playbackRate = r;
-    setHaramainRate(r);
-  }
 
   const TABS=[
     {id:"myhifz",     label:"My Hifz"},
@@ -1597,205 +1373,20 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
-      {activeTab==="rihlah"&&rihlahTab==="juz"&&(()=>{
-        const isJDone=(n)=>juzStatus[n]==="complete"||(JUZ_SURAHS[n]||[]).every(s=>juzStatus[`s${s.s}`]==="complete");
-        const currentJuz=sessionJuz||30;
-        const currentMeta=JUZ_META.find(j=>j.num===currentJuz)||JUZ_META[0];
-        const currentSurahs=JUZ_SURAHS[currentJuz]||[];
-        const currentSurah=currentSurahs.find(s=>juzStatus[`s${s.s}`]!=="complete")||currentSurahs[0];
-        const curProg=juzProgress[currentJuz]||0;
-        const curTotal=totalSV||currentSurahs.reduce((n,s)=>n+s.a,0);
-
-        const completedJuz=JUZ_META.filter(j=>j.num!==currentJuz&&isJDone(j.num)).sort((a,b)=>b.num-a.num);
-        const inProgressJuz=JUZ_META.filter(j=>j.num!==currentJuz&&!isJDone(j.num)&&(juzStatus[`s${(JUZ_SURAHS[j.num]||[])[0]?.s}`]==="complete"||(juzProgress[j.num]||0)>0)).sort((a,b)=>b.num-a.num);
-        const upcomingJuz=JUZ_META.filter(j=>j.num!==currentJuz&&!isJDone(j.num)&&!inProgressJuz.find(ip=>ip.num===j.num)).sort((a,b)=>b.num-a.num);
-
-        const openSection=memSections;
-        const toggleSection=(key)=>setMemSections(p=>({...p,[key]:!p[key]}));
-
-        // Journey strip: sorted descending 30→29→28→27
-        const allJourneyNums=new Set([...completedJuz.map(j=>j.num),currentJuz,...upcomingJuz.slice(0,2).map(j=>j.num)]);
-        const journeyItems=[...allJourneyNums].sort((a,b)=>b-a).slice(0,6).map(num=>({
-          num,state:num===currentJuz?"current":isJDone(num)?"completed":"upcoming"
-        }));
-
-        return (
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"14px 16px 120px"}} className="fi gold-particles">
-
-          {/* Header */}
-          <div style={{marginBottom:20}}>
-            <div className="sbtn" onClick={()=>setRihlahTab("home")} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.10)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back</div>
-            <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.60)":"rgba(140,100,20,0.65)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>My Memorization</div>
-          </div>
-
-          {/* ── 1. CURRENT FOCUS CARD ── */}
-          <div style={{padding:"20px 18px",borderRadius:18,marginBottom:18,position:"relative",overflow:"hidden",
-            background:dark?"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)":"linear-gradient(180deg,#E4D9C0 0%,#DDD0B5 100%)",
-            border:dark?"1px solid rgba(230,184,74,0.28)":"1px solid rgba(140,100,20,0.18)",
-            boxShadow:dark?"0 10px 40px rgba(0,0,0,0.40),0 0 24px rgba(230,184,74,0.10),inset 0 1px 0 rgba(255,255,255,0.03)":"0 4px 16px rgba(0,0,0,0.06)"}}>
-            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 20% 30%,rgba(212,175,55,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(212,175,55,0.03) 0%,transparent 40%)":"none"}}/>
-            <div style={{position:"relative",zIndex:1}}>
-              <div style={{fontSize:11,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)",marginBottom:4}}>Juz {currentJuz} · {currentMeta.roman||currentMeta.arabic}</div>
-              {(()=>{const nv=sessionVerses[sessionIdx];const sn=nv?.surah_number||parseInt(nv?.verse_key?.split(":")[0]||"0",10);const name=SURAH_EN[sn]||currentSurah?.name;return name?<div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:dark?"#F3E7C8":"#2D2A26",fontWeight:700,marginBottom:12,lineHeight:1.2}}>Surah {name}</div>:null;})()}
-              <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.40)":"rgba(40,30,10,0.45)",marginBottom:8}}><span style={{color:dark?"#E6B84A":"#8B6A10"}}>In Progress</span></div>
-              <div style={{marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"rgba(40,30,10,0.40)"}}>Progress</div>
-                  <div style={{fontSize:12,color:dark?"rgba(230,184,74,0.65)":"rgba(140,100,20,0.70)",fontFamily:"'IBM Plex Mono',monospace"}}>{curProg} / {curTotal} ayahs</div>
-                </div>
-                <div style={{height:6,borderRadius:999,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)",overflow:"hidden"}}>
-                  <div className="pbfill" style={{height:"100%",width:`${curTotal>0?Math.round((curProg/curTotal)*100):0}%`,background:"linear-gradient(90deg,#D4AF37,#F6E27A)",borderRadius:999,boxShadow:"0 0 8px rgba(212,175,55,0.30)"}}/>
-                </div>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.28)":"rgba(40,30,10,0.35)"}}>Next: {(()=>{const nv=sessionVerses[sessionIdx];if(!nv) return "—";const sn=nv.surah_number||parseInt(nv.verse_key?.split(":")[0],10);return `${SURAH_EN[sn]||""} ${nv.verse_key}`;})()}</div>
-                <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.22)":"rgba(40,30,10,0.30)"}}>Last session: Today</div>
-              </div>
-              <div style={{textAlign:"center"}}>
-                <div className="sbtn" onClick={()=>{setActiveTab("myhifz");}} style={{display:"inline-block",padding:"11px 22px",borderRadius:12,fontSize:13,fontWeight:700,color:"#0B1220",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25),0 0 12px rgba(230,184,74,0.12)"}}>
-                  Continue Memorization
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── 2. JOURNEY STRIP ── */}
-          <div style={{marginBottom:18}}>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:dark?"#F3E7C8":"#2D2A26",marginBottom:12}}>Your Journey Through the Qur'an</div>
-            <div style={{display:"flex",alignItems:"center",overflowX:"auto",gap:0,padding:"8px 0"}}>
-              {journeyItems.map((item,i)=>{
-                const isCur=item.state==="current";
-                const isDone=item.state==="completed";
-                return (
-                  <div key={item.num} style={{display:"flex",alignItems:"center",flexShrink:0}}>
-                    {i>0&&<div style={{width:24,height:2,background:isDone||isCur?"rgba(212,175,55,0.35)":(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)")}}/>}
-                    <div style={{padding:isCur?"10px 18px":"8px 14px",borderRadius:12,textAlign:"center",
-                      background:isCur?(dark?"rgba(217,177,95,0.12)":"rgba(180,140,40,0.10)"):isDone?(dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.05)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
-                      border:`1px solid ${isCur?(dark?"rgba(232,200,120,0.55)":"rgba(160,120,20,0.40)"):isDone?(dark?"rgba(217,177,95,0.18)":"rgba(160,120,20,0.15)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)")}`,
-                      boxShadow:isCur?"0 0 20px rgba(230,184,74,0.20)":"none"}}>
-                      <div style={{fontSize:isCur?15:12,fontWeight:isCur?700:400,color:isCur?(dark?"#F6E27A":"#6B4F00"):isDone?(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)"):(dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)")}}>{`Juz ${item.num}`}</div>
-                      <div style={{fontSize:9,color:isCur?(dark?"rgba(230,184,74,0.65)":"rgba(140,100,20,0.60)"):isDone?(dark?"rgba(230,184,74,0.35)":"rgba(140,100,20,0.40)"):(dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.20)"),marginTop:2}}>
-                        {isCur?"Current":isDone?"Completed":"Next"}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── 3. COMPLETED JUZ ── */}
-          {completedJuz.length>0&&(
-            <div style={{marginBottom:12}}>
-              <div className="sbtn" onClick={()=>toggleSection("completed")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
-                <div style={{fontSize:12,color:"rgba(243,231,200,0.55)",fontWeight:600}}>Completed Juz <span style={{color:"rgba(243,231,200,0.30)"}}>({completedJuz.length})</span></div>
-                <div style={{color:"rgba(217,177,95,0.40)",fontSize:14,transition:"transform .2s",transform:openSection.completed?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
-              </div>
-              {openSection.completed&&(
-                <div style={{display:"flex",flexDirection:"column",gap:12}}>
-                  {completedJuz.map(j=>{
-                    const jMeta=JUZ_META.find(m=>m.num===j.num);
-                    return (
-                      <div key={j.num} style={{padding:"16px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                          <div>
-                            <div style={{fontSize:14,fontWeight:600,color:"rgba(243,231,200,0.75)"}}>Juz {j.num} <span style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontWeight:400}}>({jMeta?.roman?.split(" ")[0]||""})</span></div>
-                            <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginTop:4,textShadow:"0 0 6px rgba(230,184,74,0.10)"}}>Complete — Alhamdulillah</div>
-                          </div>
-                          <div className="sbtn" onClick={()=>{setSessionJuz(j.num);setActiveTab("myhifz");}} style={{padding:"6px 12px",borderRadius:10,fontSize:10,fontWeight:500,color:"rgba(243,231,200,0.30)",background:"transparent",border:"1px solid rgba(217,177,95,0.08)"}}>
-                            Review
-                          </div>
-                        </div>
-                        <div style={{height:3,borderRadius:999,background:"rgba(255,255,255,0.06)",marginTop:12,overflow:"hidden"}}>
-                          <div style={{height:"100%",width:"100%",background:"linear-gradient(90deg,rgba(212,175,55,0.40),rgba(246,226,122,0.30))",borderRadius:999}}/>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── 4. IN PROGRESS ── */}
-          {inProgressJuz.length>0&&(
-            <div style={{marginBottom:12}}>
-              <div className="sbtn" onClick={()=>toggleSection("inprogress")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
-                <div style={{fontSize:12,color:"rgba(243,231,200,0.55)",fontWeight:600}}>In Progress <span style={{color:"rgba(243,231,200,0.30)"}}>({inProgressJuz.length})</span></div>
-                <div style={{color:"rgba(217,177,95,0.40)",fontSize:14,transition:"transform .2s",transform:openSection.inprogress?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
-              </div>
-              {openSection.inprogress&&(
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                  {inProgressJuz.map(j=>{
-                    const jMeta=JUZ_META.find(m=>m.num===j.num);
-                    const jp=juzProgress[j.num]||0;
-                    const jTotal=(JUZ_SURAHS[j.num]||[]).reduce((n,s)=>n+s.a,0);
-                    return (
-                      <div key={j.num} style={{padding:"14px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)"}}>
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                          <div>
-                            <div style={{fontSize:14,fontWeight:600,color:"rgba(243,231,200,0.75)"}}>Juz {j.num} <span style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontWeight:400}}>({jMeta?.roman?.split(" ")[0]||""})</span></div>
-                            <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",marginTop:3}}>Progress</div>
-                          </div>
-                          <div className="sbtn" onClick={()=>{setSessionJuz(j.num);setActiveTab("myhifz");}} style={{padding:"7px 14px",borderRadius:10,fontSize:11,fontWeight:600,color:"#E6B84A",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.20)"}}>
-                            Continue
-                          </div>
-                        </div>
-                        <div style={{display:"flex",alignItems:"center",gap:8,marginTop:10}}>
-                          <div style={{flex:1,height:4,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                            <div style={{height:"100%",width:`${jTotal>0?Math.round((jp/jTotal)*100):0}%`,background:"linear-gradient(90deg,#D4AF37,#E6B84A)",borderRadius:999}}/>
-                          </div>
-                          <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontFamily:"'IBM Plex Mono',monospace"}}>{jp} / {jTotal}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── 5. UPCOMING JUZ ── */}
-          {upcomingJuz.length>0&&(
-          <div style={{marginBottom:12}}>
-            <div className="sbtn" onClick={()=>toggleSection("upcoming")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
-              <div style={{fontSize:12,color:"rgba(243,231,200,0.55)",fontWeight:600}}>Upcoming Juz</div>
-              <div style={{color:"rgba(217,177,95,0.40)",fontSize:14,transition:"transform .2s",transform:openSection.upcoming?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
-            </div>
-            {openSection.upcoming&&(<>
-              <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {upcomingJuz.slice(0,3).map(j=>(
-                  <div key={j.num} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.015)",border:"1px solid rgba(255,255,255,0.04)"}}>
-                    <div style={{fontSize:13,color:"rgba(243,231,200,0.40)",fontWeight:500}}>Juz {j.num}</div>
-                    <div style={{fontSize:11,color:"rgba(243,231,200,0.20)"}}>Ready to start</div>
-                  </div>
-                ))}
-              </div>
-              {upcomingJuz.length>3&&(
-                <div className="sbtn" onClick={()=>toggleSection("upcomingAll")}
-                  style={{textAlign:"center",padding:"8px",marginTop:6,borderRadius:8,fontSize:10,fontWeight:500,
-                    color:"rgba(217,177,95,0.30)",border:"1px dashed rgba(217,177,95,0.08)",background:"transparent"}}>
-                  {openSection.upcomingAll?"Show less":"View all "+upcomingJuz.length+" upcoming"}
-                </div>
-              )}
-              {openSection.upcomingAll&&upcomingJuz.length>3&&(
-                <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:6}}>
-                  {upcomingJuz.slice(3).map(j=>(
-                    <div key={j.num} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.015)",border:"1px solid rgba(255,255,255,0.04)"}}>
-                      <div style={{fontSize:13,color:"rgba(243,231,200,0.40)",fontWeight:500}}>Juz {j.num}</div>
-                      <div style={{fontSize:11,color:"rgba(243,231,200,0.20)"}}>Ready to start</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>)}
-          </div>
-          )}
-
-        </div>
-        );
-      })()}
-
+      {activeTab==="rihlah"&&rihlahTab==="juz"&&(
+        <MyMemorizationView
+          dark={dark}
+          rihlahScrollRef={rihlahScrollRef}
+          sessionJuz={sessionJuz} setSessionJuz={setSessionJuz}
+          juzStatus={juzStatus}
+          juzProgress={juzProgress}
+          totalSV={totalSV}
+          sessionVerses={sessionVerses} sessionIdx={sessionIdx}
+          memSections={memSections} setMemSections={setMemSections}
+          setActiveTab={setActiveTab}
+          setRihlahTab={setRihlahTab}
+        />
+      )}
       {/* ═══ QURAN TEXT ═══ */}
       {activeTab==="quran"&&!showTerms&&(
         <QuranTab
