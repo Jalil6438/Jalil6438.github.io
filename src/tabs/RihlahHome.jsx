@@ -22,10 +22,24 @@ export default function RihlahHome({
   const activeSteps=activeSess?.steps||[];
 
   // ── Enhanced Badge Components ──
-  const JuzBadge=({count,earned})=>(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)",background:earned?"rgba(212,175,55,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(212,175,55,0.22)":"none"}}>
+  // Progressive badge glow — `progress` is 0..1, controls opacity, grayscale, and glow intensity.
+  // earned = progress >= 1. Smooth ramp lets an almost-earned badge already look alive.
+  const progressStyles=(progress)=>{
+    const p=Math.max(0,Math.min(1,progress||0));
+    return {
+      opacity: 0.15 + 0.85 * p,
+      grayscale: (1 - p) * 0.8,
+      glowAlpha: 0.22 * p,
+      bgAlpha: 0.06 * p,
+    };
+  };
+  const JuzBadge=({count,progress})=>{
+    const {opacity,grayscale,glowAlpha,bgAlpha}=progressStyles(progress);
+    const earned=(progress||0)>=1;
+    return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity,filter:`grayscale(${grayscale})`,background:`rgba(212,175,55,${bgAlpha})`,borderRadius:16,padding:"12px",boxShadow:`0 0 ${18*(progress||0)}px rgba(212,175,55,${glowAlpha})`,transition:"all .4s ease"}}>
       <div style={{position:"relative",width:52,height:52,marginBottom:6,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {earned&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(52,211,153,0.2)",filter:"blur(6px)"}}/>}
+        {(progress||0)>0.25&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:`rgba(52,211,153,${0.2*(progress||0)})`,filter:"blur(6px)"}}/>}
         <div style={{position:"relative",width:52,height:52,borderRadius:"50%",background:"linear-gradient(180deg,#34D399 0%,#059669 50%,#064E3B 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"1.5px solid rgba(110,231,183,0.4)"}}>
           <span style={{fontSize:18,fontWeight:700,color:"#fff",lineHeight:1,position:"relative",zIndex:1}}>{count}</span>
           <span style={{fontSize:8,fontWeight:600,color:"rgba(167,243,208,0.9)",position:"relative",zIndex:1}}>Juz</span>
@@ -33,10 +47,13 @@ export default function RihlahHome({
       </div>
       <div style={{fontSize:9,fontWeight:700,color:earned?"rgba(255,255,255,0.88)":"rgba(255,255,255,0.18)",textAlign:"center"}}>{count} Juz Memorized</div>
     </div>
-  );
-  const HabituatedBadge=({earned})=>(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)",background:earned?"rgba(245,158,11,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(245,158,11,0.2)":"none"}}>
-      <svg viewBox="0 0 64 64" style={{width:48,height:48,filter:earned?"drop-shadow(0 2px 8px rgba(245,158,11,0.4))":"none"}}>
+    );
+  };
+  const HabituatedBadge=({progress})=>{
+    const {opacity,grayscale,glowAlpha,bgAlpha}=progressStyles(progress);
+    return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity,filter:`grayscale(${grayscale})`,background:`rgba(245,158,11,${bgAlpha})`,borderRadius:16,padding:"12px",boxShadow:`0 0 ${18*(progress||0)}px rgba(245,158,11,${glowAlpha})`,transition:"all .4s ease"}}>
+      <svg viewBox="0 0 64 64" style={{width:48,height:48,filter:`drop-shadow(0 2px ${8*(progress||0)}px rgba(245,158,11,${0.4*(progress||0)}))`}}>
         <defs><linearGradient id="hg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FCD34D"/><stop offset="50%" stopColor="#F59E0B"/><stop offset="100%" stopColor="#B45309"/></linearGradient></defs>
         <path d="M20 50 Q15 40 18 32 Q12 35 10 28 Q15 28 18 25 Q12 22 12 15 Q18 18 22 18 Q20 12 24 8 Q26 14 28 18 Q28 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
         <path d="M44 50 Q49 40 46 32 Q52 35 54 28 Q49 28 46 25 Q52 22 52 15 Q46 18 42 18 Q44 12 40 8 Q38 14 36 18 Q36 12 32 10" fill="none" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round"/>
@@ -44,21 +61,28 @@ export default function RihlahHome({
       </svg>
       <span style={{fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:500,letterSpacing:".02em"}}>Habituated</span>
     </div>
-  );
-  const StreakBadge=({earned})=>(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)",background:earned?"rgba(249,115,22,0.06)":"transparent",borderRadius:16,padding:"12px",boxShadow:earned?"0 0 18px rgba(249,115,22,0.2)":"none"}}>
-      <svg viewBox="0 0 24 24" style={{width:48,height:48,filter:earned?"drop-shadow(0 2px 10px rgba(249,115,22,0.5))":"none"}}>
+    );
+  };
+  const StreakBadge=({progress})=>{
+    const {opacity,grayscale,glowAlpha,bgAlpha}=progressStyles(progress);
+    return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity,filter:`grayscale(${grayscale})`,background:`rgba(249,115,22,${bgAlpha})`,borderRadius:16,padding:"12px",boxShadow:`0 0 ${18*(progress||0)}px rgba(249,115,22,${glowAlpha})`,transition:"all .4s ease"}}>
+      <svg viewBox="0 0 24 24" style={{width:48,height:48,filter:`drop-shadow(0 2px ${10*(progress||0)}px rgba(249,115,22,${0.5*(progress||0)}))`}}>
         <defs><linearGradient id="fg1" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stopColor="#DC2626"/><stop offset="40%" stopColor="#F97316"/><stop offset="80%" stopColor="#FBBF24"/><stop offset="100%" stopColor="#FEF08A"/></linearGradient></defs>
         <path d="M12 2C10 6 6 8 6 13C6 16.5 8.5 19 12 19C15.5 19 18 16.5 18 13C18 8 14 6 12 2ZM12 17C10.5 17 9 15.5 9 14C9 12 10 11 12 9C14 11 15 12 15 14C15 15.5 13.5 17 12 17Z" fill="url(#fg1)"/>
       </svg>
       <span style={{fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:500,letterSpacing:".02em"}}>{streak>=21?"21 Day Streak":streak>=14?"14 Day Streak":"7 Day Streak"}</span>
     </div>
-  );
-  const HifzGoalBadge=({earned})=>(
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity:earned?1:0.15,filter:earned?"none":"grayscale(0.8)"}}>
+    );
+  };
+  const HifzGoalBadge=({progress})=>{
+    const {opacity,grayscale}=progressStyles(progress);
+    const p=Math.max(0,Math.min(1,progress||0));
+    return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",opacity,filter:`grayscale(${grayscale})`,transition:"all .4s ease"}}>
       <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {earned&&<div style={{position:"absolute",inset:0,background:"rgba(245,158,11,0.2)",filter:"blur(8px)"}}/>}
-        <svg viewBox="0 0 64 64" style={{width:56,height:56,position:"relative",zIndex:1,filter:earned?"drop-shadow(0 2px 10px rgba(245,158,11,0.5))":"none"}}>
+        {p>0.25&&<div style={{position:"absolute",inset:0,background:`rgba(245,158,11,${0.2*p})`,filter:"blur(8px)"}}/>}
+        <svg viewBox="0 0 64 64" style={{width:56,height:56,position:"relative",zIndex:1,filter:`drop-shadow(0 2px ${10*p}px rgba(245,158,11,${0.5*p}))`}}>
           <defs>
             <linearGradient id="sg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FCD34D"/><stop offset="50%" stopColor="#D97706"/><stop offset="100%" stopColor="#92400E"/></linearGradient>
             <linearGradient id="bg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FEF3C7"/><stop offset="100%" stopColor="#F59E0B"/></linearGradient>
@@ -80,7 +104,8 @@ export default function RihlahHome({
         <span style={{fontSize:8,fontWeight:700,color:"#fff",letterSpacing:".05em"}}>Hifz Goal</span>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"radial-gradient(circle at top, rgba(32,44,90,0.35) 0%, rgba(8,12,24,1) 45%, rgba(4,7,15,1) 100%)":"#F3E9D2"}} className="fi">
@@ -211,10 +236,10 @@ export default function RihlahHome({
         <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 16%)"}}/>
         <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
         <div style={{display:"flex",justifyContent:"space-around",gap:8,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"12px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)"}}>
-          <JuzBadge count={completedCount||0} earned={completedCount>0}/>
-          <StreakBadge earned={streak>=7}/>
-          <HabituatedBadge earned={streak>=40}/>
-          <HifzGoalBadge earned={completedCount>=30}/>
+          <JuzBadge count={completedCount||0} progress={Math.min(1,(completedCount||0)/30)}/>
+          <StreakBadge progress={Math.min(1,(streak||0)/7)}/>
+          <HabituatedBadge progress={Math.min(1,(streak||0)/40)}/>
+          <HifzGoalBadge progress={Math.min(1,(completedCount||0)/30)}/>
         </div>
       </div>
 
