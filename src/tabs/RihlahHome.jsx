@@ -249,28 +249,32 @@ export default function RihlahHome({
         )}
       </div>
 
-      {/* ── 6. RECENT ACTIVITY ── */}
-      {recentActivity&&recentActivity.length>0&&(
+      {/* ── 6. TODAY'S ACTIVITY ── */}
+      {(()=>{
+        const todayStr=new Date().toDateString();
+        const todayActivity=(recentActivity||[]).filter(ev=>ev.ts&&new Date(ev.ts).toDateString()===todayStr);
+        return (
         <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px 18px",marginBottom:10}}>
-          <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:14}}>Recent Activity</div>
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {recentActivity.slice(0,5).map((ev,i)=>{
-              const isStreak=ev.type==="streak";
-              return (
+          <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:14}}>Today's Activity</div>
+          {todayActivity.length>0?(
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {todayActivity.slice(0,5).map((ev,i)=>(
                 <div key={`${ev.ts}-${i}`} style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{width:22,height:22,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,background:isStreak?"rgba(249,115,22,0.12)":"rgba(52,211,153,0.12)",border:`1px solid ${isStreak?"rgba(249,115,22,0.30)":"rgba(52,211,153,0.30)"}`}}>
-                    <span style={{fontSize:11,lineHeight:1}}>{isStreak?"🔥":"✓"}</span>
-                  </div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.text}</div>
                   </div>
                   <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#8B7355",flexShrink:0,fontFamily:"'DM Sans',sans-serif"}}>{timeAgo(ev.ts)}</div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ):(
+            <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#8B7355",textAlign:"center",padding:"14px 0",fontStyle:"italic"}}>
+              Complete a session and it will show up here.
+            </div>
+          )}
         </div>
-      )}
+        );
+      })()}
 
       {/* ── 7. BADGES ── */}
       <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"18px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>

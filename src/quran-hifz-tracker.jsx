@@ -902,19 +902,49 @@ export default function RihlatAlHifz() {
     setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:!wasChecked}}));
     // Push activity + streak bump only when transitioning to checked
     if(!wasChecked){
+      // Build a "Surah X ayat A-B" label from a batch; handles cross-surah batches too
+      const describeBatch=(b)=>{
+        if(!b||!b.length) return "";
+        const first=b[0], last=b[b.length-1];
+        const fS=first.surah_number||parseInt(first.verse_key?.split(":")?.[0]||"0",10);
+        const lS=last.surah_number||parseInt(last.verse_key?.split(":")?.[0]||"0",10);
+        const fA=parseInt(first.verse_key?.split(":")?.[1]||"0",10);
+        const lA=parseInt(last.verse_key?.split(":")?.[1]||"0",10);
+        const fN=SURAH_EN[fS]||"";
+        const lN=SURAH_EN[lS]||"";
+        if(fS===lS) return fA===lA?`${fN} ayah ${fA}`:`${fN} ayat ${fA}-${lA}`;
+        return `${fN} ${fA} – ${lN} ${lA}`;
+      };
       if(id==="fajr"){
-        const n=fajrBatch.length;
-        const firstS=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
-        const sname=SURAH_EN[firstS]||"";
-        pushActivity("memorize",`Memorized ${n} ayah${n===1?"":"s"}${sname?` from Surah ${sname}`:""}`);
+        // Only count ayahs that actually hit 20 reps
+        const memorized=fajrBatch.filter(v=>(repCounts[v.verse_key]||0)>=20);
+        const remaining=fajrBatch.length-memorized.length;
+        const label=describeBatch(memorized);
+        if(label) pushActivity("memorize",`Memorized ${label}`);
+        else pushActivity("memorize","Fajr session marked — nothing memorized yet");
+        // Reminder for unfinished ayahs
+        if(remaining>0){
+          pushActivity("reminder",`You still have ${remaining} ayah${remaining===1?"":"s"} not yet memorized`);
+        }
       } else if(id==="dhuhr"){
-        pushActivity("review","Reviewed last 5 days");
+        pushActivity("review","Completed Dhuhr review — last 5 days of memorization");
       } else if(id==="asr"){
-        pushActivity("review","Reviewed older juz (Asr)");
+        // Use the user's actual picks: juz + surahs
+        const juzLabels=(asrSelectedJuz||[]).map(j=>`Juz ${j}`);
+        const surahLabels=(asrSelectedSurahs||[]).map(s=>{const n=SURAH_EN[s];return n?`Surah ${n}`:null;}).filter(Boolean);
+        const parts=[...juzLabels,...surahLabels];
+        let label="";
+        if(parts.length===0) label="";
+        else if(parts.length===1) label=parts[0];
+        else if(parts.length===2) label=`${parts[0]} and ${parts[1]}`;
+        else label=`${parts.slice(0,-1).join(", ")}, and ${parts[parts.length-1]}`;
+        pushActivity("review",label?`Revised ${label} during Asr review`:"Completed Asr review");
       } else if(id==="maghrib"){
-        pushActivity("listen","Listened to today's batch");
+        const label=describeBatch(fajrBatch);
+        pushActivity("listen",label?`Listened to ${label}`:"Completed Maghrib listening");
       } else if(id==="isha"){
-        pushActivity("review","Full day review before sleep");
+        const label=describeBatch(fajrBatch);
+        pushActivity("review",label?`Final review of ${label} before sleep`:"Completed Isha review");
       }
     }
     if(SESSIONS.every(s=>updated[s.id])){
