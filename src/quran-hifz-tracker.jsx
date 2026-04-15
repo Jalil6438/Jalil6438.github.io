@@ -141,6 +141,16 @@ export default function RihlatAlHifz() {
   const [allJuzVerses,setAllJuzVerses]=useState([]); // unfiltered juz verses in hifz order — for dhuhr fallback
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
   const [recentBatches,setRecentBatches]=useState([]); // last 5 days of fajr batches
+  const [recentActivity,setRecentActivity]=useState(()=>{
+    try { return JSON.parse(localStorage.getItem("jalil-recent-activity")||"[]"); } catch { return []; }
+  }); // last 5 activity events — {type, text, ts}
+  function pushActivity(type, text) {
+    setRecentActivity(prev => {
+      const next = [{type, text, ts: Date.now()}, ...prev].slice(0, 5);
+      try { localStorage.setItem("jalil-recent-activity", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
   const [asrSelectedSurahs,setAsrSelectedSurahs]=useState([]);
   const [asrSelectedJuz,setAsrSelectedJuz]=useState([]);
   const [asrReviewBatch,setAsrReviewBatch]=useState([]);
@@ -885,11 +895,37 @@ export default function RihlatAlHifz() {
   useEffect(()=>{if(batch.length)fetchTranslations(batch);},[batch]);
 
   function toggleCheck(id){
-    const updated={...dailyChecks,[id]:!dailyChecks[id]};
+    const wasChecked=dailyChecks[id];
+    const updated={...dailyChecks,[id]:!wasChecked};
     setDailyChecks(updated);
     const dk=DATEKEY();
-    setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:!dailyChecks[id]}}));
-    if(SESSIONS.every(s=>updated[s.id]))setStreak(p=>p+1);
+    setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:!wasChecked}}));
+    // Push activity + streak bump only when transitioning to checked
+    if(!wasChecked){
+      if(id==="fajr"){
+        const n=fajrBatch.length;
+        const firstS=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
+        const sname=SURAH_EN[firstS]||"";
+        pushActivity("memorize",`Memorized ${n} ayah${n===1?"":"s"}${sname?` from Surah ${sname}`:""}`);
+      } else if(id==="dhuhr"){
+        pushActivity("review","Reviewed last 5 days");
+      } else if(id==="asr"){
+        pushActivity("review","Reviewed older juz (Asr)");
+      } else if(id==="maghrib"){
+        pushActivity("listen","Listened to today's batch");
+      } else if(id==="isha"){
+        pushActivity("review","Full day review before sleep");
+      }
+    }
+    if(SESSIONS.every(s=>updated[s.id])){
+      setStreak(p=>{
+        const next=p+1;
+        if([7,14,21,30,40,60,100].includes(next)){
+          pushActivity("streak",`${next} day streak — Keep going!`);
+        }
+        return next;
+      });
+    }
   }
   function markJuzAndSurahsComplete(prev,juzNum){
     const next={...prev};
@@ -1398,7 +1434,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="home"&&!showTerms&&(
-        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta}/>
+        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
