@@ -611,7 +611,7 @@ export default function RihlatAlHifz() {
 
   const nextIncompleteJuz = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].find(j=>!v9IsJuzComplete(j));
   const nextJuzAyahs = nextIncompleteJuz ? (JUZ_RANGES[nextIncompleteJuz]?.total ?? null) : null;
-  const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>!v9IsJuzComplete(j.num));
+  // const nextJuz=[...JUZ_META].sort((a,b)=>a.order-b.order).find(j=>!v9IsJuzComplete(j.num));
   const meta=JUZ_META.find(j=>j.num===selectedJuz);
   const curStatus=juzStatus[selectedJuz]||"not_started";
   const curCfg=STATUS_CFG[curStatus];
@@ -1246,7 +1246,17 @@ export default function RihlatAlHifz() {
               {/* Name + next target */}
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:15,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26",fontFamily:"'Playfair Display',serif"}}>{username}</div>
-                {nextJuz&&<div style={{fontSize:9,color:T.sub,marginTop:2}}>Next Target · Juz {nextJuz.num}</div>}
+                {(()=>{
+                  // Use the live session pointer — this already follows Sheikh Al-Qasim's
+                  // descending order within each juz
+                  const nv=sessionVerses[sessionIdx];
+                  if(nv){
+                    const sn=nv.surah_number||parseInt(nv.verse_key?.split(":")[0]||"0",10);
+                    const name=SURAH_EN[sn];
+                    if(name) return <div style={{fontSize:9,color:T.sub,marginTop:2}}>Next Target · Surah {name}</div>;
+                  }
+                  return null;
+                })()}
               </div>
               {/* Settings gear */}
               <div className="sbtn" onClick={()=>{setEditName(localStorage.getItem("rihlat-username")||"Abdul Jalil");setShowSettings(true);}} style={{flexShrink:0,width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.05)",display:"flex",alignItems:"center",justifyContent:"center"}}>

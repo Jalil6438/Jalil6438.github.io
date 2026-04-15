@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
-import { JUZ_SURAHS } from "../data/quran-metadata";
+import { JUZ_META, JUZ_SURAHS } from "../data/quran-metadata";
 import { getSessionWisdom } from "../data/sessions";
 import { saveCompletedAyahs, toArabicDigits } from "../utils";
 
@@ -195,7 +195,8 @@ export default function MyHifzTab(props) {
                             border:`1px solid ${isSel?"rgba(232,200,120,0.65)":hasSelections?"rgba(217,177,95,0.35)":"rgba(217,177,95,0.12)"}`,
                             boxShadow:isSel?"0 0 28px rgba(232,200,120,0.30),0 0 8px rgba(217,177,95,0.20),inset 0 0 14px rgba(217,177,95,0.08)":"none",
                             transition:"all .18s"}}>
-                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?"#F6E27A":hasSelections?"#E2BC72":"rgba(243,231,200,0.70)",fontWeight:600}}>Juz {j.num}</div>
+                          <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:isSel?"#F6E27A":hasSelections?"#E2BC72":"rgba(243,231,200,0.70)",fontWeight:700,lineHeight:1.15}}>Juz {j.roman||j.num}</div>
+                          <div style={{fontSize:9,color:isSel?"rgba(246,226,122,0.55)":"rgba(243,231,200,0.30)",marginTop:3,letterSpacing:".06em"}}>Juz {j.num}</div>
                         </div>
                       );
                     })}
@@ -609,7 +610,8 @@ export default function MyHifzTab(props) {
             {!sessLoading&&currentSessionId==="fajr"&&batch.length===0&&totalSV>0&&juzCompletedInSession.has(sessionJuz)&&(
               <div style={{textAlign:"center",paddingTop:40}}>
                 <div style={{fontSize:26,marginBottom:10}}>🎉</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:T.accent,marginBottom:6}}>Juz {sessionJuz} Complete — Alhamdulillah!</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:T.accent,marginBottom:6}}>Juz {JUZ_META.find(m=>m.num===sessionJuz)?.roman||sessionJuz} Complete — Alhamdulillah!</div>
+                <div style={{fontSize:10,color:T.sub,marginBottom:6,letterSpacing:".06em"}}>Juz {sessionJuz}</div>
                 <div style={{fontSize:13,color:T.sub}}>Select the next Juz above to continue.</div>
               </div>
             )}

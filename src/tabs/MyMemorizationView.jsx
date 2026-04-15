@@ -49,7 +49,10 @@ export default function MyMemorizationView({
         boxShadow:dark?"0 10px 40px rgba(0,0,0,0.40),0 0 24px rgba(230,184,74,0.10),inset 0 1px 0 rgba(255,255,255,0.03)":"0 4px 16px rgba(0,0,0,0.06)"}}>
         <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 20% 30%,rgba(212,175,55,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(212,175,55,0.03) 0%,transparent 40%)":"none"}}/>
         <div style={{position:"relative",zIndex:1}}>
-          <div style={{fontSize:11,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)",marginBottom:4}}>Juz {currentJuz} · {currentMeta.roman||currentMeta.arabic}</div>
+          <div style={{marginBottom:6}}>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:dark?"#E6B84A":"#8B6A10",letterSpacing:".01em",lineHeight:1.2}}>Juz {currentMeta.roman||currentMeta.arabic}</div>
+            <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.40)":"rgba(140,100,20,0.50)",marginTop:2,letterSpacing:".06em"}}>Juz {currentJuz}</div>
+          </div>
           {(()=>{const nv=sessionVerses[sessionIdx];const sn=nv?.surah_number||parseInt(nv?.verse_key?.split(":")[0]||"0",10);const name=SURAH_EN[sn]||currentSurah?.name;return name?<div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:dark?"#F3E7C8":"#2D2A26",fontWeight:700,marginBottom:12,lineHeight:1.2}}>Surah {name}</div>:null;})()}
           <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.40)":"rgba(40,30,10,0.45)",marginBottom:8}}><span style={{color:dark?"#E6B84A":"#8B6A10"}}>In Progress</span></div>
           <div style={{marginBottom:12}}>
@@ -87,7 +90,7 @@ export default function MyMemorizationView({
                   background:isCur?(dark?"rgba(217,177,95,0.12)":"rgba(180,140,40,0.10)"):isDone?(dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.05)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
                   border:`1px solid ${isCur?(dark?"rgba(232,200,120,0.55)":"rgba(160,120,20,0.40)"):isDone?(dark?"rgba(217,177,95,0.18)":"rgba(160,120,20,0.15)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)")}`,
                   boxShadow:isCur?"0 0 20px rgba(230,184,74,0.20)":"none"}}>
-                  <div style={{fontSize:isCur?15:12,fontWeight:isCur?700:400,color:isCur?(dark?"#F6E27A":"#6B4F00"):isDone?(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)"):(dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)")}}>{`Juz ${item.num}`}</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:isCur?14:11,fontWeight:isCur?700:500,color:isCur?(dark?"#F6E27A":"#6B4F00"):isDone?(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)"):(dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)"),whiteSpace:"nowrap"}}>{`Juz ${JUZ_META.find(m=>m.num===item.num)?.roman||item.num}`}</div>
                   <div style={{fontSize:9,color:isCur?(dark?"rgba(230,184,74,0.65)":"rgba(140,100,20,0.60)"):isDone?(dark?"rgba(230,184,74,0.35)":"rgba(140,100,20,0.40)"):(dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.20)"),marginTop:2}}>
                     {isCur?"Current":isDone?"Completed":"Next"}
                   </div>
@@ -113,7 +116,10 @@ export default function MyMemorizationView({
                   <div key={j.num} style={{padding:"16px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
-                        <div style={{fontSize:14,fontWeight:600,color:"rgba(243,231,200,0.75)"}}>Juz {j.num} <span style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontWeight:400}}>({jMeta?.roman?.split(" ")[0]||""})</span></div>
+                        <div style={{color:"rgba(243,231,200,0.75)"}}>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700}}>Juz {jMeta?.roman||`${j.num}`}</div>
+                        <div style={{fontSize:10,color:"rgba(243,231,200,0.35)",marginTop:2,letterSpacing:".06em"}}>Juz {j.num}</div>
+                      </div>
                         <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginTop:4,textShadow:"0 0 6px rgba(230,184,74,0.10)"}}>Complete — Alhamdulillah</div>
                       </div>
                       <div className="sbtn" onClick={()=>{setSessionJuz(j.num);setActiveTab("myhifz");}} style={{padding:"6px 12px",borderRadius:10,fontSize:10,fontWeight:500,color:"rgba(243,231,200,0.30)",background:"transparent",border:"1px solid rgba(217,177,95,0.08)"}}>
@@ -148,7 +154,10 @@ export default function MyMemorizationView({
                   <div key={j.num} style={{padding:"14px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.10)"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                       <div>
-                        <div style={{fontSize:14,fontWeight:600,color:"rgba(243,231,200,0.75)"}}>Juz {j.num} <span style={{fontSize:11,color:"rgba(243,231,200,0.35)",fontWeight:400}}>({jMeta?.roman?.split(" ")[0]||""})</span></div>
+                        <div style={{color:"rgba(243,231,200,0.75)"}}>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700}}>Juz {jMeta?.roman||`${j.num}`}</div>
+                        <div style={{fontSize:10,color:"rgba(243,231,200,0.35)",marginTop:2,letterSpacing:".06em"}}>Juz {j.num}</div>
+                      </div>
                         <div style={{fontSize:11,color:"rgba(243,231,200,0.35)",marginTop:3}}>Progress</div>
                       </div>
                       <div className="sbtn" onClick={()=>{setSessionJuz(j.num);setActiveTab("myhifz");}} style={{padding:"7px 14px",borderRadius:10,fontSize:11,fontWeight:600,color:"#E6B84A",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.20)"}}>
@@ -180,7 +189,7 @@ export default function MyMemorizationView({
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {upcomingJuz.slice(0,3).map(j=>(
                 <div key={j.num} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.015)",border:"1px solid rgba(255,255,255,0.04)"}}>
-                  <div style={{fontSize:13,color:"rgba(243,231,200,0.40)",fontWeight:500}}>Juz {j.num}</div>
+                  <div><div style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:"rgba(243,231,200,0.55)",fontWeight:700}}>Juz {JUZ_META.find(m=>m.num===j.num)?.roman||j.num}</div><div style={{fontSize:9,color:"rgba(243,231,200,0.22)",marginTop:2,letterSpacing:".06em"}}>Juz {j.num}</div></div>
                   <div style={{fontSize:11,color:"rgba(243,231,200,0.20)"}}>Ready to start</div>
                 </div>
               ))}
@@ -196,7 +205,7 @@ export default function MyMemorizationView({
               <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:6}}>
                 {upcomingJuz.slice(3).map(j=>(
                   <div key={j.num} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.015)",border:"1px solid rgba(255,255,255,0.04)"}}>
-                    <div style={{fontSize:13,color:"rgba(243,231,200,0.40)",fontWeight:500}}>Juz {j.num}</div>
+                    <div><div style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:"rgba(243,231,200,0.55)",fontWeight:700}}>Juz {JUZ_META.find(m=>m.num===j.num)?.roman||j.num}</div><div style={{fontSize:9,color:"rgba(243,231,200,0.22)",marginTop:2,letterSpacing:".06em"}}>Juz {j.num}</div></div>
                     <div style={{fontSize:11,color:"rgba(243,231,200,0.20)"}}>Ready to start</div>
                   </div>
                 ))}

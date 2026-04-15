@@ -57,7 +57,8 @@ export default function JuzSelectorModal({
                   boxShadow:isSel?"0 0 28px rgba(232,200,120,0.30),0 0 8px rgba(217,177,95,0.20),inset 0 0 14px rgba(217,177,95,0.08)":"none",
                   opacity:unlocked?1:0.3,
                   pointerEvents:unlocked?"auto":"none"}}>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?(dark?"#F6E27A":"#6B4F00"):isDone?(dark?"#E2BC72":"#8B6914"):unlocked?(dark?"rgba(243,231,200,0.70)":"rgba(40,30,10,0.65)"):(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.25)"),fontWeight:600}}>Juz {j.num}</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:isSel?(dark?"#F6E27A":"#6B4F00"):isDone?(dark?"#E2BC72":"#8B6914"):unlocked?(dark?"rgba(243,231,200,0.70)":"rgba(40,30,10,0.65)"):(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.25)"),fontWeight:700,lineHeight:1.15}}>Juz {j.roman}</div>
+                <div style={{fontSize:9,color:isSel?(dark?"rgba(246,226,122,0.55)":"rgba(107,79,0,0.55)"):(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.35)"),marginTop:3,letterSpacing:".06em"}}>Juz {j.num}</div>
                 {isDone&&(
                   <div style={{fontSize:10,color:isSel?(dark?"rgba(246,226,122,0.60)":"rgba(107,79,0,0.60)"):(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.60)"),marginTop:4,textShadow:dark?"0 0 8px rgba(230,184,74,0.15)":"none"}}>Complete — Alhamdulillah</div>
                 )}
