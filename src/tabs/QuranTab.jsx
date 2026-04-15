@@ -1,5 +1,6 @@
 import { SURAH_EN } from "../data/constants";
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
+import { useState } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
 
 export default function QuranTab(props) {
@@ -51,6 +52,7 @@ export default function QuranTab(props) {
 
   const curSurahNum = mushafSurahNum;
   const curSurahPage = SURAH_PAGES[curSurahNum] || 1;
+  const [showPickers, setShowPickers] = useState(false);
   const parchment = dark ? "linear-gradient(180deg,#0B1220,#0E1628)" : "#F3E9D2";
   const goldColor = "#E8D5A3";
   const inkColor = "#E8D5A3";
@@ -58,26 +60,33 @@ export default function QuranTab(props) {
   return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:100}}>
 
-          {/* Header — Asr session style */}
-          <div style={{flexShrink:0,padding:"14px 16px 0",background:dark?"#060C18":"#EADFC8"}}>
-            <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"#6B645A",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600,marginBottom:8}}>AL-QUR'AN AL-KARIM</div>
-            {/* Picker buttons row */}
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-              <div className="sbtn" onClick={()=>setShowQuranJuzModal(true)} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,fontWeight:700,color:dark?"rgba(217,177,95,0.90)":"#6B645A",display:"flex",alignItems:"center",justifyContent:"center",gap:5,height:32,overflow:"hidden"}}>
-                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>Juz {JUZ_META.find(m=>m.num===mushafJuzNum)?.roman||mushafJuzNum}</span>
-                <span style={{fontSize:9,opacity:0.5,flexShrink:0}}>▾</span>
+          {/* Header — collapsible. Dropdown sits ABOVE the surah trigger so it opens from the top. */}
+          <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28}}>
+            {/* Dropdown — juz, surah, mushaf/study — hidden until tapped */}
+            <div style={{maxHeight:showPickers?120:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"14px 16px 6px":"0 16px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <div className="sbtn" onClick={()=>{setShowQuranJuzModal(true);setShowPickers(false);}} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,fontWeight:700,color:dark?"rgba(217,177,95,0.90)":"#6B645A",display:"flex",alignItems:"center",justifyContent:"center",gap:5,height:32,overflow:"hidden"}}>
+                  <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>Juz {JUZ_META.find(m=>m.num===mushafJuzNum)?.roman||mushafJuzNum}</span>
+                  <span style={{fontSize:9,opacity:0.5,flexShrink:0}}>▾</span>
+                </div>
+                <div className="sbtn" onClick={()=>{setShowQuranSurahModal(true);setShowPickers(false);}} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:4,overflow:"hidden",height:32}}>
+                  <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
+                  <span style={{fontSize:9,opacity:0.5,flexShrink:0}}>▾</span>
+                </div>
+                <div style={{position:"relative",display:"flex",borderRadius:999,flex:1,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:32}}>
+                  <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:28,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 14px rgba(212,175,55,0.45), 0 0 6px rgba(212,175,55,0.25)",transition:"left .25s ease"}}/>
+                  <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".06em",color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Mushaf</div>
+                  <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".06em",color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Study</div>
+                </div>
               </div>
-              <div className="sbtn" onClick={()=>setShowQuranSurahModal(true)} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:4,overflow:"hidden",height:32}}>
-                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
-                <span style={{fontSize:9,opacity:0.5,flexShrink:0}}>▾</span>
+            </div>
+            {/* Slim trigger bar — tap to open dropdown above */}
+            <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
+              <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Part {mushafJuzNum}</div>
+                <div style={{fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#8B6A10",transform:showPickers?"rotate(180deg)":"rotate(0deg)",transition:"transform .22s ease"}}>▾</div>
               </div>
-              <div style={{position:"relative",display:"flex",borderRadius:999,flex:1,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:32}}>
-                {/* Sliding gold pill */}
-                <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:28,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 14px rgba(212,175,55,0.45), 0 0 6px rgba(212,175,55,0.25)",transition:"left .25s ease"}}/>
-                <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".06em",color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Mushaf</div>
-                <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".06em",color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Study</div>
-              </div>
-
             </div>
             <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
@@ -127,14 +136,8 @@ export default function QuranTab(props) {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`0 12px ${haramainMeta?"240px":"120px"}`}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`10px 12px ${haramainMeta?"240px":"120px"}`}}
             >
-              {/* Sticky header — surah left, Part N right */}
-              <div style={{position:"sticky",top:0,zIndex:5,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 6px",marginBottom:4,background:dark?"rgba(6,12,24,0.92)":"rgba(243,233,210,0.92)",backdropFilter:"blur(6px)",borderBottom:`1px solid ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.15)"}`}}>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>{SURAH_EN[curSurahNum]||""}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>Part {mushafJuzNum}</div>
-              </div>
-              <div style={{paddingTop:6}}/>
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.25)",fontSize:11,letterSpacing:".12em"}}>Loading...</div>
