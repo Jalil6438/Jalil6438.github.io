@@ -104,7 +104,7 @@ function AsrSessionView({
                   <div style={{height:1,margin:"8px 16px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
                 </div>
                 {/* Flowing ayahs */}
-                <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2.0,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                <div style={{direction:"rtl",textAlign:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
                   {currentGroup.ayahs.map(v=>{
                     const vKey=v.verse_key;
                     const aNum=parseInt(vKey.split(":")[1],10);

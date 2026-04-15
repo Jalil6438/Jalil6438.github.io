@@ -166,7 +166,7 @@ export default function QuranTab(props) {
                             </div>
                           )}
                           {/* Flowing ayah text */}
-                          <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2.0,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                          <div style={{direction:"rtl",textAlign:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
                             {group.verses.map(verse=>{
                               const aNum=verse.verse_key.split(":")[1];
                               const isSelected=selectedAyah===verse.verse_key;
