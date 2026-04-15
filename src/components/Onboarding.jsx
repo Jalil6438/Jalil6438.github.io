@@ -34,7 +34,7 @@ export default function Onboarding({
             <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:"#D4AF37",direction:"rtl",lineHeight:2,marginBottom:8,opacity:.85,textShadow:"0 0 10px rgba(212,175,55,0.12)"}}>
               وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ
             </div>
-            <div style={{fontSize:11,color:"rgba(243,231,191,0.5)",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Quran easy for remembrance"</div>
+            <div style={{fontSize:11,color:"rgba(243,231,191,0.5)",fontStyle:"italic",marginBottom:4}}>"And We have certainly made the Qur'an easy for remembrance"</div>
             <div style={{fontSize:9,color:"rgba(212,175,55,0.35)",marginBottom:40}}>Al-Qamar · 54:17</div>
 
             <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{width:"100%",maxWidth:360,padding:"15px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",letterSpacing:".02em",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>

@@ -1,5 +1,5 @@
 import { SURAH_EN } from "../data/constants";
-import { SURAH_AR } from "../data/quran-metadata";
+import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import { mushafImageUrl, toArabicDigits } from "../utils";
 
 export default function QuranTab(props) {
@@ -63,8 +63,9 @@ export default function QuranTab(props) {
             <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"#6B645A",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600,marginBottom:8}}>AL-QUR'AN AL-KARIM</div>
             {/* Picker buttons row */}
             <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-              <div className="sbtn" onClick={()=>setShowQuranJuzModal(true)} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,fontWeight:700,color:dark?"rgba(217,177,95,0.90)":"#6B645A",display:"flex",alignItems:"center",justifyContent:"center",gap:5,height:32}}>
-                Juz {mushafJuzNum} <span style={{fontSize:9,opacity:0.5}}>▾</span>
+              <div className="sbtn" onClick={()=>setShowQuranJuzModal(true)} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,fontWeight:700,color:dark?"rgba(217,177,95,0.90)":"#6B645A",display:"flex",alignItems:"center",justifyContent:"center",gap:5,height:32,overflow:"hidden"}}>
+                <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>Juz {JUZ_META.find(m=>m.num===mushafJuzNum)?.roman||mushafJuzNum}</span>
+                <span style={{fontSize:9,opacity:0.5,flexShrink:0}}>▾</span>
               </div>
               <div className="sbtn" onClick={()=>setShowQuranSurahModal(true)} style={{flex:1,padding:"7px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:10,fontSize:11,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:4,overflow:"hidden",height:32}}>
                 <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
@@ -496,7 +497,7 @@ export default function QuranTab(props) {
           {/* Page nav */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)",flexShrink:0,background:dark?"#060C18":"#EADFC8"}}>
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>‹</div>
-            <div style={{fontSize:11,color:dark?"rgba(217,177,95,0.45)":"#6B645A",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em"}}>Page {mushafPage} · Juz {mushafJuzNum}</div>
+            <div style={{fontSize:11,color:dark?"rgba(217,177,95,0.45)":"#6B645A",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em",textAlign:"center",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",padding:"0 8px"}}>Page {mushafPage} · Juz {JUZ_META.find(m=>m.num===mushafJuzNum)?.roman||mushafJuzNum}</div>
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>›</div>
           </div>
 
