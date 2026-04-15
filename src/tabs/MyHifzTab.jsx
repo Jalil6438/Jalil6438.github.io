@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
-import { JUZ_META, JUZ_SURAHS } from "../data/quran-metadata";
+import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
 import { getSessionWisdom } from "../data/sessions";
 import { saveCompletedAyahs, toArabicDigits } from "../utils";
 
@@ -50,14 +50,27 @@ export default function MyHifzTab(props) {
     simVerseCache, fetchSimVerse,
   } = props;
 
-  // Wisdom rotation — after 10 min on fajr/dhuhr, bump to a random card for fresh encouragement
+  // Wisdom rotation — two triggers:
+  //  1) App launch (component mount) → bump offset so a fresh start shows a fresh card
+  //  2) 10 min spent on fajr/dhuhr/asr → bump again mid-session
   const activeSid = SESSIONS[activeSessionIndex]?.id;
   const rotatingSession = activeSid === "fajr" || activeSid === "dhuhr" || activeSid === "asr";
-  const [wisdomOffset, setWisdomOffset] = useState(0);
+  const [wisdomOffset, setWisdomOffset] = useState(() => {
+    try {
+      const stored = parseInt(localStorage.getItem("jalil-wisdom-offset") || "0", 10);
+      const next = stored + 1 + Math.floor(Math.random() * 100);
+      localStorage.setItem("jalil-wisdom-offset", String(next));
+      return next;
+    } catch { return Math.floor(Math.random() * 100); }
+  });
   useEffect(() => {
     if (!rotatingSession) return;
     const t = setTimeout(() => {
-      setWisdomOffset(o => o + 1 + Math.floor(Math.random() * 100));
+      setWisdomOffset(o => {
+        const next = o + 1 + Math.floor(Math.random() * 100);
+        try { localStorage.setItem("jalil-wisdom-offset", String(next)); } catch {}
+        return next;
+      });
     }, 10 * 60 * 1000);
     return () => clearTimeout(t);
   }, [rotatingSession, wisdomOffset]);
@@ -311,51 +324,57 @@ export default function MyHifzTab(props) {
                   </div>
                 )}
 
-                {/* ── MUSHAF MODE — flowing Arabic text grouped by mushaf page ── */}
+                {/* ── MUSHAF MODE — flowing Arabic text grouped by surah (matches QuranTab) ── */}
                 {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(()=>{
-                  // Group batch verses by page_number (in order of appearance)
-                  const pageGroups=[];
+                  // Group batch verses by surah (preserves hifz order)
+                  const surahGroups=[];
                   let curGroup=null;
                   batch.forEach(v=>{
-                    const pn=v.page_number||0;
-                    if(!curGroup||curGroup.page!==pn){ curGroup={page:pn,verses:[]}; pageGroups.push(curGroup); }
+                    const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
+                    if(!curGroup||curGroup.sn!==sn){ curGroup={sn,verses:[]}; surahGroups.push(curGroup); }
                     curGroup.verses.push(v);
                   });
                   return (
-                    <div style={{marginBottom:16}}>
-                      {pageGroups.map((g,gi)=>{
-                        const firstV=g.verses[0];
-                        const firstSurahNum=firstV?.surah_number||parseInt(firstV?.verse_key?.split(":")?.[0]||"0",10);
-                        const surahName=SURAH_EN[firstSurahNum]||"";
+                    <div style={{padding:"0 12px",marginBottom:16}}>
+                      {surahGroups.map((group,gi)=>{
+                        const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                         return (
-                        <div key={g.page||`g${gi}`} style={{padding:"14px 20px 12px",borderRadius:14,background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${dark?"rgba(230,184,74,0.08)":"rgba(0,0,0,0.08)"}`,boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",marginBottom:10}}>
-                          {/* Mushaf page header — surah top-left, Part top-right */}
-                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingBottom:8,borderBottom:`1px dashed ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.15)"}`}}>
-                            <div style={{fontSize:12,fontFamily:"'Playfair Display',serif",fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>{surahName}</div>
-                            <div style={{fontSize:11,fontFamily:"'Playfair Display',serif",fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>Part {sessionJuz}</div>
+                          <div key={group.sn+"-"+gi}>
+                            {/* Surah header — centered, outside RTL flow */}
+                            {(gi>0||isFirst)&&(
+                              <div style={{textAlign:"center",padding:"16px 0 12px"}}>
+                                <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sn]||""}</div>
+                                <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sn]||""}</div>
+                                {isFirst&&group.sn!==9&&group.sn!==1&&(
+                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>
+                                    بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+                                  </div>
+                                )}
+                                <div style={{height:1,margin:"10px auto 0",width:"80%",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
+                              </div>
+                            )}
+                            {/* Flowing ayah text */}
+                            <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                              {group.verses.map((v)=>{
+                                const vKey=v.verse_key;
+                                const aNum=parseInt(vKey.split(":")[1],10);
+                                const reps=repCounts[vKey]||0;
+                                const repsDone=reps>=20;
+                                return (
+                                  <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
+                                    style={{cursor:"pointer",transition:"all .15s",borderRadius:6,padding:"2px 4px",
+                                      background:repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent"),
+                                    }}>
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                    <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
                           </div>
-                          {/* Flowing ayahs */}
-                          <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                            {g.verses.map((v)=>{
-                              const vKey=v.verse_key;
-                              const aNum=parseInt(vKey.split(":")[1],10);
-                              const reps=repCounts[vKey]||0;
-                              const repsDone=reps>=20;
-                              return (
-                                <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
-                                  style={{cursor:"pointer",transition:"all .15s",borderRadius:6,padding:"2px 4px",
-                                    background:repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent"),
-                                  }}>
-                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
                         );
                       })}
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6,paddingTop:8,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
                         <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
                         <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
                       </div>
@@ -386,7 +405,7 @@ export default function MyHifzTab(props) {
                         style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
                           <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
-                          <span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>
+                          {currentSessionId==="fajr"&&<span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>}
                         </div>
                         <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                           <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
@@ -396,8 +415,10 @@ export default function MyHifzTab(props) {
                     );
                   })}
                   {aPages>1&&(
-                    <div style={{textAlign:"center",fontSize:10,color:"rgba(230,184,74,0.35)",marginTop:4}}>
-                      Page {aSafe+1} of {aPages}
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:8}}>
+                      <div className={aSafe<aPages-1?"sbtn":""} onClick={()=>{if(aSafe<aPages-1)setAyahPage(p=>Math.min(aPages-1,p+1));}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:aSafe<aPages-1?(dark?"#E6B84A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:aSafe<aPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${aSafe<aPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
+                      <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.50)":"#8B6A10",fontFamily:"'IBM Plex Mono',monospace"}}>Page {aSafe+1} of {aPages}</div>
+                      <div className={aSafe>0?"sbtn":""} onClick={()=>{if(aSafe>0)setAyahPage(p=>Math.max(0,p-1));}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:aSafe>0?(dark?"#E6B84A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:aSafe>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${aSafe>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev ›</div>
                     </div>
                   )}
                 </div>);})()}
@@ -552,7 +573,7 @@ export default function MyHifzTab(props) {
                     <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>Session complete — MashaAllah! 🤲</div>
                   </div>
                 ):(()=>{
-                  const batchPages=Math.max(1,Math.ceil(batch.length/5));
+                  const batchPages=Math.max(1,Math.ceil(batch.length/7));
                   const onLastPage=ayahPage>=batchPages-1;
                   const isFinal=onLastPage;
                   return (<div>
