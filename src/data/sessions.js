@@ -84,6 +84,9 @@ export const SESSION_WISDOM = {
     {type:"hadith", text:"No group come together reciting Allah's Book except that tranquility descends upon them, mercy encompasses them, and the angels surround them.", src:"Muslim 2699"},
     {type:"quran", text:"When the Qur'an is recited, listen to it, and be silent that you may receive mercy.", arabic:"وَإِذَا قُرِئَ الْقُرْآنُ فَاسْتَمِعُوا لَهُ وَأَنصِتُوا لَعَلَّكُمْ تُرْحَمُونَ", ref:"Al-A'raf 7:204"},
     {type:"quran", text:"The skins of those who fear their Lord shiver from it. Then their skin and their heart soften to the remembrance of Allah.", arabic:"تَقْشَعِرُّ مِنْهُ جُلُودُ الَّذِينَ يَخْشَوْنَ رَبَّهُمْ ثُمَّ تَلِينُ جُلُودُهُمْ وَقُلُوبُهُمْ إِلَىٰ ذِكْرِ اللَّهِ", ref:"Az-Zumar 39:23"},
+    {type:"book", text:"The Qur'an is not just medicine — it is shifaa. Medicine may heal you, or it may not. The Qur'an heals what is in your body and what is in your heart.", attr:"Shaykh Sulayman ar-Ruhayli"},
+    {type:"book", text:"Recite with conviction. Your heart is healed by the Qur'an — know this with certainty.", attr:"Shaykh Sulayman ar-Ruhayli"},
+    {type:"quran", text:"And We send down of the Qur'an that which is a cure and a mercy for the believers, but it does not increase the wrongdoers except in loss.", arabic:"وَنُنَزِّلُ مِنَ الْقُرْآنِ مَا هُوَ شِفَاءٌ وَرَحْمَةٌ لِّلْمُؤْمِنِينَ ۙ وَلَا يَزِيدُ الظَّالِمِينَ إِلَّا خَسَارًا", ref:"Al-Isra 17:82"},
   ],
   isha:[
     {type:"hadith", text:"The companion of the Qur'an will be told: 'Read and ascend in ranks. Your rank will be at the last verse you read.'", src:"At-Tirmidhi 2914"},
