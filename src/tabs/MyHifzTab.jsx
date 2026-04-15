@@ -329,10 +329,10 @@ export default function MyHifzTab(props) {
                         const surahName=SURAH_EN[firstSurahNum]||"";
                         return (
                         <div key={g.page||`g${gi}`} style={{padding:"14px 20px 12px",borderRadius:14,background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${dark?"rgba(230,184,74,0.08)":"rgba(0,0,0,0.08)"}`,boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",marginBottom:10}}>
-                          {/* Mushaf page header — surah top-left, page top-right */}
+                          {/* Mushaf page header — surah top-left, Part top-right */}
                           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingBottom:8,borderBottom:`1px dashed ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.15)"}`}}>
-                            <div style={{fontSize:11,fontFamily:"'Playfair Display',serif",fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>{surahName}</div>
-                            <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700}}>Page {g.page||"—"}</div>
+                            <div style={{fontSize:12,fontFamily:"'Playfair Display',serif",fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>{surahName}</div>
+                            <div style={{fontSize:11,fontFamily:"'Playfair Display',serif",fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>Part {sessionJuz}</div>
                           </div>
                           {/* Flowing ayahs */}
                           <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
