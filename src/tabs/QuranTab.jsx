@@ -127,8 +127,14 @@ export default function QuranTab(props) {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`10px 12px ${haramainMeta?"240px":"120px"}`}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`0 12px ${haramainMeta?"240px":"120px"}`}}
             >
+              {/* Sticky header — surah left, Part N right */}
+              <div style={{position:"sticky",top:0,zIndex:5,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 6px",marginBottom:4,background:dark?"rgba(6,12,24,0.92)":"rgba(243,233,210,0.92)",backdropFilter:"blur(6px)",borderBottom:`1px solid ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.15)"}`}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>{SURAH_EN[curSurahNum]||""}</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>Part {mushafJuzNum}</div>
+              </div>
+              <div style={{paddingTop:6}}/>
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.25)",fontSize:11,letterSpacing:".12em"}}>Loading...</div>
