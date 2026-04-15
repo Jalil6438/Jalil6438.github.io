@@ -102,6 +102,10 @@ export default function QuranTab(props) {
                 className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
                 style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none",cursor:"pointer"}}
               />
+              {/* Surah name badge — top left corner */}
+              <div style={{position:"absolute",top:10,left:10,padding:"5px 12px",borderRadius:8,background:dark?"rgba(8,16,34,0.75)":"rgba(255,253,245,0.90)",border:`1px solid ${dark?"rgba(217,177,95,0.35)":"rgba(140,100,20,0.25)"}`,boxShadow:dark?"0 2px 8px rgba(0,0,0,0.30)":"0 2px 6px rgba(0,0,0,0.08)",backdropFilter:"blur(4px)",pointerEvents:"none"}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em",lineHeight:1}}>{SURAH_EN[curSurahNum]||""}</div>
+              </div>
               {/* Playing indicator — subtle, non-intrusive */}
               {mushafAudioPlaying&&(
                 <div style={{position:"absolute",bottom:10,left:0,right:0,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
@@ -166,7 +170,7 @@ export default function QuranTab(props) {
                             </div>
                           )}
                           {/* Flowing ayah text */}
-                          <div style={{direction:"rtl",textAlign:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                          <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
                             {group.verses.map(verse=>{
                               const aNum=verse.verse_key.split(":")[1];
                               const isSelected=selectedAyah===verse.verse_key;

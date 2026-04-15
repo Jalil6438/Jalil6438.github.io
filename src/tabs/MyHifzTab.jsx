@@ -323,16 +323,19 @@ export default function MyHifzTab(props) {
                   });
                   return (
                     <div style={{marginBottom:16}}>
-                      {pageGroups.map((g,gi)=>(
+                      {pageGroups.map((g,gi)=>{
+                        const firstV=g.verses[0];
+                        const firstSurahNum=firstV?.surah_number||parseInt(firstV?.verse_key?.split(":")?.[0]||"0",10);
+                        const surahName=SURAH_EN[firstSurahNum]||"";
+                        return (
                         <div key={g.page||`g${gi}`} style={{padding:"14px 20px 12px",borderRadius:14,background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${dark?"rgba(230,184,74,0.08)":"rgba(0,0,0,0.08)"}`,boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",marginBottom:10}}>
-                          {/* Mushaf page header */}
-                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,paddingBottom:8,borderBottom:`1px dashed ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.15)"}`}}>
-                            <div style={{flex:1,height:1,background:`linear-gradient(90deg,${dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.20)"} 0%,transparent 100%)`}}/>
-                            <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,whiteSpace:"nowrap"}}>Page {g.page||"—"}</div>
-                            <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent 0%,${dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.20)"} 100%)`}}/>
+                          {/* Mushaf page header — surah top-left, page top-right */}
+                          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingBottom:8,borderBottom:`1px dashed ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.15)"}`}}>
+                            <div style={{fontSize:11,fontFamily:"'Playfair Display',serif",fontWeight:700,color:dark?"#E8C878":"#6B4F00",letterSpacing:".02em"}}>{surahName}</div>
+                            <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700}}>Page {g.page||"—"}</div>
                           </div>
                           {/* Flowing ayahs */}
-                          <div style={{direction:"rtl",textAlign:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                          <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
                             {g.verses.map((v)=>{
                               const vKey=v.verse_key;
                               const aNum=parseInt(vKey.split(":")[1],10);
@@ -350,7 +353,8 @@ export default function MyHifzTab(props) {
                             })}
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6,paddingTop:8,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
                         <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
                         <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
