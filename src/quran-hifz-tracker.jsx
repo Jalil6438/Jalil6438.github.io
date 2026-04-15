@@ -138,6 +138,7 @@ export default function RihlatAlHifz() {
   const [juzProgress,setJuzProgress]=useState({});
   const [sessionDone,setSessionDone]=useState([]);
   const [sessionVerses,setSessionVerses]=useState([]);
+  const [allJuzVerses,setAllJuzVerses]=useState([]); // unfiltered juz verses in hifz order — for dhuhr fallback
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
   const [recentBatches,setRecentBatches]=useState([]); // last 5 days of fajr batches
   const [asrSelectedSurahs,setAsrSelectedSurahs]=useState([]);
@@ -446,6 +447,19 @@ export default function RihlatAlHifz() {
         // 1) Get this juz's surahs in descending memorization order
         const descendingSurahOrder=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
 
+        // Build full juz in hifz-descending order (NOT filtered by completion) — for dhuhr review fallback
+        const orderedAll=[...all].sort((a,b)=>{
+          const surahA=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
+          const surahB=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
+          const ayahA=parseInt(a.verse_key?.split(":")?.[1],10);
+          const ayahB=parseInt(b.verse_key?.split(":")?.[1],10);
+          const idxA=descendingSurahOrder.indexOf(surahA);
+          const idxB=descendingSurahOrder.indexOf(surahB);
+          if(idxA!==idxB) return idxA-idxB;
+          return ayahA-ayahB;
+        });
+        if(!cancelled) setAllJuzVerses(orderedAll);
+
         // If whole Juz is already complete (verify all surahs too), show full progress
         const juzSurahList=JUZ_SURAHS[sessionJuz]||[];
         const allSurahsActuallyDone=juzSurahList.length>0&&juzSurahList.every(s=>juzStatus[`s${s.s}`]==="complete");
@@ -618,21 +632,26 @@ export default function RihlatAlHifz() {
   const timeline=calcTimeline(goalYears,memorizedAyahs,goalMonths,nextJuzAyahs,completedCount);
   const targetDaily=Math.round(parseFloat(timeline.ayahsPerDay));
 
-  // Sheikh Al-Qasim's 2-page rule — allow up to 2 full pages worth of content
+  // Sheikh Al-Qasim's 2-page rule — allow up to 2 full pages worth of content.
+  // Uses distinct-page counting so it works in any traversal order (hifz is
+  // descending by surah, so page_number decreases as you go forward).
   const twoPageLimit=(()=>{
     if(!sessionVerses.length||sessionIdx>=sessionVerses.length) return {count:targetDaily,capped:false};
     const startPage=sessionVerses[sessionIdx]?.page_number;
     if(!startPage) return {count:targetDaily,capped:false};
-    // Check if user is starting at the beginning of a page
     const prevAyah=sessionIdx>0?sessionVerses[sessionIdx-1]:null;
     const startsAtPageBeginning=!prevAyah||prevAyah.page_number!==startPage;
-    // If starting at page beginning: allow pages startPage to startPage+1 (2 full pages)
-    // If starting mid-page: allow rest of startPage + next 2 pages (startPage+2)
-    const maxPage=startsAtPageBeginning?startPage+1:startPage+2;
+    // Starting at page beginning → 2 distinct pages. Mid-page → 3 (current + 2 more).
+    const maxDistinctPages=startsAtPageBeginning?2:3;
+    const pagesSeen=new Set();
     let maxCount=0;
     for(let i=sessionIdx;i<sessionVerses.length;i++){
       const p=sessionVerses[i]?.page_number;
-      if(p&&p>maxPage) break;
+      if(!p){ maxCount++; continue; }
+      if(!pagesSeen.has(p)){
+        if(pagesSeen.size>=maxDistinctPages) break;
+        pagesSeen.add(p);
+      }
       maxCount++;
     }
     return {count:Math.min(targetDaily,maxCount),capped:targetDaily>maxCount,maxAllowed:maxCount};
@@ -640,7 +659,8 @@ export default function RihlatAlHifz() {
   const dailyNew=twoPageLimit.count;
   const currentSessionId=SESSIONS[activeSessionIndex]?.id;
 
-  // Show warning when 2-page cap kicks in — once per juz per day
+  // Show warning when 2-page cap kicks in — once per juz per day.
+  // Depend on capped/sessionVerses.length so it refires after verses finish loading.
   useEffect(()=>{
     if(!twoPageLimit.capped||!sessionVerses.length||currentSessionId!=="fajr") return;
     const today=TODAY();
@@ -648,7 +668,7 @@ export default function RihlatAlHifz() {
     if(localStorage.getItem(key)) return;
     setTwoPageWarning({target:targetDaily,actual:twoPageLimit.count});
     localStorage.setItem(key,"1");
-  },[sessionJuz,currentSessionId]);
+  },[sessionJuz,currentSessionId,twoPageLimit.capped,sessionVerses.length]);
 
     const totalSV=sessionVerses.length;
   const bStart=sessionIdx;
@@ -697,25 +717,25 @@ export default function RihlatAlHifz() {
 
   let batch=fajrBatch;
   if(isDhuhr){
-    // 5-day rolling review: ONLY Fajr memorization batches — not completed juz (that's Asr's job)
+    // 5-day review = last (dailyNew * 5) most-recently-memorized ayahs.
+    // PRIMARY: walk backward from the user's current position in the full
+    // (unfiltered) hifz-ordered juz list. This handles both onboarded users
+    // (reaches into already-completed surahs) and active users uniformly.
     const seen=new Set();
     const combined=[];
-    // yesterdayBatch first (most recent, full objects)
-    (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
-    // then older days from recentBatches (excluding the last entry which is today's/yesterday's)
-    (recentBatches.slice(0,-1)||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
-    // Fallback: if no rolling batches yet, use today's Fajr batch (if completed)
-    if(combined.length===0&&fajrBatch.length>0&&sessionsCompleted?.fajr){
-      fajrBatch.forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
-    }
-    // Fallback for new/onboarded users: pull last 5 days worth from current juz session verses
-    if(combined.length===0&&sessionVerses.length>0&&sessionIdx>0){
-      const reviewCount=dailyNew*5;
-      // Take the last reviewCount ayahs before current position (most recently memorized)
-      sessionVerses.slice(Math.max(0,sessionIdx-reviewCount),sessionIdx).forEach(v=>{
+    const reviewCount=Math.max(dailyNew*5,5);
+    if(allJuzVerses.length>0){
+      const currentKey=sessionVerses[sessionIdx]?.verse_key;
+      let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
+      if(allIdx<0) allIdx=allJuzVerses.length;
+      allJuzVerses.slice(Math.max(0,allIdx-reviewCount),allIdx).forEach(v=>{
         if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }
       });
     }
+    // Secondary: merge in anything from yesterdayBatch / recentBatches that
+    // wasn't already captured (handles cross-juz work on veteran accounts).
+    (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    (recentBatches.slice(0,-1)||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
     batch=combined.length>0?combined:[];
   }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
