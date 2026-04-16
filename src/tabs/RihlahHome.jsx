@@ -74,7 +74,7 @@ export default function RihlahHome({
     const juzImg=done?"/badge-hafiz.png":working<=5?`/badge-juz-${working}.png`:"/badge-juz-5.png";
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:4}}>
-      <img src={juzImg} alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(52,211,153,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <img src={juzImg} alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${20*p}px rgba(52,211,153,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(52,211,153,${0.5*p}))`,transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{done?"Hafiz!":`Juz ${working}`}</span>
     </div>
     );
@@ -83,7 +83,7 @@ export default function RihlahHome({
     const p=Math.max(0,Math.min(1,progress||0));
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src={tier.img} alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(249,115,22,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <img src={tier.img} alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${20*p}px rgba(249,115,22,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(249,115,22,${0.5*p}))`,transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{tier.label}</span>
     </div>
     );
@@ -92,7 +92,7 @@ export default function RihlahHome({
     const p=Math.max(0,Math.min(1,progress||0));
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:4}}>
-      <img src="/badge-hafiz.png" alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(212,175,55,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <img src="/badge-hafiz.png" alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${24*p}px rgba(212,175,55,${0.9*p})) drop-shadow(0 0 ${10*p}px rgba(212,175,55,${0.6*p}))`,transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>Hifz Goal</span>
     </div>
     );
