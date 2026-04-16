@@ -214,11 +214,8 @@ function AsrSessionView({
               )}
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div style={{color:T2.ivoryFaint,fontSize:12}}>Pages</div>
-              <div style={{color:T2.goldBright,fontSize:12,fontWeight:600}}>Page {asrSafePage+1} of {asrPages}</div>
-            </div>
-            <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${Math.round(((asrSafePage+1)/asrPages)*100)}%`,background:"linear-gradient(90deg,#D2A85A,#E2BC72)",borderRadius:999}}/>
+              <div style={{color:T2.ivoryFaint,fontSize:12}}>Ayahs</div>
+              <div style={{color:T2.goldBright,fontSize:12,fontWeight:600}}>{asrBatch.length} total</div>
             </div>
           </div>
 
