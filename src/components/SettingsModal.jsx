@@ -47,7 +47,7 @@ export default function SettingsModal({
             </div>
             <div style={{display:"flex",gap:8}}>
               <div className="sbtn" onClick={()=>setShowResetConfirm(false)} style={{flex:1,padding:"11px",borderRadius:10,textAlign:"center",fontSize:13,fontWeight:600,color:T.text,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",border:`1px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)"}`}}>Cancel</div>
-              <div className="sbtn" onClick={()=>{localStorage.clear();location.reload();}} style={{flex:1,padding:"11px",borderRadius:10,textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",background:"#E5534B",border:"1px solid #E5534B"}}>Reset</div>
+              <div className="sbtn" onClick={()=>{localStorage.clear();sessionStorage.clear();setTimeout(()=>location.reload(),50);}} style={{flex:1,padding:"11px",borderRadius:10,textAlign:"center",fontSize:13,fontWeight:700,color:"#fff",background:"#E5534B",border:"1px solid #E5534B"}}>Reset</div>
             </div>
           </div>
         </div>
