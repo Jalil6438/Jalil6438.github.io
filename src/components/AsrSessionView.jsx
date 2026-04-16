@@ -71,7 +71,6 @@ function AsrSessionView({
 
           {/* ── MUSHAF MODE — paged by surah ── */}
           {asrViewMode==="mushaf"&&(()=>{
-            // Group ayahs by surah
             const surahGroups=[];
             let curGroup=null;
             asrBatch.forEach(v=>{
@@ -79,51 +78,40 @@ function AsrSessionView({
               if(!curGroup||curGroup.sNum!==sNum){ curGroup={sNum,ayahs:[]}; surahGroups.push(curGroup); }
               curGroup.ayahs.push(v);
             });
-            const totalSurahPages=surahGroups.length;
-            const safeSurahPage=Math.min(asrSafePage,totalSurahPages-1);
-            const currentGroup=surahGroups[safeSurahPage>=0?safeSurahPage:0];
-            if(!currentGroup) return null;
             return (
-            <div style={{flex:1,overflow:"hidden",position:"relative"}}
-              onTouchStart={e=>{asrTouchStartRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY};}}
-              onTouchEnd={e=>{
-                if(!asrTouchStartRef.current) return;
-                const dx=e.changedTouches[0].clientX-asrTouchStartRef.current.x;
-                const dy=e.changedTouches[0].clientY-asrTouchStartRef.current.y;
-                asrTouchStartRef.current=null;
-                if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)) return;
-                if(dx>0&&safeSurahPage<totalSurahPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalSurahPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
-                else if(dx<0&&safeSurahPage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
-              }}>
-              <div ref={asrMushafScrollRef} style={{overflowY:"auto",padding:"12px 14px",height:"100%"}}>
-                {/* Surah header */}
-                <div style={{textAlign:"center",marginBottom:12}}>
-                  <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[currentGroup.sNum]||""}</div>
-                  <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.50)",letterSpacing:".12em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>{SURAH_EN[currentGroup.sNum]}</div>
-                  {currentGroup.sNum!==9&&currentGroup.sNum!==1&&<div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>}
-                  <div style={{height:1,margin:"8px 16px 0",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
-                </div>
-                {/* Flowing ayahs */}
-                <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                  {currentGroup.ayahs.map(v=>{
-                    const vKey=v.verse_key;
-                    const aNum=parseInt(vKey.split(":")[1],10);
-                    return (
-                      <span key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
-                        style={{cursor:"pointer",borderRadius:6,padding:"2px 4px"}}>
-                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                        <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
-                      </span>
-                    );
-                  })}
-                </div>
-              {/* Page nav */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0",marginTop:8}}>
-                <div className={safeSurahPage<totalSurahPages-1?"sbtn":""} onClick={()=>{if(safeSurahPage<totalSurahPages-1){setAsrSlideDir("left");setAsrPage(p=>p+1);asrMushafScrollRef.current?.scrollTo(0,0);}}} style={{padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,color:safeSurahPage<totalSurahPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safeSurahPage<totalSurahPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safeSurahPage<totalSurahPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>← Next</div>
-                <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A"}}>{safeSurahPage+1} / {totalSurahPages}</div>
-                <div className={safeSurahPage>0?"sbtn":""} onClick={()=>{if(safeSurahPage>0){setAsrSlideDir("right");setAsrPage(p=>p-1);asrMushafScrollRef.current?.scrollTo(0,0);}}} style={{padding:"6px 14px",borderRadius:8,fontSize:11,fontWeight:600,color:safeSurahPage>0?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safeSurahPage>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safeSurahPage>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev →</div>
-              </div>
-              </div>
+            <div ref={asrMushafScrollRef} style={{flex:1,overflowY:"auto",padding:"12px 14px"}}>
+              {surahGroups.map((group,gi)=>{
+                const isFirst=group.ayahs[0]&&group.ayahs[0].verse_key.split(":")[1]==="1";
+                return (
+                  <div key={group.sNum+"-"+gi}>
+                    {(gi>0||isFirst)&&(
+                      <div style={{textAlign:"center",padding:"16px 0 12px"}}>
+                        <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sNum]||""}</div>
+                        <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sNum]}</div>
+                        {isFirst&&group.sNum!==9&&group.sNum!==1&&(
+                          <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>
+                            بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+                          </div>
+                        )}
+                        <div style={{height:1,margin:"10px auto 0",width:"80%",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
+                      </div>
+                    )}
+                    <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                      {group.ayahs.map(v=>{
+                        const vKey=v.verse_key;
+                        const aNum=parseInt(vKey.split(":")[1],10);
+                        return (
+                          <span key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
+                            style={{cursor:"pointer",borderRadius:6,padding:"2px 4px"}}>
+                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             );
           })()}
