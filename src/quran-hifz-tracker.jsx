@@ -948,12 +948,15 @@ export default function RihlatAlHifz() {
         const label=describeBatch(memorized);
         if(label) pushActivity("memorize",`Memorized ${label}`);
         else pushActivity("memorize","Fajr session marked — nothing memorized yet");
-        // Reminder for unfinished ayahs
+        // Reminder for unfinished ayahs — stored separately, not in activity feed
         if(remaining>0){
-          pushActivity("reminder",`You still have ${remaining} ayah${remaining===1?"":"s"} not yet memorized`);
+          try { localStorage.setItem("jalil-hifz-reminder",JSON.stringify({text:`You still have ${remaining} ayah${remaining===1?"":"s"} not yet memorized`,ts:Date.now()})); } catch{}
+        } else {
+          try { localStorage.removeItem("jalil-hifz-reminder"); } catch{}
         }
       } else if(id==="dhuhr"){
-        pushActivity("review","Completed Dhuhr review — last 5 days of memorization");
+        const label=describeBatch(batch);
+        pushActivity("review",label?`Reviewed ${label}`:"Completed Dhuhr review");
       } else if(id==="asr"){
         // Use the user's actual picks: juz + surahs
         const juzLabels=(asrSelectedJuz||[]).map(j=>`Juz ${j}`);
