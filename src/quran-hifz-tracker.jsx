@@ -454,9 +454,9 @@ export default function RihlatAlHifz() {
     setSessionDone([]);
   },[sessionJuz]);
 
-  // Fetch session verses (wait for loaded so backfill completes first)
+  // Fetch session verses (wait for loaded + onboarding complete so backfill completes first)
   useEffect(()=>{
-    if(!sessionJuz||!loaded) return;
+    if(!sessionJuz||!loaded||showOnboarding) return;
     console.log('[FETCH START]', {sessionJuz, 'juzProgress[sessionJuz]': juzProgress[sessionJuz]});
     let cancelled=false;
     (async()=>{
