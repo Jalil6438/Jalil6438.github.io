@@ -90,7 +90,7 @@ export default function RihlahHome({
         {/* Bright overlay — clips left to right + shines */}
         <img src={tier.img} alt="" style={{position:"absolute",top:0,left:0,width:92,height:92,objectFit:"contain",
           clipPath:`inset(0 ${100-pPct}% 0 0)`,
-          filter:`drop-shadow(0 0 ${20*p}px rgba(249,115,22,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(255,200,50,${0.5*p})) brightness(${1+0.3*p})`,
+          filter:`drop-shadow(0 0 ${28*p}px rgba(249,115,22,${0.9*p})) drop-shadow(0 0 ${14*p}px rgba(255,200,50,${0.7*p})) drop-shadow(0 0 ${6*p}px rgba(255,255,200,${0.4*p})) brightness(${1+0.5*p})`,
           transition:"clip-path .5s ease, filter .4s ease"}}/>
       </div>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{tier.label}</span>
