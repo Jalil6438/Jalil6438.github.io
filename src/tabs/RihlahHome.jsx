@@ -81,7 +81,7 @@ export default function RihlahHome({
     const img=streak>=30?"/badge-streak-30.png":streak>=21?"/badge-streak-21.png":streak>=14?"/badge-streak-14.png":"/badge-streak-7.png";
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src={img} alt="" style={{width:100,height:67,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(249,115,22,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <img src={img} alt="" style={{width:140,height:93,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(249,115,22,${0.6*p}))`,transition:"all .4s ease"}}/>
     </div>
     );
   };
@@ -89,7 +89,7 @@ export default function RihlahHome({
     const p=Math.max(0,Math.min(1,progress||0));
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src="/badge-habituated.png" alt="" style={{width:100,height:67,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(245,158,11,${0.5*p}))`,transition:"all .4s ease"}}/>
+      <img src="/badge-habituated.png" alt="" style={{width:140,height:93,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(245,158,11,${0.5*p}))`,transition:"all .4s ease"}}/>
     </div>
     );
   };
