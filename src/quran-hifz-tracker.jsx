@@ -483,18 +483,37 @@ export default function RihlatAlHifz() {
         // 1) Get this juz's surahs in descending memorization order
         const descendingSurahOrder=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
 
-        // Build full juz in hifz-descending order (NOT filtered by completion) — for dhuhr review fallback
-        const orderedAll=[...all].sort((a,b)=>{
-          const surahA=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
-          const surahB=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
-          const ayahA=parseInt(a.verse_key?.split(":")?.[1],10);
-          const ayahB=parseInt(b.verse_key?.split(":")?.[1],10);
-          const idxA=descendingSurahOrder.indexOf(surahA);
-          const idxB=descendingSurahOrder.indexOf(surahB);
-          if(idxA!==idxB) return idxA-idxB;
-          return ayahA-ayahB;
+        // Build full juz in hifz-descending order (NOT filtered by completion) — for dhuhr review
+        const hifzSort=(verses, surahOrder)=>[...verses].sort((a,b)=>{
+          const sA=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
+          const sB=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
+          const aA=parseInt(a.verse_key?.split(":")?.[1],10);
+          const aB=parseInt(b.verse_key?.split(":")?.[1],10);
+          const iA=surahOrder.indexOf(sA), iB=surahOrder.indexOf(sB);
+          if(iA!==iB) return iA-iB;
+          return aA-aB;
         });
-        if(!cancelled) setAllJuzVerses(orderedAll);
+        const orderedAll=hifzSort(all, descendingSurahOrder);
+
+        // Cross-juz: also fetch previous juz (in hifz order) for dhuhr walk-back
+        let prevJuzVerses=[];
+        const prevJuzNum=sessionJuz<30?sessionJuz+1:null;
+        if(prevJuzNum&&!cancelled){
+          try{
+            const prevSurahs=(JUZ_SURAHS[prevJuzNum]||[]).map(item=>item.s);
+            let prevAll=[];
+            for(const sn of prevSurahs){
+              const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${sn}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=1`);
+              if(!res.ok||cancelled) break;
+              const data=await res.json();
+              prevAll=[...prevAll,...(data.verses||[])];
+            }
+            prevAll.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
+            const prevDescOrder=[...prevSurahs].reverse();
+            prevJuzVerses=hifzSort(prevAll, prevDescOrder);
+          }catch{}
+        }
+        if(!cancelled) setAllJuzVerses([...prevJuzVerses,...orderedAll]);
 
         // If whole Juz is already complete (verify all surahs too), show full progress
         const juzSurahList=JUZ_SURAHS[sessionJuz]||[];
