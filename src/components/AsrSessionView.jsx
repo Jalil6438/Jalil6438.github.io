@@ -140,9 +140,10 @@ function AsrSessionView({
                 })}
               </div>
               {/* Page numbers — above nav */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"6px 14px 2px",flexShrink:0,gap:16}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 14px 2px",flexShrink:0}}>
+                <div/>
                 <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} of {totalPages}</div>
-                <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"#6B645A"}}>· Page {currentPage.page}</div>
+                <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"#6B645A"}}>Page {currentPage.page}</div>
               </div>
               {/* Nav buttons */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"4px 14px 10px",flexShrink:0}}>
