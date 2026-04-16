@@ -64,7 +64,7 @@ export default function RihlahHome({
         {/* Lit portion — fills from left, only this part glows */}
         <div style={{position:"absolute",top:0,left:0,bottom:0,width:`${pPct}%`,
           background:"linear-gradient(180deg,#34D399 0%,#059669 100%)",
-          boxShadow:p>0?`4px 0 12px rgba(52,211,153,0.5), 0 0 8px rgba(52,211,153,0.3)`:"none",
+          boxShadow:p>0?`4px 0 18px rgba(52,211,153,0.7), 0 0 12px rgba(52,211,153,0.5), -2px 0 8px rgba(52,211,153,0.3)`:"none",
           transition:"width .5s ease"}}/>
         {/* Text on top */}
         <div style={{position:"relative",zIndex:1,width:"100%",height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
