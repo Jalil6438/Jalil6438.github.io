@@ -1869,6 +1869,18 @@ export default function RihlatAlHifz() {
 
     </>)}
 
+    {/* Badge celebration toast */}
+    {badgeCelebration&&(
+      <div onClick={()=>setBadgeCelebration(null)} style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.60)",backdropFilter:"blur(4px)"}}>
+        <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:24,padding:"32px 28px",maxWidth:320,width:"90%",textAlign:"center",border:"1px solid rgba(217,177,95,0.25)",boxShadow:"0 20px 60px rgba(0,0,0,0.50),0 0 40px rgba(212,175,55,0.15)"}} onClick={e=>e.stopPropagation()}>
+          <div style={{fontSize:48,marginBottom:12}}>{badgeCelebration.emoji}</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:dark?"#F3E7C8":"#2D2A26",marginBottom:8}}>{badgeCelebration.title}</div>
+          <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.65)":"#6B645A",lineHeight:1.6,marginBottom:20}}>{badgeCelebration.message}</div>
+          <div className="sbtn" onClick={()=>setBadgeCelebration(null)} style={{padding:"12px 28px",borderRadius:14,fontSize:13,fontWeight:700,color:"#0A0E1A",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25)",display:"inline-block"}}>Al-Hamdulillah</div>
+        </div>
+      </div>
+    )}
+
     </div>
   );
 }
