@@ -238,6 +238,8 @@ export default function RihlahHome({
         try{
           const r=JSON.parse(localStorage.getItem("jalil-hifz-reminder")||"null");
           if(!r||!r.text) return null;
+          // Only show if from today
+          if(r.ts&&new Date(r.ts).toDateString()!==new Date().toDateString()) return null;
           return (
             <div style={{background:dark?"rgba(229,83,75,0.08)":"rgba(229,83,75,0.06)",border:"1px solid rgba(229,83,75,0.25)",borderRadius:14,padding:"12px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:10}}>
               <span style={{fontSize:16,flexShrink:0}}>⏳</span>
