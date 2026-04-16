@@ -71,9 +71,10 @@ export default function RihlahHome({
     const p=Math.max(0,Math.min(1,juzProgress||0));
     const working=(count||0)<30?(count||0)+1:30;
     const done=(count||0)>=30;
+    const juzImg=done?"/badge-hafiz.png":working<=5?`/badge-juz-${working}.png`:"/badge-juz-5.png";
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:4}}>
-      <img src="/badge-juz-1.png" alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(52,211,153,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <img src={juzImg} alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(52,211,153,${0.6*p}))`,transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{done?"Hafiz!":`Juz ${working}`}</span>
     </div>
     );
@@ -90,27 +91,9 @@ export default function RihlahHome({
   const HifzGoalBadge=({progress})=>{
     const p=Math.max(0,Math.min(1,progress||0));
     return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderRadius:16,padding:"12px",marginTop:-4,marginLeft:-12}}>
-      <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <svg viewBox="0 0 64 64" style={{width:56,height:56,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(245,158,11,${0.5*p}))`,transition:"all .4s ease"}}>
-          <defs>
-            <linearGradient id="sg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FCD34D"/><stop offset="50%" stopColor="#D97706"/><stop offset="100%" stopColor="#92400E"/></linearGradient>
-            <linearGradient id="bg1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#FEF3C7"/><stop offset="100%" stopColor="#F59E0B"/></linearGradient>
-          </defs>
-          <path d="M32 4 L54 12 L54 32 Q54 52 32 60 Q10 52 10 32 L10 12 Z" fill="url(#sg1)" stroke="#B45309" strokeWidth="1"/>
-          <path d="M32 6 L52 13 L52 20 Q40 18 32 20 Q24 18 12 20 L12 13 Z" fill="white" fillOpacity="0.25"/>
-          <g transform="translate(18,20)">
-            <path d="M14 2 L2 6 L2 24 L14 20 Z" fill="url(#bg1)" stroke="#92400E" strokeWidth="0.5"/>
-            <path d="M14 2 L26 6 L26 24 L14 20 Z" fill="url(#bg1)" stroke="#92400E" strokeWidth="0.5"/>
-            <line x1="4" y1="10" x2="12" y2="8" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-            <line x1="4" y1="14" x2="12" y2="12" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-            <line x1="16" y1="8" x2="24" y2="10" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-            <line x1="16" y1="12" x2="24" y2="14" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-            <line x1="14" y1="2" x2="14" y2="20" stroke="#92400E" strokeWidth="1"/>
-          </g>
-        </svg>
-      </div>
-      <span style={{fontSize:9,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:500,letterSpacing:".02em",transition:"color .4s ease"}}>Hifz Goal</span>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:4}}>
+      <img src="/badge-hafiz.png" alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(212,175,55,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>Hifz Goal</span>
     </div>
     );
   };
