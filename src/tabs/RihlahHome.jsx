@@ -51,44 +51,39 @@ export default function RihlahHome({
       bgAlpha: 0.06 * p,
     };
   };
+  // Badge tier system — streak tiers promote through slots
+  const STREAK_TIERS=[
+    {min:0,target:7,img:"/badge-streak-7.png",label:"7 Days"},
+    {min:7,target:14,img:"/badge-streak-14.png",label:"14 Days"},
+    {min:14,target:21,img:"/badge-streak-21.png",label:"21 Days"},
+    {min:21,target:30,img:"/badge-streak-30.png",label:"30 Days"},
+    {min:30,target:40,img:"/badge-habituated.png",label:"Habituated"},
+    {min:40,target:60,img:"/badge-devotion-60.png",label:"Devotion"},
+    {min:60,target:90,img:"/badge-mastery-90.png",label:"Mastery"},
+  ];
+  const currentTierIdx=STREAK_TIERS.findIndex(t=>(streak||0)<t.target);
+  const currentTier=STREAK_TIERS[currentTierIdx>=0?currentTierIdx:STREAK_TIERS.length-1];
+  const nextTier=STREAK_TIERS[currentTierIdx>=0?Math.min(currentTierIdx+1,STREAK_TIERS.length-1):STREAK_TIERS.length-1];
+  const streakProgress=currentTier.target>currentTier.min?((streak||0)-currentTier.min)/(currentTier.target-currentTier.min):1;
+  const nextProgress=nextTier.target>nextTier.min?Math.max(0,((streak||0)-nextTier.min)/(nextTier.target-nextTier.min)):0;
+
   const JuzBadge=({count,juzProgress})=>{
     const p=Math.max(0,Math.min(1,juzProgress||0));
-    const pPct=Math.round(p*100);
     const working=(count||0)<30?(count||0)+1:30;
     const done=(count||0)>=30;
     return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderRadius:16,padding:"12px"}}>
-      <div style={{position:"relative",width:52,height:52,marginBottom:6,borderRadius:"50%",overflow:"hidden",border:"1.5px solid rgba(110,231,183,0.25)"}}>
-        <div style={{position:"absolute",inset:0,background:"#0A2E1B"}}/>
-        <div style={{position:"absolute",top:0,left:0,bottom:0,width:`${pPct}%`,
-          background:"linear-gradient(180deg,#34D399 0%,#059669 100%)",
-          boxShadow:p>0?`4px 0 18px rgba(52,211,153,0.7), 0 0 12px rgba(52,211,153,0.5), -2px 0 8px rgba(52,211,153,0.3)`:"none",
-          transition:"width .5s ease"}}/>
-        <div style={{position:"relative",zIndex:1,width:"100%",height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-          <span style={{fontSize:18,fontWeight:700,color:`rgba(255,255,255,${0.06+0.94*p})`,lineHeight:1,transition:"color .4s ease"}}>{working}</span>
-          <span style={{fontSize:8,fontWeight:600,color:`rgba(167,243,208,${0.05+0.95*p})`,transition:"color .4s ease"}}>Juz</span>
-        </div>
-      </div>
-      <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.75)",textAlign:"center"}}>{done?"Hafiz!":count>0?`${count} Complete`:`${pPct}%`}</div>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
+      <img src="/badge-juz-1.png" alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(52,211,153,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{done?"Hafiz!":`Juz ${working}`}</span>
     </div>
     );
   };
-  const StreakBadge=({progress})=>{
-    const p=Math.max(0,Math.min(1,progress||0));
-    const img=streak>=30?"/badge-streak-30.png":streak>=21?"/badge-streak-21.png":streak>=14?"/badge-streak-14.png":"/badge-streak-7.png";
-    return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src={img} alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(249,115,22,${0.6*p}))`,transition:"all .4s ease"}}/>
-      <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{streak>=21?"21 Days":streak>=14?"14 Days":streak>=7?"7 Days":"7 Days"}</span>
-    </div>
-    );
-  };
-  const HabituatedBadge=({progress})=>{
+  const StreakSlot=({progress,tier})=>{
     const p=Math.max(0,Math.min(1,progress||0));
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src="/badge-habituated.png" alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(245,158,11,${0.5*p}))`,transition:"all .4s ease"}}/>
-      <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>Habituated</span>
+      <img src={tier.img} alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(249,115,22,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{tier.label}</span>
     </div>
     );
   };
@@ -277,9 +272,9 @@ export default function RihlahHome({
         <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
         <div style={{display:"flex",alignItems:"flex-start",gap:12,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"14px 6px 14px 2px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",overflowX:"auto"}}>
           <JuzBadge count={completedCount||0} juzProgress={totalSV>0?sessionIdx/totalSV:(completedCount>0?1:0)}/>
-          <StreakBadge progress={1}/>
-          <HabituatedBadge progress={1}/>
-          <HifzGoalBadge progress={1}/>
+          <StreakSlot progress={streakProgress} tier={currentTier}/>
+          <StreakSlot progress={nextProgress} tier={nextTier}/>
+          <HifzGoalBadge progress={(completedCount||0)>0?Math.min(1,(completedCount||0)/30):0}/>
         </div>
       </div>
 
