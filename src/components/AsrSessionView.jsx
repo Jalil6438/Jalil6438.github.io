@@ -199,21 +199,6 @@ function AsrSessionView({
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
 
-          {/* Progress */}
-          <div style={{marginBottom:6,padding:"0 20px"}}>
-            <div style={{color:T2.goldBright,fontSize:12,fontWeight:800,marginBottom:8}}>Progress</div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:10}}>
-              <div style={{padding:"6px 12px",borderRadius:999,background:T2.greenSoft,border:"1px solid rgba(89,217,138,0.16)",color:"#B8F5D0",fontSize:12,fontWeight:700}}>
-                {asrSurahProgress.filter(s=>s.state==="complete").length} Memorized
-              </div>
-              {asrSurahProgress.find(s=>s.state==="current")&&(
-                <div style={{padding:"6px 12px",borderRadius:999,background:"transparent",border:"1px solid rgba(210,168,90,0.18)",color:"rgba(226,188,114,0.65)",fontSize:11,fontWeight:400}}>
-                  {asrSurahProgress.find(s=>s.state==="current")?.label}
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Buttons */}
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 20px"}}>
             <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E0BD78 0%,#CEAA60 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.10),inset 0 1px 0 rgba(255,255,255,0.10)"}}>
