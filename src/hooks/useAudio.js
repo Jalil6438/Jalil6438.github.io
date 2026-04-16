@@ -157,7 +157,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   }
 
   function getQuranSurahUrl(reciterId,surahNum){
-    const r=QURAN_RECITERS.find(x=>x.id===reciterId);
+    const r=RECITERS.find(x=>x.id===reciterId)||QURAN_RECITERS.find(x=>x.id===reciterId);
     if(!r?.quranicaudio) return null;
     return `https://download.quranicaudio.com/quran/${r.quranicaudio}/${String(surahNum).padStart(3,"0")}.mp3`;
   }
