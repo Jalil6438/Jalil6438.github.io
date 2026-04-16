@@ -68,8 +68,8 @@ export default function RihlahHome({
           transition:"width .5s ease"}}/>
         {/* Text on top */}
         <div style={{position:"relative",zIndex:1,width:"100%",height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-          <span style={{fontSize:18,fontWeight:700,color:`rgba(255,255,255,${0.12+0.88*p})`,lineHeight:1,transition:"color .4s ease"}}>{working}</span>
-          <span style={{fontSize:8,fontWeight:600,color:`rgba(167,243,208,${0.10+0.90*p})`,transition:"color .4s ease"}}>Juz</span>
+          <span style={{fontSize:18,fontWeight:700,color:`rgba(255,255,255,${0.06+0.94*p})`,lineHeight:1,transition:"color .4s ease"}}>{working}</span>
+          <span style={{fontSize:8,fontWeight:600,color:`rgba(167,243,208,${0.05+0.95*p})`,transition:"color .4s ease"}}>Juz</span>
         </div>
       </div>
       <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.75)",textAlign:"center"}}>{done?"Hafiz!":count>0?`${count} Complete`:`${pPct}%`}</div>
