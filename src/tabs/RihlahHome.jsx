@@ -59,14 +59,11 @@ export default function RihlahHome({
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderRadius:16,padding:"12px"}}>
       <div style={{position:"relative",width:52,height:52,marginBottom:6,borderRadius:"50%",overflow:"hidden",border:"1.5px solid rgba(110,231,183,0.25)"}}>
-        {/* Dark base — always visible */}
         <div style={{position:"absolute",inset:0,background:"#0A2E1B"}}/>
-        {/* Lit portion — fills from left, only this part glows */}
         <div style={{position:"absolute",top:0,left:0,bottom:0,width:`${pPct}%`,
           background:"linear-gradient(180deg,#34D399 0%,#059669 100%)",
           boxShadow:p>0?`4px 0 18px rgba(52,211,153,0.7), 0 0 12px rgba(52,211,153,0.5), -2px 0 8px rgba(52,211,153,0.3)`:"none",
           transition:"width .5s ease"}}/>
-        {/* Text on top */}
         <div style={{position:"relative",zIndex:1,width:"100%",height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
           <span style={{fontSize:18,fontWeight:700,color:`rgba(255,255,255,${0.06+0.94*p})`,lineHeight:1,transition:"color .4s ease"}}>{working}</span>
           <span style={{fontSize:8,fontWeight:600,color:`rgba(167,243,208,${0.05+0.95*p})`,transition:"color .4s ease"}}>Juz</span>
@@ -81,7 +78,7 @@ export default function RihlahHome({
     const img=streak>=30?"/badge-streak-30.png":streak>=21?"/badge-streak-21.png":streak>=14?"/badge-streak-14.png":"/badge-streak-7.png";
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src={img} alt="" style={{width:140,height:93,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(249,115,22,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <img src={img} alt="" style={{width:56,height:56,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(249,115,22,${0.6*p}))`,transition:"all .4s ease"}}/>
     </div>
     );
   };
@@ -89,7 +86,7 @@ export default function RihlahHome({
     const p=Math.max(0,Math.min(1,progress||0));
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src="/badge-habituated.png" alt="" style={{width:140,height:93,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(245,158,11,${0.5*p}))`,transition:"all .4s ease"}}/>
+      <img src="/badge-habituated.png" alt="" style={{width:56,height:56,objectFit:"contain",opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(245,158,11,${0.5*p}))`,transition:"all .4s ease"}}/>
     </div>
     );
   };
@@ -276,7 +273,7 @@ export default function RihlahHome({
       <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"18px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 16%)"}}/>
         <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"14px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)"}}>
+        <div style={{display:"flex",justifyContent:"space-around",alignItems:"flex-end",gap:4,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"12px 8px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)"}}>
           <JuzBadge count={completedCount||0} juzProgress={totalSV>0?sessionIdx/totalSV:(completedCount>0?1:0)}/>
           <StreakBadge progress={(()=>{
             const s=streak||0; if(s===0) return 0;
