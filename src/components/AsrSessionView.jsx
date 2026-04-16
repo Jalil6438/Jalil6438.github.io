@@ -103,10 +103,9 @@ function AsrSessionView({
                 if(dx>0&&safePage<totalPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
                 else if(dx<0&&safePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
               }}>
-              {/* Surah + Page header */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px",flexShrink:0}}>
+              {/* Surah header */}
+              <div style={{padding:"8px 14px",flexShrink:0}}>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>{SURAH_EN[firstSurah]||""}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Page {currentPage.page}</div>
               </div>
               <div key={safePage} ref={asrMushafScrollRef} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{flex:1,overflow:"hidden",padding:"8px 14px"}}>
                 {subs.map((sub,si)=>{
