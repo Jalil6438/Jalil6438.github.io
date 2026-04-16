@@ -85,10 +85,9 @@ export default function RihlahHome({
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
       <div style={{position:"relative",width:92,height:92,flexShrink:0}}>
-        {/* Dim base — always visible */}
-        <img src={tier.img} alt="" style={{width:92,height:92,objectFit:"contain",opacity:0.08,filter:"grayscale(0.9)"}}/>
-        {/* Bright overlay — clips from left to right */}
-        <img src={tier.img} alt="" style={{position:"absolute",top:0,left:0,width:92,height:92,objectFit:"contain",clipPath:`inset(0 ${100-pPct}% 0 0)`,filter:`drop-shadow(0 0 ${16*p}px rgba(249,115,22,${0.7*p}))`,transition:"clip-path .5s ease, filter .4s ease"}}/>
+        <img src={tier.img} alt="" style={{width:92,height:92,objectFit:"contain",opacity:0.12+0.88*p,filter:`grayscale(${(1-p)*0.7})`,transition:"all .4s ease"}}/>
+        {/* Glow sweep — follows progress from left to right */}
+        {p>0&&<div style={{position:"absolute",inset:0,background:`radial-gradient(circle at ${pPct}% 50%, rgba(249,115,22,${0.5*p}) 0%, transparent 50%)`,filter:`blur(${6+8*p}px)`,pointerEvents:"none",transition:"all .5s ease"}}/>}
       </div>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{tier.label}</span>
     </div>
