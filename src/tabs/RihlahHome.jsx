@@ -77,7 +77,7 @@ export default function RihlahHome({
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:8}}>
       <img src={juzImg} alt="" style={{width:85,height:85,objectFit:"contain",flexShrink:0,
         opacity:0.08+0.92*p,
-        filter:`grayscale(${(1-p)*0.9}) drop-shadow(0 0 ${28*p}px rgba(52,211,153,${0.9*p})) drop-shadow(0 0 ${14*p}px rgba(100,255,180,${0.7*p})) brightness(${1+0.4*p})`,
+        filter:`grayscale(${(1-p)*0.9}) drop-shadow(0 0 ${35*p}px rgba(52,211,153,${1*p})) drop-shadow(0 0 ${18*p}px rgba(100,255,180,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(200,255,230,${0.5*p})) brightness(${1+0.6*p})`,
         transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{done?"Hafiz!":`Juz ${working}`}</span>
     </div>
@@ -89,7 +89,7 @@ export default function RihlahHome({
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
       <img src={tier.img} alt="" style={{width:92,height:92,objectFit:"contain",flexShrink:0,
         opacity:0.08+0.92*p,
-        filter:`grayscale(${(1-p)*0.9}) drop-shadow(0 0 ${28*p}px rgba(249,115,22,${0.9*p})) drop-shadow(0 0 ${14*p}px rgba(255,200,50,${0.7*p})) brightness(${1+0.4*p})`,
+        filter:`grayscale(${(1-p)*0.9}) drop-shadow(0 0 ${35*p}px rgba(249,115,22,${1*p})) drop-shadow(0 0 ${18*p}px rgba(255,200,50,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(255,255,200,${0.5*p})) brightness(${1+0.6*p})`,
         transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{tier.label}</span>
     </div>
@@ -102,7 +102,7 @@ export default function RihlahHome({
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:4}}>
       <img src="/badge-hafiz.png" alt="" style={{width:92,height:92,objectFit:"contain",flexShrink:0,
         opacity:0.08+0.92*p,
-        filter:`grayscale(${(1-p)*0.9}) drop-shadow(0 0 ${28*p}px rgba(212,175,55,${0.9*p})) drop-shadow(0 0 ${14*p}px rgba(255,220,100,${0.7*p})) brightness(${1+0.4*p})`,
+        filter:`grayscale(${(1-p)*0.9}) drop-shadow(0 0 ${35*p}px rgba(212,175,55,${1*p})) drop-shadow(0 0 ${18*p}px rgba(255,220,100,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(255,255,200,${0.5*p})) brightness(${1+0.6*p})`,
         transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>Hifz Goal</span>
     </div>
@@ -278,7 +278,7 @@ export default function RihlahHome({
       <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"18px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 16%)"}}/>
         <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
-        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",gap:12,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"14px 16px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",overflowX:"auto"}}>
+        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",gap:12,position:"relative",zIndex:1,padding:"6px 8px"}}>
           <JuzBadge count={completedCount||0} juzProgress={totalSV>0?sessionIdx/totalSV:(completedCount>0?1:0)}/>
           <StreakSlot progress={streakProgress>0?Math.max(0.3,Math.pow(streakProgress,0.5)):0} tier={currentTier}/>
           <HifzGoalBadge progress={(completedCount||0)>0?Math.min(1,(completedCount||0)/30):0}/>
