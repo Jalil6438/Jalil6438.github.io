@@ -213,10 +213,6 @@ function AsrSessionView({
                 </div>
               )}
             </div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div style={{color:T2.ivoryFaint,fontSize:12}}>Ayahs</div>
-              <div style={{color:T2.goldBright,fontSize:12,fontWeight:600}}>{asrBatch.length} total</div>
-            </div>
           </div>
 
           {/* Buttons */}
