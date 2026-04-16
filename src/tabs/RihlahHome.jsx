@@ -72,7 +72,7 @@ export default function RihlahHome({
     const working=(count||0)<30?(count||0)+1:30;
     const done=(count||0)>=30;
     return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:4}}>
       <img src="/badge-juz-1.png" alt="" style={{width:60,height:60,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(52,211,153,${0.6*p}))`,transition:"all .4s ease"}}/>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{done?"Hafiz!":`Juz ${working}`}</span>
     </div>
