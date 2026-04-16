@@ -95,7 +95,7 @@ export default function RihlahHome({
   const HifzGoalBadge=({progress})=>{
     const p=Math.max(0,Math.min(1,progress||0));
     return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderRadius:16,padding:"12px",marginTop:-8,marginLeft:-12}}>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderRadius:16,padding:"12px",marginTop:-4,marginLeft:-12}}>
       <div style={{position:"relative",width:64,height:64,marginBottom:4,display:"flex",alignItems:"center",justifyContent:"center"}}>
         <svg viewBox="0 0 64 64" style={{width:56,height:56,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${12*p}px rgba(245,158,11,${0.5*p}))`,transition:"all .4s ease"}}>
           <defs>
