@@ -642,7 +642,7 @@ export default function RihlatAlHifz() {
         let page=1,all=[],tp=1;
         do {
           setLoadMsg(`Loading page ${page} of ${tp}`);
-          const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${selectedJuz}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
+          const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${selectedJuz}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50&page=${page}`);
           if(!res.ok) throw new Error();
           const data=await res.json();
           if(cancelled) return;
@@ -1058,7 +1058,7 @@ export default function RihlatAlHifz() {
       for(const juzNum of juzPool) {
         let page=1, tp=1;
         do {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50&page=${page}`);
           if(!res.ok) break;
           const data = await res.json();
           (data.verses||[]).forEach(v => {
@@ -1070,7 +1070,7 @@ export default function RihlatAlHifz() {
 
       // Step 4 — fetch verses for eligible surahs
       for(const surahNum of eligibleSurahs) {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=1`);
         if(!res.ok) continue;
         const data = await res.json();
         (data.verses||[]).forEach(v => {
@@ -1161,7 +1161,7 @@ export default function RihlatAlHifz() {
         }));
         return;
       }
-      const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=300&page=1`);
+      const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=1`);
       if(!res.ok) throw new Error();
       const data=await res.json();
       const verses=data.verses||[];
@@ -1191,7 +1191,7 @@ export default function RihlatAlHifz() {
       }
       let page=1,all=[],tp=1;
       do {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number&per_page=50&page=${page}`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50&page=${page}`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;

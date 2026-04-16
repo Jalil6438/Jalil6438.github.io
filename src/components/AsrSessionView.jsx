@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
 import { SURAH_AR } from "../data/quran-metadata";
-import { toArabicDigits } from "../utils";
+import { toArabicDigits, mushafImageUrl } from "../utils";
 
 // ── ASR SESSION VIEW (must be outside parent to avoid remount on every render) ─
 function AsrSessionView({
@@ -71,33 +71,60 @@ function AsrSessionView({
 
           {/* ── MUSHAF MODE — paged by surah ── */}
           {asrViewMode==="mushaf"&&(()=>{
-            const surahGroups=[];
+            // Group by mushaf page_number — one page at a time with nav
+            const pageGroups=[];
             let curGroup=null;
             asrBatch.forEach(v=>{
-              const sNum=v.surah_number||parseInt(v.verse_key.split(":")[0],10);
-              if(!curGroup||curGroup.sNum!==sNum){ curGroup={sNum,ayahs:[]}; surahGroups.push(curGroup); }
+              const pn=v.page_number||0;
+              if(!curGroup||curGroup.page!==pn){ curGroup={page:pn,ayahs:[]}; pageGroups.push(curGroup); }
               curGroup.ayahs.push(v);
             });
+            const totalPages=pageGroups.length;
+            const safePage=Math.min(asrSafePage,Math.max(0,totalPages-1));
+            const currentPage=pageGroups[safePage];
+            if(!currentPage) return null;
+            // Sub-group by surah within this page
+            const subs=[];let sg=null;
+            currentPage.ayahs.forEach(v=>{
+              const sn=v.surah_number||parseInt(v.verse_key.split(":")[0],10);
+              if(!sg||sg.sNum!==sn){sg={sNum:sn,ayahs:[]};subs.push(sg);}
+              sg.ayahs.push(v);
+            });
+            const firstSurah=subs[0]?.sNum||0;
             return (
-            <div ref={asrMushafScrollRef} style={{flex:1,overflowY:"auto",padding:"12px 14px"}}>
-              {surahGroups.map((group,gi)=>{
-                const isFirst=group.ayahs[0]&&group.ayahs[0].verse_key.split(":")[1]==="1";
-                return (
-                  <div key={group.sNum+"-"+gi}>
-                    {(gi>0||isFirst)&&(
-                      <div style={{textAlign:"center",padding:"16px 0 12px"}}>
-                        <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sNum]||""}</div>
-                        <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sNum]}</div>
-                        {isFirst&&group.sNum!==9&&group.sNum!==1&&(
-                          <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>
-                            بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
-                          </div>
+            <div style={{flex:1,overflow:"hidden",position:"relative",display:"flex",flexDirection:"column"}}
+              onTouchStart={e=>{asrTouchStartRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY};}}
+              onTouchEnd={e=>{
+                if(!asrTouchStartRef.current) return;
+                const dx=e.changedTouches[0].clientX-asrTouchStartRef.current.x;
+                const dy=e.changedTouches[0].clientY-asrTouchStartRef.current.y;
+                asrTouchStartRef.current=null;
+                if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)) return;
+                if(dx>0&&safePage<totalPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
+                else if(dx<0&&safePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
+              }}>
+              {/* Surah + Page header */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px",flexShrink:0}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>{SURAH_EN[firstSurah]||""}</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Page {currentPage.page}</div>
+              </div>
+              <div ref={asrMushafScrollRef} style={{flex:1,overflowY:"auto",padding:"8px 14px"}}>
+                {subs.map((sub,si)=>{
+                  const isFirst=sub.ayahs[0]&&sub.ayahs[0].verse_key.split(":")[1]==="1";
+                  return (
+                  <div key={sub.sNum+"-"+si}>
+                    {(si>0||isFirst)&&(
+                      <div style={{textAlign:"center",padding:"12px 0 10px"}}>
+                        <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[sub.sNum]||""}</div>
+                        <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[sub.sNum]}</div>
+                        {isFirst&&sub.sNum!==9&&sub.sNum!==1&&(
+                          <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                         )}
                         <div style={{height:1,margin:"10px auto 0",width:"80%",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
                       </div>
                     )}
                     <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                      {group.ayahs.map(v=>{
+                      {sub.ayahs.map(v=>{
                         const vKey=v.verse_key;
                         const aNum=parseInt(vKey.split(":")[1],10);
                         return (
@@ -109,9 +136,15 @@ function AsrSessionView({
                         );
                       })}
                     </div>
-                  </div>
-                );
-              })}
+                  </div>);
+                })}
+              </div>
+              {/* Page nav — RTL */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",flexShrink:0}}>
+                <div className={safePage<totalPages-1?"sbtn":""} onClick={()=>{if(safePage<totalPages-1){setAsrSlideDir("left");setAsrPage(p=>p+1);asrMushafScrollRef.current?.scrollTo(0,0);}}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage<totalPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage<totalPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage<totalPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
+                <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A"}}>{safePage+1} of {totalPages}</div>
+                <div className={safePage>0?"sbtn":""} onClick={()=>{if(safePage>0){setAsrSlideDir("right");setAsrPage(p=>p-1);asrMushafScrollRef.current?.scrollTo(0,0);}}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage>0?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev ›</div>
+              </div>
             </div>
             );
           })()}
