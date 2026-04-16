@@ -72,7 +72,7 @@ export default function RihlahHome({
     const pPct=Math.round(p*100);
     const working=(count||0)<30?(count||0)+1:30;
     const done=(count||0)>=30;
-    const juzImg=done?"/badge-hafiz.png":working<=5?`/badge-juz-${working}.png`:"/badge-juz-5.png";
+    const juzImg=done?"/badge-hafiz.png":working<=10?`/badge-juz-${working}.png`:"/badge-juz-10.png";
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:8}}>
       <img src={juzImg} alt="" style={{width:85,height:85,objectFit:"contain",flexShrink:0,
