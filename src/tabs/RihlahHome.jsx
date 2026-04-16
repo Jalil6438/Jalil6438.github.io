@@ -69,12 +69,19 @@ export default function RihlahHome({
 
   const JuzBadge=({count,juzProgress})=>{
     const p=Math.max(0,Math.min(1,juzProgress||0));
+    const pPct=Math.round(p*100);
     const working=(count||0)<30?(count||0)+1:30;
     const done=(count||0)>=30;
     const juzImg=done?"/badge-hafiz.png":working<=5?`/badge-juz-${working}.png`:"/badge-juz-5.png";
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:8}}>
-      <img src={juzImg} alt="" style={{width:85,height:85,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${20*p}px rgba(52,211,153,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(52,211,153,${0.5*p}))`,transition:"all .4s ease"}}/>
+      <div style={{position:"relative",width:85,height:85,flexShrink:0}}>
+        <img src={juzImg} alt="" style={{width:85,height:85,objectFit:"contain",opacity:0.08,filter:"grayscale(0.9)"}}/>
+        <img src={juzImg} alt="" style={{position:"absolute",top:0,left:0,width:85,height:85,objectFit:"contain",
+          clipPath:`inset(0 ${100-pPct}% 0 0)`,
+          filter:`drop-shadow(0 0 ${28*p}px rgba(52,211,153,${0.9*p})) drop-shadow(0 0 ${14*p}px rgba(100,255,180,${0.7*p})) drop-shadow(0 0 ${6*p}px rgba(200,255,230,${0.4*p})) brightness(${1+0.5*p})`,
+          transition:"clip-path .5s ease, filter .4s ease"}}/>
+      </div>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{done?"Hafiz!":`Juz ${working}`}</span>
     </div>
     );
@@ -99,9 +106,16 @@ export default function RihlahHome({
   };
   const HifzGoalBadge=({progress})=>{
     const p=Math.max(0,Math.min(1,progress||0));
+    const pPct=Math.round(p*100);
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px",marginTop:4}}>
-      <img src="/badge-hafiz.png" alt="" style={{width:92,height:92,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${24*p}px rgba(212,175,55,${0.9*p})) drop-shadow(0 0 ${10*p}px rgba(212,175,55,${0.6*p}))`,transition:"all .4s ease"}}/>
+      <div style={{position:"relative",width:92,height:92,flexShrink:0}}>
+        <img src="/badge-hafiz.png" alt="" style={{width:92,height:92,objectFit:"contain",opacity:0.08,filter:"grayscale(0.9)"}}/>
+        <img src="/badge-hafiz.png" alt="" style={{position:"absolute",top:0,left:0,width:92,height:92,objectFit:"contain",
+          clipPath:`inset(0 ${100-pPct}% 0 0)`,
+          filter:`drop-shadow(0 0 ${28*p}px rgba(212,175,55,${0.9*p})) drop-shadow(0 0 ${14*p}px rgba(255,220,100,${0.7*p})) drop-shadow(0 0 ${6*p}px rgba(255,255,200,${0.4*p})) brightness(${1+0.5*p})`,
+          transition:"clip-path .5s ease, filter .4s ease"}}/>
+      </div>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>Hifz Goal</span>
     </div>
     );
