@@ -142,7 +142,7 @@ function AsrSessionView({
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto"}}>
                 <div/>
                 <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} of {totalPages}</div>
-                <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"#6B645A"}}>Page {currentPage.page}</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Page {currentPage.page}</div>
               </div>
               {/* Nav buttons */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",flexShrink:0}}>
