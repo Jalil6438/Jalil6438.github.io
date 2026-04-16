@@ -256,7 +256,7 @@ export default function RihlahHome({
       {/* ── 6. TODAY'S ACTIVITY ── */}
       {(()=>{
         const todayStr=new Date().toDateString();
-        const todayActivity=(recentActivity||[]).filter(ev=>ev.ts&&new Date(ev.ts).toDateString()===todayStr);
+        const todayActivity=(recentActivity||[]).filter(ev=>ev.ts&&ev.type!=="reminder"&&new Date(ev.ts).toDateString()===todayStr);
         return (
         <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px 18px",marginBottom:10}}>
           <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:14}}>Today's Activity</div>
