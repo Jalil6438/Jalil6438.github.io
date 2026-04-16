@@ -271,10 +271,10 @@ export default function RihlahHome({
         <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 16%)"}}/>
         <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
         <div style={{display:"flex",alignItems:"flex-start",gap:12,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"14px 6px 14px 2px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",overflowX:"auto"}}>
-          <JuzBadge count={completedCount||0} juzProgress={1}/>
-          <StreakSlot progress={1} tier={currentTier}/>
-          <StreakSlot progress={1} tier={nextTier}/>
-          <HifzGoalBadge progress={1}/>
+          <JuzBadge count={completedCount||0} juzProgress={totalSV>0?sessionIdx/totalSV:(completedCount>0?1:0)}/>
+          <StreakSlot progress={streakProgress} tier={currentTier}/>
+          <StreakSlot progress={nextProgress} tier={nextTier}/>
+          <HifzGoalBadge progress={(completedCount||0)>0?Math.min(1,(completedCount||0)/30):0}/>
         </div>
       </div>
 
