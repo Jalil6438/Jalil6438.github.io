@@ -302,7 +302,7 @@ export default function RihlatAlHifz() {
 
   // Badge milestone celebrations — fires once per milestone, stored in localStorage
   useEffect(()=>{
-    if(!loaded) return;
+    if(!loaded||showOnboarding) return;
     const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
     const milestones=[
       {key:"juz-1",test:completedCount>=1,emoji:"🎉",title:"Al-Hamdulillah!",msg:"You just completed your first juz!"},
