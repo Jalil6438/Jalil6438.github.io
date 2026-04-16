@@ -53,17 +53,22 @@ export default function RihlahHome({
   };
   const JuzBadge=({count,juzProgress})=>{
     const p=Math.max(0,Math.min(1,juzProgress||0));
+    const pPct=Math.round(p*100);
     const working=(count||0)<30?(count||0)+1:30;
     const done=(count||0)>=30;
+    // Badge circle glows from left to right — lit portion = progress, rest stays dim
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",borderRadius:16,padding:"12px"}}>
-      <div style={{position:"relative",width:52,height:52,marginBottom:6,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <div style={{width:52,height:52,borderRadius:"50%",background:"linear-gradient(180deg,#34D399 0%,#059669 50%,#064E3B 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"1.5px solid rgba(110,231,183,0.4)",boxShadow:`0 0 ${p*30}px rgba(52,211,153,${p*0.6}), 0 0 ${p*15}px rgba(52,211,153,${p*0.4})`,transition:"box-shadow .4s ease"}}>
-          <span style={{fontSize:18,fontWeight:700,color:"#fff",lineHeight:1}}>{working}</span>
-          <span style={{fontSize:8,fontWeight:600,color:"rgba(167,243,208,0.9)"}}>Juz</span>
-        </div>
+      <div style={{width:52,height:52,marginBottom:6,borderRadius:"50%",
+        background:`linear-gradient(90deg, rgba(52,211,153,${0.4+0.6*p}) 0%, rgba(5,150,105,${0.3+0.7*p}) ${pPct}%, #0A2E1B ${pPct}%, #0A2E1B 100%)`,
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        border:"1.5px solid rgba(110,231,183,0.4)",
+        boxShadow:`0 0 ${p*20}px rgba(52,211,153,${p*0.5})`,
+        transition:"background .5s ease, box-shadow .5s ease"}}>
+        <span style={{fontSize:18,fontWeight:700,color:"#fff",lineHeight:1}}>{working}</span>
+        <span style={{fontSize:8,fontWeight:600,color:"rgba(167,243,208,0.9)"}}>Juz</span>
       </div>
-      <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.75)",textAlign:"center"}}>{done?"Hafiz!":count>0?`${count} Complete`:"In Progress"}</div>
+      <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.75)",textAlign:"center"}}>{done?"Hafiz!":count>0?`${count} Complete`:`${pPct}%`}</div>
     </div>
     );
   };
