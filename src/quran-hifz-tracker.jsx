@@ -48,6 +48,7 @@ export default function RihlatAlHifz() {
   const [connectionPhase,setConnectionPhase]=useState(false); // true = linking ayahs together
   const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
   const [hifzViewMode,setHifzViewMode]=useState("interactive"); // "interactive" or "mushaf"
+  const [badgeCelebration,setBadgeCelebration]=useState(null); // {emoji, title, message}
   const [todayFajrBatch,setTodayFajrBatch]=useState([]); // saved when Fajr has ayahs, used by Maghrib/Isha
   const [simVerseCache,setSimVerseCache]=useState({});
   const fetchSimVerse=async(vk)=>{
@@ -181,6 +182,31 @@ export default function RihlatAlHifz() {
     v9JuzProgress, v9IsJuzComplete, isSurahComplete, hasAnyAyahsInJuz,
     memorizedAyahs, totalAyahsInQuran, pct, completedCount, completedSurahCount,
   } = useHifzProgress(completedAyahs, setCompletedAyahs);
+
+  // Badge milestone celebrations — fires once per milestone, stored in localStorage
+  useEffect(()=>{
+    if(!loaded) return;
+    const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
+    const milestones=[
+      {key:"juz-1",test:completedCount>=1,emoji:"🎉",title:"Al-Hamdulillah!",msg:"You just completed your first juz!"},
+      {key:"juz-5",test:completedCount>=5,emoji:"🌟",title:"Al-Hamdulillah!",msg:"5 juz memorized — keep going!"},
+      {key:"juz-10",test:completedCount>=10,emoji:"✨",title:"Al-Hamdulillah!",msg:"10 juz memorized — a third of the Qur'an!"},
+      {key:"juz-15",test:completedCount>=15,emoji:"🌙",title:"Al-Hamdulillah!",msg:"Half the Qur'an memorized!"},
+      {key:"juz-20",test:completedCount>=20,emoji:"📖",title:"Al-Hamdulillah!",msg:"20 juz — you are close!"},
+      {key:"juz-30",test:completedCount>=30,emoji:"🕋",title:"You are now a Hafiz!",msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"},
+      {key:"streak-7",test:streak>=7,emoji:"🔥",title:"7 Day Streak!",msg:"A week of consistency — Al-Hamdulillah!"},
+      {key:"streak-21",test:streak>=21,emoji:"🔥",title:"21 Day Streak!",msg:"Three weeks — it's becoming a habit!"},
+      {key:"streak-40",test:streak>=40,emoji:"🔥",title:"Habituated!",msg:"40 days — the Salaf said this is when habits form."},
+    ];
+    for(const m of milestones){
+      if(m.test&&!shown[m.key]){
+        setBadgeCelebration({emoji:m.emoji,title:m.title,message:m.msg});
+        shown[m.key]=true;
+        localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
+        break; // show one at a time
+      }
+    }
+  },[completedCount,streak,loaded]);
 
   // Load mushaf layout once
   useEffect(()=>{
@@ -1464,7 +1490,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="home"&&!showTerms&&(
-        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity}/>
+        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
