@@ -277,15 +277,9 @@ export default function RihlahHome({
         <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:18,position:"relative",zIndex:1}}>Badges Earned</div>
         <div style={{display:"flex",alignItems:"flex-start",gap:12,position:"relative",zIndex:1,background:"linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0.2))",borderRadius:16,padding:"14px 6px 14px 2px",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.05)",overflowX:"auto"}}>
           <JuzBadge count={completedCount||0} juzProgress={totalSV>0?sessionIdx/totalSV:(completedCount>0?1:0)}/>
-          <StreakBadge progress={(()=>{
-            const s=streak||0; if(s===0) return 0;
-            if(s<7) return s/7;
-            if(s<14) return (s-7)/7;
-            if(s<21) return (s-14)/7;
-            return 1;
-          })()}/>
-          <HabituatedBadge progress={(streak||0)>0?Math.min(1,(streak||0)/40):0}/>
-          <HifzGoalBadge progress={(completedCount||0)>0?Math.min(1,(completedCount||0)/30):0}/>
+          <StreakBadge progress={1}/>
+          <HabituatedBadge progress={1}/>
+          <HifzGoalBadge progress={1}/>
         </div>
       </div>
 
