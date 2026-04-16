@@ -108,7 +108,7 @@ function AsrSessionView({
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>{SURAH_EN[firstSurah]||""}</div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Page {currentPage.page}</div>
               </div>
-              <div ref={asrMushafScrollRef} style={{flex:1,overflowY:"auto",padding:"8px 14px"}}>
+              <div key={safePage} ref={asrMushafScrollRef} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{flex:1,overflow:"hidden",padding:"8px 14px"}}>
                 {subs.map((sub,si)=>{
                   const isFirst=sub.ayahs[0]&&sub.ayahs[0].verse_key.split(":")[1]==="1";
                   return (
