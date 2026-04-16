@@ -81,9 +81,15 @@ export default function RihlahHome({
   };
   const StreakSlot=({progress,tier})=>{
     const p=Math.max(0,Math.min(1,progress||0));
+    const pPct=Math.round(p*100);
     return (
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,borderRadius:16,padding:"8px"}}>
-      <img src={tier.img} alt="" style={{width:92,height:92,objectFit:"contain",flexShrink:0,opacity:0.06+0.94*p,filter:`grayscale(${(1-p)*0.8}) drop-shadow(0 0 ${20*p}px rgba(249,115,22,${0.8*p})) drop-shadow(0 0 ${8*p}px rgba(249,115,22,${0.5*p}))`,transition:"all .4s ease"}}/>
+      <div style={{position:"relative",width:92,height:92,flexShrink:0}}>
+        {/* Dim base — always visible */}
+        <img src={tier.img} alt="" style={{width:92,height:92,objectFit:"contain",opacity:0.08,filter:"grayscale(0.9)"}}/>
+        {/* Bright overlay — clips from left to right */}
+        <img src={tier.img} alt="" style={{position:"absolute",top:0,left:0,width:92,height:92,objectFit:"contain",clipPath:`inset(0 ${100-pPct}% 0 0)`,filter:`drop-shadow(0 0 ${16*p}px rgba(249,115,22,${0.7*p}))`,transition:"clip-path .5s ease, filter .4s ease"}}/>
+      </div>
       <span style={{fontSize:8,color:`rgba(255,255,255,${0.06+0.94*p})`,fontWeight:600,transition:"color .4s ease"}}>{tier.label}</span>
     </div>
     );
