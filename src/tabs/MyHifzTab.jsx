@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
@@ -8,6 +8,7 @@ import { saveCompletedAyahs, toArabicDigits } from "../utils";
 export default function MyHifzTab(props) {
   const {
     asrSessionView,
+    pushActivity,
     haramainMeta,
     // theme/constants
     dark, T, SESSIONS, fontSize,
@@ -74,6 +75,50 @@ export default function MyHifzTab(props) {
     }, 10 * 60 * 1000);
     return () => clearTimeout(t);
   }, [rotatingSession, wisdomOffset]);
+
+  // Fajr milestone tracking — log 20× phase + connection phase in activity feed
+  const repsLoggedRef = useRef(null); // tracks which page's 20× was logged
+  const connLoggedRef = useRef(null); // tracks which page's connections were logged
+  useEffect(() => {
+    if (currentSessionId !== "fajr" || !pushActivity || !batch.length) return;
+    const APS = 7;
+    const aPages = Math.max(1, Math.ceil(batch.length / APS));
+    const aSafe = Math.min(ayahPage, aPages - 1);
+    const aStart = aSafe * APS;
+    const aEnd = Math.min(aStart + APS, batch.length);
+    const pageAyahs = batch.slice(aStart, aEnd);
+    if (!pageAyahs.length) return;
+    const pageKey = `${aStart}-${aEnd}`;
+
+    // Check 20× phase complete
+    const allRepsDone = pageAyahs.every(v => (repCounts[v.verse_key] || 0) >= 20);
+    if (allRepsDone && repsLoggedRef.current !== pageKey) {
+      repsLoggedRef.current = pageKey;
+      const first = pageAyahs[0], last = pageAyahs[pageAyahs.length - 1];
+      const fS = first.surah_number || parseInt(first.verse_key?.split(":")[0], 10);
+      const fA = parseInt(first.verse_key?.split(":")[1], 10);
+      const lA = parseInt(last.verse_key?.split(":")[1], 10);
+      const name = SURAH_EN[fS] || "";
+      pushActivity("milestone", `Completed 20× repetition of ${name} ayat ${fA}-${lA}`);
+    }
+
+    // Check connection phase complete
+    if (allRepsDone && pageAyahs.length >= 2) {
+      const pairs = [];
+      for (let i = 0; i < pageAyahs.length - 1; i++) pairs.push(`pair-${aStart + i}-${aStart + i + 1}`);
+      const allKey = `all-${aStart}`;
+      const allConnDone = [...pairs, allKey].every(k => (connectionReps[k] || 0) >= 10);
+      if (allConnDone && connLoggedRef.current !== pageKey) {
+        connLoggedRef.current = pageKey;
+        const first = pageAyahs[0], last = pageAyahs[pageAyahs.length - 1];
+        const fS = first.surah_number || parseInt(first.verse_key?.split(":")[0], 10);
+        const fA = parseInt(first.verse_key?.split(":")[1], 10);
+        const lA = parseInt(last.verse_key?.split(":")[1], 10);
+        const name = SURAH_EN[fS] || "";
+        pushActivity("milestone", `Completed connection phase of ${name} ayat ${fA}-${lA}`);
+      }
+    }
+  }, [currentSessionId, batch, ayahPage, repCounts, connectionReps, pushActivity]);
 
   return (
         <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",position:"relative"}} className="fi gold-particles">

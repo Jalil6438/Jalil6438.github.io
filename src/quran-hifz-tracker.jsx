@@ -1439,6 +1439,7 @@ export default function RihlatAlHifz() {
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&!showTerms&&(
         <MyHifzTab
+          pushActivity={pushActivity}
           asrSessionView={(!sessLoading&&currentSessionId==="asr"&&asrStarted&&batch.length>0)?(
             <AsrSessionView
               dark={dark}
