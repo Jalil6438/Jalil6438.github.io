@@ -111,26 +111,32 @@ export default function MyHifzTab(props) {
     ? fajrPageVerses[fajrPageNum]
     : rawBatch;
 
-  // Drop the tail of the previous surah from a page's verses, keeping only
-  // surahs that *begin* on this page (have an ayah 1 present). If no surah
-  // begins fresh (page is pure continuation), return the page unchanged.
-  const filterToNewSurahs = (pageVs) => {
-    if (!pageVs || !pageVs.length) return pageVs || [];
-    const startingSurahs = new Set();
-    pageVs.forEach(v => {
-      const [s, a] = (v.verse_key || "").split(":");
-      if (a === "1") startingSurahs.add(Number(s) || v.surah_number);
-    });
-    if (startingSurahs.size === 0) return pageVs;
+  // Filter a page's verses to the surah the user is actively memorizing.
+  // Reads the active surah off the first verse of the incoming batch (= the
+  // next unmemorized ayah in the hifz sequence, main-file-filtered so surahs
+  // marked complete in onboarding are already skipped).
+  //
+  // Handles three cases correctly:
+  //   - Fresh surah start on this page (e.g. Qiyāmah 1 on page 577) → shows
+  //     that surah's ayahs on the page.
+  //   - Continuation of a surah started yesterday (e.g. Qiyāmah 20-40 on page
+  //     578, where Insān 1-5 also lives but Insān was marked complete in
+  //     onboarding) → shows Qiyāmah 20-40, drops Insān.
+  //   - Previous surah's tail (e.g. Muddaththir 48-56 on page 577) when the
+  //     user is on Qiyāmah → dropped, since active surah is Qiyāmah.
+  const activeSurahNum = rawBatch[0]?.surah_number
+    || parseInt(rawBatch[0]?.verse_key?.split(":")?.[0] || "0", 10);
+  const filterToActiveSurah = (pageVs) => {
+    if (!pageVs || !pageVs.length || !activeSurahNum) return pageVs || [];
     return pageVs.filter(v => {
       const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
-      return startingSurahs.has(s);
+      return s === activeSurahNum;
     });
   };
 
-  // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) only show surahs
-  // that begin on this page; the tail of the previous surah is dropped.
-  const batch = isPageBasedSession ? filterToNewSurahs(pageBatch) : pageBatch;
+  // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) show only
+  // the active surah's ayahs on the current mushaf page.
+  const batch = isPageBasedSession ? filterToActiveSurah(pageBatch) : pageBatch;
 
   // ── Connection-phase computation — lifted out of the render IIFE so the modal-
   //    dismiss state can react to visible-step count changes.
@@ -928,7 +934,7 @@ export default function MyHifzTab(props) {
                       // page fetch never completed.
                       const fajrPageForAdvance = fajrBatch[0]?.page_number;
                       const fajrPageVs = fajrPageForAdvance ? fajrPageVerses[fajrPageForAdvance] : null;
-                      const fajrMemorized = fajrPageVs && fajrPageVs.length ? filterToNewSurahs(fajrPageVs) : fajrBatch;
+                      const fajrMemorized = fajrPageVs && fajrPageVs.length ? filterToActiveSurah(fajrPageVs) : fajrBatch;
                       const fajrAdvance = fajrMemorized.length || fajrBatch.length;
                       setYesterdayBatch(fajrMemorized);
                       setRecentBatches(prev=>[...prev.slice(-4),fajrMemorized.map(v=>({verse_key:v.verse_key,text_uthmani:v.text_uthmani,surah_number:v.surah_number,page_number:v.page_number}))].slice(-5));
