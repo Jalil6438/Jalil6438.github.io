@@ -529,12 +529,27 @@ export default function MyHifzTab(props) {
                 {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(()=>{
                   const pageNum = batch[0]?.page_number;
                   const juzNum = batch[0]?.juz_number;
-                  // Page-header surah, per mushaf convention: the "new" surah on the page
-                  // is the one shown in the header. If the page has end-of-Muddaththir +
-                  // start-of-Qiyamah, the header reads "Al-Qiyamah" (the new surah). We
-                  // pick the last surah present on the page, which handles both the
-                  // "all one surah" and "continuation + new surah" cases.
-                  const leadSurahNum = batch[batch.length - 1]?.surah_number || parseInt(batch[batch.length - 1]?.verse_key?.split(":")?.[0] || "0", 10);
+                  // Page-header surah, per mushaf convention: whichever surah has the
+                  // greater portion (most ayahs) on this page wins the label. Ties go
+                  // to the later surah. So page 577 with a few Muddaththir ayahs +
+                  // 19 Qiyamah ayahs reads "Al-Qiyamah"; a page with most-of-long-surah
+                  // + 1-ayah-start-of-next reads the longer one.
+                  const leadSurahNum = (() => {
+                    const counts = {};
+                    const order = [];
+                    batch.forEach(v => {
+                      const sn = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
+                      if (counts[sn] === undefined) { counts[sn] = 0; order.push(sn); }
+                      counts[sn] += 1;
+                    });
+                    let winner = order[0] || 0;
+                    order.forEach(sn => {
+                      if (counts[sn] > counts[winner] || (counts[sn] === counts[winner] && order.indexOf(sn) > order.indexOf(winner))) {
+                        winner = sn;
+                      }
+                    });
+                    return winner;
+                  })();
                   // Hizb fractional marker derived from rub_el_hizb_number (1-240).
                   // Each hizb = 4 rubs: 1 = ¼, 2 = ½, 3 = ¾, 0 = hizb start.
                   // Show the marker for the first quarter that *starts* on this page.
