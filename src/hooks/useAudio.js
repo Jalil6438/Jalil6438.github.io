@@ -11,6 +11,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
 
   function getEveryayahFolder(id){
+    if(!id) return null; // no reciter picked — caller must handle (don't play)
     const r=RECITERS.find(x=>x.id===id);
     if(r?.everyayah) return r.everyayah;
     // Extra reciters only in QURAN_RECITERS
@@ -24,6 +25,8 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
 
   async function playAyah(verseKey,key){
     if(playingKey===key){ audioRef.current?.pause(); setPlayingKey(null); return; }
+    // No reciter picked — don't silently fall back to Dossari.
+    if(!reciter){ return; }
     if(audioRef.current){audioRef.current.pause();audioRef.current=null;}
     setAudioLoading(key);
     const [surah,ayah]=verseKey.split(":");
@@ -107,10 +110,11 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   function playMushafRange(verses){
     if(!verses||verses.length===0) return;
     if(mushafAudioPlaying){ stopMushafAudio(); return; }
+    const folder=getEveryayahFolder(quranReciter);
+    // No reciter picked — don't silently fall back to Dossari.
+    if(!folder){ return; }
     stopMushafAudio();
     setMushafAudioPlaying(true);
-
-    const folder=getEveryayahFolder(quranReciter);
     function urlFor(vKey){
       const [s,a]=vKey.split(":");
       return `https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;

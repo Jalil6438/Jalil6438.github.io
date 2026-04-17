@@ -649,7 +649,7 @@ export default function MyHifzTab(props) {
             {!sessLoading&&batch.length>0&&!isAsr&&(
               <div>
                 {/* Listen-along for review sessions — sits above the batch header */}
-                {["dhuhr","maghrib","isha"].includes(currentSessionId)&&playMushafRange&&batch.length>0&&(()=>{
+                {["dhuhr","maghrib","isha"].includes(currentSessionId)&&playMushafRange&&batch.length>0&&reciter&&(()=>{
                   const pageGroups=[];
                   let cg=null;
                   batch.forEach(v=>{
@@ -758,7 +758,7 @@ export default function MyHifzTab(props) {
                           <div style={{textAlign:"center",fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5}}>
                             Recite with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> and begin your memorization.
                           </div>
-                          {playMushafRange&&pageBatch.length>0&&(
+                          {playMushafRange&&pageBatch.length>0&&reciter&&(
                             <div style={{textAlign:"center",marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
                               <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(pageBatch); }}
                                 style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
