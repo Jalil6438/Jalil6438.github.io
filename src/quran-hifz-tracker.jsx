@@ -1137,12 +1137,24 @@ export default function RihlatAlHifz() {
         return;
       }
 
-      // Step 2 — Sheikh Al-Qasim's progressive revision table
-      // Daily revision amount scales with how much you've memorized:
-      // 1-5 juz → 0.5 juz/day | 6-10 → 1 juz/day | 11-15 → 1.5 juz/day
-      // 16-20 → 2 juz/day | 21-25 → 2.5 juz/day | 26-30 → 3 juz/day
-      const totalCompleted = eligibleJuz.length;
-      const dailyJuzAmount = totalCompleted <= 5 ? 0.5 : totalCompleted <= 10 ? 1 : totalCompleted <= 15 ? 1.5 : totalCompleted <= 20 ? 2 : totalCompleted <= 25 ? 2.5 : 3;
+      // Step 2 — Shaykh Al-Qasim's 6-stage revision table (book pp. 44-45).
+      // Revision amount is keyed to the surah you are currently memorizing —
+      // not to how many juz you've finished. Revision always starts from the
+      // beginning of An-Nās and walks back toward your memorization point.
+      //   Stage 1: memorizing An-Nās (114) → Al-Aḥqāf (46)      → 1/2 juz/day
+      //   Stage 2: memorizing Al-Jāthiyah (45) → Al-ʿAnkabūt (29) → 1 juz/day
+      //   Stage 3: memorizing Al-Qaṣaṣ (28) → Al-Kahf (18)        → 1.5 juz/day
+      //   Stage 4: memorizing Al-Isrā (17) → At-Tawbah (9)         → 2 juz/day
+      //   Stage 5: memorizing Al-Anfāl (8) → Al-Māʾidah (5)        → 2.5 juz/day
+      //   Stage 6: memorizing An-Nisā (4) → Al-Baqarah (2)         → 3 juz/day
+      const activeSurahForStage = sessionVerses[sessionIdx]?.surah_number
+        || parseInt(sessionVerses[sessionIdx]?.verse_key?.split(":")?.[0] || "114", 10);
+      const dailyJuzAmount = activeSurahForStage >= 46 ? 0.5
+        : activeSurahForStage >= 29 ? 1
+        : activeSurahForStage >= 18 ? 1.5
+        : activeSurahForStage >= 9 ? 2
+        : activeSurahForStage >= 5 ? 2.5
+        : 3;
       // Sort eligible juz in mushaf order for cycling
       const sortedEligible = [...eligibleJuz].sort((a,b) => a - b);
       // Rotate through all completed juz — advances each session
