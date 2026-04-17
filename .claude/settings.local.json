@@ -37,7 +37,20 @@
       "Bash(curl -sIL \"https://archive.org/download/HaramainHumaid/001.mp3\")",
       "Bash(curl -sL \"https://archive.org/metadata/HaramainHumaid\")",
       "Bash(git pull:*)",
-      "Bash(awk 'NR==1816 || NR==1770 {print NR\":\"$0}' src/quran-hifz-tracker.jsx)"
+      "Bash(awk 'NR==1816 || NR==1770 {print NR\":\"$0}' src/quran-hifz-tracker.jsx)",
+      "Bash(curl -s \"https://archive.org/metadata/HaramainMuhanna\")",
+      "Bash(curl -sI -o /dev/null -w '%{http_code}' https://download.quranicaudio.com/quran/__TRACKED_VAR__/__TRACKED_VAR__.mp3)",
+      "Bash(curl -sI -o /dev/null -w '%{http_code}' https://server12.mp3quran.net/maher/__TRACKED_VAR__.mp3)",
+      "Bash(curl -s https://archive.org/metadata/__TRACKED_VAR__)",
+      "Bash(curl -s -o c:/Users/Mark/reciters.json \"https://mp3quran.net/api/v3/reciters?language=eng\" -w \"HTTP:%{http_code} size:%{size_download}\\\\n\")",
+      "Bash(curl -sI -o /dev/null -w '%{http_code}' https://download.quranicaudio.com/quran/__TRACKED_VAR__/001.mp3)",
+      "Read(//c/Users/Mark/**)",
+      "Bash(curl -sL -o c:/Users/Mark/reciters_ar.json \"https://mp3quran.net/api/v3/reciters?language=ar\" -w \"HTTP:%{http_code} size:%{size_download}\\\\n\")",
+      "Bash(python -c ':*)",
+      "Bash(curl -s \"https://archive.org/metadata/HaramainAyub\")",
+      "Bash(curl -sI -o /dev/null -w \"%{http_code}\\\\n\" \"https://everyayah.com/data/Muhanna_128kbps/001001.mp3\")",
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"require\\('@babel/parser'\\).parse\\(require\\('fs'\\).readFileSync\\('src/quran-hifz-tracker.jsx','utf8'\\),{sourceType:'module',plugins:['jsx']}\\); console.log\\('OK'\\)\")"
     ]
   }
 }

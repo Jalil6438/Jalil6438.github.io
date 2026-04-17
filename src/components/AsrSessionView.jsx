@@ -90,7 +90,37 @@ function AsrSessionView({
               if(!sg||sg.sNum!==sn){sg={sNum:sn,ayahs:[]};subs.push(sg);}
               sg.ayahs.push(v);
             });
-            const firstSurah=subs[0]?.sNum||0;
+            // Dominant surah for this page (most ayahs wins, ties go to later surah)
+            const dominantSurah=(()=>{
+              const counts={};const order=[];
+              currentPage.ayahs.forEach(v=>{
+                const sn=v.surah_number||parseInt(v.verse_key.split(":")[0],10);
+                if(counts[sn]===undefined){counts[sn]=0;order.push(sn);}
+                counts[sn]+=1;
+              });
+              let w=order[0]||0;
+              order.forEach(sn=>{
+                if(counts[sn]>counts[w]||(counts[sn]===counts[w]&&order.indexOf(sn)>order.indexOf(w))) w=sn;
+              });
+              return w;
+            })();
+            const asrJuzNum=currentPage.ayahs[0]?.juz_number;
+            const asrHizbLabel=(()=>{
+              for(let i=0;i<currentPage.ayahs.length;i++){
+                const v=currentPage.ayahs[i];
+                const r=v.rub_el_hizb_number;
+                if(typeof r!=="number") continue;
+                const prev=i>0?currentPage.ayahs[i-1]:null;
+                if(prev&&prev.rub_el_hizb_number===r) continue;
+                const pos=((r-1)%4)+1;
+                const hizb=Math.ceil(r/4);
+                if(pos===1) return `¼ Hizb ${hizb}`;
+                if(pos===2) return `½ Hizb ${hizb}`;
+                if(pos===3) return `¾ Hizb ${hizb}`;
+                if(pos===4) return `Hizb ${hizb}`;
+              }
+              return null;
+            })();
             return (
             <div style={{flex:1,overflow:"hidden",position:"relative",display:"flex",flexDirection:"column"}}
               onTouchStart={e=>{asrTouchStartRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY};}}
@@ -103,9 +133,12 @@ function AsrSessionView({
                 if(dx>0&&safePage<totalPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
                 else if(dx<0&&safePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
               }}>
-              {/* Surah header */}
-              <div style={{padding:"8px 14px",flexShrink:0}}>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>{SURAH_EN[firstSurah]||""}</div>
+              {/* Page chrome — Part top-left, dominant Surah top-right */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px 4px",flexShrink:0}}>
+                {asrJuzNum?(
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Part {asrJuzNum}</div>
+                ):<div/>}
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>{SURAH_EN[dominantSurah]||""}</div>
               </div>
               <div key={safePage} ref={asrMushafScrollRef} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{flex:1,overflow:"hidden",padding:"8px 14px"}}>
                 {subs.map((sub,si)=>{
@@ -138,11 +171,13 @@ function AsrSessionView({
                   </div>);
                 })}
               </div>
-              {/* Page numbers — above nav */}
+              {/* Page chrome bottom — hizb · page (right), session page counter (center) */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto"}}>
                 <div/>
                 <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} of {totalPages}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Page {currentPage.page}</div>
+                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
+                  {asrHizbLabel?`${asrHizbLabel} · `:""}Page {currentPage.page}
+                </div>
               </div>
               {/* Nav buttons */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",flexShrink:0}}>

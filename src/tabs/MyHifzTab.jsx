@@ -109,24 +109,25 @@ export default function MyHifzTab(props) {
     ? fajrPageVerses[fajrPageNum]
     : rawBatch;
 
-  // Memorization batch — Study mode only memorizes surahs that *begin* on this
-  // page (have an ayah 1 present). The tail of a previous surah that's just
-  // continuing onto this page isn't part of today's new memorization. When no
-  // surah starts fresh (the page is pure continuation of one surah), the
-  // whole page is the batch.
-  const batch = (() => {
-    if (!isFajr) return pageBatch;
+  // Drop the tail of the previous surah from a page's verses, keeping only
+  // surahs that *begin* on this page (have an ayah 1 present). If no surah
+  // begins fresh (page is pure continuation), return the page unchanged.
+  const filterToNewSurahs = (pageVs) => {
+    if (!pageVs || !pageVs.length) return pageVs || [];
     const startingSurahs = new Set();
-    pageBatch.forEach(v => {
+    pageVs.forEach(v => {
       const [s, a] = (v.verse_key || "").split(":");
       if (a === "1") startingSurahs.add(Number(s) || v.surah_number);
     });
-    if (startingSurahs.size === 0) return pageBatch;
-    return pageBatch.filter(v => {
+    if (startingSurahs.size === 0) return pageVs;
+    return pageVs.filter(v => {
       const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
       return startingSurahs.has(s);
     });
-  })();
+  };
+
+  // Memorization batch — Study mode only memorizes surahs that begin on this page.
+  const batch = isFajr ? filterToNewSurahs(pageBatch) : pageBatch;
 
   // ── Connection-phase computation — lifted out of the render IIFE so the modal-
   //    dismiss state can react to visible-step count changes.
@@ -222,10 +223,11 @@ export default function MyHifzTab(props) {
 
   // ── Mushaf = reading mode. Study = memorizing mode. ──
   // Mushaf-mode memorization features are muted (not deleted) via this flag so we
-  // can flip it back if we change direction. When false, Mushaf renders as a pure
-  // reading surface: no rep taps, no pair/closer modals, no session button.
+  // can flip it back if we change direction. When false, Mushaf Fajr renders as a
+  // pure reading surface: no rep taps, no pair/closer modals, no session button.
+  // All other sessions (Dhuhr/Asr/Maghrib/Isha) always have their Complete button.
   const MUSHAF_INTERACTIVE = false;
-  const memorizingActive = isFajr && (!isMushafFajr || MUSHAF_INTERACTIVE);
+  const memorizingActive = !isMushafFajr || MUSHAF_INTERACTIVE;
 
   // Closer has priority: when a surah's full closer is ready, it takes the
   // screen; the pair modal waits its turn. Pair modal hides when every visible
@@ -832,24 +834,28 @@ export default function MyHifzTab(props) {
                           </div>
                           <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:56,height:56,borderRadius:"50%",background:dark?(looping?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))"):(looping?"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.10),rgba(228,216,184,0.95))":"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.04),rgba(228,216,184,0.95))"),border:`1.5px solid ${looping?"rgba(212,175,55,0.40)":"rgba(212,175,55,0.30)"}`,boxShadow:"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:looping?(dark?"#F0C040":"#6B645A"):(dark?"rgba(243,231,200,0.75)":"#5A4A20")}}>🔁</div>
                         </div>
-                        {/* Rep counter */}
-                        <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(20,(prev[mvKey]||0)+1);if(newCount>=20&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}if(newCount>=20){setTimeout(()=>setOpenAyah(null),450);}return{...prev,[mvKey]:newCount};});}}
-                          style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .3s ease",
-                            background:dark?(mvRepsDone?"rgba(212,175,55,0.10)":"rgba(212,175,55,0.04)"):(mvRepsDone?"rgba(0,0,0,0.08)":"rgba(0,0,0,0.03)"),
-                            border:`1.5px solid ${mvRepsDone?"rgba(212,175,55,0.45)":"rgba(212,175,55,0.25)"}`,
-                            boxShadow:mvRepsDone?"0 0 16px rgba(212,175,55,0.20), 0 4px 14px rgba(0,0,0,0.15)":"0 0 12px rgba(212,175,55,0.12), 0 4px 14px rgba(0,0,0,0.10)"}}>
-                          {mvRepsDone?(
-                            <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ 20/20 Complete — MashaAllah!</div>
-                          ):(
-                            <div>
-                              <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Recited <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/20</span> · Tap after each recitation</div>
-                              <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                                <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:mvPct>=100?"linear-gradient(90deg,#D4AF37,#F6E27A)":"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.4s cubic-bezier(.4,0,.2,1)"}}/>
+                        {/* Rep counter — only in Fajr (new memorization). Review sessions
+                            show translation + audio only; no rep taps to avoid confusing
+                            users into thinking reviews involve 20× repetition. */}
+                        {currentSessionId==="fajr"&&(
+                          <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(20,(prev[mvKey]||0)+1);if(newCount>=20&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}if(newCount>=20){setTimeout(()=>setOpenAyah(null),450);}return{...prev,[mvKey]:newCount};});}}
+                            style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .3s ease",
+                              background:dark?(mvRepsDone?"rgba(212,175,55,0.10)":"rgba(212,175,55,0.04)"):(mvRepsDone?"rgba(0,0,0,0.08)":"rgba(0,0,0,0.03)"),
+                              border:`1.5px solid ${mvRepsDone?"rgba(212,175,55,0.45)":"rgba(212,175,55,0.25)"}`,
+                              boxShadow:mvRepsDone?"0 0 16px rgba(212,175,55,0.20), 0 4px 14px rgba(0,0,0,0.15)":"0 0 12px rgba(212,175,55,0.12), 0 4px 14px rgba(0,0,0,0.10)"}}>
+                            {mvRepsDone?(
+                              <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ 20/20 Complete — MashaAllah!</div>
+                            ):(
+                              <div>
+                                <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Recited <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/20</span> · Tap after each recitation</div>
+                                <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+                                  <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:mvPct>=100?"linear-gradient(90deg,#D4AF37,#F6E27A)":"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.4s cubic-bezier(.4,0,.2,1)"}}/>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                        {mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Restart</div>}
+                            )}
+                          </div>
+                        )}
+                        {currentSessionId==="fajr"&&mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Restart</div>}
                         {/* Similar verses (المتشابهات) */}
                         {MUTASHABIHAT[mvKey]&&MUTASHABIHAT[mvKey].some(sk=>completedAyahs.has(sk))&&(
                           <div style={{marginTop:12,padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
@@ -913,9 +919,18 @@ export default function MyHifzTab(props) {
                     setOpenAyah(null);
                     setAyahPage(0);
                     if(activeSessionIndex>=SESSIONS.length-1){
-                      setYesterdayBatch(fajrBatch);
-                      setRecentBatches(prev=>[...prev.slice(-4),fajrBatch.map(v=>({verse_key:v.verse_key,text_uthmani:v.text_uthmani,surah_number:v.surah_number}))].slice(-5));
-                      if(bEnd>=totalSV&&totalSV>0&&sessionJuz){
+                      // How much did we actually memorize today? In the page-based model,
+                      // it's the filtered page batch (new surahs only), not the old
+                      // dailyNew-driven fajrBatch. Fall back to fajrBatch.length if the
+                      // page fetch never completed.
+                      const fajrPageForAdvance = fajrBatch[0]?.page_number;
+                      const fajrPageVs = fajrPageForAdvance ? fajrPageVerses[fajrPageForAdvance] : null;
+                      const fajrMemorized = fajrPageVs && fajrPageVs.length ? filterToNewSurahs(fajrPageVs) : fajrBatch;
+                      const fajrAdvance = fajrMemorized.length || fajrBatch.length;
+                      setYesterdayBatch(fajrMemorized);
+                      setRecentBatches(prev=>[...prev.slice(-4),fajrMemorized.map(v=>({verse_key:v.verse_key,text_uthmani:v.text_uthmani,surah_number:v.surah_number,page_number:v.page_number}))].slice(-5));
+                      const pageBasedEnd = sessionIdx + fajrAdvance;
+                      if(pageBasedEnd>=totalSV&&totalSV>0&&sessionJuz){
                         setSessionIdx(totalSV);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:totalSV}));
                         setJuzStatus(prev=>markJuzAndSurahsComplete(prev,sessionJuz));
@@ -923,17 +938,17 @@ export default function MyHifzTab(props) {
                         v9MarkJuzComplete(sessionJuz); // V9
                         setSessionJuz(null);
                       } else if(sessionJuz) {
-                        const actualEnd=sessionIdx+fajrBatch.length;
+                        const actualEnd=pageBasedEnd;
                         setSessionIdx(actualEnd);
                         setJuzProgress(prev=>({...prev,[sessionJuz]:actualEnd}));
                         // V9: add all completed ayahs up to actualEnd + mark completed surahs
                         setCompletedAyahs(prev=>{const next=new Set(prev);sessionVerses.slice(0,actualEnd).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
                         // Mark completed surahs in V9
-                        const surahCounts={};const surahTotals={};
+                        const surahTotals={};
                         sessionVerses.forEach(v=>{const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);surahTotals[sn]=(surahTotals[sn]||0)+1;});
                         let cursor=0;const surahOrder=[];
                         sessionVerses.forEach(v=>{const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);if(!surahOrder.includes(sn))surahOrder.push(sn);});
-                        for(const sn of surahOrder){const count=surahTotals[sn]||0;if(cursor+count<=bEnd)v9MarkSurahComplete(sn);cursor+=count;}
+                        for(const sn of surahOrder){const count=surahTotals[sn]||0;if(cursor+count<=actualEnd)v9MarkSurahComplete(sn);cursor+=count;}
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});

@@ -469,7 +469,7 @@ export default function RihlatAlHifz() {
         for(const surahNum of surahsInJuz){
           let page=1,tp=1;
           do {
-            const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=${page}`);
+            const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=300&page=${page}`);
             if(!res.ok) throw new Error();
             const data=await res.json();
             if(cancelled) return;
@@ -503,7 +503,7 @@ export default function RihlatAlHifz() {
             const prevSurahs=(JUZ_SURAHS[prevJuzNum]||[]).map(item=>item.s);
             let prevAll=[];
             for(const sn of prevSurahs){
-              const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${sn}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=1`);
+              const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${sn}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=300&page=1`);
               if(!res.ok||cancelled) break;
               const data=await res.json();
               prevAll=[...prevAll,...(data.verses||[])];
@@ -661,7 +661,7 @@ export default function RihlatAlHifz() {
         let page=1,all=[],tp=1;
         do {
           setLoadMsg(`Loading page ${page} of ${tp}`);
-          const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${selectedJuz}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50&page=${page}`);
+          const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${selectedJuz}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50&page=${page}`);
           if(!res.ok) throw new Error();
           const data=await res.json();
           if(cancelled) return;
@@ -771,25 +771,41 @@ export default function RihlatAlHifz() {
 
   let batch=fajrBatch;
   if(isDhuhr){
-    // 5-day review = last (dailyNew * 5) most-recently-memorized ayahs.
-    // PRIMARY: walk backward from the user's current position in the full
-    // (unfiltered) hifz-ordered juz list. This handles both onboarded users
-    // (reaches into already-completed surahs) and active users uniformly.
+    // Dhuhr = last 5 mushaf pages of memorization. Walk backward from the
+    // user's current position, collect the last 5 distinct page_numbers, then
+    // include every ayah that sits on those pages. If fewer than 5 pages are
+    // available (new user or onboarded without any session memorization yet),
+    // fall back to everything they've memorized via recentBatches / yesterdayBatch.
     const seen=new Set();
     const combined=[];
-    const reviewCount=Math.max(dailyNew*5,5);
     if(allJuzVerses.length>0){
       const currentKey=sessionVerses[sessionIdx]?.verse_key;
       let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
       if(allIdx<0) allIdx=allJuzVerses.length;
-      allJuzVerses.slice(Math.max(0,allIdx-reviewCount),allIdx).forEach(v=>{
-        if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }
+      const wantPages=5;
+      const pagesCollected=new Set();
+      // Walk backward once to pick up the last 5 distinct page numbers.
+      for(let i=allIdx-1;i>=0;i--){
+        const p=allJuzVerses[i]?.page_number;
+        if(!p) continue;
+        if(!pagesCollected.has(p)){
+          if(pagesCollected.size>=wantPages) break;
+          pagesCollected.add(p);
+        }
+      }
+      // Now collect every ayah on those pages (in hifz order).
+      allJuzVerses.slice(0,allIdx).forEach(v=>{
+        if(v.page_number&&pagesCollected.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
+          seen.add(v.verse_key);
+          combined.push(v);
+        }
       });
     }
-    // Secondary: merge in anything from yesterdayBatch / recentBatches that
-    // wasn't already captured (handles cross-juz work on veteran accounts).
+    // Merge in anything from recentBatches / yesterdayBatch not already captured
+    // (covers onboarded users with marked juz outside allJuzVerses' reach, and
+    // the "< 5 pages memorized → show everything" fallback).
     (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
-    (recentBatches.slice(0,-1)||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    (recentBatches||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
     batch=combined.length>0?combined:[];
   }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
@@ -1077,7 +1093,7 @@ export default function RihlatAlHifz() {
       for(const juzNum of juzPool) {
         let page=1, tp=1;
         do {
-          const res = await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50&page=${page}`);
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50&page=${page}`);
           if(!res.ok) break;
           const data = await res.json();
           (data.verses||[]).forEach(v => {
@@ -1089,7 +1105,7 @@ export default function RihlatAlHifz() {
 
       // Step 4 — fetch verses for eligible surahs
       for(const surahNum of eligibleSurahs) {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=1`);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=300&page=1`);
         if(!res.ok) continue;
         const data = await res.json();
         (data.verses||[]).forEach(v => {
@@ -1180,7 +1196,7 @@ export default function RihlatAlHifz() {
         }));
         return;
       }
-      const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=300&page=1`);
+      const res=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=300&page=1`);
       if(!res.ok) throw new Error();
       const data=await res.json();
       const verses=data.verses||[];
@@ -1210,7 +1226,7 @@ export default function RihlatAlHifz() {
       }
       let page=1,all=[],tp=1;
       do {
-        const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50&page=${page}`);
+        const res=await fetch(`https://api.quran.com/api/v4/verses/by_juz/${juzNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50&page=${page}`);
         if(!res.ok) throw new Error();
         const data=await res.json();
         all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
