@@ -15,6 +15,7 @@ export default function Onboarding({
   openJuzPanel, setOpenJuzPanel,
   loaded,
   setShowOnboarding,
+  JUZ_PAGES, SURAH_PAGES,
 }) {
   return (
     <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -101,13 +102,34 @@ export default function Onboarding({
       )}
       {onboardStep===4&&loaded&&(()=>{
         try {
-        // Page-based pace: 1 mushaf page per day. Pages-per-juz averages ~20.1
-        // across the 30 juz, so each completed juz subtracts ~20 pages from the
-        // remaining total. At 30 days/month this yields the completion timeline.
-        const AVG_PAGES_PER_JUZ=604/30;
-        const pagesCompleted=Math.round((completedCount||0)*AVG_PAGES_PER_JUZ);
+        // Exact page count from marked juz + surahs (no ayah approximation).
+        // Each complete juz N contributes pages JUZ_PAGES[N-1]..JUZ_PAGES[N]-1.
+        // Each complete surah N contributes pages SURAH_PAGES[N]..SURAH_PAGES[N+1]-1
+        // (surah 114 goes through page 604). A Set dedupes pages shared between
+        // adjacent short surahs. At 1 page/day, months = ceil(pagesRemaining/30).
+        const pagesCompleted=(()=>{
+          const pageSet=new Set();
+          Object.entries(juzStatus||{}).forEach(([key,val])=>{
+            if(val!=="complete") return;
+            if(/^\d+$/.test(key)){
+              const n=parseInt(key,10);
+              if(n>=1&&n<=30&&JUZ_PAGES){
+                const start=JUZ_PAGES[n-1], end=JUZ_PAGES[n]-1;
+                for(let p=start;p<=end;p++) pageSet.add(p);
+              }
+            } else if(key.startsWith("s")&&SURAH_PAGES){
+              const n=parseInt(key.slice(1),10);
+              if(n>=1&&n<=114){
+                const start=SURAH_PAGES[n];
+                const end=n<114?(SURAH_PAGES[n+1]-1):604;
+                if(start&&end>=start){ for(let p=start;p<=end;p++) pageSet.add(p); }
+              }
+            }
+          });
+          return pageSet.size;
+        })();
         const pagesRemaining=Math.max(0,604-pagesCompleted);
-        const monthsRemaining=Math.max(1,Math.round(pagesRemaining/30));
+        const monthsRemaining=Math.max(1,Math.ceil(pagesRemaining/30));
         const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
         return (
           <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
@@ -120,7 +142,6 @@ export default function Onboarding({
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.75)",lineHeight:1.2}}>Mark Your Memorization</div>
             </div>
             <div style={{background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 18px 16px",marginBottom:18,boxShadow:"0 0 18px rgba(212,175,55,0.08),0 12px 35px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-              <div style={{textAlign:"center",fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:10}}>Shaykh Al-Qasim's Method</div>
               <div style={{textAlign:"center",fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F6E27A",lineHeight:1.2,marginBottom:8}}>One Page Per Day</div>
               <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,191,0.62)",lineHeight:1.5,marginBottom:14,fontStyle:"italic"}}>
                 <div>The Methodology of Shaykh Abdul Muhsin Al-Qasim</div>
@@ -153,14 +174,14 @@ export default function Onboarding({
                 return (
                   <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.12)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 20px rgba(212,175,55,0.14),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 0 12px rgba(212,175,55,0.05),0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
                     {/* Juz header — tap to expand, long-press or ✓ button to mark complete */}
-                    <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"16px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                      <div>
-                        <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:6,letterSpacing:".08em"}}>Juz {j.num}</div>
-                        <div style={{fontFamily:"'Amiri',serif",fontSize:24,lineHeight:1.5,color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
+                    <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"8px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}}>
+                      <div style={{flex:1,textAlign:"center"}}>
+                        <div style={{fontSize:9,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:2,letterSpacing:".08em"}}>Juz {j.num}</div>
+                        <div style={{fontFamily:"'Amiri',serif",fontSize:18,lineHeight:1.3,direction:"rtl",color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                       </div>
-                      <div style={{display:"flex",alignItems:"center",gap:10}}>
-                        <div className="sbtn" onClick={e=>{e.stopPropagation();const completing=!v9IsJuzComplete(j.num);setJuzStatus(prev=>{const next={...prev};if(!completing){delete next[j.num];surahs.forEach(s=>{delete next[`s${s.s}`];});}else{next[j.num]="complete";surahs.forEach(s=>{next[`s${s.s}`]="complete";});}return next;});if(completing){v9MarkJuzComplete(j.num);surahs.forEach(s=>v9MarkSurahComplete(s.s));}else v9MarkJuzIncomplete(j.num);}} style={{width:22,height:22,borderRadius:"50%",background:juzComplete?"rgba(246,226,122,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${juzComplete?"rgba(246,226,122,0.45)":"rgba(212,175,55,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:juzComplete?"#F6E27A":"rgba(212,175,55,0.4)",fontSize:11,fontWeight:700}}>{juzComplete?"✓":"○"}</div>
-                        <div style={{color:"rgba(212,175,55,0.7)",fontSize:14,transition:"transform .2s",transform:isOpen?"rotate(180deg) translateY(-2px)":"translateY(2px)"}}>▾</div>
+                      <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                        <div className="sbtn" onClick={e=>{e.stopPropagation();const completing=!v9IsJuzComplete(j.num);setJuzStatus(prev=>{const next={...prev};if(!completing){delete next[j.num];surahs.forEach(s=>{delete next[`s${s.s}`];});}else{next[j.num]="complete";surahs.forEach(s=>{next[`s${s.s}`]="complete";});}return next;});if(completing){v9MarkJuzComplete(j.num);surahs.forEach(s=>v9MarkSurahComplete(s.s));}else v9MarkJuzIncomplete(j.num);}} style={{width:20,height:20,borderRadius:"50%",background:juzComplete?"rgba(246,226,122,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${juzComplete?"rgba(246,226,122,0.45)":"rgba(212,175,55,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:juzComplete?"#F6E27A":"rgba(212,175,55,0.4)",fontSize:10,fontWeight:700}}>{juzComplete?"✓":"○"}</div>
+                        <div style={{color:"rgba(212,175,55,0.7)",fontSize:13,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
                       </div>
                     </div>
                     {/* Surah list */}

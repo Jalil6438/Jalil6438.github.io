@@ -1345,6 +1345,7 @@ export default function RihlatAlHifz() {
         openJuzPanel={openJuzPanel} setOpenJuzPanel={setOpenJuzPanel}
         loaded={loaded}
         setShowOnboarding={setShowOnboarding}
+        JUZ_PAGES={JUZ_PAGES} SURAH_PAGES={SURAH_PAGES}
       />
       )}
 
