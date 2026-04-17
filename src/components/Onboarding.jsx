@@ -102,31 +102,47 @@ export default function Onboarding({
       )}
       {onboardStep===4&&loaded&&(()=>{
         try {
-        // Exact page count from marked juz + surahs (no ayah approximation).
-        // Each complete juz N contributes pages JUZ_PAGES[N-1]..JUZ_PAGES[N]-1.
-        // Each complete surah N contributes pages SURAH_PAGES[N]..SURAH_PAGES[N+1]-1
-        // (surah 114 goes through page 604). A Set dedupes pages shared between
-        // adjacent short surahs. At 1 page/day, months = ceil(pagesRemaining/30).
+        // Page count = pages where EVERY surah on that page is marked complete.
+        // When a juz is marked, the main file also flags each of its surahs
+        // (juzStatus["s78"] etc.), so iterating sX keys captures both paths.
+        //
+        // This is correct for edge cases that a simpler "sum ranges" algo gets
+        // wrong — e.g. page 604 holds surahs 112, 113, 114 all starting at 604;
+        // marking only 112 should NOT count page 604, and marking all three
+        // should count it once.
         const pagesCompleted=(()=>{
-          const pageSet=new Set();
+          if(!SURAH_PAGES) return 0;
+          const completedSurahs=new Set();
           Object.entries(juzStatus||{}).forEach(([key,val])=>{
             if(val!=="complete") return;
-            if(/^\d+$/.test(key)){
-              const n=parseInt(key,10);
-              if(n>=1&&n<=30&&JUZ_PAGES){
-                const start=JUZ_PAGES[n-1], end=JUZ_PAGES[n]-1;
-                for(let p=start;p<=end;p++) pageSet.add(p);
-              }
-            } else if(key.startsWith("s")&&SURAH_PAGES){
+            if(key.startsWith("s")){
               const n=parseInt(key.slice(1),10);
-              if(n>=1&&n<=114){
-                const start=SURAH_PAGES[n];
-                const end=n<114?(SURAH_PAGES[n+1]-1):604;
-                if(start&&end>=start){ for(let p=start;p<=end;p++) pageSet.add(p); }
-              }
+              if(n>=1&&n<=114) completedSurahs.add(n);
             }
           });
-          return pageSet.size;
+          if(completedSurahs.size===0) return 0;
+
+          // Build page → surahs-present map from SURAH_PAGES.
+          // Surah n's pages = SURAH_PAGES[n] .. max(SURAH_PAGES[n], SURAH_PAGES[n+1]-1).
+          // Short surahs where SURAH_PAGES[n+1]===SURAH_PAGES[n] collapse to one page.
+          const surahsOnPage={};
+          for(let s=1;s<=114;s++){
+            const start=SURAH_PAGES[s];
+            if(!start) continue;
+            const nextStart=s<114?SURAH_PAGES[s+1]:605;
+            const end=Math.max(start,nextStart-1);
+            for(let p=start;p<=end;p++){
+              if(!surahsOnPage[p]) surahsOnPage[p]=[];
+              surahsOnPage[p].push(s);
+            }
+          }
+          let count=0;
+          for(let p=1;p<=604;p++){
+            const list=surahsOnPage[p];
+            if(!list||list.length===0) continue;
+            if(list.every(s=>completedSurahs.has(s))) count++;
+          }
+          return count;
         })();
         const pagesRemaining=Math.max(0,604-pagesCompleted);
         const monthsRemaining=Math.max(1,Math.ceil(pagesRemaining/30));
