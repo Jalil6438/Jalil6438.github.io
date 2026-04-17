@@ -300,9 +300,14 @@ export default function RihlatAlHifz() {
 
   const [streak,setStreak]=useState(0);
 
-  // Badge milestone celebrations — fires once per milestone, stored in localStorage
+  // Badge milestone celebrations — fires once per milestone, stored in localStorage.
+  // On the first run after onboarding, any milestones the user already meets (because
+  // they marked prior memorization during onboarding) are stamped as "shown" without
+  // firing any popup. Celebrations only fire when the user actually crosses a
+  // threshold through in-app work.
   useEffect(()=>{
     if(!loaded||showOnboarding) return;
+    const hasStorage=localStorage.getItem("jalil-badge-milestones")!==null;
     const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
     const milestones=[
       {key:"juz-1",test:completedCount>=1,emoji:"🎉",title:"Al-Hamdulillah!",msg:"You just completed your first juz!"},
@@ -315,6 +320,13 @@ export default function RihlatAlHifz() {
       {key:"streak-21",test:streak>=21,emoji:"🔥",title:"21 Day Streak!",msg:"Three weeks — it's becoming a habit!"},
       {key:"streak-40",test:streak>=40,emoji:"🔥",title:"Habituated!",msg:"40 days — the Salaf said this is when habits form."},
     ];
+    if(!hasStorage){
+      // First run: seed any already-met milestones as shown, don't pop.
+      let seeded=false;
+      for(const m of milestones){ if(m.test){ shown[m.key]=true; seeded=true; } }
+      localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
+      if(seeded) return; // skip popping on the seed pass
+    }
     for(const m of milestones){
       if(m.test&&!shown[m.key]){
         setBadgeCelebration({emoji:m.emoji,title:m.title,message:m.msg});
