@@ -667,13 +667,6 @@ export default function MyHifzTab(props) {
                   </div>
                 )}
 
-                {/* No per-ayah audio warning */}
-                {!hasPerAyah(reciter)&&(
-                  <div style={{marginBottom:10,padding:"8px 12px",background:T.surface,border:`1px solid ${T.accent}30`,borderLeft:`3px solid ${T.accent}`,borderRadius:"0 6px 6px 0",fontSize:11,color:T.sub}}>
-                    🎵 <strong style={{color:T.accent}}>{currentReciter.name}</strong> — full surah only. Switch reciter for per-ayah audio.
-                  </div>
-                )}
-
                 {/* ── MUSHAF MODE — the full mushaf page the user is on, rendered for
                     reading. Uses pageBatch (the whole page) rather than the Study batch,
                     so the user still sees the tail of the previous surah as they read. ── */}
