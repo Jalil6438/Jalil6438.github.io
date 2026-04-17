@@ -1053,7 +1053,7 @@ export default function MyHifzTab(props) {
                       // page fetch never completed.
                       const fajrPageForAdvance = fajrBatch[0]?.page_number;
                       const fajrPageVs = fajrPageForAdvance ? fajrPageVerses[fajrPageForAdvance] : null;
-                      const fajrMemorized = fajrPageVs && fajrPageVs.length ? filterToActiveSurah(fajrPageVs) : fajrBatch;
+                      const fajrMemorized = fajrPageVs && fajrPageVs.length ? filterActivePlusFresh(fajrPageVs) : fajrBatch;
                       const fajrAdvance = fajrMemorized.length || fajrBatch.length;
                       setYesterdayBatch(fajrMemorized);
                       setRecentBatches(prev=>[...prev.slice(-4),fajrMemorized.map(v=>({verse_key:v.verse_key,text_uthmani:v.text_uthmani,surah_number:v.surah_number,page_number:v.page_number}))].slice(-5));
