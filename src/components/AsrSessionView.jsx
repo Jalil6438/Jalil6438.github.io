@@ -114,10 +114,11 @@ function AsrSessionView({
                 if(prev&&prev.rub_el_hizb_number===r) continue;
                 const pos=((r-1)%4)+1;
                 const hizb=Math.ceil(r/4);
-                if(pos===1) return `1/4 Hizb ${hizb}`;
-                if(pos===2) return `1/2 Hizb ${hizb}`;
-                if(pos===3) return `3/4 Hizb ${hizb}`;
-                if(pos===4) return `Hizb ${hizb}`;
+                // Rub positions mark the start of each quarter within a hizb.
+                if(pos===1) return `Hizb ${hizb}`;
+                if(pos===2) return `1/4 Hizb ${hizb}`;
+                if(pos===3) return `1/2 Hizb ${hizb}`;
+                if(pos===4) return `3/4 Hizb ${hizb}`;
               }
               return null;
             })();
@@ -173,7 +174,7 @@ function AsrSessionView({
               </div>
               {/* Page chrome bottom — hizb · page on the right */}
               <div style={{textAlign:"right",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
-                {asrHizbLabel?`${asrHizbLabel} · `:""}Page {currentPage.page}
+                {asrHizbLabel?`${asrHizbLabel} | `:""}{currentPage.page}
               </div>
               {/* Nav buttons + session page counter centered between them */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",flexShrink:0,gap:8}}>

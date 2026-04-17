@@ -715,10 +715,13 @@ export default function MyHifzTab(props) {
                       if (prev && prev.rub_el_hizb_number === r) continue;
                       const pos = ((r - 1) % 4) + 1;
                       const hizb = Math.ceil(r / 4);
-                      if (pos === 1) return `1/4 Hizb ${hizb}`;
-                      if (pos === 2) return `1/2 Hizb ${hizb}`;
-                      if (pos === 3) return `3/4 Hizb ${hizb}`;
-                      if (pos === 4) return `Hizb ${hizb}`;
+                      // Mushaf convention: rub-el-hizb positions mark the START
+                      // of each quarter. pos=1 = start of hizb, pos=2 = you've
+                      // reached the 1/4 marker, pos=3 = 1/2, pos=4 = 3/4.
+                      if (pos === 1) return `Hizb ${hizb}`;
+                      if (pos === 2) return `1/4 Hizb ${hizb}`;
+                      if (pos === 3) return `1/2 Hizb ${hizb}`;
+                      if (pos === 4) return `3/4 Hizb ${hizb}`;
                     }
                     return null;
                   })();
@@ -735,7 +738,7 @@ export default function MyHifzTab(props) {
                     <div style={{marginBottom:16}}>
                       {!MUSHAF_INTERACTIVE&&(
                         <div style={{textAlign:"center",marginBottom:14,padding:"10px 14px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.14)":"rgba(140,100,20,0.12)"}`,fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5}}>
-                          Read this page with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> to begin memorizing.
+                          Recite with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> to begin memorizing.
                         </div>
                       )}
                     <div style={{position:"relative",padding:"32px 12px 36px"}}>
@@ -750,10 +753,10 @@ export default function MyHifzTab(props) {
                           Part {juzNum}
                         </div>
                       )}
-                      {/* Bottom-center: hizb marker · page number */}
+                      {/* Bottom-center: hizb marker | page number */}
                       {pageNum&&(
                         <div style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
-                          {hizbLabel?`${hizbLabel} · `:""}Page {pageNum}
+                          {hizbLabel?`${hizbLabel} | `:""}{pageNum}
                         </div>
                       )}
                       {surahGroups.map((group,gi)=>{
