@@ -87,7 +87,7 @@ export default function MyHifzTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50`);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
         if (!res.ok || cancelled) return;
         const data = await res.json();
         const vs = (data.verses || []).map(v => ({
@@ -528,6 +528,41 @@ export default function MyHifzTab(props) {
                 {/* ── MUSHAF MODE — the full mushaf page the user is on, every ayah memorizable. ── */}
                 {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(()=>{
                   const pageNum = batch[0]?.page_number;
+                  const juzNum = batch[0]?.juz_number;
+                  // Leading surah on the page (first verse's surah). If the page opens
+                  // mid-surah, that's still the correct "top-of-page" label per mushaf convention.
+                  const leadSurahNum = batch[0]?.surah_number || parseInt(batch[0]?.verse_key?.split(":")?.[0] || "0", 10);
+                  // Hizb fractional marker derived from rub_el_hizb_number (1-240).
+                  // Each hizb = 4 rubs: 1 = ¼, 2 = ½, 3 = ¾, 0 = hizb start.
+                  // Show the marker for the first quarter that *starts* on this page.
+                  const quarterStartOnPage = batch.find(v => {
+                    if (typeof v.rub_el_hizb_number !== "number") return false;
+                    const [, a] = v.verse_key.split(":");
+                    // Heuristic: first ayah of a rub is where hizb_number/rub changes from the previous verse
+                    return true;
+                  });
+                  const firstRub = batch[0]?.rub_el_hizb_number;
+                  const lastRub = batch[batch.length - 1]?.rub_el_hizb_number;
+                  const hizbLabel = (() => {
+                    if (typeof firstRub !== "number" || typeof lastRub !== "number") return null;
+                    // Find any rub boundary crossed on this page
+                    for (const v of batch) {
+                      const r = v.rub_el_hizb_number;
+                      if (typeof r !== "number") continue;
+                      const pos = ((r - 1) % 4) + 1; // 1..4
+                      const hizb = Math.ceil(r / 4); // 1..60
+                      const verseKey = v.verse_key;
+                      // Mark the first ayah that starts a new rub/hizb
+                      const idx = batch.indexOf(v);
+                      const prev = idx > 0 ? batch[idx - 1] : null;
+                      if (prev && prev.rub_el_hizb_number === r) continue;
+                      if (pos === 1) return `¼ Hizb ${hizb}`;
+                      if (pos === 2) return `½ Hizb ${hizb}`;
+                      if (pos === 3) return `¾ Hizb ${hizb}`;
+                      if (pos === 4) return `Hizb ${hizb}`;
+                    }
+                    return null;
+                  })();
                   // batch is already overridden to the page's ayahs when Fajr+Mushaf+fetched.
                   const surahGroups=[];
                   let curGroup=null;
@@ -537,10 +572,22 @@ export default function MyHifzTab(props) {
                     curGroup.verses.push(v);
                   });
                   return (
-                    <div style={{padding:"0 12px",marginBottom:16}}>
+                    <div style={{position:"relative",padding:"32px 12px 36px",marginBottom:16}}>
+                      {/* Top-left: surah name (English). Top-right: Part N. */}
+                      {leadSurahNum>0&&(
+                        <div style={{position:"absolute",top:0,left:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
+                          {SURAH_EN[leadSurahNum]||""}
+                        </div>
+                      )}
+                      {juzNum&&(
+                        <div style={{position:"absolute",top:0,right:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
+                          Part {juzNum}
+                        </div>
+                      )}
+                      {/* Bottom-right: hizb marker | page number */}
                       {pageNum&&(
-                        <div style={{textAlign:"center",fontSize:9,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,marginBottom:4}}>
-                          Mushaf · Page {pageNum}
+                        <div style={{position:"absolute",bottom:0,right:8,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
+                          {hizbLabel?`${hizbLabel} · `:""}Page {pageNum}
                         </div>
                       )}
                       {surahGroups.map((group,gi)=>{
