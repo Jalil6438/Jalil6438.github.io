@@ -25,11 +25,14 @@ function ActivityRow({ ev, dark, timeAgo }) {
   // Speed ~40 px/s (slower, easier to read). Duration scales with text width
   // so longer entries take longer, not move faster.
   const duration = overflow ? Math.max(10, Math.round((textWidth + 40) / 40)) : 0;
+  const isReminder = ev.type === "reminder";
   const textStyleBase = {
     display: "inline-block",
     fontSize: 12,
-    color: dark ? "rgba(243,231,200,0.85)" : "#2D2A26",
-    fontWeight: 500,
+    color: isReminder
+      ? (dark ? "#F87171" : "#B91C1C")
+      : (dark ? "rgba(243,231,200,0.85)" : "#2D2A26"),
+    fontWeight: isReminder ? 600 : 500,
     whiteSpace: "nowrap",
   };
   return (
