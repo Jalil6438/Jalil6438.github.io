@@ -22,9 +22,9 @@ function ActivityRow({ ev, dark, timeAgo }) {
     window.addEventListener("resize", tick);
     return () => window.removeEventListener("resize", tick);
   }, [ev.text]);
-  // Speed ~60 px/s — duration scales with text width so longer entries don't
-  // just move faster, they take longer.
-  const duration = overflow ? Math.max(8, Math.round((textWidth + 40) / 60)) : 0;
+  // Speed ~40 px/s (slower, easier to read). Duration scales with text width
+  // so longer entries take longer, not move faster.
+  const duration = overflow ? Math.max(10, Math.round((textWidth + 40) / 40)) : 0;
   const textStyleBase = {
     display: "inline-block",
     fontSize: 12,
