@@ -1069,15 +1069,14 @@ export default function RihlatAlHifz() {
         // that's the page-based todayFajrBatch; in custom it's fajrBatch.
         const src=todayFajrBatch.length>0?todayFajrBatch:fajrBatch;
         const batchLabel=describeBatch(src);
-        pushActivity("memorize", batchLabel?`Memorized ${batchLabel}`:"Completed Fajr session");
-        // Rep shortfall — list the specific ayahs in the batch still below 20
-        // reps. Uses describeBatch to produce "Al-Qiyāmah ayat 15-17" style.
-        const pendingAyahs=src.filter(v=>(repCounts[v.verse_key]||0)<20);
-        if(pendingAyahs.length>0){
-          const label=describeBatch(pendingAyahs);
-          pushActivity("reminder", label
-            ? `${label} still pending repetitions`
-            : `${pendingAyahs.length} ayah${pendingAyahs.length===1?"":"s"} still pending repetitions`);
+        const hasPending=src.some(v=>(repCounts[v.verse_key]||0)<20);
+        if(hasPending){
+          // Single combined entry (red, reminder type) — cleaner than two lines.
+          pushActivity("reminder", batchLabel
+            ? `${batchLabel} marked complete, still pending repetitions`
+            : "Fajr marked complete, still pending repetitions");
+        } else {
+          pushActivity("memorize", batchLabel?`Memorized ${batchLabel}`:"Completed Fajr session");
         }
         // Clear any legacy banner reminder from older versions.
         try { localStorage.removeItem("jalil-hifz-reminder"); } catch{}
