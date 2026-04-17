@@ -814,9 +814,10 @@ export default function MyHifzTab(props) {
                                 return (
                                   <span key={vKey} className={MUSHAF_INTERACTIVE?"sbtn":undefined} onClick={MUSHAF_INTERACTIVE?(()=>{setOpenAyah(vKey);fetchTranslations([v]);}):undefined}
                                     style={{cursor:MUSHAF_INTERACTIVE?"pointer":"default",transition:"all .15s",borderRadius:6,padding:"2px 4px",
-                                      background:MUSHAF_INTERACTIVE?(repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent")):"transparent",
+                                      background:playingKey===vKey?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):(MUSHAF_INTERACTIVE?(repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent")):"transparent"),
+                                      boxShadow:playingKey===vKey?"0 0 10px rgba(212,175,55,0.25)":"none",
                                     }}>
-                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:MUSHAF_INTERACTIVE&&repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:playingKey===vKey?(dark?"#F6E27A":"#6B4F00"):(MUSHAF_INTERACTIVE&&repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26"))}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                                     <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:MUSHAF_INTERACTIVE&&repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                                   </span>
                                 );
@@ -917,10 +918,13 @@ export default function MyHifzTab(props) {
                                 {sub.ayahs.map(v=>{
                                   const vKey=v.verse_key;
                                   const aNum=parseInt(vKey.split(":")[1],10);
+                                  const nowPlaying=playingKey===vKey;
                                   return (
                                     <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
-                                      style={{cursor:"pointer",borderRadius:6,padding:"2px 4px"}}>
-                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                      style={{cursor:"pointer",borderRadius:6,padding:"2px 4px",transition:"all .15s",
+                                        background:nowPlaying?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):"transparent",
+                                        boxShadow:nowPlaying?"0 0 10px rgba(212,175,55,0.25)":"none"}}>
+                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                                       <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                                     </span>
                                   );
