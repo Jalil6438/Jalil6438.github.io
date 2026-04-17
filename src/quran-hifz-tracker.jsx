@@ -792,35 +792,42 @@ export default function RihlatAlHifz() {
 
   let batch=fajrBatch;
   if(isDhuhr){
-    // Dhuhr = last 5 mushaf pages of memorization. Walk backward from the
-    // user's current position, collect the last 5 distinct page_numbers, then
-    // include every ayah that sits on those pages. If fewer than 5 pages are
-    // available (new user or onboarded without any session memorization yet),
-    // fall back to everything they've memorized via recentBatches / yesterdayBatch.
+    // Dhuhr = 5 days of previous memorization. What "5 days" means depends on
+    // the plan:
+    //   - Shaykh mode (default): 5 mushaf pages, since 1 page = 1 day.
+    //   - Custom mode: dailyNew * 5 ayahs, since N ayahs = 1 day.
+    const isShaykh=userPlanMode!=="custom";
     const seen=new Set();
     const combined=[];
     if(allJuzVerses.length>0){
       const currentKey=sessionVerses[sessionIdx]?.verse_key;
       let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
       if(allIdx<0) allIdx=allJuzVerses.length;
-      const wantPages=5;
-      const pagesCollected=new Set();
-      // Walk backward once to pick up the last 5 distinct page numbers.
-      for(let i=allIdx-1;i>=0;i--){
-        const p=allJuzVerses[i]?.page_number;
-        if(!p) continue;
-        if(!pagesCollected.has(p)){
-          if(pagesCollected.size>=wantPages) break;
-          pagesCollected.add(p);
+      if(isShaykh){
+        // Page-based: walk back 5 distinct page_numbers, include every ayah on them.
+        const wantPages=5;
+        const pagesCollected=new Set();
+        for(let i=allIdx-1;i>=0;i--){
+          const p=allJuzVerses[i]?.page_number;
+          if(!p) continue;
+          if(!pagesCollected.has(p)){
+            if(pagesCollected.size>=wantPages) break;
+            pagesCollected.add(p);
+          }
         }
+        allJuzVerses.slice(0,allIdx).forEach(v=>{
+          if(v.page_number&&pagesCollected.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
+            seen.add(v.verse_key);
+            combined.push(v);
+          }
+        });
+      } else {
+        // Ayah-based: walk back (dailyNew * 5) ayahs from the current position.
+        const reviewCount=Math.max(dailyNew*5,5);
+        allJuzVerses.slice(Math.max(0,allIdx-reviewCount),allIdx).forEach(v=>{
+          if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }
+        });
       }
-      // Now collect every ayah on those pages (in hifz order).
-      allJuzVerses.slice(0,allIdx).forEach(v=>{
-        if(v.page_number&&pagesCollected.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
-          seen.add(v.verse_key);
-          combined.push(v);
-        }
-      });
     }
     // Merge in anything from recentBatches / yesterdayBatch not already captured
     // (covers onboarded users with marked juz outside allJuzVerses' reach, and
