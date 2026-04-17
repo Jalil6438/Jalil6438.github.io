@@ -101,10 +101,13 @@ export default function Onboarding({
       )}
       {onboardStep===4&&loaded&&(()=>{
         try {
-        const tl=calcTimeline(goalYears,memorizedAyahs,goalMonths,null,completedCount);
-        const remainingJuz=tl.juzLeft;
-        const apd=Math.round(parseFloat(tl.ayahsPerDay));
-        const daysPerJuz=tl.daysPerJuz;
+        // Page-based pace: 1 mushaf page per day. Pages-per-juz averages ~20.1
+        // across the 30 juz, so each completed juz subtracts ~20 pages from the
+        // remaining total. At 30 days/month this yields the completion timeline.
+        const AVG_PAGES_PER_JUZ=604/30;
+        const pagesCompleted=Math.round((completedCount||0)*AVG_PAGES_PER_JUZ);
+        const pagesRemaining=Math.max(0,604-pagesCompleted);
+        const monthsRemaining=Math.max(1,Math.round(pagesRemaining/30));
         const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
         return (
           <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
@@ -113,33 +116,28 @@ export default function Onboarding({
               {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
             </div>
             <div style={{textAlign:"center",marginBottom:18}}>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8,textShadow:"0 0 18px rgba(212,175,55,0.15)"}}>Choose Your Timeline</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F3E7BF",lineHeight:1.2,marginBottom:8,textShadow:"0 0 18px rgba(212,175,55,0.15)"}}>Your Daily Practice</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"rgba(243,231,191,0.75)",lineHeight:1.2}}>Mark Your Memorization</div>
             </div>
-            <div style={{background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 16px",marginBottom:18,textAlign:"center",boxShadow:"0 0 18px rgba(212,175,55,0.08),0 12px 35px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
-              <div style={{fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:8}}>Your Goal</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F6E27A",marginBottom:10}}>{goalYears>0?`${goalYears} Year${goalYears!==1?"s":""}`:""}{goalYears>0&&goalMonths>0?" • ":""}{goalMonths>0?`${goalMonths} Month${goalMonths!==1?"s":""}`:goalYears===0?"Set goal":""}</div>
-              <div style={{fontSize:13,color:"rgba(243,231,191,0.75)",lineHeight:1.7,marginBottom:10}}>
-                <span style={{color:"#F6E27A",fontWeight:700}}>{apd} ayahs per day</span><span style={{opacity:0.7}}>{" • "}{daysPerJuz} days per juz</span><span style={{opacity:0.7}}>{" • "}{remainingJuz} juz remaining</span>
+            <div style={{background:"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20,padding:"18px 18px 16px",marginBottom:18,boxShadow:"0 0 18px rgba(212,175,55,0.08),0 12px 35px rgba(0,0,0,0.40),inset 0 1px 0 rgba(212,175,55,0.10)"}}>
+              <div style={{textAlign:"center",fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:10}}>Shaykh Al-Qasim's Method</div>
+              <div style={{textAlign:"center",fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F6E27A",lineHeight:1.2,marginBottom:8}}>One mushaf page per day</div>
+              <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,191,0.62)",lineHeight:1.5,marginBottom:14,fontStyle:"italic"}}>
+                Memorized using the method of Shaykh Abdul Muhsin Al-Qasim, Imam of Masjid an-Nabawi.
               </div>
-              <div className="sbtn" onClick={()=>setOpenMethod(openMethod==="timeline-adjust"?null:"timeline-adjust")} style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:12,color:"#D4AF37",padding:"6px 12px",borderRadius:999,border:"1px solid rgba(212,175,55,0.22)",background:"rgba(212,175,55,0.05)"}}>
-                Adjust timeline <span style={{fontSize:11}}>{openMethod==="timeline-adjust"?"▴":"▾"}</span>
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12,fontSize:12,color:"rgba(243,231,191,0.75)",lineHeight:1.6}}>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:"#D4AF37",fontWeight:700,minWidth:18,textAlign:"center"}}>·</span><span>20 repetitions per ayah</span></div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:"#D4AF37",fontWeight:700,minWidth:18,textAlign:"center"}}>·</span><span>10 repetitions to connect each pair</span></div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:"#D4AF37",fontWeight:700,minWidth:18,textAlign:"center"}}>·</span><span>One page of the mushaf each day</span></div>
+              </div>
+              <div style={{height:1,background:"linear-gradient(90deg,rgba(212,175,55,0) 0%,rgba(232,200,120,0.30) 50%,rgba(212,175,55,0) 100%)",margin:"0 0 12px"}}/>
+              <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,191,0.70)",lineHeight:1.5}}>
+                At this pace, you will complete the Qur'an in <span style={{color:"#F6E27A",fontWeight:700}}>approximately {monthsRemaining} month{monthsRemaining===1?"":"s"}</span>, in shā' Allāh.
+              </div>
+              <div style={{textAlign:"center",fontSize:10,color:"rgba(212,175,55,0.50)",marginTop:10,fontStyle:"italic",lineHeight:1.5}}>
+                You can adjust the pace in Settings if this doesn't fit your schedule.
               </div>
             </div>
-            {openMethod==="timeline-adjust"&&(
-              <div className="fi" style={{background:"rgba(12,18,30,0.92)",border:"1px solid rgba(212,175,55,0.16)",borderRadius:16,padding:"14px 14px 12px",marginBottom:18}}>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                  <div>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Years</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalYears}</span></div>
-                    <input type="range" min="0" max="10" value={goalYears} onChange={e=>setGoalYears(Number(e.target.value))} style={{width:"100%"}}/>
-                  </div>
-                  <div>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><span style={{fontSize:9,color:"#A8B89A",letterSpacing:".1em",textTransform:"uppercase"}}>Months</span><span style={{fontSize:12,color:"#F6E27A",fontWeight:700}}>{goalMonths}</span></div>
-                    <input type="range" min="0" max="11" value={goalMonths} onChange={e=>setGoalMonths(Number(e.target.value))} style={{width:"100%"}}/>
-                  </div>
-                </div>
-              </div>
-            )}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{fontSize:9,color:"rgba(243,231,191,0.65)",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
               <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{completedCount} Juz completed</div>
