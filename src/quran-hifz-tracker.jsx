@@ -87,7 +87,7 @@ export default function RihlatAlHifz() {
   const [completedAyahs,setCompletedAyahs]=useState(()=>loadCompletedAyahs());
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
-  const [fontSize,setFontSize]=useState(()=>{try{return parseInt(localStorage.getItem("rihlat-fontsize"))||20;}catch{return 20;}});
+  const [fontSize,setFontSize]=useState(()=>{try{return parseInt(localStorage.getItem("rihlat-fontsize"))||19;}catch{return 19;}});
   useEffect(()=>{try{localStorage.setItem("rihlat-fontsize",String(fontSize));}catch{}},[fontSize]);
   const [quranShowCount,setQuranShowCount]=useState(5);
   const [quranPage,setQuranPage]=useState(0);

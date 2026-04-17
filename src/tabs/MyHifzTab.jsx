@@ -92,13 +92,20 @@ export default function MyHifzTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=true&word_fields=line_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
         if (!res.ok || cancelled) return;
         const data = await res.json();
-        const vs = (data.verses || []).map(v => ({
-          ...v,
-          text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652"),
-        }));
+        const vs = (data.verses || []).map(v => {
+          // Collect unique line numbers from words (used for the two-section split).
+          const lines = [...new Set((v.words || []).map(w => w.line_number).filter(n => typeof n === "number"))].sort((a, b) => a - b);
+          return {
+            ...v,
+            text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652"),
+            _lines: lines,
+            _firstLine: lines[0] || null,
+            _lastLine: lines[lines.length - 1] || null,
+          };
+        });
         if (!cancelled) setFajrPageVerses(prev => ({ ...prev, [fajrPageNum]: vs }));
       } catch {}
     })();
@@ -180,12 +187,16 @@ export default function MyHifzTab(props) {
     return arr;
   })();
   const connVisiblePairs = connAllPairs.filter(p => p.ready);
-  // Closers — one per surah for short surahs (<8 ayahs); long surahs follow the
-  // Shaykh's two-section structure: section-1 closer, section-2 closer (which
-  // requires the bridge pair between them), then page closer. The "bridge pair"
-  // is simply the pair that spans the midpoint — it's already in connAllPairs,
-  // it just gates the section-2 closer because section 2 begins after it.
-  const SECTION_SPLIT_THRESHOLD = 8;
+  // Closers — short surahs get one per-surah closer; long surahs follow the
+  // Shaykh's two-section structure: section-1 closer → bridge pair (one of the
+  // regular pairs, gating the section-2 closer) → section-2 closer → page closer.
+  //
+  // "Long" is measured in mushaf *lines*, not ayah count, matching the book.
+  // The split point is the midpoint of the unique lines the active surah's
+  // ayahs occupy on this page. A verse whose first line sits in the first half
+  // belongs to section 1; otherwise section 2. Falls back to ayah-count split
+  // if line data isn't available (old cache, etc.).
+  const SECTION_SPLIT_LINE_THRESHOLD = 7;
   const connClosers = connSurahGroups
     .filter(g => g.verses.length >= 2)
     .flatMap(g => {
@@ -196,26 +207,40 @@ export default function MyHifzTab(props) {
       const surahPairs = connAllPairs.filter(p => p.surahNum === g.surahNum);
       const surahPairsDone = surahPairs.length > 0 && surahPairs.every(p => (connectionReps[p.key] || 0) >= 10);
 
-      if (n < SECTION_SPLIT_THRESHOLD) {
-        return [{
-          key: `closer-${g.surahNum}`,
-          label: `All ${n} ayahs of ${surahName} together`,
-          ayahs: verses,
-          ready: allAyahsDone && surahPairsDone,
-          surahNum: g.surahNum,
-        }];
+      // Compute split point.
+      const surahLines = [...new Set(verses.flatMap(v => v._lines || []).filter(x => typeof x === "number"))].sort((a, b) => a - b);
+      const totalLines = surahLines.length;
+      let sec1, sec2;
+      if (totalLines >= SECTION_SPLIT_LINE_THRESHOLD) {
+        const midLineIdx = Math.ceil(totalLines / 2); // 1-based line index within the surah
+        const sec1LineCutoff = surahLines[midLineIdx - 1];
+        sec1 = verses.filter(v => typeof v._firstLine === "number" && v._firstLine <= sec1LineCutoff);
+        sec2 = verses.filter(v => typeof v._firstLine === "number" && v._firstLine > sec1LineCutoff);
+        // Degenerate case (e.g. one ayah straddles the boundary): ensure both sections non-empty
+        if (sec1.length === 0 || sec2.length === 0) { sec1 = null; sec2 = null; }
+      }
+      // Ayah-count fallback (no line data, or split produced an empty section).
+      if (!sec1 || !sec2) {
+        if (n < 8) {
+          return [{
+            key: `closer-${g.surahNum}`,
+            label: `All ${n} ayahs of ${surahName} together`,
+            ayahs: verses,
+            ready: allAyahsDone && surahPairsDone,
+            surahNum: g.surahNum,
+          }];
+        }
+        const mid = Math.ceil(n / 2);
+        sec1 = verses.slice(0, mid);
+        sec2 = verses.slice(mid);
       }
 
-      // Two-section flow for long surahs.
-      // Section 1 = first ceil(n/2) ayahs; section 2 = remainder.
-      // Pair indices: surahPairs[0..mid-2] live inside sec 1, surahPairs[mid-1]
-      // is the bridge across the split, surahPairs[mid..] live inside sec 2.
-      const mid = Math.ceil(n / 2);
-      const sec1 = verses.slice(0, mid);
-      const sec2 = verses.slice(mid);
-      const sec1Pairs = surahPairs.slice(0, mid - 1);
-      const bridgePair = surahPairs[mid - 1];
-      const sec2Pairs = surahPairs.slice(mid);
+      // Pairs grouped by section. The pair whose left verse is the last of
+      // section 1 is the bridge pair that gates section 2's closer.
+      const sec1Keys = new Set(sec1.map(v => v.verse_key));
+      const bridgePair = surahPairs.find(p => sec1Keys.has(p.ayahs[0].verse_key) && !sec1Keys.has(p.ayahs[1].verse_key));
+      const sec1Pairs = surahPairs.filter(p => sec1Keys.has(p.ayahs[0].verse_key) && sec1Keys.has(p.ayahs[1].verse_key));
+      const sec2Pairs = surahPairs.filter(p => !sec1Keys.has(p.ayahs[0].verse_key));
       const sec1AyahsDone = sec1.every(v => (repCounts[v.verse_key] || 0) >= 20);
       const sec2AyahsDone = sec2.every(v => (repCounts[v.verse_key] || 0) >= 20);
       const sec1PairsDone = sec1Pairs.length === 0 || sec1Pairs.every(p => (connectionReps[p.key] || 0) >= 10);
@@ -234,8 +259,6 @@ export default function MyHifzTab(props) {
           key: `closer-${g.surahNum}-s2`,
           label: `All ${sec2.length} ayahs of section 2 together`,
           ayahs: sec2,
-          // Section 2 closer requires its own ayahs/pairs AND the bridge pair
-          // that links it to section 1.
           ready: sec2AyahsDone && sec2PairsDone && bridgeDone,
           surahNum: g.surahNum,
         },
