@@ -332,7 +332,7 @@ export default function RihlahHome({
           <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:14}}>Today's Activity</div>
           {todayActivity.length>0?(
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {todayActivity.slice(0,5).map((ev,i)=>(
+              {todayActivity.slice(0,7).map((ev,i)=>(
                 <ActivityRow key={`${ev.ts}-${i}`} ev={ev} dark={dark} timeAgo={timeAgo} />
               ))}
             </div>

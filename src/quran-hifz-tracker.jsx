@@ -156,7 +156,7 @@ export default function RihlatAlHifz() {
   }); // last 5 activity events — {type, text, ts}
   function pushActivity(type, text) {
     setRecentActivity(prev => {
-      const next = [{type, text, ts: Date.now()}, ...prev].slice(0, 5);
+      const next = [{type, text, ts: Date.now()}, ...prev].slice(0, 7);
       try { localStorage.setItem("jalil-recent-activity", JSON.stringify(next)); } catch {}
       return next;
     });
