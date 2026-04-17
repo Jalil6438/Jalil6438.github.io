@@ -1199,19 +1199,34 @@ export default function RihlatAlHifz() {
       // Remove Al-Fatiha from revision — it's recited 17+ times daily in salah
       const filtered=allVerses.filter(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);return s!==1;});
 
-      // Step 5 — sort in mushaf order for revision (Al-Baqarah → An-Nas)
-      // The book says: memorize 114→1, but revise from Al-Baqarah to An-Nas (natural reading order)
+      // Step 5 — sort in mushaf order (Al-Baqarah → An-Nas) so the batch reads
+      // contiguously — no "Nabā' → Nāzi'āt → 'Abasa → jump to Tīn → Qāri'ah".
       filtered.sort((a,b)=>{
         const sa=a.surah_number||parseInt(a.verse_key?.split(":")?.[0],10);
         const sb=b.surah_number||parseInt(b.verse_key?.split(":")?.[0],10);
-        if(sa!==sb) return sa-sb; // ascending surah (1 → 114)
+        if(sa!==sb) return sa-sb;
         const aa=parseInt(a.verse_key?.split(":")?.[1],10);
         const ab=parseInt(b.verse_key?.split(":")?.[1],10);
-        return aa-ab; // ayahs ascending within surah
+        return aa-ab;
       });
+
+      // Step 6 — slice to the stage's daily amount. The book's 6-stage table
+      // says revise 0.5 / 1 / 1.5 / 2 / 2.5 / 3 juz per day depending on
+      // memorization frontier. 1 juz ≈ 6236/30 ≈ 208 ayahs. Slice into
+      // contiguous chunks and cycle through them across sessions so each day
+      // reads cleanly (first half / second half / etc.), never mixed pieces.
+      const AYAHS_PER_JUZ = 6236 / 30;
+      const targetAyahs = Math.max(1, Math.round(dailyJuzAmount * AYAHS_PER_JUZ));
+      let daily = filtered;
+      if (filtered.length > targetAyahs) {
+        const numChunks = Math.max(1, Math.ceil(filtered.length / targetAyahs));
+        const chunkIdx = ((asrCycle % numChunks) + numChunks) % numChunks;
+        const start = chunkIdx * targetAyahs;
+        daily = filtered.slice(start, start + targetAyahs);
+      }
       setAsrSelectedJuz(juzPool);
       setAsrSelectedSurahs(eligibleSurahs);
-      setAsrReviewBatch(filtered);
+      setAsrReviewBatch(daily);
       setAsrStarted(true);
       setAsrPage(0);
       setAsrExpandedAyah(null);
