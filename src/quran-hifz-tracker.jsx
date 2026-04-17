@@ -1065,7 +1065,7 @@ export default function RihlatAlHifz() {
         if(userPlanMode==="custom"){
           const remaining=fajrBatch.length-memorized.length;
           if(remaining>0){
-            pushActivity("reminder",`${remaining} ayah${remaining===1?"":"s"} still need memorization`);
+            pushActivity("reminder",`${remaining} ayah${remaining===1?"":"s"} below 20 reps`);
           }
         }
         // Clear any legacy banner reminder from older versions.
