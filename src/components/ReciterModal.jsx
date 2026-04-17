@@ -39,9 +39,7 @@ export default function ReciterModal({
         <div style={{padding:"12px 18px 0",textAlign:"center"}}>
           <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
           <div style={{fontSize:13,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A",letterSpacing:".03em"}}>Select Reciter</div>
-          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.40)":"rgba(40,30,10,0.50)",marginTop:4,marginBottom:10}}>
-            Currently: <span style={{color:dark?"rgba(230,184,74,0.75)":"rgba(140,100,20,0.85)",fontWeight:600}}>{reciterMode==="quran"?(QURAN_RECITERS.find(r=>r.id===quranReciter)?.name||"Unknown"):currentReciter.name}</span>
-          </div>
+          <div style={{marginBottom:10}}/>
         </div>
         <div style={{overflowY:"auto",padding:"0 12px 28px"}}>
           {groups.map(group=>{
