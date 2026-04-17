@@ -133,12 +133,12 @@ function AsrSessionView({
                 if(dx>0&&safePage<totalPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
                 else if(dx<0&&safePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
               }}>
-              {/* Page chrome — Part top-left, dominant Surah top-right */}
+              {/* Page chrome — dominant Surah top-left, Part top-right (matches Fajr Mushaf) */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px 4px",flexShrink:0}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>{SURAH_EN[dominantSurah]||""}</div>
                 {asrJuzNum?(
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Part {asrJuzNum}</div>
                 ):<div/>}
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>{SURAH_EN[dominantSurah]||""}</div>
               </div>
               <div key={safePage} ref={asrMushafScrollRef} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{flex:1,overflow:"hidden",padding:"8px 14px"}}>
                 {subs.map((sub,si)=>{
