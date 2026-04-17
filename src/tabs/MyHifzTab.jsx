@@ -76,12 +76,13 @@ export default function MyHifzTab(props) {
     return () => clearTimeout(t);
   }, [rotatingSession, wisdomOffset]);
 
-  // Fajr Mushaf-mode page fetch — fetch the full mushaf page the current batch sits on
-  // so the user's daily effort is the whole page, per Sheikh Al-Qasim's method.
+  // Fajr = one full mushaf page as the day's memorization effort (Sheikh Al-Qasim's method).
+  // We fetch the mushaf page for *any* Fajr view mode so Study and Mushaf both operate on
+  // the same batch: ayahs 1-19 of the surah if that's what the page contains, etc.
   const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
   const fajrPageNum = rawBatch[0]?.page_number;
   useEffect(() => {
-    if (currentSessionId !== "fajr" || hifzViewMode !== "mushaf") return;
+    if (currentSessionId !== "fajr") return;
     if (!fajrPageNum || fajrPageVerses[fajrPageNum]) return;
     let cancelled = false;
     (async () => {
@@ -97,14 +98,93 @@ export default function MyHifzTab(props) {
       } catch {}
     })();
     return () => { cancelled = true; };
-  }, [currentSessionId, hifzViewMode, fajrPageNum]);
+  }, [currentSessionId, fajrPageNum]);
 
-  // Fajr Mushaf = one full mushaf page as the day's memorization effort.
-  // In all other sessions / view modes we pass through the incoming batch unchanged.
-  const isMushafFajr = currentSessionId === "fajr" && hifzViewMode === "mushaf";
-  const batch = (isMushafFajr && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
+  const isFajr = currentSessionId === "fajr";
+  const isMushafFajr = isFajr && hifzViewMode === "mushaf";
+  const batch = (isFajr && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
     ? fajrPageVerses[fajrPageNum]
     : rawBatch;
+
+  // ── Connection-phase computation — lifted out of the render IIFE so the modal-
+  //    dismiss state can react to visible-step count changes.
+  //
+  //    Per the Sheikh's method, each surah is memorized as its own unit:
+  //      - Pair {N-1, N} unlocks when both ayahs hit 20/20, within the same surah.
+  //      - Cross-surah pairs are not created.
+  //      - Once every ayah of a surah in this batch is at 20/20 AND every pair
+  //        inside that surah is at 10/10, the "all N ayahs of [surah] together × 10"
+  //        closer unlocks for that surah.
+  const connSurahGroups = (() => {
+    if (!isFajr || batch.length < 1) return [];
+    const map = {};
+    const order = [];
+    batch.forEach(v => {
+      const s = Number(v.verse_key.split(":")[0]);
+      if (!map[s]) { map[s] = []; order.push(s); }
+      map[s].push(v);
+    });
+    return order.map(s => ({ surahNum: s, verses: map[s] }));
+  })();
+  const connAllPairs = (() => {
+    if (!isFajr) return [];
+    const arr = [];
+    connSurahGroups.forEach(g => {
+      const verses = g.verses;
+      for (let i = 0; i < verses.length - 1; i++) {
+        const v1 = verses[i], v2 = verses[i + 1];
+        const a1 = v1.verse_key.split(":")[1];
+        const a2 = v2.verse_key.split(":")[1];
+        const bothDone = (repCounts[v1.verse_key] || 0) >= 20 && (repCounts[v2.verse_key] || 0) >= 20;
+        arr.push({
+          key: `pair-${v1.verse_key}-${v2.verse_key}`,
+          label: `Ayah ${a1} + ${a2}`,
+          ayahs: [v1, v2],
+          ready: bothDone,
+          surahNum: g.surahNum,
+        });
+      }
+    });
+    return arr;
+  })();
+  const connVisiblePairs = connAllPairs.filter(p => p.ready);
+  // Per-surah closers: one "all N ayahs of SURAH together" step per surah with 2+ ayahs.
+  const connClosers = connSurahGroups
+    .filter(g => g.verses.length >= 2)
+    .map(g => {
+      const allAyahsDone = g.verses.every(v => (repCounts[v.verse_key] || 0) >= 20);
+      const surahPairs = connAllPairs.filter(p => p.surahNum === g.surahNum);
+      const surahPairsDone = surahPairs.length > 0 && surahPairs.every(p => (connectionReps[p.key] || 0) >= 10);
+      return {
+        key: `closer-${g.surahNum}`,
+        label: `All ${g.verses.length} ayahs of ${SURAH_EN[g.surahNum] || `Surah ${g.surahNum}`} together`,
+        ayahs: g.verses,
+        ready: allAyahsDone && surahPairsDone,
+        surahNum: g.surahNum,
+      };
+    });
+  const connVisibleClosers = connClosers.filter(c => c.ready);
+  const connSteps = [...connVisiblePairs, ...connVisibleClosers];
+  const connAllPairsDone = connAllPairs.length > 0 && connAllPairs.every(p => (connectionReps[p.key] || 0) >= 10);
+  const connAllClosersDone = connClosers.length > 0 && connClosers.every(c => (connectionReps[c.key] || 0) >= 10);
+  const connAllDone = isFajr && batch.length >= 2 && connAllPairsDone && connAllClosersDone;
+
+  // Modal dismiss tracking — user can close it, but it reopens the moment a new pair
+  // OR surah-closer unlocks.
+  const [connModalDismissed, setConnModalDismissed] = useState(false);
+  const prevVisibleStepCountRef = useRef(0);
+  const visibleStepCount = connVisiblePairs.length + connVisibleClosers.length;
+  useEffect(() => {
+    if (visibleStepCount > prevVisibleStepCountRef.current) {
+      setConnModalDismissed(false);
+    }
+    prevVisibleStepCountRef.current = visibleStepCount;
+  }, [visibleStepCount]);
+  useEffect(() => {
+    setConnModalDismissed(false);
+    prevVisibleStepCountRef.current = 0;
+  }, [fajrPageNum, currentSessionId]);
+  const showConnModal = isFajr && connSteps.length > 0 && !connAllDone && !connModalDismissed;
 
   // Fajr milestone tracking — log 20× phase + connection phase in activity feed
   const repsLoggedRef = useRef(null); // tracks which page's 20× was logged
@@ -504,75 +584,51 @@ export default function MyHifzTab(props) {
                   )}
                 </div>);})()}
 
-                {/* ── CONNECTION PHASE (الربط) — Sheikh Al-Qasim's method, progressive.
-                    Pair {N-1, N} unlocks the moment both ayahs hit 20/20, while they're
-                    still fresh in working memory. The page closer ("all N together × 10")
-                    unlocks only after every ayah and every pair is complete. ── */}
-                {currentSessionId==="fajr"&&(()=>{
-                  const APS=7;
-                  const aPages=isMushafFajr?1:Math.max(1,Math.ceil(batch.length/APS));
-                  const aSafe=Math.min(ayahPage,aPages-1);
-                  const aStart=isMushafFajr?0:aSafe*APS;
-                  const aEnd=isMushafFajr?batch.length:Math.min(aStart+APS,batch.length);
-                  const pageAyahs=batch.slice(aStart,aEnd);
-                  if(pageAyahs.length<2) return null;
-
-                  // Build every pair in the page. Mark which are unlocked (both ayahs 20/20).
-                  const allPairs=[];
-                  for(let i=0;i<pageAyahs.length-1;i++){
-                    const v1=pageAyahs[i], v2=pageAyahs[i+1];
-                    const bothDone=(repCounts[v1.verse_key]||0)>=20&&(repCounts[v2.verse_key]||0)>=20;
-                    allPairs.push({key:`pair-${aStart+i}-${aStart+i+1}`,label:`Ayah ${aStart+i+1} + ${aStart+i+2}`,ayahs:[v1,v2],ready:bothDone});
-                  }
-                  const visiblePairs=allPairs.filter(p=>p.ready);
-                  if(visiblePairs.length===0) return null; // panel hidden until the first pair unlocks
-
-                  const allAyahsDone=pageAyahs.every(v=>(repCounts[v.verse_key]||0)>=20);
-                  const allPairsDone=allPairs.every(p=>(connectionReps[p.key]||0)>=10);
-                  const showCloser=allAyahsDone&&allPairsDone;
-                  const allGroup={key:`all-${aStart}`,label:`All ${pageAyahs.length} ayahs together`,ayahs:pageAyahs};
-                  const steps=showCloser?[...visiblePairs,allGroup]:visiblePairs;
-                  const allConnectionsDone=showCloser&&(connectionReps[allGroup.key]||0)>=10;
-
-                  return (
-                    <div style={{marginBottom:16,padding:"14px",borderRadius:14,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.12)"}`}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                        <div style={{fontSize:14}}>🔗</div>
+                {/* ── CONNECTION PHASE (الربط) — modal overlay that pops the moment a pair
+                    unlocks, so the user can't scroll past it or skip.
+                    - Pair {N-1, N} unlocks once both ayahs hit 20/20.
+                    - Page closer ("all N together × 10") unlocks when every ayah AND every
+                      pair is complete.
+                    - Closeable, but auto-reopens when a new pair unlocks. ── */}
+                {showConnModal&&(
+                  <div onClick={()=>setConnModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.72)",backdropFilter:"blur(6px)"}}>
+                    <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto",borderRadius:20,padding:"24px 20px 20px",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.98) 0%,rgba(10,17,32,0.99) 100%),radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 60%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.25)"}`,boxShadow:"0 24px 60px rgba(0,0,0,0.55),0 0 30px rgba(212,175,55,0.08)"}}>
+                      <div className="sbtn" onClick={()=>setConnModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
+                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingRight:18}}>
+                        <div style={{fontSize:20}}>🔗</div>
                         <div>
-                          <div style={{fontSize:12,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Connection Phase (الربط)</div>
-                          <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"rgba(100,70,10,0.50)"}}>Now link the ayahs together — recite each pair 10 times</div>
+                          <div style={{fontSize:14,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Connection Phase (الربط)</div>
+                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"rgba(100,70,10,0.60)",marginTop:2,lineHeight:1.4}}>Recite each pair 10 times to link them together, while they are fresh.</div>
                         </div>
                       </div>
-                      <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                        {steps.map(step=>{
+                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                        {connSteps.map(step=>{
                           const cr=connectionReps[step.key]||0;
                           const crDone=cr>=10;
                           const pct=Math.min((cr/10)*100,100);
                           return (
                             <div key={step.key} className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[step.key]:Math.min(10,(prev[step.key]||0)+1)}))}
-                              style={{padding:"12px 14px",borderRadius:10,background:dark?(crDone?"rgba(74,222,128,0.06)":"rgba(255,255,255,0.02)"):(crDone?"rgba(74,222,128,0.06)":"rgba(0,0,0,0.02)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.25)":"rgba(46,204,113,0.30)"):(dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.08)")}`,transition:"all .15s"}}>
+                              style={{padding:"12px 14px",borderRadius:12,background:dark?(crDone?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)"):(crDone?"rgba(74,222,128,0.08)":"rgba(0,0,0,0.03)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.30)":"rgba(46,204,113,0.35)"):(dark?"rgba(217,177,95,0.18)":"rgba(0,0,0,0.10)")}`,transition:"all .15s"}}>
                               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                                <div style={{fontSize:11,fontWeight:600,color:crDone?(dark?"#4ADE80":"#2ECC71"):(dark?"rgba(243,231,200,0.65)":"#3D2E0A")}}>{step.label}</div>
-                                <div style={{fontSize:11,fontFamily:"'IBM Plex Mono',monospace",color:crDone?"#4ADE80":"rgba(230,184,74,0.60)"}}>{cr}/10</div>
+                                <div style={{fontSize:12,fontWeight:600,color:crDone?(dark?"#4ADE80":"#2ECC71"):(dark?"rgba(243,231,200,0.75)":"#3D2E0A")}}>{step.label}</div>
+                                <div style={{fontSize:11,fontFamily:"'IBM Plex Mono',monospace",color:crDone?"#4ADE80":"rgba(230,184,74,0.65)"}}>{cr}/10</div>
                               </div>
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                                 {step.ayahs.map((a,ai)=>(
-                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.75)":"rgba(40,30,10,0.75)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
+                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.35)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
                                 ))}
                               </div>
-                              <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",overflow:"hidden"}}>
+                              <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",overflow:"hidden"}}>
                                 <div style={{height:"100%",width:`${pct}%`,background:crDone?"#4ADE80":"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .3s"}}/>
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                      {allConnectionsDone&&(
-                        <div style={{textAlign:"center",marginTop:10,fontSize:12,fontWeight:700,color:"#4ADE80"}}>✓ Connections complete — ayahs are linked! MashaAllah</div>
-                      )}
+                      <div style={{textAlign:"center",marginTop:12,fontSize:10,color:dark?"rgba(243,231,200,0.35)":"rgba(100,70,10,0.50)"}}>Tap outside or ✕ to hide — it will reopen when the next pair unlocks.</div>
                     </div>
-                  );
-                })()}
+                  </div>
+                )}
 
                 {/* ── AYAH POPUP MODAL (all non-ASR sessions) ── */}
                 {currentSessionId!=="asr"&&openAyah&&(()=>{
