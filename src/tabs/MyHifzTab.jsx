@@ -157,7 +157,7 @@ export default function MyHifzTab(props) {
       const [s, a] = (v.verse_key || "").split(":");
       if (a === "1") startsHere.add(Number(s) || v.surah_number);
     });
-    return pageVs.filter(v => {
+    const kept = pageVs.filter(v => {
       const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
       const isActive = activeSurahNum && s === activeSurahNum;
       const isFresh = startsHere.has(s);
@@ -165,6 +165,16 @@ export default function MyHifzTab(props) {
       // drop anything — show everything that would otherwise qualify.
       const isQueued = queuedSurahs.size === 0 || queuedSurahs.has(s);
       return (isActive || isFresh) && isQueued;
+    });
+    // Sort in hifz order: surah descending (114 → 1), ayah ascending within
+    // each surah. So page 604 reads An-Nās first, then Al-Falaq, then Al-Ikhlāṣ.
+    return kept.slice().sort((a, b) => {
+      const sa = a.surah_number || parseInt(a.verse_key?.split(":")?.[0] || "0", 10);
+      const sb = b.surah_number || parseInt(b.verse_key?.split(":")?.[0] || "0", 10);
+      if (sa !== sb) return sb - sa;
+      const aa = parseInt(a.verse_key?.split(":")?.[1] || "0", 10);
+      const ab = parseInt(b.verse_key?.split(":")?.[1] || "0", 10);
+      return aa - ab;
     });
   };
 
