@@ -183,7 +183,7 @@ function AsrSessionView({
                   <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(currentPage.ayahs); }}
                     style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
                     <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
-                    {mushafAudioPlaying?"Stop":"Listen along"}
+                    {mushafAudioPlaying?"Stop":"Play Page"}
                   </div>
                 </div>
               )}

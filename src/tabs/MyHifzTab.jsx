@@ -648,6 +648,28 @@ export default function MyHifzTab(props) {
             {/* ── AYAH BATCH ── */}
             {!sessLoading&&batch.length>0&&!isAsr&&(
               <div>
+                {/* Listen-along for review sessions — sits above the batch header */}
+                {["dhuhr","maghrib","isha"].includes(currentSessionId)&&playMushafRange&&batch.length>0&&(()=>{
+                  const pageGroups=[];
+                  let cg=null;
+                  batch.forEach(v=>{
+                    const pn=v.page_number||0;
+                    if(!cg||cg.page!==pn){cg={page:pn,ayahs:[]};pageGroups.push(cg);}
+                    cg.ayahs.push(v);
+                  });
+                  const safeIdx=Math.min(ayahPage,Math.max(0,pageGroups.length-1));
+                  const pageAyahs=pageGroups[safeIdx]?.ayahs||[];
+                  if(pageAyahs.length===0) return null;
+                  return (
+                    <div style={{textAlign:"center",marginBottom:10}}>
+                      <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(pageAyahs); }}
+                        style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
+                        <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
+                        {mushafAudioPlaying?"Stop":"Play Page"}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {/* Batch header + view toggle for Fajr */}
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
                   <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{currentSessionId==="fajr"?"Fajr":currentSessionId==="dhuhr"?"Dhuhr Review":currentSessionId==="asr"?"Asr Review":currentSessionId==="maghrib"?"Listening":"Isha Review"} — Ayah Batch</div>
@@ -741,7 +763,7 @@ export default function MyHifzTab(props) {
                               <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(pageBatch); }}
                                 style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
                                 <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
-                                {mushafAudioPlaying?"Stop":"Listen along"}
+                                {mushafAudioPlaying?"Stop":"Play Page"}
                               </div>
                             </div>
                           )}
@@ -911,15 +933,6 @@ export default function MyHifzTab(props) {
                           {reviewHizbLabel?`${reviewHizbLabel} | `:""}{currentPg.page}
                         </div>
                       </div>
-                      {playMushafRange&&currentPg.ayahs.length>0&&(
-                        <div style={{textAlign:"center",marginTop:4,marginBottom:6}}>
-                          <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(currentPg.ayahs); }}
-                            style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
-                            <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
-                            {mushafAudioPlaying?"Stop":"Listen along"}
-                          </div>
-                        </div>
-                      )}
                       {totalPages>1&&(
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",gap:8}}>
                           <div className={safePage<totalPages-1?"sbtn":""} onClick={()=>{if(safePage<totalPages-1)setAyahPage(p=>p+1);}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage<totalPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage<totalPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage<totalPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
