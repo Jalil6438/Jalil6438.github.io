@@ -605,7 +605,13 @@ export default function MyHifzTab(props) {
                     curGroup.verses.push(v);
                   });
                   return (
-                    <div style={{position:"relative",padding:"32px 12px 36px",marginBottom:16}}>
+                    <div style={{marginBottom:16}}>
+                      {!MUSHAF_INTERACTIVE&&(
+                        <div style={{textAlign:"center",marginBottom:14,padding:"10px 14px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.14)":"rgba(140,100,20,0.12)"}`,fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5}}>
+                          Read this page with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> to begin memorizing.
+                        </div>
+                      )}
+                    <div style={{position:"relative",padding:"32px 12px 36px"}}>
                       {/* Top-left: surah name (English). Top-right: Part N. */}
                       {leadSurahNum>0&&(
                         <div style={{position:"absolute",top:0,left:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
@@ -661,16 +667,13 @@ export default function MyHifzTab(props) {
                           </div>
                         );
                       })}
-                      {MUSHAF_INTERACTIVE?(
+                      {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
                           <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
                           <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
                         </div>
-                      ):(
-                        <div style={{textAlign:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`,fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A",lineHeight:1.6}}>
-                          Read this page with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> to begin memorizing.
-                        </div>
                       )}
+                    </div>
                     </div>
                   );
                 })()}
