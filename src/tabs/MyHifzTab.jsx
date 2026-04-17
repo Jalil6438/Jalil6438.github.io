@@ -47,6 +47,7 @@ export default function MyHifzTab(props) {
     v9IsJuzComplete, v9MarkJuzComplete, v9MarkSurahComplete,
     // recent/yesterday
     setYesterdayBatch, setRecentBatches,
+    setTodayFajrBatch, todayFajrBatch,
     // sim verses
     simVerseCache, fetchSimVerse,
     // plan mode — "shaykh" (page-based) or "custom" (ayah-count via calcTimeline)
@@ -183,6 +184,18 @@ export default function MyHifzTab(props) {
   // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) show the
   // active surah + any other surahs that begin fresh on the same page.
   const batch = isPageBasedSession ? filterActivePlusFresh(pageBatch) : pageBatch;
+
+  // Share the page batch with the main component so Maghrib / Isha activity
+  // descriptions ("Listened to ..." / "Final review of ...") reflect the
+  // actual page the user worked on, not the old dailyNew-driven fajrBatch.
+  useEffect(() => {
+    if (!isShaykhPlan || !isFajr || !batch || batch.length === 0) return;
+    if (typeof setTodayFajrBatch !== "function") return;
+    const same =
+      (todayFajrBatch || []).length === batch.length &&
+      (todayFajrBatch || []).every((v, i) => v.verse_key === batch[i].verse_key);
+    if (!same) setTodayFajrBatch(batch);
+  }, [isShaykhPlan, isFajr, batch.length, batch[0]?.verse_key]);
 
   // ── Connection-phase computation — lifted out of the render IIFE so the modal-
   //    dismiss state can react to visible-step count changes.

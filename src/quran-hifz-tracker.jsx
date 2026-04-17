@@ -784,6 +784,8 @@ export default function RihlatAlHifz() {
     return result;
   })();
   // Save Fajr batch so Maghrib/Isha can use it even after sessionIdx advances
+  // Seed todayFajrBatch from the ayah-count fajrBatch only as a fallback —
+  // MyHifzTab overrides it with the page batch when running in Shaykh mode.
   useEffect(()=>{if(fajrBatch.length>0&&todayFajrBatch.length===0)setTodayFajrBatch(fajrBatch);},[fajrBatch.length]);
   const isDhuhr=currentSessionId==="dhuhr";
   const isAsr=currentSessionId==="asr";
@@ -1081,10 +1083,13 @@ export default function RihlatAlHifz() {
         else label=`${parts.slice(0,-1).join(", ")}, and ${parts[parts.length-1]}`;
         pushActivity("review",label?`Revised ${label} during Asr review`:"Completed Asr review");
       } else if(id==="maghrib"){
-        const label=describeBatch(fajrBatch);
+        // Describe using the page the user actually saw (Maghrib inherits Fajr's page).
+        const src=todayFajrBatch.length>0?todayFajrBatch:fajrBatch;
+        const label=describeBatch(src);
         pushActivity("listen",label?`Listened to ${label}`:"Completed Maghrib listening");
       } else if(id==="isha"){
-        const label=describeBatch(fajrBatch);
+        const src=todayFajrBatch.length>0?todayFajrBatch:fajrBatch;
+        const label=describeBatch(src);
         pushActivity("review",label?`Final review of ${label} before sleep`:"Completed Isha review");
       }
     }
@@ -1631,7 +1636,7 @@ export default function RihlatAlHifz() {
           setJuzProgress={setJuzProgress} setJuzStatus={setJuzStatus} markJuzAndSurahsComplete={markJuzAndSurahsComplete}
           juzCompletedInSession={juzCompletedInSession} setJuzCompletedInSession={setJuzCompletedInSession}
           v9IsJuzComplete={v9IsJuzComplete} v9MarkJuzComplete={v9MarkJuzComplete} v9MarkSurahComplete={v9MarkSurahComplete}
-          setYesterdayBatch={setYesterdayBatch} setRecentBatches={setRecentBatches}
+          setYesterdayBatch={setYesterdayBatch} setRecentBatches={setRecentBatches} setTodayFajrBatch={setTodayFajrBatch} todayFajrBatch={todayFajrBatch}
           simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse}
           userPlanMode={userPlanMode}
         />
