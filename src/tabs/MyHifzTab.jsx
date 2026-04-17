@@ -205,6 +205,25 @@ export default function MyHifzTab(props) {
   const showPairModal = isFajr && anyPairInFlight && !activeCloser && !pairModalDismissed;
   const showCloserModal = isFajr && !!activeCloser && !closerModalDismissed;
 
+  // Auto-advance: when a pair or closer modal finishes its work (user completed
+  // all reps, not a manual ×), jump straight to the next unmemorized ayah so the
+  // user flows ayah → pair → ayah → pair without landing back on a done ayah.
+  const prevShowPairModalRef = useRef(false);
+  const prevShowCloserModalRef = useRef(false);
+  useEffect(() => {
+    const pairJustAutoClosed = prevShowPairModalRef.current && !showPairModal && !pairModalDismissed && !activeCloser;
+    const closerJustAutoClosed = prevShowCloserModalRef.current && !showCloserModal && !closerModalDismissed;
+    if (pairJustAutoClosed || closerJustAutoClosed) {
+      const nextAyah = batch.find(v => (repCounts[v.verse_key] || 0) < 20);
+      if (nextAyah) {
+        setOpenAyah(nextAyah.verse_key);
+        fetchTranslations([nextAyah]);
+      }
+    }
+    prevShowPairModalRef.current = showPairModal;
+    prevShowCloserModalRef.current = showCloserModal;
+  }, [showPairModal, showCloserModal]);
+
   // Fajr milestone tracking — log 20× phase + connection phase in activity feed
   const repsLoggedRef = useRef(null); // tracks which page's 20× was logged
   const connLoggedRef = useRef(null); // tracks which page's connections were logged
