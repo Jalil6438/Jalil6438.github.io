@@ -964,12 +964,29 @@ export default function RihlatAlHifz() {
     (asrSelectedSurahs.length > 0 || asrSelectedJuz.length > 0);
 
   const asrSelectionSummary = (() => {
-    const parts = [];
-    if (asrSelectedJuz.length) parts.push(...asrSelectedJuz.map(j => `Juz ${j}`));
-    if (asrSelectedSurahs.length) parts.push(...asrSelectedSurahs.map(s => SURAH_EN[s]).filter(Boolean));
-    if (!parts.length) return "";
+    // Describe today's actual slice (asrReviewBatch), not the eligible pool.
+    // The chunker produces a surah-aligned slice, so the summary should name
+    // the surahs the user is actually reviewing today.
+    const b = asrReviewBatch || [];
+    if (!b.length) {
+      // Fall back to the pool view while the batch is still loading / empty.
+      const parts = [];
+      if (asrSelectedJuz.length) parts.push(...asrSelectedJuz.map(j => `Juz ${j}`));
+      if (asrSelectedSurahs.length) parts.push(...asrSelectedSurahs.map(s => SURAH_EN[s]).filter(Boolean));
+      if (!parts.length) return "";
+      return `${asrIsCustomized ? "Customized" : "Reviewing"}: ${parts.join(" · ")}`;
+    }
     const label = asrIsCustomized ? "Customized" : "Reviewing";
-    return `${label}: ${parts.join(" · ")}`;
+    const surahSet = new Set(b.map(v => v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10)));
+    // If the slice exactly matches a juz's full surah list, call it that juz.
+    let matchedJuz = null;
+    for (let j = 1; j <= 30; j++) {
+      const jSurahs = (JUZ_SURAHS[j] || []).map(s => s.s);
+      if (jSurahs.length === surahSet.size && jSurahs.every(s => surahSet.has(s))) { matchedJuz = j; break; }
+    }
+    if (matchedJuz) return `${label}: Juz ${matchedJuz}`;
+    const surahNames = [...surahSet].sort((a,b)=>a-b).map(s => SURAH_EN[s]).filter(Boolean);
+    return `${label}: ${surahNames.join(" · ")}`;
   })();
 
   const asrSurahProgress = (() => {
