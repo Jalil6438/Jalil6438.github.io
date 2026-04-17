@@ -808,8 +808,116 @@ export default function MyHifzTab(props) {
                   );
                 })()}
 
-                {/* ── AYAH ROWS — Interactive mode (5 per page, swipeable) ── */}
-                {(hifzViewMode==="interactive"||currentSessionId!=="fajr")&&(()=>{
+                {/* ── REVIEW MUSHAF — Dhuhr / Maghrib / Isha render their batches as
+                    authentic mushaf pages, one page per swipe. Much lighter than
+                    walking 20+ cards of Study view when the batch is 100+ ayahs. ── */}
+                {["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
+                  const pageGroups=[];
+                  let curGroup=null;
+                  batch.forEach(v=>{
+                    const pn=v.page_number||0;
+                    if(!curGroup||curGroup.page!==pn){ curGroup={page:pn,ayahs:[]}; pageGroups.push(curGroup); }
+                    curGroup.ayahs.push(v);
+                  });
+                  const totalPages=pageGroups.length;
+                  const safePage=Math.min(ayahPage,Math.max(0,totalPages-1));
+                  const currentPg=pageGroups[safePage];
+                  if(!currentPg) return null;
+                  // Dominant surah (most ayahs on this page wins).
+                  const dominantSurah=(()=>{
+                    const counts={}, order=[];
+                    currentPg.ayahs.forEach(v=>{
+                      const sn=v.surah_number||parseInt(v.verse_key.split(":")[0],10);
+                      if(counts[sn]===undefined){counts[sn]=0;order.push(sn);}
+                      counts[sn]++;
+                    });
+                    let w=order[0]||0;
+                    order.forEach(sn=>{ if(counts[sn]>counts[w]||(counts[sn]===counts[w]&&order.indexOf(sn)>order.indexOf(w))) w=sn; });
+                    return w;
+                  })();
+                  const reviewJuzNum=currentPg.ayahs[0]?.juz_number;
+                  const reviewHizbLabel=(()=>{
+                    for(let i=0;i<currentPg.ayahs.length;i++){
+                      const v=currentPg.ayahs[i];
+                      const r=v.rub_el_hizb_number;
+                      if(typeof r!=="number") continue;
+                      const prev=i>0?currentPg.ayahs[i-1]:null;
+                      if(prev&&prev.rub_el_hizb_number===r) continue;
+                      const pos=((r-1)%4)+1;
+                      const hizb=Math.ceil(r/4);
+                      if(pos===1) return `Hizb ${hizb}`;
+                      if(pos===2) return `1/4 Hizb ${hizb}`;
+                      if(pos===3) return `1/2 Hizb ${hizb}`;
+                      if(pos===4) return `3/4 Hizb ${hizb}`;
+                    }
+                    return null;
+                  })();
+                  const reviewSubs=[];let sg=null;
+                  currentPg.ayahs.forEach(v=>{
+                    const sn=v.surah_number||parseInt(v.verse_key.split(":")[0],10);
+                    if(!sg||sg.sNum!==sn){sg={sNum:sn,ayahs:[]};reviewSubs.push(sg);}
+                    sg.ayahs.push(v);
+                  });
+                  return (
+                    <div style={{marginBottom:16}}>
+                      <div style={{position:"relative",padding:"32px 12px 40px"}}>
+                        {dominantSurah>0&&(
+                          <div style={{position:"absolute",top:0,left:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
+                            {SURAH_EN[dominantSurah]||""}
+                          </div>
+                        )}
+                        {reviewJuzNum&&(
+                          <div style={{position:"absolute",top:0,right:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
+                            Part {reviewJuzNum}
+                          </div>
+                        )}
+                        {reviewSubs.map((sub,si)=>{
+                          const isFirst=sub.ayahs[0]&&sub.ayahs[0].verse_key.split(":")[1]==="1";
+                          return (
+                            <div key={sub.sNum+"-"+si}>
+                              {(si>0||isFirst)&&(
+                                <div style={{textAlign:"center",padding:"12px 0 10px"}}>
+                                  <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[sub.sNum]||""}</div>
+                                  <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[sub.sNum]}</div>
+                                  {isFirst&&sub.sNum!==9&&sub.sNum!==1&&(
+                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                  )}
+                                  <div style={{height:1,margin:"10px auto 0",width:"80%",background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)"}}/>
+                                </div>
+                              )}
+                              <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                                {sub.ayahs.map(v=>{
+                                  const vKey=v.verse_key;
+                                  const aNum=parseInt(vKey.split(":")[1],10);
+                                  return (
+                                    <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
+                                      style={{cursor:"pointer",borderRadius:6,padding:"2px 4px"}}>
+                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                      <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
+                          {reviewHizbLabel?`${reviewHizbLabel} | `:""}{currentPg.page}
+                        </div>
+                      </div>
+                      {totalPages>1&&(
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",gap:8}}>
+                          <div className={safePage<totalPages-1?"sbtn":""} onClick={()=>{if(safePage<totalPages-1)setAyahPage(p=>p+1);}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage<totalPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage<totalPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage<totalPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
+                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} of {totalPages}</div>
+                          <div className={safePage>0?"sbtn":""} onClick={()=>{if(safePage>0)setAyahPage(p=>p-1);}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage>0?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev ›</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* ── AYAH ROWS — Fajr Study mode only (review sessions use Mushaf render above) ── */}
+                {currentSessionId==="fajr"&&hifzViewMode==="interactive"&&(()=>{
                   const APS=7;
                   const aPages=Math.max(1,Math.ceil(batch.length/APS));
                   const aSafe=Math.min(ayahPage,aPages-1);
