@@ -116,33 +116,56 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       return `https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
     }
 
-    // Pre-load all ayahs upfront so transitions are instant
-    const preloaded=verses.map(v=>{
-      const a=new Audio(urlFor(v.verse_key));
-      a.preload="auto";
+    // Build the playback queue — inject a Bismillah clip before every surah
+    // that starts fresh on the page (verse_key ends in ":1") except for
+    // Surah 1 (Al-Fatiha — Bismillah IS its ayah 1) and Surah 9
+    // (At-Tawbah — the only surah that opens without Bismillah).
+    // The Bismillah clip comes from the reciter's own Al-Fatiha ayah 1 file.
+    const bismillahUrl = `https://everyayah.com/data/${folder}/001001.mp3`;
+    const queue = [];
+    verses.forEach((v, i) => {
+      const [s, a] = v.verse_key.split(":");
+      const sNum = Number(s);
+      if (a === "1" && sNum !== 1 && sNum !== 9) {
+        queue.push({ isBismillah: true, vKey: `bismillah-${i}` });
+      }
+      queue.push({ verse_key: v.verse_key, isBismillah: false });
+    });
+
+    // Pre-load every audio element in the queue
+    const preloaded = queue.map(item => {
+      const a = new Audio(item.isBismillah ? bismillahUrl : urlFor(item.verse_key));
+      a.preload = "auto";
       return a;
     });
 
     let nextTriggered=false;
 
     function playIdx(idx){
-      if(idx>=verses.length){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
-      const vKey=verses[idx].verse_key;
+      if(idx>=queue.length){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
+      const item=queue[idx];
       const audio=preloaded[idx];
       nextTriggered=false;
       audioRef.current=audio;
-      setPlayingKey(vKey);
-      setAudioLoading(vKey);
+      // For Bismillah clips, don't set playingKey (it's not a real verse_key in
+      // the rendered batch). For real verses, highlight as before.
+      if (!item.isBismillah) {
+        setPlayingKey(item.verse_key);
+        setAudioLoading(item.verse_key);
+      } else {
+        setPlayingKey(null);
+        setAudioLoading(null);
+      }
 
-      audio.oncanplay=()=>setAudioLoading(null);
+      audio.oncanplay=()=>{ if(!item.isBismillah) setAudioLoading(null); };
       audio.onended=()=>playIdx(idx+1);
       audio.onerror=()=>playIdx(idx+1);
 
-      // Start next ayah 0.25s before current ends — eliminates the gap
+      // Start next clip 0.25s before current ends — eliminates the gap
       audio.ontimeupdate=()=>{
         if(!nextTriggered && audio.duration>0 && audio.currentTime >= audio.duration - 0.25){
           nextTriggered=true;
-          if(idx+1<verses.length){
+          if(idx+1<queue.length){
             const nextAudio=preloaded[idx+1];
             nextAudio.currentTime=0;
             nextAudio.play().catch(()=>{});
