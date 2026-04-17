@@ -133,6 +133,15 @@ export default function RihlatAlHifz() {
   const [openSurah,setOpenSurah]=useState(null);
   const [goalYears,setGoalYears]=useState(3);
   const [goalMonths,setGoalMonths]=useState(1);
+  // Plan mode: "shaykh" (default — one mushaf page per day) or "custom" (the
+  // user has adjusted their timeline in Settings; calcTimeline drives the pace).
+  const [userPlanMode,setUserPlanMode_]=useState(()=>{
+    try { return localStorage.getItem("rihlat-plan-mode")||"shaykh"; } catch { return "shaykh"; }
+  });
+  const setUserPlanMode=(m)=>{
+    setUserPlanMode_(m);
+    try { localStorage.setItem("rihlat-plan-mode", m); } catch {}
+  };
   const [openMethod,setOpenMethod]=useState(null);
   const [sessionJuz,setSessionJuz]=useState(null);
   const [sessionIdx,setSessionIdx]=useState(0);
@@ -1388,7 +1397,38 @@ export default function RihlatAlHifz() {
       {activeTab!=="quran"&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-        const goalLabel=goalYears===0?`${goalMonths}-Month Hafiz`:`${goalYears}-Year${goalYears!==1?"":""} Hafiz${goalMonths>0?` · ${goalMonths}mo`:""}`;
+        // In Shaykh's default plan the label is derived from pages remaining at
+        // 1 page/day. In a custom plan we use the user's goalYears/goalMonths.
+        const goalLabel=(()=>{
+          if(userPlanMode==="custom"){
+            return goalYears===0?`${goalMonths}-Month Hafiz`:`${goalYears}-Year${goalYears!==1?"":""} Hafiz${goalMonths>0?` · ${goalMonths}mo`:""}`;
+          }
+          // Shaykh's plan: derive pages completed from juzStatus using the
+          // same per-page-coverage rule as onboarding, then 1 page/day → months.
+          const completedSurahsSet=new Set();
+          Object.entries(juzStatus||{}).forEach(([key,val])=>{
+            if(val!=="complete") return;
+            if(key.startsWith("s")){ const n=parseInt(key.slice(1),10); if(n>=1&&n<=114) completedSurahsSet.add(n); }
+          });
+          const surahsOnPage={};
+          for(let s=1;s<=114;s++){
+            const st=SURAH_PAGES[s]; if(!st) continue;
+            const nx=s<114?SURAH_PAGES[s+1]:605;
+            const en=Math.max(st,nx-1);
+            for(let p=st;p<=en;p++){ if(!surahsOnPage[p]) surahsOnPage[p]=[]; surahsOnPage[p].push(s); }
+          }
+          let pagesDone=0;
+          for(let p=1;p<=604;p++){
+            const list=surahsOnPage[p];
+            if(list&&list.length>0&&list.every(s=>completedSurahsSet.has(s))) pagesDone++;
+          }
+          const pagesLeft=Math.max(0,604-pagesDone);
+          const months=Math.max(1,Math.ceil(pagesLeft/30));
+          if(months<12) return `${months}-Month Hafiz`;
+          const years=Math.floor(months/12);
+          const rem=months%12;
+          return rem===0?`${years}-Year Hafiz`:`${years}-Year Hafiz · ${rem}mo`;
+        })();
         return (
         <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8",padding:"18px 16px 16px",flexShrink:0,borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
@@ -1537,6 +1577,7 @@ export default function RihlatAlHifz() {
           v9IsJuzComplete={v9IsJuzComplete} v9MarkJuzComplete={v9MarkJuzComplete} v9MarkSurahComplete={v9MarkSurahComplete}
           setYesterdayBatch={setYesterdayBatch} setRecentBatches={setRecentBatches}
           simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse}
+          userPlanMode={userPlanMode}
         />
       )}
 
@@ -1780,6 +1821,7 @@ export default function RihlatAlHifz() {
           timeline={timeline}
           dailyNew={dailyNew}
           rihlahScrollRef={rihlahScrollRef}
+          userPlanMode={userPlanMode} setUserPlanMode={setUserPlanMode}
           onBack={()=>{
             if(tabBeforeAdjust){
               setActiveTab(tabBeforeAdjust.activeTab);

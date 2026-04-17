@@ -49,6 +49,8 @@ export default function MyHifzTab(props) {
     setYesterdayBatch, setRecentBatches,
     // sim verses
     simVerseCache, fetchSimVerse,
+    // plan mode — "shaykh" (page-based) or "custom" (ayah-count via calcTimeline)
+    userPlanMode = "shaykh",
   } = props;
 
   // Wisdom rotation — two triggers:
@@ -79,9 +81,14 @@ export default function MyHifzTab(props) {
   // Fajr = one full mushaf page as the day's memorization effort (Sheikh Al-Qasim's method).
   // Maghrib and Isha inherit the same page (listening + final review of today's batch).
   // Dhuhr uses its own 5-page review pool; Asr uses its own review batch; neither is affected.
+  //
+  // Page-based flow only applies when the user is on the Shaykh's default plan.
+  // If they've adjusted their timeline in Settings (userPlanMode === "custom"),
+  // we fall back to the calcTimeline-driven ayah-count batch from the main file.
+  const isShaykhPlan = userPlanMode !== "custom";
   const isFajr = currentSessionId === "fajr";
   const isMaghribOrIsha = currentSessionId === "maghrib" || currentSessionId === "isha";
-  const isPageBasedSession = isFajr || isMaghribOrIsha;
+  const isPageBasedSession = isShaykhPlan && (isFajr || isMaghribOrIsha);
   const isMushafFajr = isFajr && hifzViewMode === "mushaf";
 
   const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
