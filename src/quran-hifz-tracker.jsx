@@ -882,6 +882,40 @@ export default function RihlatAlHifz() {
   const allChecked=checkedCount===SESSIONS.length;
   const currentReciter=RECITERS.find(r=>r.id===reciter)||RECITERS[0];
 
+  // ── Plan label (shared by the universal header and Rihlah home) ──
+  // Shaykh mode: pages-remaining at 1 page/day → months → "N-Month Hafiz".
+  // Custom mode: goalYears * 12 + goalMonths → same label formatter.
+  const planPagesCompleted=(()=>{
+    const completedSurahsSet=new Set();
+    Object.entries(juzStatus||{}).forEach(([key,val])=>{
+      if(val!=="complete") return;
+      if(key.startsWith("s")){ const n=parseInt(key.slice(1),10); if(n>=1&&n<=114) completedSurahsSet.add(n); }
+    });
+    const surahsOnPage={};
+    for(let s=1;s<=114;s++){
+      const st=SURAH_PAGES[s]; if(!st) continue;
+      const nx=s<114?SURAH_PAGES[s+1]:605;
+      const en=Math.max(st,nx-1);
+      for(let p=st;p<=en;p++){ if(!surahsOnPage[p]) surahsOnPage[p]=[]; surahsOnPage[p].push(s); }
+    }
+    let pagesDone=0;
+    for(let p=1;p<=604;p++){
+      const list=surahsOnPage[p];
+      if(list&&list.length>0&&list.every(s=>completedSurahsSet.has(s))) pagesDone++;
+    }
+    return pagesDone;
+  })();
+  const planMonthsRemaining=Math.max(1,Math.ceil(Math.max(0,604-planPagesCompleted)/30));
+  const formatHafizLabel=(months)=>{
+    if(months<=0) return "Set goal";
+    if(months<24) return `${months}-Month Hafiz`;
+    const y=Math.floor(months/12), r=months%12;
+    return r===0?`${y}-Year Hafiz`:`${y}-Year ${r}-Month Hafiz`;
+  };
+  const goalLabel=userPlanMode==="custom"
+    ? formatHafizLabel((goalYears||0)*12+(goalMonths||0))
+    : formatHafizLabel(planMonthsRemaining);
+
   const {
     playingKey, setPlayingKey, audioLoading, setAudioLoading, audioRef,
     playingSurah, setPlayingSurah, mushafAudioPlaying, setMushafAudioPlaying,
@@ -1397,42 +1431,6 @@ export default function RihlatAlHifz() {
       {activeTab!=="quran"&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-        // In Shaykh's default plan the label is derived from pages remaining at
-        // 1 page/day. In a custom plan we use the user's goalYears/goalMonths.
-        const goalLabel=(()=>{
-          if(userPlanMode==="custom"){
-            const totalMonths=(goalYears||0)*12+(goalMonths||0);
-            if(totalMonths<=0) return "Set goal";
-            if(totalMonths<24) return `${totalMonths}-Month Hafiz`;
-            const y=Math.floor(totalMonths/12), r=totalMonths%12;
-            return r===0?`${y}-Year Hafiz`:`${y}-Year ${r}-Month Hafiz`;
-          }
-          // Shaykh's plan: derive pages completed from juzStatus using the
-          // same per-page-coverage rule as onboarding, then 1 page/day → months.
-          const completedSurahsSet=new Set();
-          Object.entries(juzStatus||{}).forEach(([key,val])=>{
-            if(val!=="complete") return;
-            if(key.startsWith("s")){ const n=parseInt(key.slice(1),10); if(n>=1&&n<=114) completedSurahsSet.add(n); }
-          });
-          const surahsOnPage={};
-          for(let s=1;s<=114;s++){
-            const st=SURAH_PAGES[s]; if(!st) continue;
-            const nx=s<114?SURAH_PAGES[s+1]:605;
-            const en=Math.max(st,nx-1);
-            for(let p=st;p<=en;p++){ if(!surahsOnPage[p]) surahsOnPage[p]=[]; surahsOnPage[p].push(s); }
-          }
-          let pagesDone=0;
-          for(let p=1;p<=604;p++){
-            const list=surahsOnPage[p];
-            if(list&&list.length>0&&list.every(s=>completedSurahsSet.has(s))) pagesDone++;
-          }
-          const pagesLeft=Math.max(0,604-pagesDone);
-          const months=Math.max(1,Math.ceil(pagesLeft/30));
-          if(months<24) return `${months}-Month Hafiz`;
-          const years=Math.floor(months/12);
-          const rem=months%12;
-          return rem===0?`${years}-Year Hafiz`:`${years}-Year ${rem}-Month Hafiz`;
-        })();
         return (
         <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8",padding:"18px 16px 16px",flexShrink:0,borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
@@ -1587,7 +1585,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="home"&&!showTerms&&(
-        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity}/>
+        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}

@@ -11,7 +11,10 @@ export default function RihlahHome({
   setRihlahTab,
   haramainMeta,
   recentActivity,
+  userPlanMode,
+  goalLabel: goalLabelProp,
 }) {
+  const isShaykhPlan = userPlanMode !== "custom";
   // Relative time formatter: "just now" / "8 mins ago" / "Yesterday" / "3 days ago"
   function timeAgo(ts){
     if(!ts) return "";
@@ -32,7 +35,7 @@ export default function RihlahHome({
   const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
   const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
   const joinYear=2026;
-  const goalLabel=goalYears===0?`${goalMonths}-Month Hafiz`:goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz";
+  const goalLabel = goalLabelProp || (goalYears===0?`${goalMonths}-Month Hafiz`:goalYears<=1?"1-Year Hafiz":goalYears<=3?"3-Year Hafiz":"Long-Term Hafiz");
   const radius=52, circ=2*Math.PI*radius;
   const filled=circ*(pct/100);
   const activeSess=SESSIONS.find(s=>!dailyChecks[s.id])||SESSIONS[SESSIONS.length-1];
@@ -209,7 +212,7 @@ export default function RihlahHome({
         <div style={{marginBottom:10}}>
           <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.35)",marginBottom:5}}>
             <span>{checkedCount} / {SESSIONS.length} sessions complete</span>
-            {activeSess.id==="fajr"&&<span style={{color:"#F0C040",fontWeight:600}}>{dailyNew} ayahs today</span>}
+            {activeSess.id==="fajr"&&<span style={{color:"#F0C040",fontWeight:600}}>{isShaykhPlan?"1 page today":`${dailyNew} ayahs today`}</span>}
           </div>
           <div style={{height:6,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden"}}>
             <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,rgba(240,192,64,0.95),rgba(240,192,64,0.75))",borderRadius:999,boxShadow:"0 0 10px rgba(240,192,64,0.3)",transition:"width .5s"}}/>
