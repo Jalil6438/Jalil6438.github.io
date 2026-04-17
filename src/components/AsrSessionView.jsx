@@ -114,9 +114,9 @@ function AsrSessionView({
                 if(prev&&prev.rub_el_hizb_number===r) continue;
                 const pos=((r-1)%4)+1;
                 const hizb=Math.ceil(r/4);
-                if(pos===1) return `¼ Hizb ${hizb}`;
-                if(pos===2) return `½ Hizb ${hizb}`;
-                if(pos===3) return `¾ Hizb ${hizb}`;
+                if(pos===1) return `1/4 Hizb ${hizb}`;
+                if(pos===2) return `1/2 Hizb ${hizb}`;
+                if(pos===3) return `3/4 Hizb ${hizb}`;
                 if(pos===4) return `Hizb ${hizb}`;
               }
               return null;
