@@ -1004,7 +1004,7 @@ export default function MyHifzTab(props) {
                         </div>
                       </div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                        {connVisiblePairs.map(step=>{
+                        {[...connVisiblePairs].reverse().map(step=>{
                           const cr=connectionReps[step.key]||0;
                           const crDone=cr>=10;
                           const pct=Math.min((cr/10)*100,100);
