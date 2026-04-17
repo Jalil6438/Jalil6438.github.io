@@ -123,19 +123,20 @@ export default function Onboarding({
               <div style={{textAlign:"center",fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:10}}>Shaykh Al-Qasim's Method</div>
               <div style={{textAlign:"center",fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F6E27A",lineHeight:1.2,marginBottom:8}}>One Page Per Day</div>
               <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,191,0.62)",lineHeight:1.5,marginBottom:14,fontStyle:"italic"}}>
-                The Methodology of Shaykh Abdul Muhsin Al-Qasim, Imam of Masjid an-Nabawi.
+                <div>The Methodology of Shaykh Abdul Muhsin Al-Qasim</div>
+                <div>Imam of Masjid an-Nabawi</div>
               </div>
-              <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12,fontSize:12,color:"rgba(243,231,191,0.75)",lineHeight:1.6}}>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:"#D4AF37",fontWeight:700,minWidth:18,textAlign:"center"}}>·</span><span>20 repetitions per ayah</span></div>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:"#D4AF37",fontWeight:700,minWidth:18,textAlign:"center"}}>·</span><span>10 repetitions to connect each pair</span></div>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:"#D4AF37",fontWeight:700,minWidth:18,textAlign:"center"}}>·</span><span>One page of the mushaf each day</span></div>
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12,fontSize:12,color:"rgba(243,231,191,0.75)",lineHeight:1.6,textAlign:"center"}}>
+                <div>20 repetitions per ayah</div>
+                <div>10 repetitions to connect each pair</div>
+                <div>One page of the mushaf each day</div>
               </div>
               <div style={{height:1,background:"linear-gradient(90deg,rgba(212,175,55,0) 0%,rgba(232,200,120,0.30) 50%,rgba(212,175,55,0) 100%)",margin:"0 0 12px"}}/>
               <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,191,0.70)",lineHeight:1.5}}>
-                At this pace, you will complete the Qur'an in <span style={{color:"#F6E27A",fontWeight:700}}>approximately {monthsRemaining} month{monthsRemaining===1?"":"s"}</span>, in shā' Allāh.
+                Completion in <span style={{color:"#F6E27A",fontWeight:700}}>approximately {monthsRemaining} month{monthsRemaining===1?"":"s"}</span>, in shā' Allāh.
               </div>
               <div style={{textAlign:"center",fontSize:10,color:"rgba(212,175,55,0.50)",marginTop:10,fontStyle:"italic",lineHeight:1.5}}>
-                You can adjust the pace in Settings if this doesn't fit your schedule.
+                Pace can be adjusted in Settings.
               </div>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
