@@ -161,14 +161,19 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       audio.onended=()=>playIdx(idx+1);
       audio.onerror=()=>playIdx(idx+1);
 
-      // Start next clip 0.25s before current ends — eliminates the gap
+      // Start next clip 0.25s before current ends — eliminates the gap.
+      // Also advance the highlight (playingKey) at the same moment so the
+      // gold glow hops with the audio rather than lagging behind it.
       audio.ontimeupdate=()=>{
         if(!nextTriggered && audio.duration>0 && audio.currentTime >= audio.duration - 0.25){
           nextTriggered=true;
           if(idx+1<queue.length){
+            const nextItem=queue[idx+1];
             const nextAudio=preloaded[idx+1];
             nextAudio.currentTime=0;
             nextAudio.play().catch(()=>{});
+            if (nextItem.isBismillah) setPlayingKey(null);
+            else setPlayingKey(nextItem.verse_key);
           }
         }
       };
