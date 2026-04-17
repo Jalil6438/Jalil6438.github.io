@@ -1061,8 +1061,8 @@ export default function RihlatAlHifz() {
         const lA=parseInt(last.verse_key?.split(":")?.[1]||"0",10);
         const fN=SURAH_EN[fS]||"";
         const lN=SURAH_EN[lS]||"";
-        if(fS===lS) return fA===lA?`${fN} ayah ${fA}`:`${fN} ayat ${fA}-${lA}`;
-        return `${fN} ${fA} – ${lN} ${lA}`;
+        if(fS===lS) return fA===lA?`Surah ${fN} ayah ${fA}`:`Surah ${fN} ayat ${fA}-${lA}`;
+        return `Surah ${fN} ${fA} – Surah ${lN} ${lA}`;
       };
       if(id==="fajr"){
         // Describe the batch using whichever is authoritative — in Shaykh mode
