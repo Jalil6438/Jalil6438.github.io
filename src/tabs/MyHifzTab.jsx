@@ -529,9 +529,12 @@ export default function MyHifzTab(props) {
                 {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(()=>{
                   const pageNum = batch[0]?.page_number;
                   const juzNum = batch[0]?.juz_number;
-                  // Leading surah on the page (first verse's surah). If the page opens
-                  // mid-surah, that's still the correct "top-of-page" label per mushaf convention.
-                  const leadSurahNum = batch[0]?.surah_number || parseInt(batch[0]?.verse_key?.split(":")?.[0] || "0", 10);
+                  // Page-header surah, per mushaf convention: the "new" surah on the page
+                  // is the one shown in the header. If the page has end-of-Muddaththir +
+                  // start-of-Qiyamah, the header reads "Al-Qiyamah" (the new surah). We
+                  // pick the last surah present on the page, which handles both the
+                  // "all one surah" and "continuation + new surah" cases.
+                  const leadSurahNum = batch[batch.length - 1]?.surah_number || parseInt(batch[batch.length - 1]?.verse_key?.split(":")?.[0] || "0", 10);
                   // Hizb fractional marker derived from rub_el_hizb_number (1-240).
                   // Each hizb = 4 rubs: 1 = ¼, 2 = ½, 3 = ¾, 0 = hizb start.
                   // Show the marker for the first quarter that *starts* on this page.
