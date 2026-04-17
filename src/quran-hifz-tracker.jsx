@@ -965,11 +965,11 @@ export default function RihlatAlHifz() {
 
   const asrSelectionSummary = (() => {
     // Describe today's actual slice (asrReviewBatch), not the eligible pool.
-    // The chunker produces a surah-aligned slice, so the summary should name
-    // the surahs the user is actually reviewing today.
+    // Compact form: "Juz 30 — An-Nabaʾ to Al-Ghāshiyah" when a slice spans
+    // multiple surahs within a single juz; otherwise just the first→last
+    // surah range, or a single surah name.
     const b = asrReviewBatch || [];
     if (!b.length) {
-      // Fall back to the pool view while the batch is still loading / empty.
       const parts = [];
       if (asrSelectedJuz.length) parts.push(...asrSelectedJuz.map(j => `Juz ${j}`));
       if (asrSelectedSurahs.length) parts.push(...asrSelectedSurahs.map(s => SURAH_EN[s]).filter(Boolean));
@@ -978,15 +978,26 @@ export default function RihlatAlHifz() {
     }
     const label = asrIsCustomized ? "Customized" : "Reviewing";
     const surahSet = new Set(b.map(v => v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10)));
-    // If the slice exactly matches a juz's full surah list, call it that juz.
+    // Full-juz match → "Juz N".
     let matchedJuz = null;
     for (let j = 1; j <= 30; j++) {
       const jSurahs = (JUZ_SURAHS[j] || []).map(s => s.s);
       if (jSurahs.length === surahSet.size && jSurahs.every(s => surahSet.has(s))) { matchedJuz = j; break; }
     }
     if (matchedJuz) return `${label}: Juz ${matchedJuz}`;
-    const surahNames = [...surahSet].sort((a,b)=>a-b).map(s => SURAH_EN[s]).filter(Boolean);
-    return `${label}: ${surahNames.join(" · ")}`;
+    // First-last surah range (ascending surah number).
+    const sorted = [...surahSet].sort((a,b)=>a-b);
+    const firstS = sorted[0], lastS = sorted[sorted.length-1];
+    const firstName = SURAH_EN[firstS] || `Surah ${firstS}`;
+    const lastName = SURAH_EN[lastS] || `Surah ${lastS}`;
+    const rangeLabel = firstS === lastS ? firstName : `${firstName} to ${lastName}`;
+    // If every surah in the slice belongs to the same juz, prefix with that juz.
+    let containingJuz = null;
+    for (let j = 1; j <= 30; j++) {
+      const jSurahs = new Set((JUZ_SURAHS[j] || []).map(s => s.s));
+      if (sorted.every(s => jSurahs.has(s))) { containingJuz = j; break; }
+    }
+    return containingJuz ? `${label}: Juz ${containingJuz} — ${rangeLabel}` : `${label}: ${rangeLabel}`;
   })();
 
   const asrSurahProgress = (() => {
