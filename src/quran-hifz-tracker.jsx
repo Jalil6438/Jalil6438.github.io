@@ -1054,17 +1054,17 @@ export default function RihlatAlHifz() {
         return `${fN} ${fA} – ${lN} ${lA}`;
       };
       if(id==="fajr"){
-        // Describe what the user just worked on. Tap counts are our proxy,
-        // not the truth of memorization, so the activity just names the batch.
-        const batchLabel=describeBatch(fajrBatch);
+        // Describe the batch using whichever is authoritative — in Shaykh mode
+        // that's the page-based todayFajrBatch; in custom it's fajrBatch.
+        const src=todayFajrBatch.length>0?todayFajrBatch:fajrBatch;
+        const batchLabel=describeBatch(src);
         pushActivity("memorize", batchLabel?`Memorized ${batchLabel}`:"Completed Fajr session");
-        // Rep-count reminder only applies in custom (ayah-count) mode.
-        if(userPlanMode==="custom"){
-          const taped=fajrBatch.filter(v=>(repCounts[v.verse_key]||0)>=20).length;
-          const remaining=fajrBatch.length-taped;
-          if(remaining>0){
-            pushActivity("reminder",`${remaining} ayah${remaining===1?"":"s"} still pending repetitions`);
-          }
+        // Rep shortfall — any ayah in the batch the user saw that still has
+        // fewer than 20 reps. Fires in both modes, measured against the same
+        // batch the user actually worked on.
+        const pending=src.filter(v=>(repCounts[v.verse_key]||0)<20).length;
+        if(pending>0){
+          pushActivity("reminder",`${pending} ayah${pending===1?"":"s"} still pending repetitions`);
         }
         // Clear any legacy banner reminder from older versions.
         try { localStorage.removeItem("jalil-hifz-reminder"); } catch{}
