@@ -125,32 +125,52 @@ export default function MyHifzTab(props) {
     ? fajrPageVerses[fajrPageNum]
     : rawBatch;
 
-  // Filter a page's verses to the surah the user is actively memorizing.
-  // Reads the active surah off the first verse of the incoming batch (= the
-  // next unmemorized ayah in the hifz sequence, main-file-filtered so surahs
-  // marked complete in onboarding are already skipped).
+  // Filter a mushaf page's verses to what belongs in today's batch.
   //
-  // Handles three cases correctly:
-  //   - Fresh surah start on this page (e.g. Qiyāmah 1 on page 577) → shows
-  //     that surah's ayahs on the page.
-  //   - Continuation of a surah started yesterday (e.g. Qiyāmah 20-40 on page
-  //     578, where Insān 1-5 also lives but Insān was marked complete in
-  //     onboarding) → shows Qiyāmah 20-40, drops Insān.
-  //   - Previous surah's tail (e.g. Muddaththir 48-56 on page 577) when the
-  //     user is on Qiyāmah → dropped, since active surah is Qiyāmah.
+  // Rule: include every surah on this page that is BOTH
+  //   (a) the user's active surah (continuation of yesterday) OR starts fresh
+  //       on this page (has its ayah 1 present), AND
+  //   (b) still in the user's queue — i.e., in sessionVerses, which the main
+  //       file builds from juzStatus filtering out already-completed surahs.
+  //
+  // Covers the real cases:
+  //   - Qiyāmah 1 on page 577, Muddaththir tail also present → include Qiyāmah
+  //     only (Muddaththir is the active one's predecessor, not fresh here).
+  //   - Qiyāmah 20-40 on page 578, Insān 1+ also present (Insān marked
+  //     complete in onboarding) → include Qiyāmah only (Insān not in queue).
+  //   - Page 604 for a fresh user → Al-Ikhlāṣ, Al-Falaq, An-Nās all start on
+  //     the page and all are in queue → all three included in the day's batch.
   const activeSurahNum = rawBatch[0]?.surah_number
     || parseInt(rawBatch[0]?.verse_key?.split(":")?.[0] || "0", 10);
-  const filterToActiveSurah = (pageVs) => {
-    if (!pageVs || !pageVs.length || !activeSurahNum) return pageVs || [];
+  const queuedSurahs = (() => {
+    const set = new Set();
+    (sessionVerses || []).forEach(v => {
+      const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
+      if (s) set.add(s);
+    });
+    return set;
+  })();
+  const filterActivePlusFresh = (pageVs) => {
+    if (!pageVs || !pageVs.length) return pageVs || [];
+    const startsHere = new Set();
+    pageVs.forEach(v => {
+      const [s, a] = (v.verse_key || "").split(":");
+      if (a === "1") startsHere.add(Number(s) || v.surah_number);
+    });
     return pageVs.filter(v => {
       const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
-      return s === activeSurahNum;
+      const isActive = activeSurahNum && s === activeSurahNum;
+      const isFresh = startsHere.has(s);
+      // If queue is empty (first-load before sessionVerses resolves), don't
+      // drop anything — show everything that would otherwise qualify.
+      const isQueued = queuedSurahs.size === 0 || queuedSurahs.has(s);
+      return (isActive || isFresh) && isQueued;
     });
   };
 
-  // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) show only
-  // the active surah's ayahs on the current mushaf page.
-  const batch = isPageBasedSession ? filterToActiveSurah(pageBatch) : pageBatch;
+  // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) show the
+  // active surah + any other surahs that begin fresh on the same page.
+  const batch = isPageBasedSession ? filterActivePlusFresh(pageBatch) : pageBatch;
 
   // ── Connection-phase computation — lifted out of the render IIFE so the modal-
   //    dismiss state can react to visible-step count changes.
