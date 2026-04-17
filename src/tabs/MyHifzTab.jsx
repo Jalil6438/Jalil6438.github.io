@@ -51,6 +51,8 @@ export default function MyHifzTab(props) {
     simVerseCache, fetchSimVerse,
     // plan mode — "shaykh" (page-based) or "custom" (ayah-count via calcTimeline)
     userPlanMode = "shaykh",
+    // listen-along (full-page recitation helper for Mushaf mode)
+    playMushafRange, stopMushafAudio, mushafAudioPlaying,
   } = props;
 
   // Wisdom rotation — two triggers:
@@ -730,8 +732,19 @@ export default function MyHifzTab(props) {
                   return (
                     <div style={{marginBottom:16}}>
                       {!MUSHAF_INTERACTIVE&&(
-                        <div style={{textAlign:"center",marginBottom:14,padding:"10px 14px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.14)":"rgba(140,100,20,0.12)"}`,fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5}}>
-                          Recite with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> and begin your memorization.
+                        <div style={{marginBottom:14,padding:"10px 14px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.14)":"rgba(140,100,20,0.12)"}`}}>
+                          <div style={{textAlign:"center",fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5}}>
+                            Recite with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> and begin your memorization.
+                          </div>
+                          {playMushafRange&&pageBatch.length>0&&(
+                            <div style={{textAlign:"center",marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                              <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(pageBatch); }}
+                                style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
+                                <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
+                                {mushafAudioPlaying?"Stop":"Listen along"}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     <div style={{position:"relative",padding:"32px 12px 36px"}}>
