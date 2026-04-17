@@ -102,9 +102,31 @@ export default function MyHifzTab(props) {
 
   const isFajr = currentSessionId === "fajr";
   const isMushafFajr = isFajr && hifzViewMode === "mushaf";
-  const batch = (isFajr && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
+
+  // Full mushaf page — used for the Mushaf reading render so the user sees the
+  // whole page, including the tail of the previous surah if any.
+  const pageBatch = (isFajr && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
     ? fajrPageVerses[fajrPageNum]
     : rawBatch;
+
+  // Memorization batch — Study mode only memorizes surahs that *begin* on this
+  // page (have an ayah 1 present). The tail of a previous surah that's just
+  // continuing onto this page isn't part of today's new memorization. When no
+  // surah starts fresh (the page is pure continuation of one surah), the
+  // whole page is the batch.
+  const batch = (() => {
+    if (!isFajr) return pageBatch;
+    const startingSurahs = new Set();
+    pageBatch.forEach(v => {
+      const [s, a] = (v.verse_key || "").split(":");
+      if (a === "1") startingSurahs.add(Number(s) || v.surah_number);
+    });
+    if (startingSurahs.size === 0) return pageBatch;
+    return pageBatch.filter(v => {
+      const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
+      return startingSurahs.has(s);
+    });
+  })();
 
   // ── Connection-phase computation — lifted out of the render IIFE so the modal-
   //    dismiss state can react to visible-step count changes.
@@ -525,19 +547,21 @@ export default function MyHifzTab(props) {
                   </div>
                 )}
 
-                {/* ── MUSHAF MODE — the full mushaf page the user is on, every ayah memorizable. ── */}
+                {/* ── MUSHAF MODE — the full mushaf page the user is on, rendered for
+                    reading. Uses pageBatch (the whole page) rather than the Study batch,
+                    so the user still sees the tail of the previous surah as they read. ── */}
                 {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(()=>{
-                  const pageNum = batch[0]?.page_number;
-                  const juzNum = batch[0]?.juz_number;
+                  const pageNum = pageBatch[0]?.page_number;
+                  const juzNum = pageBatch[0]?.juz_number;
                   // Page-header surah, per mushaf convention: whichever surah has the
                   // greater portion (most ayahs) on this page wins the label. Ties go
                   // to the later surah. So page 577 with a few Muddaththir ayahs +
-                  // 19 Qiyamah ayahs reads "Al-Qiyamah"; a page with most-of-long-surah
+                  // 19 Qiyāmah ayahs reads "Al-Qiyāmah"; a page with most-of-long-surah
                   // + 1-ayah-start-of-next reads the longer one.
                   const leadSurahNum = (() => {
                     const counts = {};
                     const order = [];
-                    batch.forEach(v => {
+                    pageBatch.forEach(v => {
                       const sn = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
                       if (counts[sn] === undefined) { counts[sn] = 0; order.push(sn); }
                       counts[sn] += 1;
@@ -551,29 +575,19 @@ export default function MyHifzTab(props) {
                     return winner;
                   })();
                   // Hizb fractional marker derived from rub_el_hizb_number (1-240).
-                  // Each hizb = 4 rubs: 1 = ¼, 2 = ½, 3 = ¾, 0 = hizb start.
-                  // Show the marker for the first quarter that *starts* on this page.
-                  const quarterStartOnPage = batch.find(v => {
-                    if (typeof v.rub_el_hizb_number !== "number") return false;
-                    const [, a] = v.verse_key.split(":");
-                    // Heuristic: first ayah of a rub is where hizb_number/rub changes from the previous verse
-                    return true;
-                  });
-                  const firstRub = batch[0]?.rub_el_hizb_number;
-                  const lastRub = batch[batch.length - 1]?.rub_el_hizb_number;
+                  // Each hizb = 4 rubs: pos 1 = ¼, 2 = ½, 3 = ¾, 4 = hizb start.
+                  // Show the marker for the first quarter that starts on this page.
+                  // Uses pageBatch (full page) so the marker reflects the page, not the
+                  // memorization filter.
                   const hizbLabel = (() => {
-                    if (typeof firstRub !== "number" || typeof lastRub !== "number") return null;
-                    // Find any rub boundary crossed on this page
-                    for (const v of batch) {
+                    for (let i = 0; i < pageBatch.length; i++) {
+                      const v = pageBatch[i];
                       const r = v.rub_el_hizb_number;
                       if (typeof r !== "number") continue;
-                      const pos = ((r - 1) % 4) + 1; // 1..4
-                      const hizb = Math.ceil(r / 4); // 1..60
-                      const verseKey = v.verse_key;
-                      // Mark the first ayah that starts a new rub/hizb
-                      const idx = batch.indexOf(v);
-                      const prev = idx > 0 ? batch[idx - 1] : null;
+                      const prev = i > 0 ? pageBatch[i - 1] : null;
                       if (prev && prev.rub_el_hizb_number === r) continue;
+                      const pos = ((r - 1) % 4) + 1;
+                      const hizb = Math.ceil(r / 4);
                       if (pos === 1) return `¼ Hizb ${hizb}`;
                       if (pos === 2) return `½ Hizb ${hizb}`;
                       if (pos === 3) return `¾ Hizb ${hizb}`;
@@ -581,10 +595,11 @@ export default function MyHifzTab(props) {
                     }
                     return null;
                   })();
-                  // batch is already overridden to the page's ayahs when Fajr+Mushaf+fetched.
+                  // Mushaf reading view shows the whole mushaf page (pageBatch), not the
+                  // Study-filtered memorization batch. The user reads the full page here.
                   const surahGroups=[];
                   let curGroup=null;
-                  batch.forEach(v=>{
+                  pageBatch.forEach(v=>{
                     const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
                     if(!curGroup||curGroup.sn!==sn){ curGroup={sn,verses:[]}; surahGroups.push(curGroup); }
                     curGroup.verses.push(v);
