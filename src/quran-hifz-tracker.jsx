@@ -175,7 +175,7 @@ export default function RihlatAlHifz() {
   const [asrSurahShowCount,setAsrSurahShowCount]=useState(10);
   const [memSections,setMemSections]=useState({completed:true,inprogress:true,upcoming:true,upcomingAll:false});
   const [asrPage,setAsrPage_]=useState(0);
-  const setAsrPage=(v)=>{setAsrPage_(v);scrollAllToTop();};
+  const setAsrPage=(v)=>{setAsrPage_(v);};
   const [asrSlideDir,setAsrSlideDir]=useState(null);
   const [asrExpandedAyah,setAsrExpandedAyah]=useState(null);
   const [juzCompletedInSession,setJuzCompletedInSession]=useState(new Set());

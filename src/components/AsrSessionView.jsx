@@ -156,8 +156,8 @@ function AsrSessionView({
                 const dy=e.changedTouches[0].clientY-asrTouchStartRef.current.y;
                 asrTouchStartRef.current=null;
                 if(Math.abs(dx)<60||Math.abs(dy)>Math.abs(dx)) return;
-                if(dx>0&&safePage<totalPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalPages-1,p+1)); asrMushafScrollRef.current?.scrollTo(0,0); }
-                else if(dx<0&&safePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); asrMushafScrollRef.current?.scrollTo(0,0); }
+                if(dx>0&&safePage<totalPages-1){ setAsrSlideDir("left"); setAsrPage(p=>Math.min(totalPages-1,p+1)); }
+                else if(dx<0&&safePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); }
               }}>
               {/* Page chrome — dominant Surah top-left, Part top-right (matches Fajr Mushaf) */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px 4px",flexShrink:0}}>
