@@ -1401,7 +1401,11 @@ export default function RihlatAlHifz() {
         // 1 page/day. In a custom plan we use the user's goalYears/goalMonths.
         const goalLabel=(()=>{
           if(userPlanMode==="custom"){
-            return goalYears===0?`${goalMonths}-Month Hafiz`:`${goalYears}-Year${goalYears!==1?"":""} Hafiz${goalMonths>0?` · ${goalMonths}mo`:""}`;
+            const totalMonths=(goalYears||0)*12+(goalMonths||0);
+            if(totalMonths<=0) return "Set goal";
+            if(totalMonths<24) return `${totalMonths}-Month Hafiz`;
+            const y=Math.floor(totalMonths/12), r=totalMonths%12;
+            return r===0?`${y}-Year Hafiz`:`${y}-Year ${r}-Month Hafiz`;
           }
           // Shaykh's plan: derive pages completed from juzStatus using the
           // same per-page-coverage rule as onboarding, then 1 page/day → months.
@@ -1424,10 +1428,10 @@ export default function RihlatAlHifz() {
           }
           const pagesLeft=Math.max(0,604-pagesDone);
           const months=Math.max(1,Math.ceil(pagesLeft/30));
-          if(months<12) return `${months}-Month Hafiz`;
+          if(months<24) return `${months}-Month Hafiz`;
           const years=Math.floor(months/12);
           const rem=months%12;
-          return rem===0?`${years}-Year Hafiz`:`${years}-Year Hafiz · ${rem}mo`;
+          return rem===0?`${years}-Year Hafiz`:`${years}-Year ${rem}-Month Hafiz`;
         })();
         return (
         <div style={{background:dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8",padding:"18px 16px 16px",flexShrink:0,borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
