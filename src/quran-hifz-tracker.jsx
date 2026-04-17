@@ -1039,12 +1039,18 @@ export default function RihlatAlHifz() {
 
   function toggleCheck(id){
     const wasChecked=dailyChecks[id];
-    const updated={...dailyChecks,[id]:!wasChecked};
+    // Session-complete flows always want to mark the session checked AND push
+    // an activity, even if dailyChecks[id] was somehow already true. So this
+    // function normalizes to "checked" (not toggle), and the activity logic
+    // below fires on every call instead of only on false→true.
+    const updated={...dailyChecks,[id]:true};
     setDailyChecks(updated);
     const dk=DATEKEY();
-    setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:!wasChecked}}));
-    // Push activity + streak bump only when transitioning to checked
-    if(!wasChecked){
+    setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:true}}));
+    // Push activity + streak bump on every session completion (this function
+    // is only called from the Complete Session button, which unconditionally
+    // wants the activity regardless of prior state).
+    {
       // Build a "Surah X ayat A-B" label from a batch; handles cross-surah batches too
       const describeBatch=(b)=>{
         if(!b||!b.length) return "";
@@ -1098,7 +1104,9 @@ export default function RihlatAlHifz() {
         pushActivity("review",label?`Final review of ${label} before sleep`:"Completed Isha review");
       }
     }
-    if(SESSIONS.every(s=>updated[s.id])){
+    // Streak only bumps when this call is the transition that completes the
+    // last remaining session for the day — not on repeated Complete taps.
+    if(!wasChecked&&SESSIONS.every(s=>updated[s.id])){
       setStreak(p=>{
         const next=p+1;
         if([7,14,21,30,40,60,100].includes(next)){
