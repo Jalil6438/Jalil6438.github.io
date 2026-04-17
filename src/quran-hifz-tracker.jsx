@@ -1052,18 +1052,14 @@ export default function RihlatAlHifz() {
         return `${fN} ${fA} – ${lN} ${lA}`;
       };
       if(id==="fajr"){
-        // Only count ayahs that actually hit 20 reps
-        const memorized=fajrBatch.filter(v=>(repCounts[v.verse_key]||0)>=20);
-        const label=describeBatch(memorized);
-        if(label) pushActivity("memorize",`Memorized ${label}`);
-        else pushActivity("memorize","Fajr session marked — nothing memorized yet");
-        // Unfinished-ayah note only makes sense in custom (ayah-count) mode.
-        // In Shaykh mode the fajrBatch count doesn't match the displayed page
-        // batch (filtered to the active surah), so it'd flag ayahs the user
-        // never saw. When it does fire, it shows as a regular activity entry
-        // (not a separate top-of-home banner).
+        // Describe what the user just worked on. Tap counts are our proxy,
+        // not the truth of memorization, so the activity just names the batch.
+        const batchLabel=describeBatch(fajrBatch);
+        pushActivity("memorize", batchLabel?`Memorized ${batchLabel}`:"Completed Fajr session");
+        // Rep-count reminder only applies in custom (ayah-count) mode.
         if(userPlanMode==="custom"){
-          const remaining=fajrBatch.length-memorized.length;
+          const taped=fajrBatch.filter(v=>(repCounts[v.verse_key]||0)>=20).length;
+          const remaining=fajrBatch.length-taped;
           if(remaining>0){
             pushActivity("reminder",`${remaining} ayah${remaining===1?"":"s"} still pending repetitions`);
           }
