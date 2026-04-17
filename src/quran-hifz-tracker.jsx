@@ -801,24 +801,22 @@ export default function RihlatAlHifz() {
     const isShaykh=userPlanMode!=="custom";
     const seen=new Set();
     const combined=[];
+    let pagesCollectedSet=null; // set for Shaykh mode, null for custom
     if(allJuzVerses.length>0){
       const currentKey=sessionVerses[sessionIdx]?.verse_key;
       let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
       if(allIdx<0) allIdx=allJuzVerses.length;
       if(isShaykh){
         // Shaykh mode: review = the 5 mushaf pages immediately before today's
-        // Fajr page. Take today's page from the current position and collect
-        // pages (today-1) .. (today-5), then include every ayah on those pages.
-        // This is contiguous by page number, not by hifz-walkback order, so
-        // we can't skip over a page that happens to have no ayah in allJuzVerses
-        // near the cursor.
+        // Fajr page. Collect pages (today-1) .. (today-5) and include every
+        // ayah on those pages. Contiguous by page number.
         const todayPage=sessionVerses[sessionIdx]?.page_number||fajrBatch[0]?.page_number||0;
-        const pagesCollected=new Set();
+        pagesCollectedSet=new Set();
         if(todayPage>0){
-          for(let p=todayPage-1;p>=1&&pagesCollected.size<5;p--) pagesCollected.add(p);
+          for(let p=todayPage-1;p>=1&&pagesCollectedSet.size<5;p--) pagesCollectedSet.add(p);
         }
         allJuzVerses.forEach(v=>{
-          if(v.page_number&&pagesCollected.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
+          if(v.page_number&&pagesCollectedSet.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
           }
@@ -831,11 +829,18 @@ export default function RihlatAlHifz() {
         });
       }
     }
-    // Merge in anything from recentBatches / yesterdayBatch not already captured
-    // (covers onboarded users with marked juz outside allJuzVerses' reach, and
-    // the "< 5 pages memorized → show everything" fallback).
-    (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
-    (recentBatches||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    // Fallback merges. In Shaykh mode, only include ayahs whose page is in
+    // pagesCollectedSet so we don't accidentally pull in stale pages from
+    // recentBatches. In custom mode, merge freely to backfill a short walkback.
+    const passFallback=(v)=>{
+      if(!v.verse_key||seen.has(v.verse_key)) return false;
+      if(isShaykh&&pagesCollectedSet){
+        return !!(v.page_number&&pagesCollectedSet.has(v.page_number));
+      }
+      return true;
+    };
+    (yesterdayBatch||[]).forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
+    (recentBatches||[]).flat().forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
     // Display in natural mushaf order (page ascending, then ayah) so the
     // review reads Al-Baqarah → An-Nas direction like a user holding the mushaf
     // open. (Memorization goes descending; review goes ascending.)
