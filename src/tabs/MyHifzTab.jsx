@@ -212,7 +212,10 @@ export default function MyHifzTab(props) {
       const totalLines = surahLines.length;
       let sec1, sec2;
       if (totalLines >= SECTION_SPLIT_LINE_THRESHOLD) {
-        const midLineIdx = Math.ceil(totalLines / 2); // 1-based line index within the surah
+        // Section 1 gets the first floor(totalLines/2) lines, section 2 the rest.
+        // For an 11-line surah layout (Al-Jumu'ah), that's 5 + 6, which lands the
+        // split after ayah 4 exactly like the book's example.
+        const midLineIdx = Math.floor(totalLines / 2); // 1-based count of section-1 lines
         const sec1LineCutoff = surahLines[midLineIdx - 1];
         sec1 = verses.filter(v => typeof v._firstLine === "number" && v._firstLine <= sec1LineCutoff);
         sec2 = verses.filter(v => typeof v._firstLine === "number" && v._firstLine > sec1LineCutoff);
