@@ -47,6 +47,29 @@ function AsrSessionView({
           <div className="asr-title">ASR SESSION</div>
           <div className="asr-title-line"/>
 
+          {/* Play Page pill — top of the Asr view, Mushaf mode only */}
+          {asrViewMode==="mushaf"&&playMushafRange&&asrBatch.length>0&&(()=>{
+            const pageGroups=[];
+            let cg=null;
+            asrBatch.forEach(v=>{
+              const pn=v.page_number||0;
+              if(!cg||cg.page!==pn){cg={page:pn,ayahs:[]};pageGroups.push(cg);}
+              cg.ayahs.push(v);
+            });
+            const safeIdx=Math.min(asrSafePage,Math.max(0,pageGroups.length-1));
+            const pageAyahs=pageGroups[safeIdx]?.ayahs||[];
+            if(pageAyahs.length===0) return null;
+            return (
+              <div style={{textAlign:"center",marginBottom:10}}>
+                <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(pageAyahs); }}
+                  style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
+                  <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
+                  {mushafAudioPlaying?"Stop":"Play Page"}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Reviewing + selection + customize */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -181,16 +204,6 @@ function AsrSessionView({
               <div style={{textAlign:"right",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
                 {asrHizbLabel?`${asrHizbLabel} | `:""}{currentPage.page}
               </div>
-              {/* Listen-along — plays the current mushaf page */}
-              {playMushafRange&&currentPage.ayahs.length>0&&(
-                <div style={{textAlign:"center",padding:"4px 14px 0",flexShrink:0}}>
-                  <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(currentPage.ayahs); }}
-                    style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
-                    <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
-                    {mushafAudioPlaying?"Stop":"Play Page"}
-                  </div>
-                </div>
-              )}
               {/* Nav buttons + session page counter centered between them */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",flexShrink:0,gap:8}}>
                 <div className={safePage<totalPages-1?"sbtn":""} onClick={()=>{if(safePage<totalPages-1){setAsrSlideDir("left");setAsrPage(p=>p+1);}}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage<totalPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage<totalPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage<totalPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
