@@ -180,20 +180,73 @@ export default function MyHifzTab(props) {
     return arr;
   })();
   const connVisiblePairs = connAllPairs.filter(p => p.ready);
-  // Per-surah closers: one "all N ayahs of SURAH together" step per surah with 2+ ayahs.
+  // Closers — one per surah for short surahs (<8 ayahs); long surahs follow the
+  // Shaykh's two-section structure: section-1 closer, section-2 closer (which
+  // requires the bridge pair between them), then page closer. The "bridge pair"
+  // is simply the pair that spans the midpoint — it's already in connAllPairs,
+  // it just gates the section-2 closer because section 2 begins after it.
+  const SECTION_SPLIT_THRESHOLD = 8;
   const connClosers = connSurahGroups
     .filter(g => g.verses.length >= 2)
-    .map(g => {
-      const allAyahsDone = g.verses.every(v => (repCounts[v.verse_key] || 0) >= 20);
+    .flatMap(g => {
+      const verses = g.verses;
+      const n = verses.length;
+      const surahName = SURAH_EN[g.surahNum] || `Surah ${g.surahNum}`;
+      const allAyahsDone = verses.every(v => (repCounts[v.verse_key] || 0) >= 20);
       const surahPairs = connAllPairs.filter(p => p.surahNum === g.surahNum);
       const surahPairsDone = surahPairs.length > 0 && surahPairs.every(p => (connectionReps[p.key] || 0) >= 10);
-      return {
-        key: `closer-${g.surahNum}`,
-        label: `All ${g.verses.length} ayahs of ${SURAH_EN[g.surahNum] || `Surah ${g.surahNum}`} together`,
-        ayahs: g.verses,
-        ready: allAyahsDone && surahPairsDone,
-        surahNum: g.surahNum,
-      };
+
+      if (n < SECTION_SPLIT_THRESHOLD) {
+        return [{
+          key: `closer-${g.surahNum}`,
+          label: `All ${n} ayahs of ${surahName} together`,
+          ayahs: verses,
+          ready: allAyahsDone && surahPairsDone,
+          surahNum: g.surahNum,
+        }];
+      }
+
+      // Two-section flow for long surahs.
+      // Section 1 = first ceil(n/2) ayahs; section 2 = remainder.
+      // Pair indices: surahPairs[0..mid-2] live inside sec 1, surahPairs[mid-1]
+      // is the bridge across the split, surahPairs[mid..] live inside sec 2.
+      const mid = Math.ceil(n / 2);
+      const sec1 = verses.slice(0, mid);
+      const sec2 = verses.slice(mid);
+      const sec1Pairs = surahPairs.slice(0, mid - 1);
+      const bridgePair = surahPairs[mid - 1];
+      const sec2Pairs = surahPairs.slice(mid);
+      const sec1AyahsDone = sec1.every(v => (repCounts[v.verse_key] || 0) >= 20);
+      const sec2AyahsDone = sec2.every(v => (repCounts[v.verse_key] || 0) >= 20);
+      const sec1PairsDone = sec1Pairs.length === 0 || sec1Pairs.every(p => (connectionReps[p.key] || 0) >= 10);
+      const sec2PairsDone = sec2Pairs.length === 0 || sec2Pairs.every(p => (connectionReps[p.key] || 0) >= 10);
+      const bridgeDone = !bridgePair || (connectionReps[bridgePair.key] || 0) >= 10;
+
+      return [
+        {
+          key: `closer-${g.surahNum}-s1`,
+          label: `All ${sec1.length} ayahs of section 1 together`,
+          ayahs: sec1,
+          ready: sec1AyahsDone && sec1PairsDone,
+          surahNum: g.surahNum,
+        },
+        {
+          key: `closer-${g.surahNum}-s2`,
+          label: `All ${sec2.length} ayahs of section 2 together`,
+          ayahs: sec2,
+          // Section 2 closer requires its own ayahs/pairs AND the bridge pair
+          // that links it to section 1.
+          ready: sec2AyahsDone && sec2PairsDone && bridgeDone,
+          surahNum: g.surahNum,
+        },
+        {
+          key: `closer-${g.surahNum}-page`,
+          label: `All ${n} ayahs of ${surahName} together`,
+          ayahs: verses,
+          ready: allAyahsDone && surahPairsDone,
+          surahNum: g.surahNum,
+        },
+      ];
     });
   const connVisibleClosers = connClosers.filter(c => c.ready);
   // The "active" closer is the first unlocked one that isn't yet at 10/10.
