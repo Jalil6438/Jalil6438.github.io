@@ -1054,16 +1054,22 @@ export default function RihlatAlHifz() {
       if(id==="fajr"){
         // Only count ayahs that actually hit 20 reps
         const memorized=fajrBatch.filter(v=>(repCounts[v.verse_key]||0)>=20);
-        const remaining=fajrBatch.length-memorized.length;
         const label=describeBatch(memorized);
         if(label) pushActivity("memorize",`Memorized ${label}`);
         else pushActivity("memorize","Fajr session marked — nothing memorized yet");
-        // Reminder for unfinished ayahs — stored separately, not in activity feed
-        if(remaining>0){
-          try { localStorage.setItem("jalil-hifz-reminder",JSON.stringify({text:`You still have ${remaining} ayah${remaining===1?"":"s"} not yet memorized`,ts:Date.now()})); } catch{}
-        } else {
-          try { localStorage.removeItem("jalil-hifz-reminder"); } catch{}
+        // Unfinished-ayah note only makes sense in custom (ayah-count) mode.
+        // In Shaykh mode the fajrBatch count doesn't match the displayed page
+        // batch (filtered to the active surah), so it'd flag ayahs the user
+        // never saw. When it does fire, it shows as a regular activity entry
+        // (not a separate top-of-home banner).
+        if(userPlanMode==="custom"){
+          const remaining=fajrBatch.length-memorized.length;
+          if(remaining>0){
+            pushActivity("reminder",`${remaining} ayah${remaining===1?"":"s"} still need memorization`);
+          }
         }
+        // Clear any legacy banner reminder from older versions.
+        try { localStorage.removeItem("jalil-hifz-reminder"); } catch{}
       } else if(id==="dhuhr"){
         const label=describeBatch(batch);
         pushActivity("review",label?`Reviewed ${label}`:"Completed Dhuhr review");
