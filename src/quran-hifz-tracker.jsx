@@ -806,25 +806,25 @@ export default function RihlatAlHifz() {
       let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
       if(allIdx<0) allIdx=allJuzVerses.length;
       if(isShaykh){
-        // Page-based: walk back 5 distinct page_numbers, include every ayah on them.
-        const wantPages=5;
+        // Shaykh mode: review = the 5 mushaf pages immediately before today's
+        // Fajr page. Take today's page from the current position and collect
+        // pages (today-1) .. (today-5), then include every ayah on those pages.
+        // This is contiguous by page number, not by hifz-walkback order, so
+        // we can't skip over a page that happens to have no ayah in allJuzVerses
+        // near the cursor.
+        const todayPage=sessionVerses[sessionIdx]?.page_number||fajrBatch[0]?.page_number||0;
         const pagesCollected=new Set();
-        for(let i=allIdx-1;i>=0;i--){
-          const p=allJuzVerses[i]?.page_number;
-          if(!p) continue;
-          if(!pagesCollected.has(p)){
-            if(pagesCollected.size>=wantPages) break;
-            pagesCollected.add(p);
-          }
+        if(todayPage>0){
+          for(let p=todayPage-1;p>=1&&pagesCollected.size<5;p--) pagesCollected.add(p);
         }
-        allJuzVerses.slice(0,allIdx).forEach(v=>{
+        allJuzVerses.forEach(v=>{
           if(v.page_number&&pagesCollected.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
           }
         });
       } else {
-        // Ayah-based: walk back (dailyNew * 5) ayahs from the current position.
+        // Custom mode: walk back (dailyNew * 5) ayahs from the current position.
         const reviewCount=Math.max(dailyNew*5,5);
         allJuzVerses.slice(Math.max(0,allIdx-reviewCount),allIdx).forEach(v=>{
           if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }
