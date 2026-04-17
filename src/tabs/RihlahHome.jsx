@@ -323,10 +323,19 @@ export default function RihlahHome({
         }catch{return null;}
       })()}
 
-      {/* ── 6. TODAY'S ACTIVITY ── */}
+      {/* ── 6. TODAY'S ACTIVITY ──
+          Entries persist until the next Fajr, not until midnight. We
+          approximate Fajr as 5 AM local (no prayer-time API wired yet); a
+          reminder from 11 PM yesterday still shows at 3 AM today, and drops
+          off once the device passes 5 AM. */}
       {(()=>{
-        const todayStr=new Date().toDateString();
-        const todayActivity=(recentActivity||[]).filter(ev=>ev.ts&&new Date(ev.ts).toDateString()===todayStr);
+        const FAJR_HOUR=5;
+        const now=new Date();
+        const lastFajr=new Date(now);
+        lastFajr.setHours(FAJR_HOUR,0,0,0);
+        if(lastFajr>now) lastFajr.setDate(lastFajr.getDate()-1);
+        const lastFajrTs=lastFajr.getTime();
+        const todayActivity=(recentActivity||[]).filter(ev=>ev.ts&&ev.ts>=lastFajrTs);
         return (
         <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px 18px",marginBottom:10}}>
           <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:14}}>Today's Activity</div>
