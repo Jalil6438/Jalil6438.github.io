@@ -164,27 +164,46 @@ export default function MyHifzTab(props) {
       };
     });
   const connVisibleClosers = connClosers.filter(c => c.ready);
-  const connSteps = [...connVisiblePairs, ...connVisibleClosers];
+  // The "active" closer is the first unlocked one that isn't yet at 10/10.
+  // It takes priority over the pair modal — each surah gets its own dedicated
+  // closer screen the moment its 20× + pairs are complete.
+  const activeCloser = connVisibleClosers.find(c => (connectionReps[c.key] || 0) < 10) || null;
   const connAllPairsDone = connAllPairs.length > 0 && connAllPairs.every(p => (connectionReps[p.key] || 0) >= 10);
   const connAllClosersDone = connClosers.length > 0 && connClosers.every(c => (connectionReps[c.key] || 0) >= 10);
   const connAllDone = isFajr && batch.length >= 2 && connAllPairsDone && connAllClosersDone;
 
-  // Modal dismiss tracking — user can close it, but it reopens the moment a new pair
-  // OR surah-closer unlocks.
-  const [connModalDismissed, setConnModalDismissed] = useState(false);
-  const prevVisibleStepCountRef = useRef(0);
-  const visibleStepCount = connVisiblePairs.length + connVisibleClosers.length;
+  // ── Modal dismiss tracking ──
+  // Normal flow: modals auto-close the moment the work inside them is done
+  // (no manual × needed). The × is only for leaving a session early — if the
+  // user dismisses, the same modal reopens as soon as a new unit of work appears.
+  const [pairModalDismissed, setPairModalDismissed] = useState(false);
+  const prevPairCountRef = useRef(0);
   useEffect(() => {
-    if (visibleStepCount > prevVisibleStepCountRef.current) {
-      setConnModalDismissed(false);
-    }
-    prevVisibleStepCountRef.current = visibleStepCount;
-  }, [visibleStepCount]);
+    if (connVisiblePairs.length > prevPairCountRef.current) setPairModalDismissed(false);
+    prevPairCountRef.current = connVisiblePairs.length;
+  }, [connVisiblePairs.length]);
+
+  const [closerModalDismissed, setCloserModalDismissed] = useState(false);
+  const activeCloserKey = activeCloser?.key || null;
+  const prevCloserKeyRef = useRef(null);
   useEffect(() => {
-    setConnModalDismissed(false);
-    prevVisibleStepCountRef.current = 0;
+    if (activeCloserKey && activeCloserKey !== prevCloserKeyRef.current) setCloserModalDismissed(false);
+    prevCloserKeyRef.current = activeCloserKey;
+  }, [activeCloserKey]);
+
+  useEffect(() => {
+    setPairModalDismissed(false);
+    setCloserModalDismissed(false);
+    prevPairCountRef.current = 0;
+    prevCloserKeyRef.current = null;
   }, [fajrPageNum, currentSessionId]);
-  const showConnModal = isFajr && connSteps.length > 0 && !connAllDone && !connModalDismissed;
+
+  // Closer has priority: when a surah's full closer is ready, it takes the
+  // screen; the pair modal waits its turn. Pair modal hides when every visible
+  // pair is already at 10/10 (auto-close).
+  const anyPairInFlight = connVisiblePairs.some(p => (connectionReps[p.key] || 0) < 10);
+  const showPairModal = isFajr && anyPairInFlight && !activeCloser && !pairModalDismissed;
+  const showCloserModal = isFajr && !!activeCloser && !closerModalDismissed;
 
   // Fajr milestone tracking — log 20× phase + connection phase in activity feed
   const repsLoggedRef = useRef(null); // tracks which page's 20× was logged
@@ -584,16 +603,13 @@ export default function MyHifzTab(props) {
                   )}
                 </div>);})()}
 
-                {/* ── CONNECTION PHASE (الربط) — modal overlay that pops the moment a pair
-                    unlocks, so the user can't scroll past it or skip.
-                    - Pair {N-1, N} unlocks once both ayahs hit 20/20.
-                    - Page closer ("all N together × 10") unlocks when every ayah AND every
-                      pair is complete.
-                    - Closeable, but auto-reopens when a new pair unlocks. ── */}
-                {showConnModal&&(
-                  <div onClick={()=>setConnModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.72)",backdropFilter:"blur(6px)"}}>
+                {/* ── PAIR MODAL (الربط) — pops the moment a pair unlocks. Auto-closes as
+                    soon as every pair in flight is at 10/10. The × is only for leaving
+                    the session early; it re-opens when the next pair unlocks. ── */}
+                {showPairModal&&(
+                  <div onClick={()=>setPairModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.72)",backdropFilter:"blur(6px)"}}>
                     <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto",borderRadius:20,padding:"24px 20px 20px",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.98) 0%,rgba(10,17,32,0.99) 100%),radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 60%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.25)"}`,boxShadow:"0 24px 60px rgba(0,0,0,0.55),0 0 30px rgba(212,175,55,0.08)"}}>
-                      <div className="sbtn" onClick={()=>setConnModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
+                      <div className="sbtn" onClick={()=>setPairModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
                       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingRight:18}}>
                         <div style={{fontSize:20}}>🔗</div>
                         <div>
@@ -602,7 +618,7 @@ export default function MyHifzTab(props) {
                         </div>
                       </div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                        {connSteps.map(step=>{
+                        {connVisiblePairs.map(step=>{
                           const cr=connectionReps[step.key]||0;
                           const crDone=cr>=10;
                           const pct=Math.min((cr/10)*100,100);
@@ -625,10 +641,44 @@ export default function MyHifzTab(props) {
                           );
                         })}
                       </div>
-                      <div style={{textAlign:"center",marginTop:12,fontSize:10,color:dark?"rgba(243,231,200,0.35)":"rgba(100,70,10,0.50)"}}>Tap outside or ✕ to hide — it will reopen when the next pair unlocks.</div>
                     </div>
                   </div>
                 )}
+
+                {/* ── SURAH CLOSER MODAL — takes over the screen the moment a surah is ready
+                    for its "all N ayahs together × 10" closer. Auto-closes on 10/10. The ×
+                    is only for early exit. ── */}
+                {showCloserModal&&activeCloser&&(()=>{
+                  const cr=connectionReps[activeCloser.key]||0;
+                  const pct=Math.min((cr/10)*100,100);
+                  return (
+                  <div onClick={()=>setCloserModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:260,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.78)",backdropFilter:"blur(8px)"}}>
+                    <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:520,width:"100%",maxHeight:"88vh",overflowY:"auto",borderRadius:22,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.14),rgba(0,0,0,0) 55%),linear-gradient(180deg,rgba(15,26,43,0.99) 0%,rgba(10,17,32,1) 100%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.35)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 30px 70px rgba(0,0,0,0.60),0 0 40px rgba(212,175,55,0.15)"}}>
+                      <div className="sbtn" onClick={()=>setCloserModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
+                      <div style={{textAlign:"center",marginBottom:18,paddingTop:4}}>
+                        <div style={{fontSize:10,letterSpacing:".22em",textTransform:"uppercase",fontWeight:700,color:dark?"rgba(217,177,95,0.75)":"rgba(140,100,20,0.70)",marginBottom:6}}>Surah Closer (الربط)</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:dark?"#F3E7BF":"#3D2E0A",lineHeight:1.3}}>{activeCloser.label}</div>
+                        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"rgba(100,70,10,0.65)",marginTop:6,lineHeight:1.5}}>Recite all ayahs together 10 times to seal the surah in memory.</div>
+                      </div>
+                      <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2,padding:"14px 14px",borderRadius:12,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.12)"}`,marginBottom:16}}>
+                        {activeCloser.ayahs.map(a=>(
+                          <span key={a.verse_key}>
+                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.40)":"rgba(140,100,20,0.40)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[activeCloser.key]:Math.min(10,(prev[activeCloser.key]||0)+1)}))}
+                        style={{padding:"18px 16px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .2s",background:dark?"rgba(212,175,55,0.06)":"rgba(212,175,55,0.06)",border:`1.5px solid ${dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 0 14px rgba(212,175,55,0.12),0 4px 14px rgba(0,0,0,0.18)"}}>
+                        <div style={{fontSize:13,fontWeight:700,color:dark?"rgba(243,231,200,0.80)":"#3D2E0A",marginBottom:10}}>Recited <span style={{color:"#F0C040",fontSize:16}}>{cr}/10</span> · Tap after each recitation</div>
+                        <div style={{width:"100%",height:6,borderRadius:999,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)",overflow:"hidden"}}>
+                          <div style={{height:"100%",width:`${pct}%`,borderRadius:999,background:"linear-gradient(90deg,#E6B84A,#F0C040)",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}/>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  );
+                })()}
 
                 {/* ── AYAH POPUP MODAL (all non-ASR sessions) ── */}
                 {currentSessionId!=="asr"&&openAyah&&(()=>{
