@@ -77,12 +77,17 @@ export default function MyHifzTab(props) {
   }, [rotatingSession, wisdomOffset]);
 
   // Fajr = one full mushaf page as the day's memorization effort (Sheikh Al-Qasim's method).
-  // We fetch the mushaf page for *any* Fajr view mode so Study and Mushaf both operate on
-  // the same batch: ayahs 1-19 of the surah if that's what the page contains, etc.
+  // Maghrib and Isha inherit the same page (listening + final review of today's batch).
+  // Dhuhr uses its own 5-page review pool; Asr uses its own review batch; neither is affected.
+  const isFajr = currentSessionId === "fajr";
+  const isMaghribOrIsha = currentSessionId === "maghrib" || currentSessionId === "isha";
+  const isPageBasedSession = isFajr || isMaghribOrIsha;
+  const isMushafFajr = isFajr && hifzViewMode === "mushaf";
+
   const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
   const fajrPageNum = rawBatch[0]?.page_number;
   useEffect(() => {
-    if (currentSessionId !== "fajr") return;
+    if (!isPageBasedSession) return;
     if (!fajrPageNum || fajrPageVerses[fajrPageNum]) return;
     let cancelled = false;
     (async () => {
@@ -98,14 +103,11 @@ export default function MyHifzTab(props) {
       } catch {}
     })();
     return () => { cancelled = true; };
-  }, [currentSessionId, fajrPageNum]);
-
-  const isFajr = currentSessionId === "fajr";
-  const isMushafFajr = isFajr && hifzViewMode === "mushaf";
+  }, [isPageBasedSession, fajrPageNum]);
 
   // Full mushaf page — used for the Mushaf reading render so the user sees the
   // whole page, including the tail of the previous surah if any.
-  const pageBatch = (isFajr && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
+  const pageBatch = (isPageBasedSession && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
     ? fajrPageVerses[fajrPageNum]
     : rawBatch;
 
@@ -126,8 +128,9 @@ export default function MyHifzTab(props) {
     });
   };
 
-  // Memorization batch — Study mode only memorizes surahs that begin on this page.
-  const batch = isFajr ? filterToNewSurahs(pageBatch) : pageBatch;
+  // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) only show surahs
+  // that begin on this page; the tail of the previous surah is dropped.
+  const batch = isPageBasedSession ? filterToNewSurahs(pageBatch) : pageBatch;
 
   // ── Connection-phase computation — lifted out of the render IIFE so the modal-
   //    dismiss state can react to visible-step count changes.
