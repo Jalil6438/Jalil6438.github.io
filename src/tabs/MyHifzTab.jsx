@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
@@ -169,12 +169,19 @@ export default function MyHifzTab(props) {
       const isQueued = queuedSurahs.size === 0 || queuedSurahs.has(s);
       return (isActive || isFresh) && isQueued;
     });
-    // Sort in hifz order: surah descending (114 → 1), ayah ascending within
-    // each surah. So page 604 reads An-Nās first, then Al-Falaq, then Al-Ikhlāṣ.
+    // Sort: active surah first (so Al-Mumtaḥanah 12-13 renders above Aṣ-Ṣaff 1-5
+    // on a boundary page — continuation ayahs come before the fresh next surah),
+    // then remaining fresh surahs in hifz-descending order (114 → 1). Ayah
+    // ascending within each surah. Page 604 still reads An-Nās → Al-Falaq →
+    // Al-Ikhlāṣ because An-Nās is the active surah at that point.
     return kept.slice().sort((a, b) => {
       const sa = a.surah_number || parseInt(a.verse_key?.split(":")?.[0] || "0", 10);
       const sb = b.surah_number || parseInt(b.verse_key?.split(":")?.[0] || "0", 10);
-      if (sa !== sb) return sb - sa;
+      if (sa !== sb) {
+        if (sa === activeSurahNum) return -1;
+        if (sb === activeSurahNum) return 1;
+        return sb - sa;
+      }
       const aa = parseInt(a.verse_key?.split(":")?.[1] || "0", 10);
       const ab = parseInt(b.verse_key?.split(":")?.[1] || "0", 10);
       return aa - ab;
@@ -386,7 +393,15 @@ export default function MyHifzTab(props) {
     const pairJustAutoClosed = prevShowPairModalRef.current && !showPairModal && !pairModalDismissed && !activeCloser;
     const closerJustAutoClosed = prevShowCloserModalRef.current && !showCloserModal && !closerModalDismissed;
     if (pairJustAutoClosed || closerJustAutoClosed) {
-      const nextAyah = batch.find(v => (repCounts[v.verse_key] || 0) < 20);
+      // Keep auto-advance within the surah the user was just working on.
+      // When a batch spans two surahs (boundary page: Al-Mumtaḥanah tail + Aṣ-Ṣaff head),
+      // don't auto-open Aṣ-Ṣaff 1 after Al-Mumtaḥanah's closer — the user re-taps
+      // Aṣ-Ṣaff 1 manually to begin its reps.
+      const curSurah = openAyah ? parseInt(openAyah.split(":")[0], 10) : activeSurahNum;
+      const nextAyah = batch.find(v => {
+        const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
+        return s === curSurah && (repCounts[v.verse_key] || 0) < 20;
+      });
       if (nextAyah) {
         setOpenAyah(nextAyah.verse_key);
         fetchTranslations([nextAyah]);
@@ -978,19 +993,36 @@ export default function MyHifzTab(props) {
                     const vKey=v.verse_key;
                     const reps=repCounts[vKey]||0;
                     const repsDone=reps>=20;
+                    // Surah separator — rendered before the first ayah of a new surah
+                    // within the page window, so Mumtahanah 12-13 and Aṣ-Ṣaff 1-5 aren't
+                    // treated as one continuous unit during the connection phase.
+                    const prevSurah=i>0?(pageAyahs[i-1].surah_number||parseInt(pageAyahs[i-1].verse_key?.split(":")?.[0]||"0",10)):null;
+                    const showSurahBreak=i>0&&prevSurah!==sNum;
 
                     return (
-                      <div key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
-                        style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                          <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
-                          {currentSessionId==="fajr"&&<span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>}
+                      <Fragment key={vKey}>
+                        {showSurahBreak&&(
+                          <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 4px 2px"}}>
+                            <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(217,177,95,0) 0%,${dark?"rgba(232,200,120,0.30)":"rgba(140,100,20,0.25)"} 50%,rgba(217,177,95,0) 100%)`}}/>
+                            <div style={{textAlign:"center"}}>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,lineHeight:1.1}}>{SURAH_AR[sNum]||""}</div>
+                              <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.50)":"rgba(100,70,10,0.55)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[sNum]}</div>
+                            </div>
+                            <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(217,177,95,0) 0%,${dark?"rgba(232,200,120,0.30)":"rgba(140,100,20,0.25)"} 50%,rgba(217,177,95,0) 100%)`}}/>
+                          </div>
+                        )}
+                        <div className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
+                          style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                            <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
+                            {currentSessionId==="fajr"&&<span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>}
+                          </div>
+                          <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
+                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                          </div>
                         </div>
-                        <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                          <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
-                        </div>
-                      </div>
+                      </Fragment>
                     );
                   })}
                   {aPages>1&&(
