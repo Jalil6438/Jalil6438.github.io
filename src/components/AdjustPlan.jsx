@@ -25,11 +25,21 @@ export default function AdjustPlan({ dark, T, goalYears, setGoalYears, goalMonth
           <div style={{padding:"22px 18px",borderRadius:20,marginBottom:16,textAlign:"center",position:"relative",overflow:"hidden",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.97) 0%,rgba(12,21,38,0.99) 100%)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.22)":"1px solid rgba(0,0,0,0.08)",boxShadow:dark?"0 10px 40px rgba(0,0,0,0.40),0 0 20px rgba(217,177,95,0.08)":"0 4px 16px rgba(0,0,0,0.06)"}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 50% 20%,rgba(212,175,55,0.08) 0%,transparent 50%)":"none"}}/>
             <div style={{position:"relative",zIndex:1}}>
-              <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:8}}>Complete Your Hifz In</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:32,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:10,textShadow:dark?"0 0 18px rgba(246,226,122,0.15)":"none"}}>
-                {goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?<span style={{fontSize:24,marginLeft:8}}>{goalMonths} Month{goalMonths!==1?"s":""}</span>:""}
+              <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:8}}>
+                {onDefaults?"Your Daily Practice":"Complete Your Hifz In"}
               </div>
-              <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6B645A"}}>Your path to completion</div>
+              {onDefaults?(
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:10,textShadow:dark?"0 0 18px rgba(246,226,122,0.15)":"none"}}>
+                  One Page Per Day
+                </div>
+              ):(
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:32,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:10,textShadow:dark?"0 0 18px rgba(246,226,122,0.15)":"none"}}>
+                  {goalYears} Year{goalYears!==1?"s":""}{goalMonths>0?<span style={{fontSize:24,marginLeft:8}}>{goalMonths} Month{goalMonths!==1?"s":""}</span>:""}
+                </div>
+              )}
+              <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6B645A"}}>
+                {onDefaults?"Shaykh al-Qasim's Method · Move a slider below to customize":"Your path to completion"}
+              </div>
             </div>
           </div>
           <div style={{padding:"16px 18px",borderRadius:16,background:dark?"rgba(255,255,255,0.02)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(0,0,0,0.08)",marginBottom:16,boxShadow:dark?"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.05)":"0 2px 8px rgba(0,0,0,0.04)"}}>
