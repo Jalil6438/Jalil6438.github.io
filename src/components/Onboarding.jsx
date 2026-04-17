@@ -123,7 +123,7 @@ export default function Onboarding({
               <div style={{textAlign:"center",fontSize:9,color:"#D4AF37",letterSpacing:".18em",textTransform:"uppercase",marginBottom:10}}>Shaykh Al-Qasim's Method</div>
               <div style={{textAlign:"center",fontFamily:"'Playfair Display',serif",fontSize:24,color:"#F6E27A",lineHeight:1.2,marginBottom:8}}>One Page Per Day</div>
               <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,191,0.62)",lineHeight:1.5,marginBottom:14,fontStyle:"italic"}}>
-                Memorized using the method of Shaykh Abdul Muhsin Al-Qasim, Imam of Masjid an-Nabawi.
+                The Methodology of Shaykh Abdul Muhsin Al-Qasim, Imam of Masjid an-Nabawi.
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12,fontSize:12,color:"rgba(243,231,191,0.75)",lineHeight:1.6}}>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{color:"#D4AF37",fontWeight:700,minWidth:18,textAlign:"center"}}>·</span><span>20 repetitions per ayah</span></div>
