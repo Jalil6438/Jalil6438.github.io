@@ -738,7 +738,7 @@ export default function MyHifzTab(props) {
                     <div style={{marginBottom:16}}>
                       {!MUSHAF_INTERACTIVE&&(
                         <div style={{textAlign:"center",marginBottom:14,padding:"10px 14px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.14)":"rgba(140,100,20,0.12)"}`,fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5}}>
-                          Recite with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> to begin memorizing.
+                          Recite with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> and begin your memorization.
                         </div>
                       )}
                     <div style={{position:"relative",padding:"32px 12px 36px"}}>
