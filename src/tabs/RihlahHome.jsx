@@ -7,47 +7,57 @@ import RihlahProgressPath from "../components/RihlahProgressPath";
 function ActivityRow({ ev, dark, timeAgo }) {
   const boxRef = useRef(null);
   const textRef = useRef(null);
-  const [overflow, setOverflow] = useState(0); // pixels to scroll (0 = fits)
+  const [overflow, setOverflow] = useState(false); // does the text overflow?
+  const [textWidth, setTextWidth] = useState(0); // px — single copy width
   useEffect(() => {
     const tick = () => {
       const box = boxRef.current, text = textRef.current;
       if (!box || !text) return;
-      const delta = text.scrollWidth - box.clientWidth;
-      setOverflow(delta > 2 ? delta : 0);
+      const tw = text.scrollWidth;
+      const over = tw - box.clientWidth > 2;
+      setOverflow(over);
+      setTextWidth(tw);
     };
     tick();
     window.addEventListener("resize", tick);
     return () => window.removeEventListener("resize", tick);
   }, [ev.text]);
-  // Duration scales with overflow distance so scrolling feels consistent.
-  const duration = overflow > 0 ? Math.max(6, Math.round(overflow / 20)) : 0;
+  // Speed ~60 px/s — duration scales with text width so longer entries don't
+  // just move faster, they take longer.
+  const duration = overflow ? Math.max(8, Math.round((textWidth + 40) / 60)) : 0;
+  const textStyleBase = {
+    display: "inline-block",
+    fontSize: 12,
+    color: dark ? "rgba(243,231,200,0.85)" : "#2D2A26",
+    fontWeight: 500,
+    whiteSpace: "nowrap",
+  };
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div ref={boxRef} style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
-        <div
-          ref={textRef}
-          style={{
-            display: "inline-block",
-            fontSize: 12,
-            color: dark ? "rgba(243,231,200,0.85)" : "#2D2A26",
-            fontWeight: 500,
-            whiteSpace: "nowrap",
-            willChange: overflow > 0 ? "transform" : undefined,
-            animation: overflow > 0
-              ? `activity-marquee-${ev.ts} ${duration}s ease-in-out infinite`
-              : undefined,
-          }}
-        >
-          {ev.text}
-        </div>
-        {overflow > 0 && (
-          <style>{`
-            @keyframes activity-marquee-${ev.ts} {
-              0%, 15% { transform: translateX(0); }
-              50%, 65% { transform: translateX(-${overflow}px); }
-              100% { transform: translateX(0); }
-            }
-          `}</style>
+        {overflow ? (
+          <div
+            style={{
+              display: "inline-flex",
+              willChange: "transform",
+              animation: `activity-marquee-${ev.ts} ${duration}s linear infinite`,
+            }}
+          >
+            <span style={{ ...textStyleBase, paddingRight: 40 }}>{ev.text}</span>
+            <span style={{ ...textStyleBase, paddingRight: 40 }}>{ev.text}</span>
+            <style>{`
+              @keyframes activity-marquee-${ev.ts} {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-${textWidth + 40}px); }
+              }
+            `}</style>
+          </div>
+        ) : (
+          <div ref={textRef} style={textStyleBase}>{ev.text}</div>
+        )}
+        {/* Hidden measurer — only used when not overflowing to capture natural width on first paint */}
+        {!overflow && (
+          <div ref={textRef} style={{ ...textStyleBase, position: "absolute", visibility: "hidden", pointerEvents: "none" }} aria-hidden="true">{ev.text}</div>
         )}
       </div>
       <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.35)" : "#8B7355", flexShrink: 0, fontFamily: "'DM Sans',sans-serif" }}>{timeAgo(ev.ts)}</div>
