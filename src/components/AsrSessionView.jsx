@@ -10,6 +10,7 @@ function AsrSessionView({
     asrVisibleAyahs,asrBatch,asrExpandedAyah,setAsrExpandedAyah,asrTouchStartRef,
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,completedAyahs,
+    playMushafRange,stopMushafAudio,mushafAudioPlaying,
   }) {
     const [asrViewMode,setAsrViewMode]=useState("mushaf"); // "mushaf" default, "study" for cards
     const asrMushafScrollRef=useRef(null);
@@ -172,10 +173,20 @@ function AsrSessionView({
                   </div>);
                 })}
               </div>
-              {/* Page chrome bottom — hizb · page on the right */}
+              {/* Page chrome bottom — hizb | page on the right */}
               <div style={{textAlign:"right",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
                 {asrHizbLabel?`${asrHizbLabel} | `:""}{currentPage.page}
               </div>
+              {/* Listen-along — plays the current mushaf page */}
+              {playMushafRange&&currentPage.ayahs.length>0&&(
+                <div style={{textAlign:"center",padding:"4px 14px 0",flexShrink:0}}>
+                  <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(currentPage.ayahs); }}
+                    style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
+                    <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
+                    {mushafAudioPlaying?"Stop":"Listen along"}
+                  </div>
+                </div>
+              )}
               {/* Nav buttons + session page counter centered between them */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",flexShrink:0,gap:8}}>
                 <div className={safePage<totalPages-1?"sbtn":""} onClick={()=>{if(safePage<totalPages-1){setAsrSlideDir("left");setAsrPage(p=>p+1);}}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage<totalPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage<totalPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage<totalPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
