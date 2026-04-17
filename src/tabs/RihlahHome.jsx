@@ -1,4 +1,61 @@
+import { useState, useEffect, useRef } from "react";
 import RihlahProgressPath from "../components/RihlahProgressPath";
+
+// Single activity row. Measures text width on mount — if the text overflows
+// its container, it scrolls horizontally in a gentle marquee. Short entries
+// that already fit stay static.
+function ActivityRow({ ev, dark, timeAgo }) {
+  const boxRef = useRef(null);
+  const textRef = useRef(null);
+  const [overflow, setOverflow] = useState(0); // pixels to scroll (0 = fits)
+  useEffect(() => {
+    const tick = () => {
+      const box = boxRef.current, text = textRef.current;
+      if (!box || !text) return;
+      const delta = text.scrollWidth - box.clientWidth;
+      setOverflow(delta > 2 ? delta : 0);
+    };
+    tick();
+    window.addEventListener("resize", tick);
+    return () => window.removeEventListener("resize", tick);
+  }, [ev.text]);
+  // Duration scales with overflow distance so scrolling feels consistent.
+  const duration = overflow > 0 ? Math.max(6, Math.round(overflow / 20)) : 0;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div ref={boxRef} style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+        <div
+          ref={textRef}
+          style={{
+            display: "inline-block",
+            fontSize: 12,
+            color: dark ? "rgba(243,231,200,0.85)" : "#2D2A26",
+            fontWeight: 500,
+            whiteSpace: "nowrap",
+            willChange: overflow > 0 ? "transform" : undefined,
+            animation: overflow > 0
+              ? `activity-marquee-${ev.ts} ${duration}s ease-in-out infinite`
+              : undefined,
+          }}
+        >
+          {ev.text}
+        </div>
+        {overflow > 0 && (
+          <style>{`
+            @keyframes activity-marquee-${ev.ts} {
+              0%, 15% { transform: translateX(0); }
+              50%, 65% { transform: translateX(-${overflow}px); }
+              100% { transform: translateX(0); }
+            }
+          `}</style>
+        )}
+      </div>
+      <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.35)" : "#8B7355", flexShrink: 0, fontFamily: "'DM Sans',sans-serif" }}>{timeAgo(ev.ts)}</div>
+    </div>
+  );
+}
+
+
 
 export default function RihlahHome({
   dark, T,
@@ -263,12 +320,7 @@ export default function RihlahHome({
           {todayActivity.length>0?(
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {todayActivity.slice(0,5).map((ev,i)=>(
-                <div key={`${ev.ts}-${i}`} style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.text}</div>
-                  </div>
-                  <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#8B7355",flexShrink:0,fontFamily:"'DM Sans',sans-serif"}}>{timeAgo(ev.ts)}</div>
-                </div>
+                <ActivityRow key={`${ev.ts}-${i}`} ev={ev} dark={dark} timeAgo={timeAgo} />
               ))}
             </div>
           ):(
