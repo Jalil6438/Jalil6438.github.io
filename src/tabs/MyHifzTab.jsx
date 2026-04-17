@@ -504,25 +504,35 @@ export default function MyHifzTab(props) {
                   )}
                 </div>);})()}
 
-                {/* ── CONNECTION PHASE (الربط) — from Sheikh Al-Qasim's method ── */}
+                {/* ── CONNECTION PHASE (الربط) — Sheikh Al-Qasim's method, progressive.
+                    Pair {N-1, N} unlocks the moment both ayahs hit 20/20, while they're
+                    still fresh in working memory. The page closer ("all N together × 10")
+                    unlocks only after every ayah and every pair is complete. ── */}
                 {currentSessionId==="fajr"&&(()=>{
                   const APS=7;
-                  const aPages=Math.max(1,Math.ceil(batch.length/APS));
+                  const aPages=isMushafFajr?1:Math.max(1,Math.ceil(batch.length/APS));
                   const aSafe=Math.min(ayahPage,aPages-1);
-                  const aStart=aSafe*APS;
-                  const aEnd=Math.min(aStart+APS,batch.length);
+                  const aStart=isMushafFajr?0:aSafe*APS;
+                  const aEnd=isMushafFajr?batch.length:Math.min(aStart+APS,batch.length);
                   const pageAyahs=batch.slice(aStart,aEnd);
-                  const allIndividualDone=pageAyahs.length>0&&pageAyahs.every(v=>(repCounts[v.verse_key]||0)>=20);
-                  if(!allIndividualDone||pageAyahs.length<2) return null;
+                  if(pageAyahs.length<2) return null;
 
-                  // Build connection steps: pairs + full group
-                  const pairs=[];
+                  // Build every pair in the page. Mark which are unlocked (both ayahs 20/20).
+                  const allPairs=[];
                   for(let i=0;i<pageAyahs.length-1;i++){
-                    pairs.push({key:`pair-${aStart+i}-${aStart+i+1}`,label:`Ayah ${aStart+i+1} + ${aStart+i+2}`,ayahs:[pageAyahs[i],pageAyahs[i+1]]});
+                    const v1=pageAyahs[i], v2=pageAyahs[i+1];
+                    const bothDone=(repCounts[v1.verse_key]||0)>=20&&(repCounts[v2.verse_key]||0)>=20;
+                    allPairs.push({key:`pair-${aStart+i}-${aStart+i+1}`,label:`Ayah ${aStart+i+1} + ${aStart+i+2}`,ayahs:[v1,v2],ready:bothDone});
                   }
+                  const visiblePairs=allPairs.filter(p=>p.ready);
+                  if(visiblePairs.length===0) return null; // panel hidden until the first pair unlocks
+
+                  const allAyahsDone=pageAyahs.every(v=>(repCounts[v.verse_key]||0)>=20);
+                  const allPairsDone=allPairs.every(p=>(connectionReps[p.key]||0)>=10);
+                  const showCloser=allAyahsDone&&allPairsDone;
                   const allGroup={key:`all-${aStart}`,label:`All ${pageAyahs.length} ayahs together`,ayahs:pageAyahs};
-                  const steps=[...pairs,allGroup];
-                  const allConnectionsDone=steps.every(s=>(connectionReps[s.key]||0)>=10);
+                  const steps=showCloser?[...visiblePairs,allGroup]:visiblePairs;
+                  const allConnectionsDone=showCloser&&(connectionReps[allGroup.key]||0)>=10;
 
                   return (
                     <div style={{marginBottom:16,padding:"14px",borderRadius:14,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.12)"}`}}>
