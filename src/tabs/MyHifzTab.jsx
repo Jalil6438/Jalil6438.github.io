@@ -750,9 +750,9 @@ export default function MyHifzTab(props) {
                           Part {juzNum}
                         </div>
                       )}
-                      {/* Bottom-right: hizb marker | page number */}
+                      {/* Bottom-center: hizb marker · page number */}
                       {pageNum&&(
-                        <div style={{position:"absolute",bottom:0,right:8,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
+                        <div style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
                           {hizbLabel?`${hizbLabel} · `:""}Page {pageNum}
                         </div>
                       )}
