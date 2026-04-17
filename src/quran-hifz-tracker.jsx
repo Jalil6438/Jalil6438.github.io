@@ -1084,16 +1084,29 @@ export default function RihlatAlHifz() {
         const label=describeBatch(batch);
         pushActivity("review",label?`Reviewed ${label}`:"Completed Dhuhr review");
       } else if(id==="asr"){
-        // Use the user's actual picks: juz + surahs
-        const juzLabels=(asrSelectedJuz||[]).map(j=>`Juz ${j}`);
-        const surahLabels=(asrSelectedSurahs||[]).map(s=>{const n=SURAH_EN[s];return n?`Surah ${n}`:null;}).filter(Boolean);
-        const parts=[...juzLabels,...surahLabels];
+        // Describe what was actually reviewed today. If today's slice happens
+        // to exactly cover all surahs of a juz, call it "Juz N". Otherwise
+        // use a compact "Surah A – Surah B" label so we don't claim a juz was
+        // reviewed when it wasn't.
+        const b=asrReviewBatch||[];
         let label="";
-        if(parts.length===0) label="";
-        else if(parts.length===1) label=parts[0];
-        else if(parts.length===2) label=`${parts[0]} and ${parts[1]}`;
-        else label=`${parts.slice(0,-1).join(", ")}, and ${parts[parts.length-1]}`;
-        pushActivity("review",label?`Revised ${label} during Asr review`:"Completed Asr review");
+        if(b.length){
+          const surahSet=new Set(b.map(v=>v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10)));
+          let matchedJuz=null;
+          for(let j=1;j<=30;j++){
+            const jSurahs=(JUZ_SURAHS[j]||[]).map(s=>s.s);
+            if(jSurahs.length===surahSet.size&&jSurahs.every(s=>surahSet.has(s))){ matchedJuz=j; break; }
+          }
+          if(matchedJuz){
+            label=`Juz ${matchedJuz}`;
+          } else {
+            const first=b[0], last=b[b.length-1];
+            const fS=first.surah_number||parseInt(first.verse_key?.split(":")?.[0]||"0",10);
+            const lS=last.surah_number||parseInt(last.verse_key?.split(":")?.[0]||"0",10);
+            label=fS===lS?`Surah ${SURAH_EN[fS]||""}`:`Surah ${SURAH_EN[fS]||""} – Surah ${SURAH_EN[lS]||""}`;
+          }
+        }
+        pushActivity("review", label?`Revised ${label} during Asr review`:"Completed Asr review");
       } else if(id==="maghrib"){
         // Describe using the page the user actually saw (Maghrib inherits Fajr's page).
         const src=todayFajrBatch.length>0?todayFajrBatch:fajrBatch;
