@@ -171,11 +171,10 @@ function AsrSessionView({
                   </div>);
                 })}
               </div>
-              {/* Page chrome bottom — hizb · page (right), session page counter (center) */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto"}}>
-                <div/>
-                <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} of {totalPages}</div>
-                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
+              {/* Page chrome bottom — session counter truly centered; hizb · page absolute right */}
+              <div style={{position:"relative",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto"}}>
+                <div style={{textAlign:"center",fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} of {totalPages}</div>
+                <div style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
                   {asrHizbLabel?`${asrHizbLabel} · `:""}Page {currentPage.page}
                 </div>
               </div>
