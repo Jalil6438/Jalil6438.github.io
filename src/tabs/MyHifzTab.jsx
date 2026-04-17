@@ -198,12 +198,20 @@ export default function MyHifzTab(props) {
     prevCloserKeyRef.current = null;
   }, [fajrPageNum, currentSessionId]);
 
+  // ── Mushaf = reading mode. Study = memorizing mode. ──
+  // Mushaf-mode memorization features are muted (not deleted) via this flag so we
+  // can flip it back if we change direction. When false, Mushaf renders as a pure
+  // reading surface: no rep taps, no pair/closer modals, no session button.
+  const MUSHAF_INTERACTIVE = false;
+  const memorizingActive = isFajr && (!isMushafFajr || MUSHAF_INTERACTIVE);
+
   // Closer has priority: when a surah's full closer is ready, it takes the
   // screen; the pair modal waits its turn. Pair modal hides when every visible
-  // pair is already at 10/10 (auto-close).
+  // pair is already at 10/10 (auto-close). Both modals are suppressed entirely
+  // in Mushaf (reading) mode.
   const anyPairInFlight = connVisiblePairs.some(p => (connectionReps[p.key] || 0) < 10);
-  const showPairModal = isFajr && anyPairInFlight && !activeCloser && !pairModalDismissed;
-  const showCloserModal = isFajr && !!activeCloser && !closerModalDismissed;
+  const showPairModal = memorizingActive && anyPairInFlight && !activeCloser && !pairModalDismissed;
+  const showCloserModal = memorizingActive && !!activeCloser && !closerModalDismissed;
 
   // Auto-advance: when a pair or closer modal finishes its work (user completed
   // all reps, not a manual ×), jump straight to the next unmemorized ayah so the
@@ -560,12 +568,12 @@ export default function MyHifzTab(props) {
                                 const reps=repCounts[vKey]||0;
                                 const repsDone=reps>=20;
                                 return (
-                                  <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
-                                    style={{cursor:"pointer",transition:"all .15s",borderRadius:6,padding:"2px 4px",
-                                      background:repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent"),
+                                  <span key={vKey} className={MUSHAF_INTERACTIVE?"sbtn":undefined} onClick={MUSHAF_INTERACTIVE?(()=>{setOpenAyah(vKey);fetchTranslations([v]);}):undefined}
+                                    style={{cursor:MUSHAF_INTERACTIVE?"pointer":"default",transition:"all .15s",borderRadius:6,padding:"2px 4px",
+                                      background:MUSHAF_INTERACTIVE?(repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent")):"transparent",
                                     }}>
-                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                    <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:MUSHAF_INTERACTIVE&&repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                    <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:MUSHAF_INTERACTIVE&&repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                                   </span>
                                 );
                               })}
@@ -573,10 +581,16 @@ export default function MyHifzTab(props) {
                           </div>
                         );
                       })}
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
-                        <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
-                        <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
-                      </div>
+                      {MUSHAF_INTERACTIVE?(
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
+                          <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
+                          <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
+                        </div>
+                      ):(
+                        <div style={{textAlign:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`,fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A",lineHeight:1.6}}>
+                          Read this page with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> to begin memorizing.
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -781,8 +795,9 @@ export default function MyHifzTab(props) {
                   );
                 })()}
 
-                {/* ── BATCH DONE ── */}
-                {bDone?(
+                {/* ── BATCH DONE / NEXT button — only visible when memorizing is active.
+                    Hidden in Mushaf reading mode. ── */}
+                {memorizingActive&&(bDone?(
                   <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
                     <div style={{fontSize:22,marginBottom:8}}>✅</div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
@@ -850,7 +865,7 @@ export default function MyHifzTab(props) {
                   </div>
                   {!isFinal&&<div style={{textAlign:"center",fontSize:10,color:"rgba(243,231,200,0.28)",marginTop:6}}>{ayahPage+1} of {batchPages} · keep going</div>}
                   </div>);
-                })()}
+                })())}
               </div>
             )}
 
