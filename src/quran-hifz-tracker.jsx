@@ -348,8 +348,8 @@ export default function RihlatAlHifz() {
   const [checkHistory,setCheckHistory]=useState({});
   const [calMonth,setCalMonth]=useState(new Date().getMonth());
   const [calYear,setCalYear]=useState(new Date().getFullYear());
-  const [reciter,setReciter]=useState("dosari");
-  const [quranReciter,setQuranReciter]=useState("dosari");
+  const [reciter,setReciter]=useState(null);
+  const [quranReciter,setQuranReciter]=useState(null);
   const [showReciterModal,setShowReciterModal]=useState(false);
   const [reciterMode,setReciterMode]=useState("hifz");
   const [showJuzModal,setShowJuzModal]=useState(false);
@@ -900,7 +900,7 @@ export default function RihlatAlHifz() {
   const sessPct=totalSV>0?Math.round((sessionIdx/totalSV)*100):0;
   const checkedCount=SESSIONS.filter(s=>dailyChecks[s.id]).length;
   const allChecked=checkedCount===SESSIONS.length;
-  const currentReciter=RECITERS.find(r=>r.id===reciter)||RECITERS[0];
+  const currentReciter=reciter?(RECITERS.find(r=>r.id===reciter)||RECITERS[0]):{id:null,name:"Select your reciter"};
 
   // ── Plan label (shared by the universal header and Rihlah home) ──
   // Shaykh mode: pages-remaining at 1 page/day → months → "N-Month Hafiz".
