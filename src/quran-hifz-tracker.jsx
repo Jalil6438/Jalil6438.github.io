@@ -1238,19 +1238,35 @@ export default function RihlatAlHifz() {
         return aa-ab;
       });
 
-      // Step 6 — slice to the stage's daily amount. The book's 6-stage table
-      // says revise 0.5 / 1 / 1.5 / 2 / 2.5 / 3 juz per day depending on
-      // memorization frontier. 1 juz ≈ 6236/30 ≈ 208 ayahs. Slice into
-      // contiguous chunks and cycle through them across sessions so each day
-      // reads cleanly (first half / second half / etc.), never mixed pieces.
+      // Step 6 — slice to the stage's daily amount, snapped to surah boundaries
+      // so each day starts at ayah 1 of some surah (not mid-surah like "Al-Insān
+      // 3"). Walk the filtered list surah-by-surah and close a chunk once it
+      // reaches targetAyahs, starting the next chunk at the next surah.
       const AYAHS_PER_JUZ = 6236 / 30;
       const targetAyahs = Math.max(1, Math.round(dailyJuzAmount * AYAHS_PER_JUZ));
       let daily = filtered;
       if (filtered.length > targetAyahs) {
-        const numChunks = Math.max(1, Math.ceil(filtered.length / targetAyahs));
+        // Surah-start indices in the sorted batch (+ sentinel at the end).
+        const surahStarts = [];
+        let prevSurah = null;
+        filtered.forEach((v, i) => {
+          const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
+          if (s !== prevSurah) { surahStarts.push(i); prevSurah = s; }
+        });
+        surahStarts.push(filtered.length);
+        // Build chunks: accumulate surahs until we cover at least targetAyahs,
+        // then close the chunk at that surah's end.
+        const chunks = [];
+        let start = 0;
+        for (let b = 1; b < surahStarts.length; b++) {
+          const end = surahStarts[b];
+          if (end - start >= targetAyahs) { chunks.push([start, end]); start = end; }
+        }
+        if (start < filtered.length) chunks.push([start, filtered.length]);
+        const numChunks = chunks.length || 1;
         const chunkIdx = ((asrCycle % numChunks) + numChunks) % numChunks;
-        const start = chunkIdx * targetAyahs;
-        daily = filtered.slice(start, start + targetAyahs);
+        const [s, e] = chunks[chunkIdx] || [0, filtered.length];
+        daily = filtered.slice(s, e);
       }
       setAsrSelectedJuz(juzPool);
       setAsrSelectedSurahs(eligibleSurahs);
