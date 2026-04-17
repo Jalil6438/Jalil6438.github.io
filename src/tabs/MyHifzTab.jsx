@@ -1162,7 +1162,12 @@ export default function MyHifzTab(props) {
                   </div>
                 ):(()=>{
                   // In Mushaf Fajr the whole page is one day's effort — no internal 7-ayah pagination.
-                  const batchPages=isMushafFajr?1:Math.max(1,Math.ceil(batch.length/7));
+                  // Review sessions (Dhuhr/Maghrib/Isha) paginate by mushaf-page, not by
+                  // 7-ayah chunks, so count distinct page_numbers for the Next/Complete button.
+                  const isReviewMushaf=["dhuhr","maghrib","isha"].includes(currentSessionId);
+                  const batchPages=isMushafFajr?1
+                    :isReviewMushaf?Math.max(1,new Set(batch.map(v=>v.page_number||0).filter(Boolean)).size)
+                    :Math.max(1,Math.ceil(batch.length/7));
                   const onLastPage=ayahPage>=batchPages-1;
                   const isFinal=onLastPage;
                   return (<div>
