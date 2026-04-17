@@ -1608,6 +1608,7 @@ export default function RihlatAlHifz() {
               }}
               asrIsCustomized={asrIsCustomized}
               completedAyahs={completedAyahs}
+              fontSize={fontSize}
             />
           ):null}
           haramainMeta={haramainMeta}

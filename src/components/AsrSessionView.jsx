@@ -11,6 +11,7 @@ function AsrSessionView({
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,completedAyahs,
     playMushafRange,stopMushafAudio,mushafAudioPlaying,
+    fontSize = 19,
   }) {
     const [asrViewMode,setAsrViewMode]=useState("mushaf"); // "mushaf" default, "study" for cards
     const asrMushafScrollRef=useRef(null);
@@ -167,7 +168,7 @@ function AsrSessionView({
                             style={{cursor:"pointer",borderRadius:6,padding:"2px 4px",transition:"all .15s",
                               background:nowPlaying?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):"transparent",
                               boxShadow:nowPlaying?"0 0 10px rgba(212,175,55,0.25)":"none"}}>
-                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                             <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                           </span>
                         );
