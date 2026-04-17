@@ -21,7 +21,7 @@ export default function MyHifzTab(props) {
     activeSessionIndex, setActiveSessionIndex, sessionsCompleted, setSessionsCompleted,
     currentSessionId, isAsr, toggleCheck,
     // batch
-    batch, bEnd, bDone, fajrBatch, sessionVerses,
+    batch: rawBatch, bEnd, bDone, fajrBatch, sessionVerses,
     // loading
     sessLoading, sessError,
     // repetition/connection
@@ -75,6 +75,36 @@ export default function MyHifzTab(props) {
     }, 10 * 60 * 1000);
     return () => clearTimeout(t);
   }, [rotatingSession, wisdomOffset]);
+
+  // Fajr Mushaf-mode page fetch — fetch the full mushaf page the current batch sits on
+  // so the user's daily effort is the whole page, per Sheikh Al-Qasim's method.
+  const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
+  const fajrPageNum = rawBatch[0]?.page_number;
+  useEffect(() => {
+    if (currentSessionId !== "fajr" || hifzViewMode !== "mushaf") return;
+    if (!fajrPageNum || fajrPageVerses[fajrPageNum]) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=false&fields=text_uthmani,verse_key,surah_number,page_number&per_page=50`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const vs = (data.verses || []).map(v => ({
+          ...v,
+          text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652"),
+        }));
+        if (!cancelled) setFajrPageVerses(prev => ({ ...prev, [fajrPageNum]: vs }));
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [currentSessionId, hifzViewMode, fajrPageNum]);
+
+  // Fajr Mushaf = one full mushaf page as the day's memorization effort.
+  // In all other sessions / view modes we pass through the incoming batch unchanged.
+  const isMushafFajr = currentSessionId === "fajr" && hifzViewMode === "mushaf";
+  const batch = (isMushafFajr && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
+    ? fajrPageVerses[fajrPageNum]
+    : rawBatch;
 
   // Fajr milestone tracking — log 20× phase + connection phase in activity feed
   const repsLoggedRef = useRef(null); // tracks which page's 20× was logged
@@ -369,9 +399,10 @@ export default function MyHifzTab(props) {
                   </div>
                 )}
 
-                {/* ── MUSHAF MODE — flowing Arabic text grouped by surah (matches QuranTab) ── */}
+                {/* ── MUSHAF MODE — the full mushaf page the user is on, every ayah memorizable. ── */}
                 {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(()=>{
-                  // Group batch verses by surah (preserves hifz order)
+                  const pageNum = batch[0]?.page_number;
+                  // batch is already overridden to the page's ayahs when Fajr+Mushaf+fetched.
                   const surahGroups=[];
                   let curGroup=null;
                   batch.forEach(v=>{
@@ -381,6 +412,11 @@ export default function MyHifzTab(props) {
                   });
                   return (
                     <div style={{padding:"0 12px",marginBottom:16}}>
+                      {pageNum&&(
+                        <div style={{textAlign:"center",fontSize:9,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".22em",textTransform:"uppercase",fontWeight:600,marginBottom:4}}>
+                          Mushaf · Page {pageNum}
+                        </div>
+                      )}
                       {surahGroups.map((group,gi)=>{
                         const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                         return (
@@ -618,7 +654,8 @@ export default function MyHifzTab(props) {
                     <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>Session complete — MashaAllah! 🤲</div>
                   </div>
                 ):(()=>{
-                  const batchPages=Math.max(1,Math.ceil(batch.length/7));
+                  // In Mushaf Fajr the whole page is one day's effort — no internal 7-ayah pagination.
+                  const batchPages=isMushafFajr?1:Math.max(1,Math.ceil(batch.length/7));
                   const onLastPage=ayahPage>=batchPages-1;
                   const isFinal=onLastPage;
                   return (<div>
@@ -633,9 +670,9 @@ export default function MyHifzTab(props) {
                       setCompletedAyahs(prev=>{const next=new Set(prev);batch.slice(pageStart2,pageEnd2).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});
                       return;
                     }
-                    // On last page — complete the session + add last page ayahs to V9
-                    {const ps=7;const ps2=ayahPage*ps;const pe2=Math.min(ps2+ps,batch.length);
-                    setCompletedAyahs(prev=>{const next=new Set(prev);batch.slice(ps2,pe2).forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});}
+                    // On last page — complete the session. In Mushaf Fajr, add the entire page's ayahs.
+                    {const slice=isMushafFajr?batch:batch.slice(ayahPage*7,Math.min(ayahPage*7+7,batch.length));
+                    setCompletedAyahs(prev=>{const next=new Set(prev);slice.forEach(v=>{if(v.verse_key)next.add(v.verse_key);});saveCompletedAyahs(next);return next;});}
                     const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                     setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                     toggleCheck(sess.id);

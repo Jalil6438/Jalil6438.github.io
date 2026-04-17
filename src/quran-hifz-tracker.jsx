@@ -47,7 +47,7 @@ export default function RihlatAlHifz() {
   const [repCounts,setRepCounts]=useState({});
   const [connectionPhase,setConnectionPhase]=useState(false); // true = linking ayahs together
   const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
-  const [hifzViewMode,setHifzViewMode]=useState("interactive"); // "interactive" or "mushaf"
+  const [hifzViewMode,setHifzViewMode]=useState("mushaf"); // "interactive" or "mushaf"
   const [badgeCelebration,setBadgeCelebration]=useState(null); // {emoji, title, message}
   const [todayFajrBatch,setTodayFajrBatch]=useState([]); // saved when Fajr has ayahs, used by Maghrib/Isha
   const [simVerseCache,setSimVerseCache]=useState({});
