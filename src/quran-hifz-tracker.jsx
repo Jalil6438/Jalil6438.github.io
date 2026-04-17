@@ -1279,36 +1279,52 @@ export default function RihlatAlHifz() {
         return aa-ab;
       });
 
-      // Step 6 — slice to the stage's daily amount, snapped to surah boundaries
-      // so each day starts at ayah 1 of some surah (not mid-surah like "Al-Insān
-      // 3"). Walk the filtered list surah-by-surah and close a chunk once it
-      // reaches targetAyahs, starting the next chunk at the next surah.
-      const AYAHS_PER_JUZ = 6236 / 30;
-      const targetAyahs = Math.max(1, Math.round(dailyJuzAmount * AYAHS_PER_JUZ));
-      let daily = filtered;
-      if (filtered.length > targetAyahs) {
-        // Surah-start indices in the sorted batch (+ sentinel at the end).
+      // Step 6 — split each fully-memorized juz into two halves (like Fajr's
+      // 2-section page split), cycling through halves across juz. Stage 1 =
+      // 0.5 juz/day means each day is one half of one juz. Individual
+      // surah marks that aren't part of a complete juz are appended as one
+      // extra chunk at the end of the cycle.
+      const chunks = []; // each chunk is an array of verse objects (the daily slice)
+      const eligibleJuzSorted = [...eligibleJuz].sort((a, b) => a - b);
+      for (const j of eligibleJuzSorted) {
+        const juzVerses = filtered.filter(v => v.juz_number === j);
+        if (juzVerses.length === 0) continue;
+        // Find surah-start indices within this juz.
         const surahStarts = [];
-        let prevSurah = null;
-        filtered.forEach((v, i) => {
+        let prev = null;
+        juzVerses.forEach((v, i) => {
           const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
-          if (s !== prevSurah) { surahStarts.push(i); prevSurah = s; }
+          if (s !== prev) { surahStarts.push(i); prev = s; }
         });
-        surahStarts.push(filtered.length);
-        // Build chunks: accumulate surahs until we cover at least targetAyahs,
-        // then close the chunk at that surah's end.
-        const chunks = [];
-        let start = 0;
-        for (let b = 1; b < surahStarts.length; b++) {
-          const end = surahStarts[b];
-          if (end - start >= targetAyahs) { chunks.push([start, end]); start = end; }
+        surahStarts.push(juzVerses.length);
+        // Pick the surah boundary closest to the ayah midpoint.
+        const mid = juzVerses.length / 2;
+        let bestBoundary = null;
+        let bestDiff = Infinity;
+        for (const b of surahStarts) {
+          if (b === 0 || b === juzVerses.length) continue;
+          const diff = Math.abs(b - mid);
+          if (diff < bestDiff) { bestDiff = diff; bestBoundary = b; }
         }
-        if (start < filtered.length) chunks.push([start, filtered.length]);
-        const numChunks = chunks.length || 1;
-        const chunkIdx = ((asrCycle % numChunks) + numChunks) % numChunks;
-        const [s, e] = chunks[chunkIdx] || [0, filtered.length];
-        daily = filtered.slice(s, e);
+        if (bestBoundary == null) {
+          // Only one surah in this juz (rare) — use the whole juz as one chunk.
+          chunks.push(juzVerses);
+        } else {
+          chunks.push(juzVerses.slice(0, bestBoundary));
+          chunks.push(juzVerses.slice(bestBoundary));
+        }
       }
+      // Append any verses from filtered whose juz isn't a complete memorized
+      // juz (i.e., individual-surah marks outside a fully-memorized juz) as a
+      // single trailing chunk.
+      const coveredJuz = new Set(eligibleJuzSorted);
+      const extraVerses = filtered.filter(v => !coveredJuz.has(v.juz_number));
+      if (extraVerses.length > 0) chunks.push(extraVerses);
+
+      const numChunks = chunks.length || 1;
+      const chunkIdx = ((asrCycle % numChunks) + numChunks) % numChunks;
+      const daily = chunks[chunkIdx] || filtered;
+
       setAsrSelectedJuz(juzPool);
       setAsrSelectedSurahs(eligibleSurahs);
       setAsrReviewBatch(daily);
