@@ -827,6 +827,19 @@ export default function RihlatAlHifz() {
     // the "< 5 pages memorized → show everything" fallback).
     (yesterdayBatch||[]).forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
     (recentBatches||[]).flat().forEach(v=>{ if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }});
+    // Display in natural mushaf order (page ascending, then ayah) so the
+    // review reads Al-Baqarah → An-Nas direction like a user holding the mushaf
+    // open. (Memorization goes descending; review goes ascending.)
+    combined.sort((a,b)=>{
+      const pa=a.page_number||0, pb=b.page_number||0;
+      if(pa!==pb) return pa-pb;
+      const sa=a.surah_number||parseInt(a.verse_key?.split(":")?.[0]||"0",10);
+      const sb=b.surah_number||parseInt(b.verse_key?.split(":")?.[0]||"0",10);
+      if(sa!==sb) return sa-sb;
+      const aa=parseInt(a.verse_key?.split(":")?.[1]||"0",10);
+      const ab=parseInt(b.verse_key?.split(":")?.[1]||"0",10);
+      return aa-ab;
+    });
     batch=combined.length>0?combined:[];
   }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
