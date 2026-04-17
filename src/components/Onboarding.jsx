@@ -173,15 +173,14 @@ export default function Onboarding({
                 const juzComplete=v9IsJuzComplete(j.num);
                 return (
                   <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.12)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 20px rgba(212,175,55,0.14),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 0 12px rgba(212,175,55,0.05),0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
-                    {/* Juz header — tap to expand, long-press or ✓ button to mark complete */}
-                    <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{padding:"8px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}}>
-                      <div style={{flex:1,textAlign:"center"}}>
+                    {/* Juz header — text truly centered; check+chevron floated absolute right */}
+                    <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{position:"relative",padding:"8px 14px"}}>
+                      <div style={{textAlign:"center"}}>
                         <div style={{fontSize:9,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:2,letterSpacing:".08em"}}>Juz {j.num}</div>
                         <div style={{fontFamily:"'Amiri',serif",fontSize:18,lineHeight:1.3,direction:"rtl",color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                       </div>
-                      <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-                        <div className="sbtn" onClick={e=>{e.stopPropagation();const completing=!v9IsJuzComplete(j.num);setJuzStatus(prev=>{const next={...prev};if(!completing){delete next[j.num];surahs.forEach(s=>{delete next[`s${s.s}`];});}else{next[j.num]="complete";surahs.forEach(s=>{next[`s${s.s}`]="complete";});}return next;});if(completing){v9MarkJuzComplete(j.num);surahs.forEach(s=>v9MarkSurahComplete(s.s));}else v9MarkJuzIncomplete(j.num);}} style={{width:20,height:20,borderRadius:"50%",background:juzComplete?"rgba(246,226,122,0.14)":"rgba(255,255,255,0.04)",border:`1px solid ${juzComplete?"rgba(246,226,122,0.45)":"rgba(212,175,55,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",color:juzComplete?"#F6E27A":"rgba(212,175,55,0.4)",fontSize:10,fontWeight:700}}>{juzComplete?"✓":"○"}</div>
-                        <div style={{color:"rgba(212,175,55,0.7)",fontSize:13,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
+                      <div style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",color:"rgba(212,175,55,0.7)",fontSize:13,transition:"transform .2s"}}>
+                        <div style={{transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
                       </div>
                     </div>
                     {/* Surah list */}
