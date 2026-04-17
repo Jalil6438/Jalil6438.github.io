@@ -110,8 +110,10 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   function playMushafRange(verses){
     if(!verses||verses.length===0) return;
     if(mushafAudioPlaying){ stopMushafAudio(); return; }
-    const folder=getEveryayahFolder(quranReciter);
-    // No reciter picked — don't silently fall back to Dossari.
+    // Prefer quranReciter (Quran-tab selection); fall back to the hifz reciter
+    // so the Hifz-side Play Page works as soon as the user picks any reciter.
+    const folder=getEveryayahFolder(quranReciter)||getEveryayahFolder(reciter);
+    // No reciter picked anywhere — don't silently fall back to Dossari.
     if(!folder){ return; }
     stopMushafAudio();
     setMushafAudioPlaying(true);
