@@ -232,9 +232,13 @@ export default function QuranTab(props) {
                       const hizb=Math.ceil(r/4);
                       hizbLabel=pos===1?`Hizb ${hizb}`:pos===2?`1/4 Hizb ${hizb}`:pos===3?`1/2 Hizb ${hizb}`:`3/4 Hizb ${hizb}`;
                     }
+                    const isOdd=mushafPage%2===1;
+                    const text=isOdd
+                      ? (hizbLabel?`${hizbLabel} | Page ${mushafPage}`:`Page ${mushafPage}`)
+                      : (hizbLabel?`Page ${mushafPage} | ${hizbLabel}`:`Page ${mushafPage}`);
                     return (
-                      <div style={{position:"absolute",bottom:16,[mushafPage%2===1?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
-                        {hizbLabel?`${hizbLabel} | `:""}Page {mushafPage}
+                      <div style={{position:"absolute",bottom:16,[isOdd?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
+                        {text}
                       </div>
                     );
                   })()}
