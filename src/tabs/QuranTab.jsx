@@ -172,7 +172,7 @@ export default function QuranTab(props) {
                           {/* Surah header — centered, outside RTL flow */}
                           {(gi>0||isFirst)&&(
                             <div style={{textAlign:"center",padding:gi===0?"0 0 40px":"16px 0 12px"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:gi===0?90:0}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</div>
+                              <div style={{display:"inline-block",fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700,padding:"10px 28px",borderRadius:10,background:dark?"rgba(217,177,95,0.06)":"rgba(180,140,40,0.06)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.22)"}`,boxShadow:dark?"0 4px 16px rgba(0,0,0,0.22),inset 0 1px 0 rgba(255,255,255,0.03)":"0 3px 10px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.50)",marginBottom:gi===0?90:0}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
                                 <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",direction:"rtl",lineHeight:2}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
