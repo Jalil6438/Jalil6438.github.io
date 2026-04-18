@@ -215,7 +215,10 @@ export default function QuranTab(props) {
                       const r=v.rub_el_hizb_number;
                       if(typeof r!=="number") return;
                       const prev=i>0?mushafVerses[i-1]:null;
-                      if(prev&&prev.rub_el_hizb_number===r) return;
+                      // Only show if a NEW rub starts on this page (transition
+                      // from a different rub to this one). Skip the first verse
+                      // entirely — it continues from the previous page.
+                      if(!prev||prev.rub_el_hizb_number===r) return;
                       rubs.push(r);
                     });
                     const r=rubs[0];
