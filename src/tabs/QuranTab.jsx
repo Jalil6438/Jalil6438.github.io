@@ -212,12 +212,9 @@ export default function QuranTab(props) {
                       <span>{SURAH_EN[curSurahNum]||""}</span>
                       <span style={{display:"flex",alignItems:"center",gap:4}}>Part {mushafJuzNum}<span style={{fontSize:10,opacity:0.6,transform:showPickers?"rotate(180deg)":"rotate(0deg)",transition:"transform .22s ease"}}>▾</span></span>
                     </div>
-                    <div ref={contentRef} style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}>
                     {(()=>{
-                      // Line-based render: 15 rows evenly divide the card height.
-                      // Each word is placed on its exact mushaf line per the API's
-                      // line_number metadata; rows flex-distribute so lines land
-                      // at authentic mushaf positions instead of flowing.
+                      // Line-based render: surah name pinned to top, the rest
+                      // (basmala + ayah lines) center vertically in the remaining space.
                       const lineMap={};
                       (mushafVerses||[]).forEach(v=>{
                         const tokens=(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").split(/\s+/).filter(Boolean);
@@ -240,26 +237,16 @@ export default function QuranTab(props) {
                         }
                       });
                       const layoutLines=mushafLayout?.[String(mushafPage)]||[];
-                      // Line count from the authoritative layout data (each page can be
-                      // a different height — e.g. page 2 has only 8 lines because Al-Baqarah
-                      // just starts). Fall back to max observed line_number or 15.
                       const lineCount=layoutLines.length||Math.max(15,Math.max(0,...Object.keys(lineMap).map(Number)));
                       const rows=[];
                       for(let ln=1;ln<=lineCount;ln++){
                         rows.push({lineNum:ln,items:lineMap[ln]||[],meta:layoutLines[ln-1]});
                       }
-                      return rows.map(({lineNum,items,meta})=>{
-                        const isSurahName=meta?.t==="s";
+                      const surahNameRow=rows.find(r=>r.meta?.t==="s");
+                      const bodyRows=rows.filter(r=>r.meta?.t!=="s");
+                      const renderRow=({lineNum,items,meta})=>{
                         const isBasmala=meta?.t==="b";
-                        const isCentered=meta?.c===1||isSurahName||isBasmala;
-                        if(isSurahName){
-                          const sn=meta.s;
-                          return (
-                            <div key={lineNum} style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:6}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[sn]||""}</div>
-                            </div>
-                          );
-                        }
+                        const isCentered=meta?.c===1||isBasmala;
                         if(isBasmala){
                           return (
                             <div key={lineNum} style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",direction:"rtl",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.9),color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",marginBottom:6}}>
@@ -278,9 +265,20 @@ export default function QuranTab(props) {
                             ))}
                           </div>
                         );
-                      });
+                      };
+                      return (
+                        <>
+                          {surahNameRow&&(
+                            <div style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:6}}>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[surahNameRow.meta.s]||""}</div>
+                            </div>
+                          )}
+                          <div ref={contentRef} style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                            {bodyRows.map(renderRow)}
+                          </div>
+                        </>
+                      );
                     })()}
-                    </div>
                     {/* Bottom row: Prev · page number · Next */}
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,paddingTop:8,borderTop:`1px solid ${dark?"rgba(217,177,95,0.10)":"rgba(140,100,20,0.10)"}`}}>
                       <div className={mushafPage<604?"sbtn":""} onClick={()=>{if(mushafPage<604)setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"6px 14px",fontSize:18,color:mushafPage<604?(dark?"rgba(217,177,95,0.70)":"#6B645A"):(dark?"rgba(217,177,95,0.20)":"rgba(0,0,0,0.20)"),borderRadius:8,cursor:mushafPage<604?"pointer":"default"}}>‹</div>
