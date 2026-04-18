@@ -268,7 +268,7 @@ export default function QuranTab(props) {
                           );
                         }
                         return (
-                          <div key={lineNum} style={{minHeight:42,display:"block",direction:"rtl",textAlign:isCentered?"center":"right",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:autoFontSize,color:dark?"#E8DFC0":"#2D2A26",marginBottom:6,lineHeight:1.8,overflow:"hidden",whiteSpace:"normal",wordBreak:"keep-all"}}>
+                          <div key={lineNum} style={{minHeight:42,display:"block",direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:autoFontSize,color:dark?"#E8DFC0":"#2D2A26",marginBottom:6,lineHeight:1.8,overflow:"hidden",whiteSpace:"normal",wordBreak:"keep-all"}}>
                             {items.map((it,ii)=>(
                               <span key={ii}>
                                 {ii>0?" ":""}
