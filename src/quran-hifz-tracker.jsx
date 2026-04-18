@@ -1735,6 +1735,7 @@ export default function RihlatAlHifz() {
           simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse}
           userPlanMode={userPlanMode}
           qpcPages={qpcPages}
+          mushafLayout={mushafLayout}
         />
       )}
 

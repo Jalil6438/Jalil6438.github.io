@@ -56,6 +56,10 @@ export default function MyHifzTab(props) {
     playMushafRange, stopMushafAudio, mushafAudioPlaying,
     // KFGQPC per-page PUA-encoded line data (loaded from /mushaf-pages.json)
     qpcPages,
+    // Per-line layout metadata (loaded from /quran-layout.json). Each page has
+    // an array of lines with c=1 (centered) or c=0 (justified), plus a type
+    // 's' (surah header) or 'a' (ayah flow).
+    mushafLayout,
   } = props;
 
   // Wisdom rotation — two triggers:
@@ -826,11 +830,17 @@ export default function MyHifzTab(props) {
                             <div style={{textAlign:"center",padding:"20px 0",fontSize:12,color:dark?"rgba(243,231,200,0.40)":"#6B645A"}}>Loading mushaf page…</div>
                           );
                         }
-                        return qpcLines.map((lineText,li)=>(
-                          <div key={li} style={{direction:"rtl",textAlign:"justify",textAlignLast:"justify",fontFamily:`'p${pageNum}','UthmanicHafs',serif`,fontSize:Math.round(fontSize*1.35),color:dark?"#E8DFC0":"#2D2A26",lineHeight:2,padding:"3px 0",wordBreak:"keep-all",overflowWrap:"normal"}}>
-                            {lineText}
-                          </div>
-                        ));
+                        const layoutLines=mushafLayout?mushafLayout[String(pageNum)]:null;
+                        return qpcLines.map((lineText,li)=>{
+                          const meta=layoutLines?.[li];
+                          const isCentered=meta?.c===1;
+                          const align=isCentered?"center":"justify";
+                          return (
+                            <div key={li} style={{direction:"rtl",textAlign:align,textAlignLast:align,fontFamily:`'p${pageNum}','UthmanicHafs',serif`,fontSize:Math.round(fontSize*1.35),color:dark?"#E8DFC0":"#2D2A26",lineHeight:2,padding:"3px 0",wordBreak:"keep-all",overflowWrap:"normal"}}>
+                              {lineText}
+                            </div>
+                          );
+                        });
                       })()}
                       {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
