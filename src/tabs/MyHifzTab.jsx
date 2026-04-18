@@ -173,6 +173,16 @@ export default function MyHifzTab(props) {
     });
     return set;
   })();
+  // Exact queued verse_keys (not just surahs) — so when a surah's ayahs that appear
+  // on today's mushaf page are already memorized (e.g. Al-Qiyāmah 1-19 on the Al-
+  // Muddaththir-tail page 577 for a hifz-descending user who did Qiyāmah before
+  // Muddaththir), they're filtered out even though Qiyāmah's surah number is still
+  // in queuedSurahs via later-juz ayahs or sessionVerses ordering.
+  const queuedKeys = (() => {
+    const set = new Set();
+    (sessionVerses || []).forEach(v => { if (v.verse_key) set.add(v.verse_key); });
+    return set;
+  })();
   const filterActivePlusFresh = (pageVs) => {
     if (!pageVs || !pageVs.length) return pageVs || [];
     const startsHere = new Set();
@@ -187,7 +197,13 @@ export default function MyHifzTab(props) {
       // If queue is empty (first-load before sessionVerses resolves), don't
       // drop anything — show everything that would otherwise qualify.
       const isQueued = queuedSurahs.size === 0 || queuedSurahs.has(s);
-      return (isActive || isFresh) && isQueued;
+      // Also require the exact ayah to still be in the queue — catches the case
+      // where a surah's number is queued (later ayahs still pending) but these
+      // specific ayahs (e.g. Qiyāmah 1-19 beneath Muddaththir 48-56 on page 577)
+      // were already memorized when the user did Qiyāmah before Muddaththir in
+      // reverse order.
+      const ayahStillQueued = queuedKeys.size === 0 || queuedKeys.has(v.verse_key);
+      return (isActive || isFresh) && isQueued && ayahStillQueued;
     });
     // Sort: active surah first (so Al-Mumtaḥanah 12-13 renders above Aṣ-Ṣaff 1-5
     // on a boundary page — continuation ayahs come before the fresh next surah),
