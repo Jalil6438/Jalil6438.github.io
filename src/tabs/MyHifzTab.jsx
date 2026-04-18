@@ -1332,6 +1332,8 @@ export default function MyHifzTab(props) {
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
+                      // Start each new day on Fajr Mushaf (read with teacher first)
+                      setHifzViewMode("mushaf");
                     } else {
                       setActiveSessionIndex(i=>i+1);
                     }
