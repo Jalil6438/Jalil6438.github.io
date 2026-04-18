@@ -212,7 +212,7 @@ export default function QuranTab(props) {
                       <span>{SURAH_EN[curSurahNum]||""}</span>
                       <span style={{display:"flex",alignItems:"center",gap:4}}>Part {mushafJuzNum}<span style={{fontSize:10,opacity:0.6,transform:showPickers?"rotate(180deg)":"rotate(0deg)",transition:"transform .22s ease"}}>▾</span></span>
                     </div>
-                    <div ref={contentRef} style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                    <div ref={contentRef} style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}>
                     {(()=>{
                       // Line-based render: 15 rows evenly divide the card height.
                       // Each word is placed on its exact mushaf line per the API's
