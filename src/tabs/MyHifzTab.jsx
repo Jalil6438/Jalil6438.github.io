@@ -922,11 +922,16 @@ export default function MyHifzTab(props) {
                     authentic mushaf pages, one page per swipe. Much lighter than
                     walking 20+ cards of Study view when the batch is 100+ ayahs. ── */}
                 {["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
+                  // Group by (page, surah) — a physical page that holds two surahs'
+                  // slices (e.g. page 580 with Insān tail + Mursalāt start) splits
+                  // into two review slides for cleaner visual per-day reading, even
+                  // though the mushaf page is still page 580 in both.
                   const pageGroups=[];
                   let curGroup=null;
                   batch.forEach(v=>{
                     const pn=v.page_number||0;
-                    if(!curGroup||curGroup.page!==pn){ curGroup={page:pn,ayahs:[]}; pageGroups.push(curGroup); }
+                    const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
+                    if(!curGroup||curGroup.page!==pn||curGroup.sn!==sn){ curGroup={page:pn,sn,ayahs:[]}; pageGroups.push(curGroup); }
                     curGroup.ayahs.push(v);
                   });
                   const totalPages=pageGroups.length;
