@@ -48,6 +48,7 @@ export default function QuranTab(props) {
     // audio functions
     stopMushafAudio,
     playMushafRange,
+    mushafLayout,
   } = props;
 
   // Auto-fit: measure the rendered mushaf-page card vs its inner content and
@@ -211,46 +212,66 @@ export default function QuranTab(props) {
                       <span>{SURAH_EN[curSurahNum]||""}</span>
                       <span style={{display:"flex",alignItems:"center",gap:4}}>Part {mushafJuzNum}<span style={{fontSize:10,opacity:0.6,transform:showPickers?"rotate(180deg)":"rotate(0deg)",transition:"transform .22s ease"}}>▾</span></span>
                     </div>
-                    <div ref={contentRef} style={{fontSize:autoFontSize,flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                    {surahGroups.map((group,gi)=>{
-                      const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
-                      return (
-                        <div key={group.sn+"-"+gi}>
-                          {/* Surah header — centered, outside RTL flow */}
-                          {(gi>0||isFirst)&&(
-                            <div style={{textAlign:"center",padding:"16px 0 12px"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sn]||""}</div>
-                              <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sn]||""}</div>
-                              {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>
-                                  بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
-                                </div>
-                              )}
-                              <div style={{height:1,margin:"10px auto 0",width:"80%",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
+                    <div ref={contentRef} style={{flex:1,display:"flex",flexDirection:"column"}}>
+                    {(()=>{
+                      // Line-based render: 15 rows evenly divide the card height.
+                      // Each word is placed on its exact mushaf line per the API's
+                      // line_number metadata; rows flex-distribute so lines land
+                      // at authentic mushaf positions instead of flowing.
+                      const lineMap={};
+                      (mushafVerses||[]).forEach(v=>{
+                        const tokens=(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").split(/\s+/).filter(Boolean);
+                        const words=(v.words||[]).filter(w=>w.char_type_name==="word");
+                        const ends=(v.words||[]).filter(w=>w.char_type_name==="end");
+                        const aNum=parseInt(v.verse_key.split(":")[1],10);
+                        words.forEach((w,i)=>{
+                          const ln=w.line_number;
+                          if(typeof ln!=="number") return;
+                          const token=tokens[i];
+                          if(!token) return;
+                          if(!lineMap[ln]) lineMap[ln]=[];
+                          lineMap[ln].push({type:"word",text:token,verse_key:v.verse_key});
+                        });
+                        const endChar=ends[0];
+                        const markerLine=endChar?.line_number??words[words.length-1]?.line_number;
+                        if(markerLine!=null){
+                          if(!lineMap[markerLine]) lineMap[markerLine]=[];
+                          lineMap[markerLine].push({type:"marker",num:aNum,verse_key:v.verse_key});
+                        }
+                      });
+                      const layoutLines=mushafLayout?.[String(mushafPage)]||[];
+                      const lineCount=Math.max(15,layoutLines.length||15,Math.max(0,...Object.keys(lineMap).map(Number)));
+                      const rows=[];
+                      for(let ln=1;ln<=lineCount;ln++){
+                        rows.push({lineNum:ln,items:lineMap[ln]||[],meta:layoutLines[ln-1]});
+                      }
+                      return rows.map(({lineNum,items,meta})=>{
+                        const isSurahName=meta?.t==="s";
+                        const isCentered=meta?.c===1||isSurahName;
+                        if(isSurahName){
+                          const sn=meta.s;
+                          return (
+                            <div key={lineNum} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                              <div style={{textAlign:"center"}}>
+                                <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[sn]||""}</div>
+                                <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[sn]||""}</div>
+                              </div>
                             </div>
-                          )}
-                          {/* Flowing ayah text */}
-                          <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                            {group.verses.map(verse=>{
-                              const aNum=verse.verse_key.split(":")[1];
-                              const isSelected=selectedAyah===verse.verse_key;
-                              return (
-                                <span key={verse.verse_key} className="sbtn"
-                                  onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
-                                  style={{cursor:"pointer",borderRadius:6,padding:"2px 3px",
-                                    background:isSelected?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent",
-                                    boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",
-                                    transition:"background .15s",
-                                  }}>
-                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"inherit",color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
-                                </span>
-                              );
-                            })}
+                          );
+                        }
+                        return (
+                          <div key={lineNum} style={{flex:1,display:"flex",alignItems:"center",direction:"rtl",justifyContent:isCentered?"center":"space-between",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:autoFontSize,color:dark?"#E8DFC0":"#2D2A26",gap:4}}>
+                            {items.map((it,ii)=>(
+                              it.type==="marker"?(
+                                <span key={ii} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848",flexShrink:0}}>{`\u2060﴿${toArabicDigits(it.num)}﴾`}</span>
+                              ):(
+                                <span key={ii} className="sbtn" onClick={()=>{setSelectedAyah(selectedAyah===it.verse_key?null:it.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",flexShrink:0,color:selectedAyah===it.verse_key?(dark?"#F5E6B3":"#3A2200"):undefined,borderRadius:4,padding:"0 2px",background:selectedAyah===it.verse_key?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent"}}>{it.text}</span>
+                              )
+                            ))}
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      });
+                    })()}
                     </div>
                     {/* Bottom row: Prev · page number · Next */}
                     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,paddingTop:8,borderTop:`1px solid ${dark?"rgba(217,177,95,0.10)":"rgba(140,100,20,0.10)"}`}}>
