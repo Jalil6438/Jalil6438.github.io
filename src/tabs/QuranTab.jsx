@@ -240,14 +240,18 @@ export default function QuranTab(props) {
                         }
                       });
                       const layoutLines=mushafLayout?.[String(mushafPage)]||[];
-                      const lineCount=Math.max(15,layoutLines.length||15,Math.max(0,...Object.keys(lineMap).map(Number)));
+                      // Line count from the authoritative layout data (each page can be
+                      // a different height — e.g. page 2 has only 8 lines because Al-Baqarah
+                      // just starts). Fall back to max observed line_number or 15.
+                      const lineCount=layoutLines.length||Math.max(15,Math.max(0,...Object.keys(lineMap).map(Number)));
                       const rows=[];
                       for(let ln=1;ln<=lineCount;ln++){
                         rows.push({lineNum:ln,items:lineMap[ln]||[],meta:layoutLines[ln-1]});
                       }
                       return rows.map(({lineNum,items,meta})=>{
                         const isSurahName=meta?.t==="s";
-                        const isCentered=meta?.c===1||isSurahName;
+                        const isBasmala=meta?.t==="b";
+                        const isCentered=meta?.c===1||isSurahName||isBasmala;
                         if(isSurahName){
                           const sn=meta.s;
                           return (
@@ -256,6 +260,13 @@ export default function QuranTab(props) {
                                 <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[sn]||""}</div>
                                 <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[sn]||""}</div>
                               </div>
+                            </div>
+                          );
+                        }
+                        if(isBasmala){
+                          return (
+                            <div key={lineNum} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",direction:"rtl",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.9),color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)"}}>
+                              بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                             </div>
                           );
                         }
