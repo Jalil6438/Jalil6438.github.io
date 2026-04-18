@@ -779,22 +779,12 @@ export default function MyHifzTab(props) {
                   // to the later surah. So page 577 with a few Muddaththir ayahs +
                   // 19 Qiyāmah ayahs reads "Al-Qiyāmah"; a page with most-of-long-surah
                   // + 1-ayah-start-of-next reads the longer one.
-                  const leadSurahNum = (() => {
-                    const counts = {};
-                    const order = [];
-                    pageBatch.forEach(v => {
-                      const sn = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
-                      if (counts[sn] === undefined) { counts[sn] = 0; order.push(sn); }
-                      counts[sn] += 1;
-                    });
-                    let winner = order[0] || 0;
-                    order.forEach(sn => {
-                      if (counts[sn] > counts[winner] || (counts[sn] === counts[winner] && order.indexOf(sn) > order.indexOf(winner))) {
-                        winner = sn;
-                      }
-                    });
-                    return winner;
-                  })();
+                  // Label from the active-memorization surah (what's actually
+                  // rendered), not the dominant surah on the full page. Avoids
+                  // misleading the user — e.g. page 577 has more Qiyāmah ayahs
+                  // but we're only showing Muddaththir's tail, so the chrome
+                  // should say Al-Muddaththir not Al-Qiyāmah.
+                  const leadSurahNum = activeSurahNum || batch[0]?.surah_number || 0;
                   // Hizb fractional marker derived from rub_el_hizb_number (1-240).
                   // Each hizb = 4 rubs: pos 1 = ¼, 2 = ½, 3 = ¾, 4 = hizb start.
                   // Show the marker for the first quarter that starts on this page.
