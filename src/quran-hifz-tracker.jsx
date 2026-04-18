@@ -818,22 +818,26 @@ export default function RihlatAlHifz() {
         const todaySurah=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPage=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
-        // Collect the last 5 memorization DAY-UNITS (surah, page). Boundary
-        // pages shared by two memorization days count as two day-units but one
-        // physical page — so unique pages may be 4 (or fewer) even though 5
-        // days of review are covered. The pager reflects the real page count.
-        const dayKeysCollected=new Set();
+        // Walk FORWARD 5 mushaf pages from today's Fajr page, including only
+        // pages that hold memorized content. In reverse-order hifz, pages
+        // AFTER today's page are the most recently memorized (since user
+        // works from high→low surah/page). So the 5 immediate pages after
+        // today's are the closest recent memorization — stays in the active
+        // review zone (Insān/Mursalāt/Nabaʾ start) without reaching into
+        // Nabaʾ's tail + Nāziʿāt (page 583).
+        const memorizedPages=new Set();
+        allJuzVerses.forEach((v,i)=>{
+          if(i>=allIdx) return;
+          if(v.page_number) memorizedPages.add(v.page_number);
+        });
         pagesCollectedSet=new Set();
-        for(let i=allIdx-1;i>=0&&dayKeysCollected.size<5;i--){
-          const v=allJuzVerses[i];
-          const s=v?.surah_number||parseInt(v?.verse_key?.split(":")?.[0]||"0",10);
-          const p=v?.page_number;
-          if(!p||!s) continue;
-          const k=`${s}-${p}`;
-          if(todayKey&&k===todayKey) continue;
-          dayKeysCollected.add(k);
-          pagesCollectedSet.add(p);
+        const todayPageForWalk=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
+        if(todayPageForWalk>0){
+          for(let p=todayPageForWalk+1;p<=604&&pagesCollectedSet.size<5;p++){
+            if(memorizedPages.has(p)) pagesCollectedSet.add(p);
+          }
         }
+        const dayKeysCollected=new Set(); // unused in forward-walk mode
         // Include all memorized ayahs on the 5 collected physical pages — the
         // full mushaf page is preserved (tails/heads of surahs sharing a page
         // stay visible). Unmemorized content (i>=allIdx) is still skipped so
