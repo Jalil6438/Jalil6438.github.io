@@ -228,6 +228,7 @@ export default function QuranTab(props) {
                         const ends=(v.words||[]).filter(w=>w.char_type_name==="end");
                         const aNum=parseInt(v.verse_key.split(":")[1],10);
                         let prevLine=null;
+                        let lastWordLine=null;
                         words.forEach((w,i)=>{
                           let ln=w.line_number;
                           if(typeof ln!=="number") return;
@@ -238,9 +239,12 @@ export default function QuranTab(props) {
                           if(!lineMap[ln]) lineMap[ln]=[];
                           lineMap[ln].push({type:"word",text:token,verse_key:v.verse_key});
                           prevLine=ln;
+                          lastWordLine=ln;
                         });
-                        const endChar=ends[0];
-                        const markerLine=endChar?.line_number??words[words.length-1]?.line_number;
+                        // Place the ayah-number ornament on the same line as the last
+                        // word of the ayah (after stop-mark snapping) so it doesn't
+                        // orphan down to its own row.
+                        const markerLine=lastWordLine??words[words.length-1]?.line_number;
                         if(markerLine!=null){
                           if(!lineMap[markerLine]) lineMap[markerLine]=[];
                           lineMap[markerLine].push({type:"marker",num:aNum,verse_key:v.verse_key});
