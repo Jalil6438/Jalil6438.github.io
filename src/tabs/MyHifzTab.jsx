@@ -197,13 +197,13 @@ export default function MyHifzTab(props) {
       // If queue is empty (first-load before sessionVerses resolves), don't
       // drop anything — show everything that would otherwise qualify.
       const isQueued = queuedSurahs.size === 0 || queuedSurahs.has(s);
-      // Also require the exact ayah to still be in the queue — catches the case
-      // where a surah's number is queued (later ayahs still pending) but these
-      // specific ayahs (e.g. Qiyāmah 1-19 beneath Muddaththir 48-56 on page 577)
-      // were already memorized when the user did Qiyāmah before Muddaththir in
-      // reverse order.
-      const ayahStillQueued = queuedKeys.size === 0 || queuedKeys.has(v.verse_key);
-      return (isActive || isFresh) && isQueued && ayahStillQueued;
+      // Drop already-memorized ayahs. Key case: today's active surah is Muddaththir
+      // and page 577 also has Qiyāmah 1-19 which was memorized before Muddaththir
+      // in reverse order. Those ayahs are in completedAyahs even though Qiyāmah's
+      // surah number still appears in sessionVerses.
+      const alreadyDone = completedAyahs && completedAyahs.has && completedAyahs.has(v.verse_key);
+      if (alreadyDone && !isActive) return false;
+      return (isActive || isFresh) && isQueued;
     });
     // Sort: active surah first (so Al-Mumtaḥanah 12-13 renders above Aṣ-Ṣaff 1-5
     // on a boundary page — continuation ayahs come before the fresh next surah),
