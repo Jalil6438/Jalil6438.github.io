@@ -790,7 +790,7 @@ export default function MyHifzTab(props) {
                           </div>
                         </div>
                       )}
-                    <div style={{padding:"0 8px"}}>
+                    <div style={{padding:"0 14px"}}>
                       {/* Top row: surah name (left) · Part N (right) — in-flow so the body
                           shrinks to content with no absolute-positioned reservations. */}
                       {(leadSurahNum>0||juzNum)&&(
@@ -846,12 +846,12 @@ export default function MyHifzTab(props) {
                                   )}
                                 </div>
                               )}
-                              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",direction:"rtl",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.8,padding:"6px 0"}}>
+                              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",direction:"rtl",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.8,padding:"6px 0",gap:2,minWidth:0,overflow:"hidden"}}>
                                 {items.map((it,ii)=>(
                                   it.type==="marker"?(
-                                    <span key={ii} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848",flexShrink:0}}>﴿{toArabicDigits(it.num)}﴾</span>
+                                    <span key={ii} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848",flexShrink:1,whiteSpace:"nowrap"}}>﴿{toArabicDigits(it.num)}﴾</span>
                                   ):(
-                                    <span key={ii} style={{flexShrink:0}}>{it.text}</span>
+                                    <span key={ii} style={{flexShrink:1,whiteSpace:"nowrap",minWidth:0}}>{it.text}</span>
                                   )
                                 ))}
                               </div>
