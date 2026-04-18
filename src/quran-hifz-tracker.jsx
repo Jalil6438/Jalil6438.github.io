@@ -1294,30 +1294,23 @@ export default function RihlatAlHifz() {
       // Fix U+06DF dots for UthmanicHafs font
       allVerses.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
 
-      // Compute the Dhuhr-active page window so Asr can exclude it. Dhuhr covers
-      // the last 5 memorized (surah, page) day-units (see Dhuhr logic earlier in
-      // this file). Mirror the walk-back here against allJuzVerses to find which
-      // pages are currently in Dhuhr's window, then drop them from the Asr pool
-      // so today's Asr doesn't repeat today's Dhuhr content.
+      // Compute the Dhuhr page window so Asr can exclude it — mirrors the
+      // Dhuhr forward-walk logic (5 memorized pages immediately after today's
+      // Fajr page in mushaf order). So today's Asr never repeats today's Dhuhr.
       const dhuhrPages = new Set();
       if (allJuzVerses.length > 0) {
         const currentKey = sessionVerses[sessionIdx]?.verse_key;
         let allIdx = currentKey ? allJuzVerses.findIndex(v => v.verse_key === currentKey) : allJuzVerses.length;
         if (allIdx < 0) allIdx = allJuzVerses.length;
-        const todaySurah = fajrBatch[0]?.surah_number || parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0] || "0", 10);
+        const memorizedPages = new Set();
+        allJuzVerses.forEach((v, i) => {
+          if (i >= allIdx) return;
+          if (v.page_number) memorizedPages.add(v.page_number);
+        });
         const todayPage = fajrBatch[0]?.page_number || sessionVerses[sessionIdx]?.page_number || 0;
-        const todayKey = todaySurah && todayPage ? `${todaySurah}-${todayPage}` : null;
-        const dayKeysCollected = new Set();
-        for (let i = allIdx - 1; i >= 0 && dayKeysCollected.size < 5; i--) {
-          const v = allJuzVerses[i];
-          const s = v?.surah_number || parseInt(v?.verse_key?.split(":")?.[0] || "0", 10);
-          const p = v?.page_number;
-          if (!p || !s) continue;
-          const k = `${s}-${p}`;
-          if (todayKey && k === todayKey) continue;
-          if (!dayKeysCollected.has(k)) {
-            dayKeysCollected.add(k);
-            dhuhrPages.add(p);
+        if (todayPage > 0) {
+          for (let p = todayPage + 1; p <= 604 && dhuhrPages.size < 5; p++) {
+            if (memorizedPages.has(p)) dhuhrPages.add(p);
           }
         }
       }
