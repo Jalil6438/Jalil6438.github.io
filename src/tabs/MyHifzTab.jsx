@@ -824,20 +824,23 @@ export default function MyHifzTab(props) {
                     if (pageNum === 1 && pageBatch[0]?.rub_el_hizb_number === 1) return "Hizb 1";
                     return null;
                   })();
-                  // Mushaf reading view shows the whole mushaf page (pageBatch), not the
-                  // Study-filtered memorization batch. The user reads the full page here.
+                  // Mushaf reading view now mirrors Study: only the ayahs being
+                  // memorized are shown (active-surah-only, tails of earlier/later
+                  // surahs on the same page are filtered out). Page chrome (page
+                  // number, hizb label, surah-dominant label) still derives from
+                  // the full pageBatch so the page identity stays accurate.
                   const surahGroups=[];
                   let curGroup=null;
-                  pageBatch.forEach(v=>{
+                  batch.forEach(v=>{
                     const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
                     if(!curGroup||curGroup.sn!==sn){ curGroup={sn,verses:[]}; surahGroups.push(curGroup); }
                     curGroup.verses.push(v);
                   });
                   return (
                     <div style={{marginBottom:16}}>
-                      {!MUSHAF_INTERACTIVE&&playMushafRange&&pageBatch.length>0&&reciter&&(
+                      {!MUSHAF_INTERACTIVE&&playMushafRange&&batch.length>0&&reciter&&(
                         <div style={{textAlign:"center",marginBottom:2}}>
-                          <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(pageBatch); }}
+                          <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(batch); }}
                             style={{display:"inline-flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
                             <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
                             {mushafAudioPlaying?"Stop":"Play Page"}
