@@ -189,8 +189,13 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
-                    return (<div ref={cardRef} style={{padding:"18px 14px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"72vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                    <div ref={contentRef} style={{fontSize:autoFontSize}}>
+                    return (<div ref={cardRef} style={{padding:"14px 14px 12px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"72vh",display:"flex",flexDirection:"column"}}>
+                    {/* Top row: Surah name (left) · Part N (right) */}
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:6}}>
+                      <span>{SURAH_EN[curSurahNum]||""}</span>
+                      <span>Part {mushafJuzNum}</span>
+                    </div>
+                    <div ref={contentRef} style={{fontSize:autoFontSize,flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
                     {surahGroups.map((group,gi)=>{
                       const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                       return (
@@ -231,6 +236,8 @@ export default function QuranTab(props) {
                       );
                     })}
                     </div>
+                    {/* Bottom center: page number */}
+                    <div style={{textAlign:"center",marginTop:8,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>{mushafPage}</div>
                     </div>);
                   })()}
                 </div>
