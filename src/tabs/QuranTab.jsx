@@ -196,8 +196,9 @@ export default function QuranTab(props) {
                       cg.verses.push(verse);
                     });
                     return (<div ref={cardRef}
-                      onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
+                      onTouchStart={e=>{ e.stopPropagation(); quranTouchRef.current=e.touches[0].clientX; }}
                       onTouchEnd={e=>{
+                        e.stopPropagation();
                         const dx=e.changedTouches[0].clientX-(quranTouchRef.current||0);
                         if(Math.abs(dx)<40) return;
                         if(dx<0){ setMushafPage(p=>Math.max(1,p-1)); }
