@@ -164,7 +164,7 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
-                    return (<div style={{padding:"24px 12px 0"}}>
+                    return (<div style={{padding:"24px 12px 0",position:"relative"}}>
                     {surahGroups.map((group,gi)=>{
                       const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                       return (
@@ -206,6 +206,7 @@ export default function QuranTab(props) {
                         </div>
                       );
                     })}
+                    <div style={{textAlign:mushafPage%2===1?"right":"left",marginTop:20,padding:"0 4px",fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>{mushafPage}</div>
                     </div>);
                   })()}
                 </div>
@@ -516,7 +517,7 @@ export default function QuranTab(props) {
           {/* Page nav */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)",flexShrink:0,background:dark?"#060C18":"#EADFC8"}}>
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>‹</div>
-            <div style={{fontSize:11,color:dark?"rgba(217,177,95,0.45)":"#6B645A",fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em",textAlign:"center",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",padding:"0 8px"}}>Page {mushafPage}</div>
+            <div style={{flex:1}}/>
             <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>›</div>
           </div>
 
