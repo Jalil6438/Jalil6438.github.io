@@ -807,24 +807,34 @@ export default function RihlatAlHifz() {
       let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
       if(allIdx<0) allIdx=allJuzVerses.length;
       if(isShaykh){
-        // Shaykh mode: review = the 5 mushaf pages the user most recently memorized.
-        // Walk backward through allJuzVerses (hifz-descending order) from the current
-        // position and collect the 5 most recent distinct page numbers. This skips
-        // over not-yet-memorized ayahs that live on the same physical page (e.g. after
-        // finishing Al-Qiyāmah, Al-Muddaththir 48-56 is still unmemorized on page 577,
-        // but Al-Qiyāmah's ayahs on page 577 are in review). Also naturally skips
-        // today's Fajr page before it's completed.
+        // Shaykh mode: review = the 5 most recent memorized (surah, page) day-units,
+        // EXCLUDING today's Fajr work. Walk back through allJuzVerses skipping any
+        // ayahs whose (surah, page) matches today's active day. This means on Day N+1
+        // of Al-Muddaththir, Dhuhr starts at Muddaththir's page 1 (yesterday), skips
+        // page 2 (today), then rolls into Al-Qiyāmah — matching the user's rule.
+        const todaySurah=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
+        const todayPage=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
+        const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
+        const pagesCollected=[]; // preserves order (most recent first) — used to cap at 5
         pagesCollectedSet=new Set();
-        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
-          const p=allJuzVerses[i]?.page_number;
-          if(p) pagesCollectedSet.add(p);
+        const includeKeys=new Set();
+        for(let i=allIdx-1;i>=0&&pagesCollected.length<5;i--){
+          const v=allJuzVerses[i];
+          const s=v?.surah_number||parseInt(v?.verse_key?.split(":")?.[0]||"0",10);
+          const p=v?.page_number;
+          if(!p||!s) continue;
+          const k=`${s}-${p}`;
+          if(todayKey&&k===todayKey) continue; // skip today's (surah, page)
+          includeKeys.add(v.verse_key);
+          if(!pagesCollectedSet.has(p)){
+            pagesCollectedSet.add(p);
+            pagesCollected.push(p);
+          }
         }
         allJuzVerses.forEach((v,i)=>{
-          // Only include already-memorized ayahs (i<allIdx); skip unmemorized ayahs
-          // sharing a page with memorized content (e.g. Al-Muddaththir 48-56 on
-          // page 577 when today is Al-Muddaththir's first day).
           if(i>=allIdx) return;
-          if(v.page_number&&pagesCollectedSet.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
+          if(!includeKeys.has(v.verse_key)) return;
+          if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
           }
