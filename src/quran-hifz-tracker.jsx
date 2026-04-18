@@ -837,13 +837,19 @@ export default function RihlatAlHifz() {
           }
         }
         const dayKeysCollected=new Set();
-        // Include all memorized ayahs on the 5 collected physical pages — the
-        // full mushaf page is preserved (tails/heads of surahs sharing a page
-        // stay visible). Unmemorized content (i>=allIdx) is still skipped so
-        // the tail-end of the actively memorizing surah never leaks in.
+        // Include memorized ayahs on the collected pages, but filter out the
+        // today's (surah, page) so today's Fajr work (e.g. Muddaththir 48-56
+        // on page 577) doesn't appear as part of Dhuhr — Qiyāmah 1-19 on the
+        // same page stays visible.
+        const todaySurahForFilter=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
+        const todayPageForFilter=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
+        const todayKeyForFilter=todaySurahForFilter&&todayPageForFilter?`${todaySurahForFilter}-${todayPageForFilter}`:null;
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
           if(!v.page_number||!pagesCollectedSet.has(v.page_number)) return;
+          const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
+          const k=`${s}-${v.page_number}`;
+          if(todayKeyForFilter&&k===todayKeyForFilter) return;
           if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
