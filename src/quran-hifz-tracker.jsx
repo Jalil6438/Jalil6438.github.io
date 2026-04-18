@@ -70,7 +70,7 @@ export default function RihlatAlHifz() {
   const [looping, setLooping]=useState(false);
   const [openAyah,setOpenAyah]=useState(null);
   const [activeSessionIndex,setActiveSessionIndex_]=useState(0);
-  const setActiveSessionIndex=(v)=>{setActiveSessionIndex_(v);};
+  const setActiveSessionIndex=(v)=>{setActiveSessionIndex_(v);scrollAllToTop();};
   const SESSION_CTA=["Finish Fajr — Well Done","Finish Dhuhr — Solid Review","Finish Asr — Great Effort","Finish Maghrib — Beautifully Done","Finish Isha — Day Complete"];
   const [sessionsCompleted,setSessionsCompleted]=useState({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
   const [duaIdx,setDuaIdx]=useState(()=>Math.floor(Math.random()*6));
