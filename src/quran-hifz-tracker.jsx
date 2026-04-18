@@ -1236,15 +1236,13 @@ export default function RihlatAlHifz() {
 
       console.log('[ASR POOL]',{freshCASize:freshCA.size,eligibleJuz,eligibleSurahs,juzStatusKeys:Object.keys(freshJS).filter(k=>freshJS[k]==="complete")});
       // Filter out the surah currently being memorized from eligibleSurahs
-      // (it's being reviewed in Dhuhr, not Asr).
+      // (it's reviewed in Dhuhr, not Asr). Keep individual memorized surahs
+      // in the pool regardless of whether a juz is complete — Asr shows
+      // whatever has been memorized minus the current active surah.
       const activeSurahForAsr = sessionVerses[sessionIdx]?.surah_number || parseInt(sessionVerses[sessionIdx]?.verse_key?.split(":")?.[0] || "0", 10);
       for (let i = eligibleSurahs.length - 1; i >= 0; i--) {
         if (eligibleSurahs[i] === activeSurahForAsr) eligibleSurahs.splice(i, 1);
       }
-      // When at least one juz is fully memorized, drop the individual-surah
-      // picks (they're reviewed via Dhuhr until the juz completes). With no
-      // complete juz yet, the individual surahs carry the Asr pool.
-      if (eligibleJuz.length > 0) eligibleSurahs.length = 0;
       if(eligibleJuz.length === 0 && eligibleSurahs.length === 0) {
         // Nothing eligible — leave batch empty, show empty state
         setAsrReviewBatch([]);
