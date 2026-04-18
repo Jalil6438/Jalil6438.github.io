@@ -54,15 +54,16 @@ export default function QuranTab(props) {
   // pick the font-size that makes the content fill the card without overflow.
   const cardRef = useRef(null);
   const contentRef = useRef(null);
-  const [autoFontSize, setAutoFontSize] = useState(20);
+  const [autoFontSize, setAutoFontSize] = useState(18);
   useLayoutEffect(() => {
     if (!cardRef.current || !contentRef.current) return;
     const card = cardRef.current;
     const content = contentRef.current;
-    // Binary search a font size between 14px and 26px that gives a content
-    // height closest to but not exceeding the card's inner height.
+    // Binary search a font size between 14px and 22px that gives a content
+    // height closest to but not exceeding the card's inner height. Cap at 22
+    // so wide desktop viewports don't blow the text up oversized.
     const innerH = card.clientHeight - 24; // card padding
-    let lo = 14, hi = 26, best = 18;
+    let lo = 14, hi = 22, best = 17;
     const tryFs = (fs) => {
       content.style.fontSize = `${fs}px`;
       return content.scrollHeight;
