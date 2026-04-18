@@ -137,7 +137,7 @@ export default function QuranTab(props) {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`10px 12px ${haramainMeta?"80px":"20px"}`,display:"flex",flexDirection:"column",justifyContent:"center"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`10px 12px ${haramainMeta?"140px":"80px"}`,display:"flex",flexDirection:"column",justifyContent:"center"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
@@ -171,10 +171,10 @@ export default function QuranTab(props) {
                         <div key={group.sn+"-"+gi}>
                           {/* Surah header — centered, outside RTL flow */}
                           {(gi>0||isFirst)&&(
-                            <div style={{textAlign:"center",padding:gi===0?"0 0 0":"16px 0 12px"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</div>
+                            <div style={{textAlign:"center",padding:gi===0?"0 0 40px":"16px 0 12px"}}>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:gi===0?90:0}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:120,direction:"rtl",lineHeight:2}}>
+                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",direction:"rtl",lineHeight:2}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}

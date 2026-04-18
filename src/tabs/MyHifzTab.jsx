@@ -857,7 +857,7 @@ export default function MyHifzTab(props) {
                           <div key={group.sn+"-"+gi}>
                             {(gi>0||isFirst)&&(
                               <div style={{textAlign:"center",padding:"10px 0 8px"}}>
-                                <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sn]||""}</div>
+                                <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</div>
                                 <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sn]||""}</div>
                                 {isFirst&&group.sn!==9&&group.sn!==1&&(
                                   <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:8,direction:"rtl",lineHeight:1.8}}>
@@ -967,7 +967,7 @@ export default function MyHifzTab(props) {
                             <div key={sub.sNum+"-"+si}>
                               {(si>0||isFirst)&&(
                                 <div style={{textAlign:"center",padding:"12px 0 10px"}}>
-                                  <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[sub.sNum]||""}</div>
+                                  <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[sub.sNum]?`سورة ${SURAH_AR[sub.sNum]}`:""}</div>
                                   <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[sub.sNum]}</div>
                                   {isFirst&&sub.sNum!==9&&sub.sNum!==1&&(
                                     <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
