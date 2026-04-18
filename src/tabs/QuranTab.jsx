@@ -172,10 +172,8 @@ export default function QuranTab(props) {
                           {/* Surah header — centered, outside RTL flow */}
                           {(gi>0||isFirst)&&(
                             <div style={{textAlign:"center",padding:gi===0?"0 0 40px":"16px 0 12px"}}>
-                              <div style={{position:"relative",display:"block",fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700,padding:"14px 28px",borderRadius:8,background:dark?"linear-gradient(180deg,rgba(217,177,95,0.08),rgba(217,177,95,0.04))":"linear-gradient(180deg,rgba(180,140,40,0.10),rgba(180,140,40,0.04))",border:`1px solid ${dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.40)"}`,boxShadow:dark?`0 0 0 1px ${dark?"rgba(15,22,38,0.9)":"rgba(240,228,200,0.9)"} inset,0 0 0 2px rgba(217,177,95,0.25) inset,0 6px 22px rgba(0,0,0,0.25)`:"0 0 0 1px rgba(240,228,200,0.9) inset,0 0 0 2px rgba(140,100,20,0.25) inset,0 3px 12px rgba(0,0,0,0.10)",marginBottom:gi===0?90:0}}>
-                                <span style={{color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.55)",fontSize:16,marginLeft:10}}>❋</span>
-                                <span>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</span>
-                                <span style={{color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.55)",fontSize:16,marginRight:10}}>❋</span>
+                              <div style={{position:"relative",width:"100%",aspectRatio:"5/3",backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?90:0}}>
+                                <span style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-8%)"}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
                                 <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",direction:"rtl",lineHeight:2}}>
