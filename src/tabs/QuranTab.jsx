@@ -245,8 +245,12 @@ export default function QuranTab(props) {
                       );
                     })}
                     </div>
-                    {/* Bottom center: page number */}
-                    <div style={{textAlign:"center",marginTop:8,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>{mushafPage}</div>
+                    {/* Bottom row: Prev · page number · Next */}
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,paddingTop:8,borderTop:`1px solid ${dark?"rgba(217,177,95,0.10)":"rgba(140,100,20,0.10)"}`}}>
+                      <div className={mushafPage<604?"sbtn":""} onClick={()=>{if(mushafPage<604)setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"6px 14px",fontSize:18,color:mushafPage<604?(dark?"rgba(217,177,95,0.70)":"#6B645A"):(dark?"rgba(217,177,95,0.20)":"rgba(0,0,0,0.20)"),borderRadius:8,cursor:mushafPage<604?"pointer":"default"}}>‹</div>
+                      <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>{mushafPage}</div>
+                      <div className={mushafPage>1?"sbtn":""} onClick={()=>{if(mushafPage>1)setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"6px 14px",fontSize:18,color:mushafPage>1?(dark?"rgba(217,177,95,0.70)":"#6B645A"):(dark?"rgba(217,177,95,0.20)":"rgba(0,0,0,0.20)"),borderRadius:8,cursor:mushafPage>1?"pointer":"default"}}>›</div>
+                    </div>
                     </div>);
                   })()}
                 </div>
