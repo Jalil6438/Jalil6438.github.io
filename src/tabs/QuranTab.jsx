@@ -1,6 +1,6 @@
 import { SURAH_EN } from "../data/constants";
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
 
 export default function QuranTab(props) {
@@ -50,6 +50,25 @@ export default function QuranTab(props) {
     playMushafRange,
     mushafLayout,
   } = props;
+
+  // Track the rub_el_hizb_number of the LAST verse on the previous page so we
+  // can detect when a new rub starts at the very first verse of the current
+  // page (otherwise our transition-within-page check misses boundary pages).
+  const [prevPageLastRub, setPrevPageLastRub] = useState({});
+  useEffect(() => {
+    if (mushafPage <= 1 || prevPageLastRub[mushafPage] !== undefined) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage - 1}?fields=rub_el_hizb_number&per_page=50`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const last = data.verses?.[data.verses.length - 1]?.rub_el_hizb_number;
+        if (!cancelled) setPrevPageLastRub(p => ({ ...p, [mushafPage]: last ?? null }));
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [mushafPage]);
 
   const curSurahNum = mushafSurahNum;
   const curSurahPage = SURAH_PAGES[curSurahNum] || 1;
@@ -214,11 +233,10 @@ export default function QuranTab(props) {
                     (mushafVerses||[]).forEach((v,i)=>{
                       const r=v.rub_el_hizb_number;
                       if(typeof r!=="number") return;
-                      const prev=i>0?mushafVerses[i-1]:null;
-                      // Only show if a NEW rub starts on this page (transition
-                      // from a different rub to this one). Skip the first verse
-                      // entirely — it continues from the previous page.
-                      if(!prev||prev.rub_el_hizb_number===r) return;
+                      // First verse: compare to prev page's last rub (if known).
+                      // Later verses: compare to the verse right before on the page.
+                      const prevRub=i===0?prevPageLastRub[mushafPage]:mushafVerses[i-1]?.rub_el_hizb_number;
+                      if(prevRub===undefined||prevRub===r) return;
                       rubs.push(r);
                     });
                     // Page 1 is the start of the mushaf — Hizb 1 starts here.
