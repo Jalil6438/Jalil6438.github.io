@@ -841,7 +841,7 @@ export default function MyHifzTab(props) {
                       {/* Subtle coaching card — remind the user to read with a qualified
                           teacher first; Study mode is for memorization. */}
                       <div style={{marginBottom:10,padding:"8px 12px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.05)",border:`1px solid ${dark?"rgba(217,177,95,0.12)":"rgba(140,100,20,0.12)"}`,fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5,textAlign:"center"}}>
-                        Recite this page with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> for memorization.
+                        Recite this page with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> for your memorization.
                       </div>
                       {!MUSHAF_INTERACTIVE&&playMushafRange&&batch.length>0&&reciter&&(
                         <div style={{textAlign:"center",marginBottom:2}}>
