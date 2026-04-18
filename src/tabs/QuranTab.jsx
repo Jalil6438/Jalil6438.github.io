@@ -206,10 +206,9 @@ export default function QuranTab(props) {
                     })}
                     </div>);
                   })()}
-                  {/* Page number pinned to the outer viewer's bottom corner,
-                      alternating right (odd) / left (even) like a real mushaf spread. */}
-                  <div style={{position:"absolute",bottom:16,[mushafPage%2===1?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:14,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>{mushafPage}</div>
-                  {/* Hizb marker at bottom-center — first new hizb/rub to start on this page. */}
+                  {/* Bottom corner marker — page number + Hizb label, paired.
+                      Alternates right (odd page) / left (even page) like a real
+                      mushaf spread. */}
                   {(()=>{
                     const rubs=[];
                     (mushafVerses||[]).forEach((v,i)=>{
@@ -220,12 +219,16 @@ export default function QuranTab(props) {
                       rubs.push(r);
                     });
                     const r=rubs[0];
-                    if(r==null) return null;
-                    const pos=((r-1)%4)+1;
-                    const hizb=Math.ceil(r/4);
-                    const label=pos===1?`Hizb ${hizb}`:pos===2?`1/4 Hizb ${hizb}`:pos===3?`1/2 Hizb ${hizb}`:`3/4 Hizb ${hizb}`;
+                    let hizbLabel=null;
+                    if(r!=null){
+                      const pos=((r-1)%4)+1;
+                      const hizb=Math.ceil(r/4);
+                      hizbLabel=pos===1?`Hizb ${hizb}`:pos===2?`1/4 Hizb ${hizb}`:pos===3?`1/2 Hizb ${hizb}`:`3/4 Hizb ${hizb}`;
+                    }
                     return (
-                      <div style={{position:"absolute",bottom:16,left:0,right:0,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em",pointerEvents:"none"}}>{label}</div>
+                      <div style={{position:"absolute",bottom:16,[mushafPage%2===1?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
+                        {hizbLabel?`${hizbLabel} | `:""}Page {mushafPage}
+                      </div>
                     );
                   })()}
                 </div>
