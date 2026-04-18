@@ -832,12 +832,15 @@ export default function RihlatAlHifz() {
             pagesCollectedSet.add(p);
           }
         }
+        // Include only ayahs whose exact (surah, page) is one of the 5 day-units
+        // collected — so each review page shows strictly that day's surah slice,
+        // not other surahs that share the physical page.
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
-          if(!v.page_number||!pagesCollectedSet.has(v.page_number)) return;
+          if(!v.page_number) return;
           const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
           const k=`${s}-${v.page_number}`;
-          if(todayKey&&k===todayKey) return;
+          if(!dayKeysCollected.has(k)) return;
           if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
