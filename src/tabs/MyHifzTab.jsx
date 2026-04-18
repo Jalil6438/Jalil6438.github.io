@@ -873,7 +873,7 @@ export default function MyHifzTab(props) {
                                 return (
                                   <span key={vKey}>
                                     <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                    <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",margin:"0 3px"}}>﴿{toArabicDigits(aNum)}﴾</span>
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*1.1),color:dark?"rgba(212,175,55,0.55)":"#A08848",margin:"0 2px"}}>{`\u06DD${toArabicDigits(aNum)}`}</span>
                                   </span>
                                 );
                               })}
@@ -986,7 +986,7 @@ export default function MyHifzTab(props) {
                                         background:nowPlaying?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):"transparent",
                                         boxShadow:nowPlaying?"0 0 10px rgba(212,175,55,0.25)":"none"}}>
                                       <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                      <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
+                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*1.1),color:dark?"rgba(212,175,55,0.55)":"#A08848",marginRight:2,marginLeft:2}}>{`\u06DD${toArabicDigits(aNum)}`}</span>
                                     </span>
                                   );
                                 })}
