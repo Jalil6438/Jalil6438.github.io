@@ -198,7 +198,7 @@ export default function QuranTab(props) {
                         if(dx<0){ setMushafPage(p=>Math.max(1,p-1)); }
                         else { setMushafPage(p=>Math.min(604,p+1)); }
                       }}
-                      style={{padding:"14px 14px 10px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"72vh",display:"flex",flexDirection:"column"}}>
+                      style={{padding:"14px 14px 10px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"84vh",display:"flex",flexDirection:"column"}}>
                     {/* Top row: Surah name (left) · Part N (right) */}
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:6}}>
                       <span>{SURAH_EN[curSurahNum]||""}</span>
