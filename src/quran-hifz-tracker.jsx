@@ -1336,13 +1336,15 @@ export default function RihlatAlHifz() {
       }
 
       // Remove Al-Fatiha from revision — it's recited 17+ times daily in salah.
-      // Also drop any verses on pages currently covered by Dhuhr — no overlap.
-      const filtered=allVerses.filter(v=>{
-        const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
-        if(s===1) return false;
-        if(v.page_number&&dhuhrPages.has(v.page_number)) return false;
-        return true;
+      // Drop verses on Dhuhr pages — but ONLY if the Asr pool still has enough
+      // content left; otherwise fall back to no Dhuhr-exclusion so Asr isn't
+      // blank for users whose memorization is all within Dhuhr's window.
+      const sansFatiha = allVerses.filter(v => {
+        const s = v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+        return s !== 1;
       });
+      const withDhuhrExcluded = sansFatiha.filter(v => !(v.page_number && dhuhrPages.has(v.page_number)));
+      const filtered = withDhuhrExcluded.length >= 10 ? withDhuhrExcluded : sansFatiha;
 
       // Step 5 — sort in mushaf order (Al-Baqarah → An-Nas) so the batch reads
       // contiguously — no "Nabā' → Nāzi'āt → 'Abasa → jump to Tīn → Qāri'ah".
