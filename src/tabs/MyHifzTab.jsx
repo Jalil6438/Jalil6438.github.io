@@ -804,22 +804,24 @@ export default function MyHifzTab(props) {
                   // Uses pageBatch (full page) so the marker reflects the page, not the
                   // memorization filter.
                   const hizbLabel = (() => {
-                    for (let i = 0; i < pageBatch.length; i++) {
+                    // Only show when a NEW rub actually starts on this page (transition
+                    // from the preceding verse's rub). First verse never counts — it's
+                    // a continuation from the prior page. Page 1 is the mushaf start
+                    // so Hizb 1 is forced below.
+                    for (let i = 1; i < pageBatch.length; i++) {
                       const v = pageBatch[i];
                       const r = v.rub_el_hizb_number;
                       if (typeof r !== "number") continue;
-                      const prev = i > 0 ? pageBatch[i - 1] : null;
+                      const prev = pageBatch[i - 1];
                       if (prev && prev.rub_el_hizb_number === r) continue;
                       const pos = ((r - 1) % 4) + 1;
                       const hizb = Math.ceil(r / 4);
-                      // Mushaf convention: rub-el-hizb positions mark the START
-                      // of each quarter. pos=1 = start of hizb, pos=2 = you've
-                      // reached the 1/4 marker, pos=3 = 1/2, pos=4 = 3/4.
                       if (pos === 1) return `Hizb ${hizb}`;
                       if (pos === 2) return `1/4 Hizb ${hizb}`;
                       if (pos === 3) return `1/2 Hizb ${hizb}`;
                       if (pos === 4) return `3/4 Hizb ${hizb}`;
                     }
+                    if (pageNum === 1 && pageBatch[0]?.rub_el_hizb_number === 1) return "Hizb 1";
                     return null;
                   })();
                   // Mushaf reading view shows the whole mushaf page (pageBatch), not the
@@ -888,12 +890,19 @@ export default function MyHifzTab(props) {
                           <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
                         </div>
                       )}
-                      {/* Footer: hizb label | page number — in flow, no absolute positioning */}
-                      {pageNum&&(
-                        <div style={{textAlign:"center",marginTop:6,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
-                          {hizbLabel?`${hizbLabel} | `:""}{pageNum}
-                        </div>
-                      )}
+                      {/* Footer: hizb label + page number, alternating corners
+                          (odd pages right, even pages left — mushaf spread convention). */}
+                      {pageNum&&(()=>{
+                        const isOdd=pageNum%2===1;
+                        const text=isOdd
+                          ?(hizbLabel?`${hizbLabel} | Page ${pageNum}`:`Page ${pageNum}`)
+                          :(hizbLabel?`Page ${pageNum} | ${hizbLabel}`:`Page ${pageNum}`);
+                        return (
+                          <div style={{textAlign:isOdd?"right":"left",marginTop:6,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
+                            {text}
+                          </div>
+                        );
+                      })()}
                     </div>
                     </div>
                   );
@@ -928,11 +937,11 @@ export default function MyHifzTab(props) {
                   })();
                   const reviewJuzNum=currentPg.ayahs[0]?.juz_number;
                   const reviewHizbLabel=(()=>{
-                    for(let i=0;i<currentPg.ayahs.length;i++){
+                    for(let i=1;i<currentPg.ayahs.length;i++){
                       const v=currentPg.ayahs[i];
                       const r=v.rub_el_hizb_number;
                       if(typeof r!=="number") continue;
-                      const prev=i>0?currentPg.ayahs[i-1]:null;
+                      const prev=currentPg.ayahs[i-1];
                       if(prev&&prev.rub_el_hizb_number===r) continue;
                       const pos=((r-1)%4)+1;
                       const hizb=Math.ceil(r/4);
@@ -941,6 +950,7 @@ export default function MyHifzTab(props) {
                       if(pos===3) return `1/2 Hizb ${hizb}`;
                       if(pos===4) return `3/4 Hizb ${hizb}`;
                     }
+                    if(currentPg.page===1&&currentPg.ayahs[0]?.rub_el_hizb_number===1) return "Hizb 1";
                     return null;
                   })();
                   const reviewSubs=[];let sg=null;
@@ -995,9 +1005,15 @@ export default function MyHifzTab(props) {
                             </div>
                           );
                         })}
-                        <div style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
-                          {reviewHizbLabel?`${reviewHizbLabel} | `:""}{currentPg.page}
-                        </div>
+                        {(()=>{
+                          const isOdd=currentPg.page%2===1;
+                          const text=isOdd
+                            ?(reviewHizbLabel?`${reviewHizbLabel} | Page ${currentPg.page}`:`Page ${currentPg.page}`)
+                            :(reviewHizbLabel?`Page ${currentPg.page} | ${reviewHizbLabel}`:`Page ${currentPg.page}`);
+                          return (
+                            <div style={{position:"absolute",bottom:0,[isOdd?"right":"left"]:12,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>{text}</div>
+                          );
+                        })()}
                       </div>
                       {totalPages>1&&(
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",gap:8}}>
