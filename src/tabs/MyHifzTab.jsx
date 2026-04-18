@@ -420,6 +420,22 @@ export default function MyHifzTab(props) {
   const showPairModal = memorizingActive && anyPairInFlight && !activeCloser && !pairModalDismissed;
   const showCloserModal = memorizingActive && !!activeCloser && !closerModalDismissed;
 
+  // Keep the newest-unlocked pair centered in the modal viewport. When a new
+  // pair joins the list (connVisiblePairs grows), scroll the newest card into
+  // center so the user doesn't have to reach for it — older pairs get pushed
+  // below, not cut off above.
+  const newestPairRef = useRef(null);
+  const prevVisiblePairsCountRef = useRef(0);
+  useEffect(() => {
+    if (!showPairModal) { prevVisiblePairsCountRef.current = connVisiblePairs.length; return; }
+    if (connVisiblePairs.length > prevVisiblePairsCountRef.current) {
+      requestAnimationFrame(() => {
+        newestPairRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+    prevVisiblePairsCountRef.current = connVisiblePairs.length;
+  }, [showPairModal, connVisiblePairs.length]);
+
   // Auto-advance: when a pair or closer modal finishes its work (user completed
   // all reps, not a manual ×), jump straight to the next unmemorized ayah so the
   // user flows ayah → pair → ayah → pair without landing back on a done ayah.
@@ -1056,7 +1072,7 @@ export default function MyHifzTab(props) {
                     the session early; it re-opens when the next pair unlocks. ── */}
                 {showPairModal&&(
                   <div onClick={()=>setPairModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.72)",backdropFilter:"blur(6px)"}}>
-                    <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto",borderRadius:20,padding:"24px 20px 20px",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.98) 0%,rgba(10,17,32,0.99) 100%),radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 60%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.25)"}`,boxShadow:"0 24px 60px rgba(0,0,0,0.55),0 0 30px rgba(212,175,55,0.08)"}}>
+                    <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto",scrollBehavior:"smooth",borderRadius:20,padding:"24px 20px 20px",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.98) 0%,rgba(10,17,32,0.99) 100%),radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 60%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.25)"}`,boxShadow:"0 24px 60px rgba(0,0,0,0.55),0 0 30px rgba(212,175,55,0.08)"}}>
                       <div className="sbtn" onClick={()=>setPairModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
                       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingRight:18}}>
                         <div style={{fontSize:20}}>🔗</div>
@@ -1066,12 +1082,12 @@ export default function MyHifzTab(props) {
                         </div>
                       </div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                        {[...connVisiblePairs].reverse().map(step=>{
+                        {[...connVisiblePairs].reverse().map((step,idx)=>{
                           const cr=connectionReps[step.key]||0;
                           const crDone=cr>=10;
                           const pct=Math.min((cr/10)*100,100);
                           return (
-                            <div key={step.key} className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[step.key]:Math.min(10,(prev[step.key]||0)+1)}))}
+                            <div key={step.key} ref={idx===0?newestPairRef:null} className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[step.key]:Math.min(10,(prev[step.key]||0)+1)}))}
                               style={{padding:"12px 14px",borderRadius:12,background:dark?(crDone?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)"):(crDone?"rgba(74,222,128,0.08)":"rgba(0,0,0,0.03)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.30)":"rgba(46,204,113,0.35)"):(dark?"rgba(217,177,95,0.18)":"rgba(0,0,0,0.10)")}`,transition:"all .15s"}}>
                               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
                                 <div style={{fontSize:12,fontWeight:600,color:crDone?(dark?"#4ADE80":"#2ECC71"):(dark?"rgba(243,231,200,0.75)":"#3D2E0A")}}>{step.label}</div>
