@@ -172,8 +172,8 @@ export default function QuranTab(props) {
                           {/* Surah header — centered, outside RTL flow */}
                           {(gi>0||isFirst)&&(
                             <div style={{textAlign:"center",padding:gi===0?"0 0 40px":"16px 0 12px"}}>
-                              <div style={{position:"relative",width:"100%",aspectRatio:"5/3",backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?90:0}}>
-                                <span style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-8%)"}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</span>
+                              <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?40:0}}>
+                                <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-4%)"}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
                                 <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",direction:"rtl",lineHeight:2}}>
