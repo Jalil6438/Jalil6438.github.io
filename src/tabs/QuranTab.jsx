@@ -256,10 +256,7 @@ export default function QuranTab(props) {
                           const sn=meta.s;
                           return (
                             <div key={lineNum} style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:6}}>
-                              <div style={{textAlign:"center"}}>
-                                <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[sn]||""}</div>
-                                <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[sn]||""}</div>
-                              </div>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[sn]||""}</div>
                             </div>
                           );
                         }
