@@ -255,7 +255,7 @@ export default function QuranTab(props) {
                         if(isSurahName){
                           const sn=meta.s;
                           return (
-                            <div key={lineNum} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <div key={lineNum} style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:6}}>
                               <div style={{textAlign:"center"}}>
                                 <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[sn]||""}</div>
                                 <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase",marginTop:2}}>{SURAH_EN[sn]||""}</div>
@@ -265,13 +265,13 @@ export default function QuranTab(props) {
                         }
                         if(isBasmala){
                           return (
-                            <div key={lineNum} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",direction:"rtl",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.9),color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)"}}>
+                            <div key={lineNum} style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",direction:"rtl",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.9),color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",marginBottom:6}}>
                               بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                             </div>
                           );
                         }
                         return (
-                          <div key={lineNum} style={{flex:1,display:"flex",alignItems:"center",direction:"rtl",justifyContent:isCentered?"center":"space-between",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:autoFontSize,color:dark?"#E8DFC0":"#2D2A26",gap:4}}>
+                          <div key={lineNum} style={{minHeight:42,display:"flex",alignItems:"center",direction:"rtl",justifyContent:isCentered?"center":"space-between",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:autoFontSize,color:dark?"#E8DFC0":"#2D2A26",gap:4,marginBottom:6}}>
                             {items.map((it,ii)=>(
                               it.type==="marker"?(
                                 <span key={ii} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848",flexShrink:0}}>{`\u2060﴿${toArabicDigits(it.num)}﴾`}</span>
