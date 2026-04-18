@@ -818,31 +818,20 @@ export default function RihlatAlHifz() {
         const todaySurah=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPage=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
-        // Walk FORWARD 5 pages from today, skipping pages that are entirely
-        // the just-finished surah (the one with surah_number = active+1 in
-        // reverse-order hifz). So on Day 1 of Muzzammil after finishing
-        // Muddaththir: pages 575, 576 (all Muddaththir) are skipped, and
-        // the review starts at page 577 (Muddaththir end + Qiyāmah start).
+        // Walk FORWARD 5 memorized pages from today's Fajr page. Includes the
+        // just-finished surah's pages (they're part of the last 5 days of
+        // memorization). In reverse-order hifz, pages AFTER today's page are
+        // the most recently memorized.
         const memorizedPages=new Set();
-        const pageSurahs={}; // pageNum -> Set<surahNum> of memorized surahs on that page
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
-          if(!v.page_number) return;
-          memorizedPages.add(v.page_number);
-          const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
-          if(!pageSurahs[v.page_number]) pageSurahs[v.page_number]=new Set();
-          pageSurahs[v.page_number].add(s);
+          if(v.page_number) memorizedPages.add(v.page_number);
         });
-        const activeSurahForDhuhr=sessionVerses[sessionIdx]?.surah_number||parseInt(sessionVerses[sessionIdx]?.verse_key?.split(":")?.[0]||"0",10);
-        const justFinishedSurah=activeSurahForDhuhr?activeSurahForDhuhr+1:null;
         pagesCollectedSet=new Set();
         const todayPageForWalk=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
         if(todayPageForWalk>0){
           for(let p=todayPageForWalk+1;p<=604&&pagesCollectedSet.size<5;p++){
-            if(!memorizedPages.has(p)) continue;
-            // Skip pages whose memorized content is ENTIRELY the just-finished surah.
-            if(justFinishedSurah&&pageSurahs[p]&&pageSurahs[p].size===1&&pageSurahs[p].has(justFinishedSurah)) continue;
-            pagesCollectedSet.add(p);
+            if(memorizedPages.has(p)) pagesCollectedSet.add(p);
           }
         }
         const dayKeysCollected=new Set();
