@@ -838,6 +838,11 @@ export default function MyHifzTab(props) {
                   });
                   return (
                     <div style={{marginBottom:16}}>
+                      {/* Subtle coaching card — remind the user to read with a qualified
+                          teacher first; Study mode is for memorization. */}
+                      <div style={{marginBottom:10,padding:"8px 12px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.05)",border:`1px solid ${dark?"rgba(217,177,95,0.12)":"rgba(140,100,20,0.12)"}`,fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5,textAlign:"center"}}>
+                        Recite this page with a qualified teacher, then switch to <strong style={{color:dark?"#E8C76A":"#6B4F00"}}>Study</strong> for memorization.
+                      </div>
                       {!MUSHAF_INTERACTIVE&&playMushafRange&&batch.length>0&&reciter&&(
                         <div style={{textAlign:"center",marginBottom:2}}>
                           <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(batch); }}
@@ -866,7 +871,7 @@ export default function MyHifzTab(props) {
                                   <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-4%)"}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</span>
                                 </div>
                                 {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:8,direction:"rtl",lineHeight:1.8}}>
+                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:8,marginBottom:20,direction:"rtl",lineHeight:1.8}}>
                                     بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                   </div>
                                 )}
@@ -901,7 +906,7 @@ export default function MyHifzTab(props) {
                           ?(hizbLabel?`${hizbLabel} | Page ${pageNum}`:`Page ${pageNum}`)
                           :(hizbLabel?`Page ${pageNum} | ${hizbLabel}`:`Page ${pageNum}`);
                         return (
-                          <div style={{textAlign:isOdd?"right":"left",marginTop:6,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
+                          <div style={{textAlign:isOdd?"right":"left",marginTop:32,fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
                             {text}
                           </div>
                         );
@@ -964,7 +969,7 @@ export default function MyHifzTab(props) {
                   });
                   return (
                     <div style={{marginBottom:16}}>
-                      <div style={{position:"relative",padding:"32px 12px 40px"}}>
+                      <div style={{position:"relative",padding:"32px 12px 70px"}}>
                         {dominantSurah>0&&(
                           <div style={{position:"absolute",top:0,left:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
                             {SURAH_EN[dominantSurah]||""}
@@ -985,7 +990,7 @@ export default function MyHifzTab(props) {
                                     <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-4%)"}}>{SURAH_AR[sub.sNum]?`سورة ${SURAH_AR[sub.sNum]}`:""}</span>
                                   </div>
                                   {isFirst&&sub.sNum!==9&&sub.sNum!==1&&(
-                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,marginBottom:20,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                                   )}
                                 </div>
                               )}
