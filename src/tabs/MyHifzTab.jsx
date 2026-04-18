@@ -799,45 +799,66 @@ export default function MyHifzTab(props) {
                           <span>{juzNum?`Part ${juzNum}`:""}</span>
                         </div>
                       )}
-                      {surahGroups.map((group,gi)=>{
-                        const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
-                        return (
-                          <div key={group.sn+"-"+gi}>
-                            {/* Surah header — centered, outside RTL flow */}
-                            {(gi>0||isFirst)&&(
-                              <div style={{textAlign:"center",padding:"16px 0 12px"}}>
-                                <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sn]||""}</div>
-                                <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sn]||""}</div>
-                                {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>
-                                    بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
-                                  </div>
-                                )}
-                                <div style={{height:1,margin:"10px auto 0",width:"80%",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
+                      {(()=>{
+                        // Line-by-line mushaf render: every word is placed on its exact
+                        // mushaf line per the API's line_number metadata, and each line
+                        // flex-justifies its words so every row fills the width evenly —
+                        // matching the 15-line mushaf layout instead of the browser's
+                        // arbitrary wrap points.
+                        const lineMap={};
+                        pageBatch.forEach(v=>{
+                          const tokens=(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").split(/\s+/).filter(Boolean);
+                          const words=(v.words||[]).filter(w=>w.char_type_name==="word");
+                          const ends=(v.words||[]).filter(w=>w.char_type_name==="end");
+                          const aNum=parseInt(v.verse_key.split(":")[1],10);
+                          words.forEach((w,i)=>{
+                            const ln=w.line_number;
+                            if(typeof ln!=="number") return;
+                            const token=tokens[i];
+                            if(!token) return;
+                            if(!lineMap[ln]) lineMap[ln]=[];
+                            lineMap[ln].push({type:"word",text:token,verse_key:v.verse_key});
+                          });
+                          const endChar=ends[0];
+                          const markerLine=endChar?.line_number??words[words.length-1]?.line_number;
+                          if(markerLine!=null){
+                            if(!lineMap[markerLine]) lineMap[markerLine]=[];
+                            lineMap[markerLine].push({type:"marker",num:aNum,verse_key:v.verse_key});
+                          }
+                        });
+                        const mushafLines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b).map(ln=>({lineNum:ln,items:lineMap[ln]}));
+                        if(mushafLines.length===0) return null;
+                        return mushafLines.map(({lineNum,items},li)=>{
+                          const curSurah=items[0]?.verse_key?parseInt(items[0].verse_key.split(":")[0],10):null;
+                          const prev=li>0?mushafLines[li-1]:null;
+                          const prevLast=prev?.items[prev.items.length-1];
+                          const prevSurah=prevLast?.verse_key?parseInt(prevLast.verse_key.split(":")[0],10):null;
+                          const surahChanged=prevSurah!==null&&curSurah!==null&&curSurah!==prevSurah;
+                          const firstAyahOnPage=li===0&&items.find(it=>it.type==="word")&&items[0].verse_key?.endsWith(":1");
+                          const showHeader=surahChanged||firstAyahOnPage;
+                          return (
+                            <Fragment key={lineNum}>
+                              {showHeader&&(
+                                <div style={{textAlign:"center",padding:"6px 0 4px"}}>
+                                  <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B645A",fontWeight:700}}>{SURAH_AR[curSurah]||""}</div>
+                                  {curSurah!==1&&curSurah!==9&&(
+                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:2,direction:"rtl"}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                  )}
+                                </div>
+                              )}
+                              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",direction:"rtl",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.5,padding:"1px 0"}}>
+                                {items.map((it,ii)=>(
+                                  it.type==="marker"?(
+                                    <span key={ii} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848",flexShrink:0}}>﴿{toArabicDigits(it.num)}﴾</span>
+                                  ):(
+                                    <span key={ii} style={{flexShrink:0}}>{it.text}</span>
+                                  )
+                                ))}
                               </div>
-                            )}
-                            {/* Flowing ayah text */}
-                            <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                              {group.verses.map((v)=>{
-                                const vKey=v.verse_key;
-                                const aNum=parseInt(vKey.split(":")[1],10);
-                                const reps=repCounts[vKey]||0;
-                                const repsDone=reps>=20;
-                                return (
-                                  <span key={vKey} className={MUSHAF_INTERACTIVE?"sbtn":undefined} onClick={MUSHAF_INTERACTIVE?(()=>{setOpenAyah(vKey);fetchTranslations([v]);}):undefined}
-                                    style={{cursor:MUSHAF_INTERACTIVE?"pointer":"default",transition:"all .15s",borderRadius:6,padding:"2px 4px",
-                                      background:playingKey===vKey?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):(MUSHAF_INTERACTIVE?(repsDone?(dark?"rgba(74,222,128,0.08)":"rgba(46,204,113,0.08)"):(reps>0?(dark?"rgba(230,184,74,0.06)":"rgba(180,140,40,0.06)"):"transparent")):"transparent"),
-                                      boxShadow:playingKey===vKey?"0 0 10px rgba(212,175,55,0.25)":"none",
-                                    }}>
-                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:playingKey===vKey?(dark?"#F6E27A":"#6B4F00"):(MUSHAF_INTERACTIVE&&repsDone?(dark?"#4ADE80":"#2ECC71"):(dark?"#E8DFC0":"#2D2A26"))}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                    <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:MUSHAF_INTERACTIVE&&repsDone?(dark?"rgba(74,222,128,0.50)":"rgba(46,204,113,0.50)"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
+                            </Fragment>
+                          );
+                        });
+                      })()}
                       {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
                           <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
