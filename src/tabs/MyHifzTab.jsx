@@ -190,17 +190,14 @@ export default function MyHifzTab(props) {
       const [s, a] = (v.verse_key || "").split(":");
       if (a === "1") startsHere.add(Number(s) || v.surah_number);
     });
+    // Active-surah only: drop tails of earlier/later surahs and fresh starts
+    // of the next surah. Only the ayahs belonging to the surah currently being
+    // memorized appear in both Study and Mushaf views.
     const kept = pageVs.filter(v => {
       const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
       const isActive = activeSurahNum && s === activeSurahNum;
-      const isFresh = startsHere.has(s);
-      // If queue is empty (first-load before sessionVerses resolves), don't
-      // drop anything — show everything that would otherwise qualify.
+      const isFresh = false; // strict mode: only active surah
       const isQueued = queuedSurahs.size === 0 || queuedSurahs.has(s);
-      // Drop already-memorized ayahs. Key case: today's active surah is Muddaththir
-      // and page 577 also has Qiyāmah 1-19 which was memorized before Muddaththir
-      // in reverse order. Those ayahs are in completedAyahs even though Qiyāmah's
-      // surah number still appears in sessionVerses.
       const alreadyDone = completedAyahs && completedAyahs.has && completedAyahs.has(v.verse_key);
       if (alreadyDone && !isActive) return false;
       return (isActive || isFresh) && isQueued;
