@@ -1,6 +1,6 @@
 import { SURAH_EN } from "../data/constants";
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
-import { useState } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
 
 export default function QuranTab(props) {
@@ -49,6 +49,31 @@ export default function QuranTab(props) {
     stopMushafAudio,
     playMushafRange,
   } = props;
+
+  // Auto-fit: measure the rendered mushaf-page card vs its inner content and
+  // pick the font-size that makes the content fill the card without overflow.
+  const cardRef = useRef(null);
+  const contentRef = useRef(null);
+  const [autoFontSize, setAutoFontSize] = useState(22);
+  useLayoutEffect(() => {
+    if (!cardRef.current || !contentRef.current) return;
+    const card = cardRef.current;
+    const content = contentRef.current;
+    // Binary search a font size between 14px and 30px that gives a content
+    // height closest to but not exceeding the card's inner height.
+    const innerH = card.clientHeight - 24; // card padding
+    let lo = 14, hi = 30, best = 18;
+    const tryFs = (fs) => {
+      content.style.fontSize = `${fs}px`;
+      return content.scrollHeight;
+    };
+    for (let i = 0; i < 7; i++) {
+      const mid = (lo + hi) / 2;
+      const h = tryFs(mid);
+      if (h <= innerH) { best = mid; lo = mid; } else { hi = mid; }
+    }
+    setAutoFontSize(Math.round(best));
+  }, [mushafPage, mushafVerses]);
 
   const curSurahNum = mushafSurahNum;
   const curSurahPage = SURAH_PAGES[curSurahNum] || 1;
@@ -164,7 +189,8 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
-                    return (<div style={{padding:"0 12px"}}>
+                    return (<div ref={cardRef} style={{padding:"18px 14px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"72vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                    <div ref={contentRef} style={{fontSize:autoFontSize}}>
                     {surahGroups.map((group,gi)=>{
                       const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                       return (
@@ -195,7 +221,7 @@ export default function QuranTab(props) {
                                     boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",
                                     transition:"background .15s",
                                   }}>
-                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"inherit",color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                                   <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
                                 </span>
                               );
@@ -204,6 +230,7 @@ export default function QuranTab(props) {
                         </div>
                       );
                     })}
+                    </div>
                     </div>);
                   })()}
                 </div>
