@@ -164,7 +164,7 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
-                    return (<div style={{padding:"0 12px"}}>
+                    return (<div style={{padding:"24px 12px 0"}}>
                     {surahGroups.map((group,gi)=>{
                       const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                       return (
