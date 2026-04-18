@@ -1734,6 +1734,7 @@ export default function RihlatAlHifz() {
           setYesterdayBatch={setYesterdayBatch} setRecentBatches={setRecentBatches} setTodayFajrBatch={setTodayFajrBatch} todayFajrBatch={todayFajrBatch}
           simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse}
           userPlanMode={userPlanMode}
+          qpcPages={qpcPages}
         />
       )}
 

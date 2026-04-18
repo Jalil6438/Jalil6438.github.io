@@ -54,6 +54,8 @@ export default function MyHifzTab(props) {
     userPlanMode = "shaykh",
     // listen-along (full-page recitation helper for Mushaf mode)
     playMushafRange, stopMushafAudio, mushafAudioPlaying,
+    // KFGQPC per-page PUA-encoded line data (loaded from /mushaf-pages.json)
+    qpcPages,
   } = props;
 
   // Wisdom rotation — two triggers:
@@ -800,64 +802,30 @@ export default function MyHifzTab(props) {
                         </div>
                       )}
                       {(()=>{
-                        // Line-by-line mushaf render: every word is placed on its exact
-                        // mushaf line per the API's line_number metadata, and each line
-                        // flex-justifies its words so every row fills the width evenly —
-                        // matching the 15-line mushaf layout instead of the browser's
-                        // arbitrary wrap points.
-                        const lineMap={};
-                        pageBatch.forEach(v=>{
-                          const tokens=(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").split(/\s+/).filter(Boolean);
-                          const words=(v.words||[]).filter(w=>w.char_type_name==="word");
-                          const ends=(v.words||[]).filter(w=>w.char_type_name==="end");
-                          const aNum=parseInt(v.verse_key.split(":")[1],10);
-                          words.forEach((w,i)=>{
-                            const ln=w.line_number;
-                            if(typeof ln!=="number") return;
-                            const token=tokens[i];
-                            if(!token) return;
-                            if(!lineMap[ln]) lineMap[ln]=[];
-                            lineMap[ln].push({type:"word",text:token,verse_key:v.verse_key});
-                          });
-                          const endChar=ends[0];
-                          const markerLine=endChar?.line_number??words[words.length-1]?.line_number;
-                          if(markerLine!=null){
-                            if(!lineMap[markerLine]) lineMap[markerLine]=[];
-                            lineMap[markerLine].push({type:"marker",num:aNum,verse_key:v.verse_key});
-                          }
-                        });
-                        const mushafLines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b).map(ln=>({lineNum:ln,items:lineMap[ln]}));
-                        if(mushafLines.length===0) return null;
-                        return mushafLines.map(({lineNum,items},li)=>{
-                          const curSurah=items[0]?.verse_key?parseInt(items[0].verse_key.split(":")[0],10):null;
-                          const prev=li>0?mushafLines[li-1]:null;
-                          const prevLast=prev?.items[prev.items.length-1];
-                          const prevSurah=prevLast?.verse_key?parseInt(prevLast.verse_key.split(":")[0],10):null;
-                          const surahChanged=prevSurah!==null&&curSurah!==null&&curSurah!==prevSurah;
-                          const firstAyahOnPage=li===0&&items.find(it=>it.type==="word")&&items[0].verse_key?.endsWith(":1");
-                          const showHeader=surahChanged||firstAyahOnPage;
+                        // Authentic KFGQPC render: use the per-page PUA line data from
+                        // /mushaf-pages.json with the UthmanicHafs font. Each of the 15
+                        // mushaf lines is a space-separated string of private-use glyphs
+                        // that only render correctly with the UthmanicHafs font, which
+                        // is loaded via @font-face at app boot.
+                        const qpcLines=qpcPages&&pageNum?qpcPages[String(pageNum)]:null;
+                        if(!qpcLines||!qpcLines.length){
+                          // Fallback: render via API's text_uthmani when qpc data hasn't loaded yet
                           return (
-                            <Fragment key={lineNum}>
-                              {showHeader&&(
-                                <div style={{textAlign:"center",padding:"6px 0 4px"}}>
-                                  <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B645A",fontWeight:700}}>{SURAH_AR[curSurah]||""}</div>
-                                  {curSurah!==1&&curSurah!==9&&(
-                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:2,direction:"rtl"}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                                  )}
-                                </div>
-                              )}
-                              <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"justify",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.8,padding:"6px 0",wordBreak:"keep-all",overflowWrap:"normal"}}>
-                                {items.map((it,ii)=>(
-                                  it.type==="marker"?(
-                                    <span key={ii} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848"}}>﴿{toArabicDigits(it.num)}﴾</span>
-                                  ):(
-                                    <span key={ii}>{it.text}{ii<items.length-1?" ":""}</span>
-                                  )
-                                ))}
-                              </div>
-                            </Fragment>
+                            <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>
+                              {pageBatch.map(v=>(
+                                <span key={v.verse_key}>
+                                  <span>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848",margin:"0 2px"}}>﴿{toArabicDigits(parseInt(v.verse_key.split(":")[1],10))}﴾</span>
+                                </span>
+                              ))}
+                            </div>
                           );
-                        });
+                        }
+                        return qpcLines.map((lineText,li)=>(
+                          <div key={li} style={{direction:"rtl",textAlign:"justify",textAlignLast:"justify",fontFamily:"'UthmanicHafs','KFGQPC Uthmanic Script HAFS','KFGQPC',serif",fontSize:Math.round(fontSize*1.15),color:dark?"#E8DFC0":"#2D2A26",lineHeight:2,padding:"4px 0",wordBreak:"keep-all",overflowWrap:"normal",whiteSpace:"normal"}}>
+                            {lineText}
+                          </div>
+                        ));
                       })()}
                       {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
