@@ -824,14 +824,15 @@ export default function MyHifzTab(props) {
                     if (pageNum === 1 && pageBatch[0]?.rub_el_hizb_number === 1) return "Hizb 1";
                     return null;
                   })();
-                  // Mushaf reading view now mirrors Study: only the ayahs being
-                  // memorized are shown (active-surah-only, tails of earlier/later
-                  // surahs on the same page are filtered out). Page chrome (page
-                  // number, hizb label, surah-dominant label) still derives from
-                  // the full pageBatch so the page identity stays accurate.
+                  // Mushaf reading view keeps the full page intact (pageBatch) so the
+                  // user still sees the surrounding surah tails/heads as they'd
+                  // appear in a printed mushaf. Ayahs being memorized today (in
+                  // `batch`) render at full intensity; the rest are dimmed so the
+                  // focus area stands out without losing the page's context.
+                  const memKeys = new Set((batch||[]).map(v=>v.verse_key));
                   const surahGroups=[];
                   let curGroup=null;
-                  batch.forEach(v=>{
+                  pageBatch.forEach(v=>{
                     const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
                     if(!curGroup||curGroup.sn!==sn){ curGroup={sn,verses:[]}; surahGroups.push(curGroup); }
                     curGroup.verses.push(v);
@@ -881,8 +882,10 @@ export default function MyHifzTab(props) {
                               {group.verses.map((v)=>{
                                 const vKey=v.verse_key;
                                 const aNum=parseInt(vKey.split(":")[1],10);
+                                const isMemorizing=memKeys.has(vKey);
+                                const opacity=isMemorizing?1:0.3;
                                 return (
-                                  <span key={vKey}>
+                                  <span key={vKey} style={{opacity,transition:"opacity .2s"}}>
                                     <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
                                     <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",margin:"0 2px 0 6px"}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
                                   </span>
