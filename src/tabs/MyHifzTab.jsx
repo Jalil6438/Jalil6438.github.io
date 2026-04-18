@@ -870,7 +870,7 @@ export default function MyHifzTab(props) {
                             {(gi>0||isFirst)&&(
                               <div style={{textAlign:"center",padding:"10px 0 8px"}}>
                                 <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                  <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-4%)"}}>{SURAH_AR[group.sn]?`سورة ${SURAH_AR[group.sn]}`:""}</span>
+                                  <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-4%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
                                 </div>
                                 {isFirst&&group.sn!==9&&group.sn!==1&&(
                                   <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:8,marginBottom:20,direction:"rtl",lineHeight:1.8}}>
@@ -992,7 +992,7 @@ export default function MyHifzTab(props) {
                               {(si>0||isFirst)&&(
                                 <div style={{textAlign:"center",padding:"12px 0 10px"}}>
                                   <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                    <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-4%)"}}>{SURAH_AR[sub.sNum]?`سورة ${SURAH_AR[sub.sNum]}`:""}</span>
+                                    <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(-4%)"}}>{SURAH_AR[sub.sNum]?`سُورَةُ ${SURAH_AR[sub.sNum]}`:""}</span>
                                   </div>
                                   {isFirst&&sub.sNum!==9&&sub.sNum!==1&&(
                                     <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,marginBottom:20,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
@@ -1068,7 +1068,7 @@ export default function MyHifzTab(props) {
                           <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 4px 2px"}}>
                             <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(217,177,95,0) 0%,${dark?"rgba(232,200,120,0.30)":"rgba(140,100,20,0.25)"} 50%,rgba(217,177,95,0) 100%)`}}/>
                             <div style={{textAlign:"center"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,lineHeight:1.1}}>{SURAH_AR[sNum]?`سورة ${SURAH_AR[sNum]}`:""}</div>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,lineHeight:1.1}}>{SURAH_AR[sNum]?`سُورَةُ ${SURAH_AR[sNum]}`:""}</div>
                             </div>
                             <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(217,177,95,0) 0%,${dark?"rgba(232,200,120,0.30)":"rgba(140,100,20,0.25)"} 50%,rgba(217,177,95,0) 100%)`}}/>
                           </div>
