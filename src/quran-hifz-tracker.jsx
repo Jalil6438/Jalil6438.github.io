@@ -818,29 +818,21 @@ export default function RihlatAlHifz() {
         const todaySurah=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPage=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
+        // Collect the last 5 memorization DAY-UNITS (surah, page). Boundary
+        // pages shared by two memorization days count as two day-units but one
+        // physical page — so unique pages may be 4 (or fewer) even though 5
+        // days of review are covered. The pager reflects the real page count.
         const dayKeysCollected=new Set();
         pagesCollectedSet=new Set();
-        // Collect ~5 unique physical pages. When the 5th lands mid-surah, keep
-        // going until we've included all pages of that surah — so the review
-        // doesn't skip adjacent pages (e.g., 583 without 582 for An-Nabaʾ).
-        let surahAtFive=null;
-        for(let i=allIdx-1;i>=0;i--){
+        for(let i=allIdx-1;i>=0&&dayKeysCollected.size<5;i--){
           const v=allJuzVerses[i];
           const s=v?.surah_number||parseInt(v?.verse_key?.split(":")?.[0]||"0",10);
           const p=v?.page_number;
           if(!p||!s) continue;
           const k=`${s}-${p}`;
           if(todayKey&&k===todayKey) continue;
-          if(pagesCollectedSet.size<5){
-            dayKeysCollected.add(k);
-            pagesCollectedSet.add(p);
-            if(pagesCollectedSet.size===5) surahAtFive=s;
-          } else if(s===surahAtFive){
-            dayKeysCollected.add(k);
-            pagesCollectedSet.add(p);
-          } else {
-            break;
-          }
+          dayKeysCollected.add(k);
+          pagesCollectedSet.add(p);
         }
         // Include all memorized ayahs on the 5 collected physical pages — the
         // full mushaf page is preserved (tails/heads of surahs sharing a page
