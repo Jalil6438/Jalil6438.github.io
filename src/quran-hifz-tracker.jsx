@@ -1604,7 +1604,7 @@ export default function RihlatAlHifz() {
           <div style={{position:"fixed",inset:0,background:dark?"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 50%,#E8DCBE 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)":"radial-gradient(circle at 50% 0%,rgba(139,106,16,0.06),transparent 60%)"}}/>
             {/* Greeting pinned to the top */}
-            <div style={{position:"absolute",top:80,left:0,right:0,textAlign:"center"}}>
+            <div style={{position:"absolute",top:"18vh",left:0,right:0,textAlign:"center"}}>
               <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(20px,4.6vw,28px)",color:dark?"#F6E27A":"#2D2A26",direction:"rtl",lineHeight:1.6,textShadow:dark?"0 0 18px rgba(212,175,55,0.18)":"none",padding:"0 20px"}}>ٱلسَّلَامُ عَلَيْكُمْ وَرَحْمَةُ ٱللَّهِ وَبَرَكَاتُهُ</div>
               {userName&&(
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:dark?"rgba(243,231,191,0.85)":"#2A1A00",marginTop:6,fontWeight:600}}>{userName}</div>
