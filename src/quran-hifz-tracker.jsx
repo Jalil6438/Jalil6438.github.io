@@ -808,15 +808,22 @@ export default function RihlatAlHifz() {
       if(allIdx<0) allIdx=allJuzVerses.length;
       if(isShaykh){
         // Shaykh mode: review = the 5 mushaf pages the user most recently memorized.
-        // Because hifz-descending goes Nās (604) → Al-Baqarah (2), "previously
-        // memorized" pages sit AFTER today's Fajr page in mushaf order (higher
-        // page numbers). Collect pages (today+1) .. (today+5), capped at 604.
-        const todayPage=sessionVerses[sessionIdx]?.page_number||fajrBatch[0]?.page_number||0;
+        // Walk backward through allJuzVerses (hifz-descending order) from the current
+        // position and collect the 5 most recent distinct page numbers. This skips
+        // over not-yet-memorized ayahs that live on the same physical page (e.g. after
+        // finishing Al-Qiyāmah, Al-Muddaththir 48-56 is still unmemorized on page 577,
+        // but Al-Qiyāmah's ayahs on page 577 are in review). Also naturally skips
+        // today's Fajr page before it's completed.
         pagesCollectedSet=new Set();
-        if(todayPage>0){
-          for(let p=todayPage+1;p<=604&&pagesCollectedSet.size<5;p++) pagesCollectedSet.add(p);
+        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
+          const p=allJuzVerses[i]?.page_number;
+          if(p) pagesCollectedSet.add(p);
         }
-        allJuzVerses.forEach(v=>{
+        allJuzVerses.forEach((v,i)=>{
+          // Only include already-memorized ayahs (i<allIdx); skip unmemorized ayahs
+          // sharing a page with memorized content (e.g. Al-Muddaththir 48-56 on
+          // page 577 when today is Al-Muddaththir's first day).
+          if(i>=allIdx) return;
           if(v.page_number&&pagesCollectedSet.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
