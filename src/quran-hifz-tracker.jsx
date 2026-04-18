@@ -807,13 +807,14 @@ export default function RihlatAlHifz() {
       let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
       if(allIdx<0) allIdx=allJuzVerses.length;
       if(isShaykh){
-        // Shaykh mode: review = the 5 mushaf pages immediately before today's
-        // Fajr page. Collect pages (today-1) .. (today-5) and include every
-        // ayah on those pages. Contiguous by page number.
+        // Shaykh mode: review = the 5 mushaf pages the user most recently memorized.
+        // Because hifz-descending goes Nās (604) → Al-Baqarah (2), "previously
+        // memorized" pages sit AFTER today's Fajr page in mushaf order (higher
+        // page numbers). Collect pages (today+1) .. (today+5), capped at 604.
         const todayPage=sessionVerses[sessionIdx]?.page_number||fajrBatch[0]?.page_number||0;
         pagesCollectedSet=new Set();
         if(todayPage>0){
-          for(let p=todayPage-1;p>=1&&pagesCollectedSet.size<5;p--) pagesCollectedSet.add(p);
+          for(let p=todayPage+1;p<=604&&pagesCollectedSet.size<5;p++) pagesCollectedSet.add(p);
         }
         allJuzVerses.forEach(v=>{
           if(v.page_number&&pagesCollectedSet.has(v.page_number)&&v.verse_key&&!seen.has(v.verse_key)){
