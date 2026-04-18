@@ -269,13 +269,16 @@ export default function QuranTab(props) {
                           );
                         }
                         return (
-                          <div key={lineNum} style={{minHeight:42,display:"flex",alignItems:"center",direction:"rtl",justifyContent:isCentered?"center":"flex-start",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:autoFontSize,color:dark?"#E8DFC0":"#2D2A26",gap:8,marginBottom:6}}>
+                          <div key={lineNum} style={{minHeight:42,display:"block",direction:"rtl",textAlign:isCentered?"center":"right",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:autoFontSize,color:dark?"#E8DFC0":"#2D2A26",marginBottom:6,lineHeight:1.8,overflow:"hidden",whiteSpace:"normal",wordBreak:"keep-all"}}>
                             {items.map((it,ii)=>(
-                              it.type==="marker"?(
-                                <span key={ii} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848",flexShrink:0}}>{`\u2060﴿${toArabicDigits(it.num)}﴾`}</span>
-                              ):(
-                                <span key={ii} className="sbtn" onClick={()=>{setSelectedAyah(selectedAyah===it.verse_key?null:it.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",flexShrink:0,color:selectedAyah===it.verse_key?(dark?"#F5E6B3":"#3A2200"):undefined,borderRadius:4,padding:"0 2px",background:selectedAyah===it.verse_key?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent"}}>{it.text}</span>
-                              )
+                              <span key={ii}>
+                                {ii>0?" ":""}
+                                {it.type==="marker"?(
+                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:Math.round(autoFontSize*0.7),color:dark?"rgba(212,175,55,0.45)":"#A08848"}}>{`\u2060﴿${toArabicDigits(it.num)}﴾`}</span>
+                                ):(
+                                  <span className="sbtn" onClick={()=>{setSelectedAyah(selectedAyah===it.verse_key?null:it.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",color:selectedAyah===it.verse_key?(dark?"#F5E6B3":"#3A2200"):undefined,borderRadius:4,padding:"0 2px",background:selectedAyah===it.verse_key?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent"}}>{it.text}</span>
+                                )}
+                              </span>
                             ))}
                           </div>
                         );
