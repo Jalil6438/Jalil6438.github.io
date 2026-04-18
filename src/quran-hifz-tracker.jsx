@@ -820,18 +820,27 @@ export default function RihlatAlHifz() {
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
         const dayKeysCollected=new Set();
         pagesCollectedSet=new Set();
-        // Collect 5 unique PHYSICAL pages (not day-units). A boundary page with
-        // two memorized surah slices still counts as 1 physical page — so the
-        // 5th page reaches further back when splits happen.
-        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
+        // Collect ~5 unique physical pages. When the 5th lands mid-surah, keep
+        // going until we've included all pages of that surah — so the review
+        // doesn't skip adjacent pages (e.g., 583 without 582 for An-Nabaʾ).
+        let surahAtFive=null;
+        for(let i=allIdx-1;i>=0;i--){
           const v=allJuzVerses[i];
           const s=v?.surah_number||parseInt(v?.verse_key?.split(":")?.[0]||"0",10);
           const p=v?.page_number;
           if(!p||!s) continue;
           const k=`${s}-${p}`;
           if(todayKey&&k===todayKey) continue;
-          dayKeysCollected.add(k);
-          pagesCollectedSet.add(p);
+          if(pagesCollectedSet.size<5){
+            dayKeysCollected.add(k);
+            pagesCollectedSet.add(p);
+            if(pagesCollectedSet.size===5) surahAtFive=s;
+          } else if(s===surahAtFive){
+            dayKeysCollected.add(k);
+            pagesCollectedSet.add(p);
+          } else {
+            break;
+          }
         }
         // Include all memorized ayahs on the 5 collected physical pages — the
         // full mushaf page is preserved (tails/heads of surahs sharing a page
