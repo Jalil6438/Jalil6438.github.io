@@ -819,36 +819,36 @@ export default function MyHifzTab(props) {
                           <span>{juzNum?`Part ${juzNum}`:""}</span>
                         </div>
                       )}
-                      {(()=>{
-                        // Authentic QCF V2 render: each mushaf line is a string of
-                        // page-specific PUA glyphs from /mushaf-pages.json, rendered with
-                        // the per-page font 'p{N}' loaded from jsdelivr. Ayah ornaments
-                        // are part of the glyph data — no custom markers needed.
-                        const qpcLines=qpcPages&&pageNum?qpcPages[String(pageNum)]:null;
-                        if(!qpcLines||!qpcLines.length){
-                          return (
-                            <div style={{textAlign:"center",padding:"20px 0",fontSize:12,color:dark?"rgba(243,231,200,0.40)":"#6B645A"}}>Loading mushaf page…</div>
-                          );
-                        }
-                        const layoutLines=mushafLayout?mushafLayout[String(pageNum)]:null;
-                        return qpcLines.map((lineText,li)=>{
-                          const meta=layoutLines?.[li];
-                          const isCentered=meta?.c===1;
-                          // QCF V2 fonts are designed so each line's glyphs naturally
-                          // fill the mushaf page width at the correct font-size. Don't
-                          // force text-align-last:justify — it over-stretches lines that
-                          // by design have different inter-word spacing. Plain
-                          // text-align:right (with justify only as a hint for multi-line
-                          // wrap, which shouldn't happen) preserves the mushaf's natural
-                          // spacing.
-                          const align=isCentered?"center":"justify";
-                          return (
-                            <div key={li} style={{direction:"rtl",textAlign:align,fontFamily:`'p${pageNum}','UthmanicHafs',serif`,fontSize:"min(5.2vw,22px)",color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.9,padding:"2px 0",whiteSpace:"nowrap",overflow:"hidden"}}>
-                              {lineText}
+                      {surahGroups.map((group,gi)=>{
+                        const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
+                        return (
+                          <div key={group.sn+"-"+gi}>
+                            {(gi>0||isFirst)&&(
+                              <div style={{textAlign:"center",padding:"10px 0 8px"}}>
+                                <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sn]||""}</div>
+                                <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sn]||""}</div>
+                                {isFirst&&group.sn!==9&&group.sn!==1&&(
+                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:8,direction:"rtl",lineHeight:1.8}}>
+                                    بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"justify",lineHeight:2.1,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                              {group.verses.map((v)=>{
+                                const vKey=v.verse_key;
+                                const aNum=parseInt(vKey.split(":")[1],10);
+                                return (
+                                  <span key={vKey}>
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                    <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",margin:"0 3px"}}>﴿{toArabicDigits(aNum)}﴾</span>
+                                  </span>
+                                );
+                              })}
                             </div>
-                          );
-                        });
-                      })()}
+                          </div>
+                        );
+                      })}
                       {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
                           <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
