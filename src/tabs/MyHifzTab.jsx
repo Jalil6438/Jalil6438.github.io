@@ -824,15 +824,14 @@ export default function MyHifzTab(props) {
                     if (pageNum === 1 && pageBatch[0]?.rub_el_hizb_number === 1) return "Hizb 1";
                     return null;
                   })();
-                  // Mushaf reading view keeps the full page intact (pageBatch) so the
-                  // user still sees the surrounding surah tails/heads as they'd
-                  // appear in a printed mushaf. Ayahs being memorized today (in
-                  // `batch`) render at full intensity; the rest are dimmed so the
-                  // focus area stands out without losing the page's context.
-                  const memKeys = new Set((batch||[]).map(v=>v.verse_key));
+                  // Mushaf mode shows ONLY the ayahs of the surah being memorized
+                  // today — same filtered batch as Study mode. Tails of earlier
+                  // surahs or fresh starts of the next surah (which aren't part of
+                  // today's work) are hidden. Page chrome still uses pageBatch for
+                  // accurate page/hizb info.
                   const surahGroups=[];
                   let curGroup=null;
-                  pageBatch.forEach(v=>{
+                  batch.forEach(v=>{
                     const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
                     if(!curGroup||curGroup.sn!==sn){ curGroup={sn,verses:[]}; surahGroups.push(curGroup); }
                     curGroup.verses.push(v);
