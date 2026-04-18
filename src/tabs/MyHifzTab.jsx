@@ -824,14 +824,19 @@ export default function MyHifzTab(props) {
                     if (pageNum === 1 && pageBatch[0]?.rub_el_hizb_number === 1) return "Hizb 1";
                     return null;
                   })();
-                  // Mushaf mode shows ONLY the ayahs of the surah being memorized
-                  // today — same filtered batch as Study mode. Tails of earlier
-                  // surahs or fresh starts of the next surah (which aren't part of
-                  // today's work) are hidden. Page chrome still uses pageBatch for
-                  // accurate page/hizb info.
+                  // Mushaf mode: preserve the actual mushaf page layout but display
+                  // ONLY the ayahs belonging to the active-memorization surah. On
+                  // page 578 (Qiyāmah 20-40 + Insān 1-5) while memorizing Qiyāmah,
+                  // only Qiyāmah 20-40 shows — Insān 1-5 is hidden because that's
+                  // not today's active memorization. Page chrome still uses
+                  // pageBatch for accurate page/hizb info.
+                  const mushafOnly = pageBatch.filter(v=>{
+                    const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
+                    return activeSurahNum&&s===activeSurahNum;
+                  });
                   const surahGroups=[];
                   let curGroup=null;
-                  batch.forEach(v=>{
+                  mushafOnly.forEach(v=>{
                     const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
                     if(!curGroup||curGroup.sn!==sn){ curGroup={sn,verses:[]}; surahGroups.push(curGroup); }
                     curGroup.verses.push(v);
