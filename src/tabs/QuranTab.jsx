@@ -106,15 +106,20 @@ export default function QuranTab(props) {
                 </div>
               </div>
             </div>
-            {/* Slim trigger bar — tap to open dropdown above */}
-            <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
-              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
-              <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Part {mushafJuzNum}</div>
-                <div style={{fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#8B6A10",transform:showPickers?"rotate(180deg)":"rotate(0deg)",transition:"transform .22s ease"}}>▾</div>
-              </div>
-            </div>
-            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
+            {/* Slim trigger bar — only in Mushaf (image) mode. In Study mode, the
+                in-card top row (Surah · Part) is the picker trigger. */}
+            {quranMode==="mushaf"&&(
+              <>
+                <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+                  <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00"}}>Part {mushafJuzNum}</div>
+                    <div style={{fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#8B6A10",transform:showPickers?"rotate(180deg)":"rotate(0deg)",transition:"transform .22s ease"}}>▾</div>
+                  </div>
+                </div>
+                <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
+              </>
+            )}
           </div>
 
           {/* Viewer */}
@@ -199,10 +204,11 @@ export default function QuranTab(props) {
                         else { setMushafPage(p=>Math.min(604,p+1)); }
                       }}
                       style={{padding:"14px 14px 10px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"84vh",display:"flex",flexDirection:"column"}}>
-                    {/* Top row: Surah name (left) · Part N (right) */}
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:6}}>
+                    {/* Top row: Surah name (left) · Part N (right) — also the
+                        picker trigger. Tapping toggles the juz/surah dropdown. */}
+                    <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:6,cursor:"pointer"}}>
                       <span>{SURAH_EN[curSurahNum]||""}</span>
-                      <span>Part {mushafJuzNum}</span>
+                      <span style={{display:"flex",alignItems:"center",gap:4}}>Part {mushafJuzNum}<span style={{fontSize:10,opacity:0.6,transform:showPickers?"rotate(180deg)":"rotate(0deg)",transition:"transform .22s ease"}}>▾</span></span>
                     </div>
                     <div ref={contentRef} style={{fontSize:autoFontSize,flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
                     {surahGroups.map((group,gi)=>{
