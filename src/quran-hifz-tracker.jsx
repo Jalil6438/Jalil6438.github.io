@@ -984,6 +984,13 @@ export default function RihlatAlHifz() {
     hasPerAyah, stopMushafAudio, playMushafRange, getQuranSurahUrl, playQuranSurah,
   } = useAudio({ reciter, currentReciter, looping, quranReciter });
 
+  // Stop Play-Page audio when navigating away — tab change, session change,
+  // or page change cuts the playback so it doesn't keep playing in the background.
+  useEffect(() => {
+    if (mushafAudioPlaying) stopMushafAudio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentSessionId, mushafPage, sessionIdx]);
+
   const ASR_PAGE_SIZE = 5;
   const asrPages = Math.max(1, Math.ceil(batch.length / ASR_PAGE_SIZE));
   const asrSafePage = Math.min(asrPage, Math.max(0, asrPages - 1));
