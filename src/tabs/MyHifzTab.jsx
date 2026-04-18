@@ -872,7 +872,7 @@ export default function MyHifzTab(props) {
                                 const aNum=parseInt(vKey.split(":")[1],10);
                                 return (
                                   <span key={vKey}>
-                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()}</span>
                                     <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",padding:"0 6px",display:"inline-block"}}>﴿{toArabicDigits(aNum)}﴾</span>
                                   </span>
                                 );
@@ -985,7 +985,7 @@ export default function MyHifzTab(props) {
                                       style={{cursor:"pointer",borderRadius:6,padding:"2px 4px",transition:"all .15s",
                                         background:nowPlaying?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):"transparent",
                                         boxShadow:nowPlaying?"0 0 10px rgba(212,175,55,0.25)":"none"}}>
-                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()}</span>
                                       <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",padding:"0 6px",display:"inline-block"}}>﴿{toArabicDigits(aNum)}﴾</span>
                                     </span>
                                   );
@@ -1051,7 +1051,7 @@ export default function MyHifzTab(props) {
                             {currentSessionId==="fajr"&&<span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>}
                           </div>
                           <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()}</span>
                             <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                           </div>
                         </div>
