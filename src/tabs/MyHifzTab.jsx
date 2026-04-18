@@ -882,10 +882,8 @@ export default function MyHifzTab(props) {
                               {group.verses.map((v)=>{
                                 const vKey=v.verse_key;
                                 const aNum=parseInt(vKey.split(":")[1],10);
-                                const isMemorizing=memKeys.has(vKey);
-                                const opacity=isMemorizing?1:0.3;
                                 return (
-                                  <span key={vKey} style={{opacity,transition:"opacity .2s"}}>
+                                  <span key={vKey}>
                                     <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
                                     <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",margin:"0 2px 0 6px"}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
                                   </span>
