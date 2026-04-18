@@ -866,7 +866,7 @@ export default function MyHifzTab(props) {
                                 )}
                               </div>
                             )}
-                            <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"justify",lineHeight:2.1,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                            <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2.1,wordBreak:"keep-all",overflowWrap:"normal"}}>
                               {group.verses.map((v)=>{
                                 const vKey=v.verse_key;
                                 const aNum=parseInt(vKey.split(":")[1],10);
