@@ -216,18 +216,28 @@ export default function QuranTab(props) {
                       // Line-based render: surah name pinned to top, the rest
                       // (basmala + ayah lines) center vertically in the remaining space.
                       const lineMap={};
+                      // Stop marks (waqf signs like ۖ ۗ ۘ ۙ ۚ ۛ) are single-glyph
+                      // tokens with no Arabic letters. The API sometimes assigns
+                      // them a line_number one beyond the preceding word's — snap
+                      // them to the previous word's line so they sit beside the
+                      // word they modify rather than starting a new line.
+                      const hasArabicLetter = /[\u0621-\u064A]/;
                       (mushafVerses||[]).forEach(v=>{
                         const tokens=(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").split(/\s+/).filter(Boolean);
                         const words=(v.words||[]).filter(w=>w.char_type_name==="word");
                         const ends=(v.words||[]).filter(w=>w.char_type_name==="end");
                         const aNum=parseInt(v.verse_key.split(":")[1],10);
+                        let prevLine=null;
                         words.forEach((w,i)=>{
-                          const ln=w.line_number;
+                          let ln=w.line_number;
                           if(typeof ln!=="number") return;
                           const token=tokens[i];
                           if(!token) return;
+                          const isStopMark=!hasArabicLetter.test(token)&&token.length<=3;
+                          if(isStopMark&&prevLine!=null) ln=prevLine;
                           if(!lineMap[ln]) lineMap[ln]=[];
                           lineMap[ln].push({type:"word",text:token,verse_key:v.verse_key});
+                          prevLine=ln;
                         });
                         const endChar=ends[0];
                         const markerLine=endChar?.line_number??words[words.length-1]?.line_number;
