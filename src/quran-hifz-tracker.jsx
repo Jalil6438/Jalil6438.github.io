@@ -808,32 +808,36 @@ export default function RihlatAlHifz() {
       if(allIdx<0) allIdx=allJuzVerses.length;
       if(isShaykh){
         // Shaykh mode: review = the 5 most recent memorized (surah, page) day-units,
-        // EXCLUDING today's Fajr work. Walk back through allJuzVerses skipping any
-        // ayahs whose (surah, page) matches today's active day. This means on Day N+1
-        // of Al-Muddaththir, Dhuhr starts at Muddaththir's page 1 (yesterday), skips
-        // page 2 (today), then rolls into Al-Qiyāmah — matching the user's rule.
+        // EXCLUDING today's Fajr work. Phase 1 walks back through allJuzVerses
+        // counting distinct (surah, page) day-units until 5 are collected (and
+        // tracking their physical pages). Phase 2 includes ALL memorized ayahs on
+        // those pages — so when page 564 is collected via Mulk 27-30, Qalam 1-15
+        // on the same page is included too. Today's day-unit is skipped in both
+        // phases so the boundary page between today and yesterday only shows the
+        // earlier (memorized-before-today) portion.
         const todaySurah=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPage=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
-        const pagesCollected=[]; // preserves order (most recent first) — used to cap at 5
+        const dayKeysCollected=new Set();
         pagesCollectedSet=new Set();
-        const includeKeys=new Set();
-        for(let i=allIdx-1;i>=0&&pagesCollected.length<5;i--){
+        for(let i=allIdx-1;i>=0&&dayKeysCollected.size<5;i--){
           const v=allJuzVerses[i];
           const s=v?.surah_number||parseInt(v?.verse_key?.split(":")?.[0]||"0",10);
           const p=v?.page_number;
           if(!p||!s) continue;
           const k=`${s}-${p}`;
-          if(todayKey&&k===todayKey) continue; // skip today's (surah, page)
-          includeKeys.add(v.verse_key);
-          if(!pagesCollectedSet.has(p)){
+          if(todayKey&&k===todayKey) continue;
+          if(!dayKeysCollected.has(k)){
+            dayKeysCollected.add(k);
             pagesCollectedSet.add(p);
-            pagesCollected.push(p);
           }
         }
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
-          if(!includeKeys.has(v.verse_key)) return;
+          if(!v.page_number||!pagesCollectedSet.has(v.page_number)) return;
+          const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
+          const k=`${s}-${v.page_number}`;
+          if(todayKey&&k===todayKey) return;
           if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
