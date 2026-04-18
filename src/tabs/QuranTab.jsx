@@ -221,6 +221,10 @@ export default function QuranTab(props) {
                       if(!prev||prev.rub_el_hizb_number===r) return;
                       rubs.push(r);
                     });
+                    // Page 1 is the start of the mushaf — Hizb 1 starts here.
+                    if(mushafPage===1&&rubs.length===0&&mushafVerses?.[0]?.rub_el_hizb_number===1){
+                      rubs.push(1);
+                    }
                     const r=rubs[0];
                     let hizbLabel=null;
                     if(r!=null){
