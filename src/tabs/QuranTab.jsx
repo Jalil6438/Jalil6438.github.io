@@ -269,7 +269,7 @@ export default function QuranTab(props) {
                       return (
                         <>
                           {surahNameRow&&(
-                            <div style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:6}}>
+                            <div style={{minHeight:42,display:"flex",alignItems:"center",justifyContent:"center",marginTop:20,marginBottom:6}}>
                               <div style={{fontFamily:"'Amiri',serif",fontSize:Math.round(autoFontSize*1.1),color:dark?"#E8C878":"#6B645A",fontWeight:700,lineHeight:1}}>{SURAH_AR[surahNameRow.meta.s]||""}</div>
                             </div>
                           )}
