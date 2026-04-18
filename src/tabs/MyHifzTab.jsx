@@ -130,6 +130,20 @@ export default function MyHifzTab(props) {
     ? fajrPageVerses[fajrPageNum]
     : rawBatch;
 
+  // Dynamically load the KFGQPC V2 per-page font for the current mushaf page.
+  // Source: jsdelivr mirror of quran.com's font bundle (CORS-friendly). Each
+  // page has its own font whose PUA range matches the glyph codes in
+  // /mushaf-pages.json. Loading once per page is cheap (~30-60KB).
+  useEffect(() => {
+    if (!fajrPageNum) return;
+    const fontFamily = `p${fajrPageNum}`;
+    if (document.getElementById(`qcf-font-${fajrPageNum}`)) return;
+    const style = document.createElement("style");
+    style.id = `qcf-font-${fajrPageNum}`;
+    style.textContent = `@font-face{font-family:'${fontFamily}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${fajrPageNum}.woff') format('woff');font-display:swap;}`;
+    document.head.appendChild(style);
+  }, [fajrPageNum]);
+
   // Filter a mushaf page's verses to what belongs in today's batch.
   //
   // Rule: include every surah on this page that is BOTH
@@ -802,60 +816,21 @@ export default function MyHifzTab(props) {
                         </div>
                       )}
                       {(()=>{
-                        // Per-line render using API's line_number metadata + regular
-                        // Arabic Unicode (text_uthmani). The KFGQPC PUA data needs 604
-                        // per-page fonts we don't ship — so we reconstruct each mushaf
-                        // line from word tokens and render with the unified UthmanicHafs
-                        // font. Each line justifies independently so words fill the width.
-                        const lineMap={};
-                        pageBatch.forEach(v=>{
-                          const tokens=(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").split(/\s+/).filter(Boolean);
-                          const words=(v.words||[]).filter(w=>w.char_type_name==="word");
-                          const ends=(v.words||[]).filter(w=>w.char_type_name==="end");
-                          const aNum=parseInt(v.verse_key.split(":")[1],10);
-                          words.forEach((w,i)=>{
-                            const ln=w.line_number;
-                            if(typeof ln!=="number") return;
-                            const token=tokens[i];
-                            if(!token) return;
-                            if(!lineMap[ln]) lineMap[ln]=[];
-                            lineMap[ln].push({type:"word",text:token,verse_key:v.verse_key});
-                          });
-                          const endChar=ends[0];
-                          const markerLine=endChar?.line_number??words[words.length-1]?.line_number;
-                          if(markerLine!=null){
-                            if(!lineMap[markerLine]) lineMap[markerLine]=[];
-                            lineMap[markerLine].push({type:"marker",num:aNum,verse_key:v.verse_key});
-                          }
-                        });
-                        const mushafLines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b).map(ln=>({lineNum:ln,items:lineMap[ln]}));
-                        if(mushafLines.length===0) return null;
-                        return mushafLines.map(({lineNum,items},li)=>{
-                          const curSurah=items[0]?.verse_key?parseInt(items[0].verse_key.split(":")[0],10):null;
-                          const prev=li>0?mushafLines[li-1]:null;
-                          const prevLast=prev?.items[prev.items.length-1];
-                          const prevSurah=prevLast?.verse_key?parseInt(prevLast.verse_key.split(":")[0],10):null;
-                          const surahChanged=prevSurah!==null&&curSurah!==null&&curSurah!==prevSurah;
-                          const firstAyahOnPage=li===0&&items.find(it=>it.type==="word")&&items[0].verse_key?.endsWith(":1");
-                          const showHeader=surahChanged||firstAyahOnPage;
-                          // Build line as a single text string with ayah markers inline.
-                          const lineContent=items.map(it=>it.type==="marker"?` ﴿${toArabicDigits(it.num)}﴾ `:it.text).join(" ");
+                        // Authentic QCF V2 render: each mushaf line is a string of
+                        // page-specific PUA glyphs from /mushaf-pages.json, rendered with
+                        // the per-page font 'p{N}' loaded from jsdelivr. Ayah ornaments
+                        // are part of the glyph data — no custom markers needed.
+                        const qpcLines=qpcPages&&pageNum?qpcPages[String(pageNum)]:null;
+                        if(!qpcLines||!qpcLines.length){
                           return (
-                            <Fragment key={lineNum}>
-                              {showHeader&&(
-                                <div style={{textAlign:"center",padding:"6px 0 4px"}}>
-                                  <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B645A",fontWeight:700}}>{SURAH_AR[curSurah]||""}</div>
-                                  {curSurah!==1&&curSurah!==9&&(
-                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:2,direction:"rtl"}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                                  )}
-                                </div>
-                              )}
-                              <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"justify",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.9,padding:"4px 0",wordBreak:"keep-all",overflowWrap:"normal"}}>
-                                {lineContent}
-                              </div>
-                            </Fragment>
+                            <div style={{textAlign:"center",padding:"20px 0",fontSize:12,color:dark?"rgba(243,231,200,0.40)":"#6B645A"}}>Loading mushaf page…</div>
                           );
-                        });
+                        }
+                        return qpcLines.map((lineText,li)=>(
+                          <div key={li} style={{direction:"rtl",textAlign:"justify",textAlignLast:"justify",fontFamily:`'p${pageNum}','UthmanicHafs',serif`,fontSize:Math.round(fontSize*1.35),color:dark?"#E8DFC0":"#2D2A26",lineHeight:2,padding:"3px 0",wordBreak:"keep-all",overflowWrap:"normal"}}>
+                            {lineText}
+                          </div>
+                        ));
                       })()}
                       {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
