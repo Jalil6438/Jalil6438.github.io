@@ -1218,10 +1218,14 @@ export default function RihlatAlHifz() {
       const eligibleSurahs = []; // complete surahs from started-but-incomplete juz
 
       for(let j=1;j<=30;j++) {
-        if(freshIsJuzComplete(j) || freshJS[j]==="complete") {
+        // Juz counts as "complete" when either the juz itself is marked, the
+        // ayahs are in completedAyahs, OR every surah in the juz is individually
+        // marked (common path for onboarded Juz 30).
+        const juzSurahList = JUZ_SURAHS[j] || [];
+        const allSurahsMarked = juzSurahList.length > 0 && juzSurahList.every(({s}) => freshIsSurahComplete(s) || freshJS[`s${s}`]==="complete");
+        if(freshIsJuzComplete(j) || freshJS[j]==="complete" || allSurahsMarked) {
           eligibleJuz.push(j);
-        } else if(freshHasAny(j) || (JUZ_SURAHS[j]||[]).some(({s})=>freshJS[`s${s}`]==="complete")) {
-          const juzSurahList = JUZ_SURAHS[j] || [];
+        } else if(freshHasAny(j) || juzSurahList.some(({s})=>freshJS[`s${s}`]==="complete")) {
           juzSurahList.forEach(({s}) => {
             if((freshIsSurahComplete(s) || freshJS[`s${s}`]==="complete") && !eligibleSurahs.includes(s)) {
               eligibleSurahs.push(s);
