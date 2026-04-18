@@ -1287,8 +1287,42 @@ export default function RihlatAlHifz() {
       // Fix U+06DF dots for UthmanicHafs font
       allVerses.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
 
-      // Remove Al-Fatiha from revision — it's recited 17+ times daily in salah
-      const filtered=allVerses.filter(v=>{const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);return s!==1;});
+      // Compute the Dhuhr-active page window so Asr can exclude it. Dhuhr covers
+      // the last 5 memorized (surah, page) day-units (see Dhuhr logic earlier in
+      // this file). Mirror the walk-back here against allJuzVerses to find which
+      // pages are currently in Dhuhr's window, then drop them from the Asr pool
+      // so today's Asr doesn't repeat today's Dhuhr content.
+      const dhuhrPages = new Set();
+      if (allJuzVerses.length > 0) {
+        const currentKey = sessionVerses[sessionIdx]?.verse_key;
+        let allIdx = currentKey ? allJuzVerses.findIndex(v => v.verse_key === currentKey) : allJuzVerses.length;
+        if (allIdx < 0) allIdx = allJuzVerses.length;
+        const todaySurah = fajrBatch[0]?.surah_number || parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0] || "0", 10);
+        const todayPage = fajrBatch[0]?.page_number || sessionVerses[sessionIdx]?.page_number || 0;
+        const todayKey = todaySurah && todayPage ? `${todaySurah}-${todayPage}` : null;
+        const dayKeysCollected = new Set();
+        for (let i = allIdx - 1; i >= 0 && dayKeysCollected.size < 5; i--) {
+          const v = allJuzVerses[i];
+          const s = v?.surah_number || parseInt(v?.verse_key?.split(":")?.[0] || "0", 10);
+          const p = v?.page_number;
+          if (!p || !s) continue;
+          const k = `${s}-${p}`;
+          if (todayKey && k === todayKey) continue;
+          if (!dayKeysCollected.has(k)) {
+            dayKeysCollected.add(k);
+            dhuhrPages.add(p);
+          }
+        }
+      }
+
+      // Remove Al-Fatiha from revision — it's recited 17+ times daily in salah.
+      // Also drop any verses on pages currently covered by Dhuhr — no overlap.
+      const filtered=allVerses.filter(v=>{
+        const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+        if(s===1) return false;
+        if(v.page_number&&dhuhrPages.has(v.page_number)) return false;
+        return true;
+      });
 
       // Step 5 — sort in mushaf order (Al-Baqarah → An-Nas) so the batch reads
       // contiguously — no "Nabā' → Nāzi'āt → 'Abasa → jump to Tīn → Qāri'ah".
