@@ -834,9 +834,16 @@ export default function MyHifzTab(props) {
                         return qpcLines.map((lineText,li)=>{
                           const meta=layoutLines?.[li];
                           const isCentered=meta?.c===1;
+                          // QCF V2 fonts are designed so each line's glyphs naturally
+                          // fill the mushaf page width at the correct font-size. Don't
+                          // force text-align-last:justify — it over-stretches lines that
+                          // by design have different inter-word spacing. Plain
+                          // text-align:right (with justify only as a hint for multi-line
+                          // wrap, which shouldn't happen) preserves the mushaf's natural
+                          // spacing.
                           const align=isCentered?"center":"justify";
                           return (
-                            <div key={li} style={{direction:"rtl",textAlign:align,textAlignLast:align,fontFamily:`'p${pageNum}','UthmanicHafs',serif`,fontSize:Math.round(fontSize*1.35),color:dark?"#E8DFC0":"#2D2A26",lineHeight:2,padding:"3px 0",wordBreak:"keep-all",overflowWrap:"normal"}}>
+                            <div key={li} style={{direction:"rtl",textAlign:align,fontFamily:`'p${pageNum}','UthmanicHafs',serif`,fontSize:"min(5.2vw,22px)",color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.9,padding:"2px 0",whiteSpace:"nowrap",overflow:"hidden"}}>
                               {lineText}
                             </div>
                           );
