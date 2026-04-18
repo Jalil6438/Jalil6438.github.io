@@ -204,9 +204,11 @@ export default function QuranTab(props) {
                         </div>
                       );
                     })}
-                    <div style={{textAlign:mushafPage%2===1?"right":"left",marginTop:20,padding:"0 4px",fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>{mushafPage}</div>
                     </div>);
                   })()}
+                  {/* Page number pinned to the outer viewer's bottom corner,
+                      alternating right (odd) / left (even) like a real mushaf spread. */}
+                  <div style={{position:"absolute",bottom:16,[mushafPage%2===1?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:14,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>{mushafPage}</div>
                 </div>
               )}
 
