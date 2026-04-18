@@ -1313,8 +1313,11 @@ export default function RihlatAlHifz() {
           if (v.page_number) memorizedPages.add(v.page_number);
         });
         const todayPage = fajrBatch[0]?.page_number || sessionVerses[sessionIdx]?.page_number || 0;
-        if (todayPage > 0) {
-          for (let p = todayPage + 1; p <= 604 && dhuhrPages.size < 5; p++) {
+        if (todayPage > 1) {
+          // Mirror Dhuhr walk: start at yesterday's page (todayPage-1), walk
+          // forward 5 consecutive memorized pages.
+          const yesterdayPage = todayPage - 1;
+          for (let p = yesterdayPage; p <= 604 && dhuhrPages.size < 5; p++) {
             if (memorizedPages.has(p)) dhuhrPages.add(p);
           }
         }
