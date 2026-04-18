@@ -171,15 +171,13 @@ export default function QuranTab(props) {
                         <div key={group.sn+"-"+gi}>
                           {/* Surah header — centered, outside RTL flow */}
                           {(gi>0||isFirst)&&(
-                            <div style={{textAlign:"center",padding:"16px 0 12px"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B645A",fontWeight:700,marginBottom:2}}>{SURAH_AR[group.sn]||""}</div>
-                              <div style={{fontSize:8,color:dark?"rgba(217,177,95,0.40)":"rgba(0,0,0,0.50)",letterSpacing:".22em",fontWeight:600,textTransform:"uppercase"}}>{SURAH_EN[group.sn]||""}</div>
+                            <div style={{textAlign:"center",padding:gi===0?"60px 0 36px":"16px 0 12px"}}>
+                              <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:dark?"#E8C878":"#6B645A",fontWeight:700}}>{SURAH_AR[group.sn]||""}</div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>
+                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:24,direction:"rtl",lineHeight:2}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}
-                              <div style={{height:1,margin:"10px auto 0",width:"80%",background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.28) 50%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.18) 50%,rgba(139,106,16,0) 100%)"}}/>
                             </div>
                           )}
                           {/* Flowing ayah text */}
