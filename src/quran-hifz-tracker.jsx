@@ -818,10 +818,11 @@ export default function RihlatAlHifz() {
         const todaySurah=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPage=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
-        // Walk FORWARD 5 memorized pages from today's Fajr page. Includes the
-        // just-finished surah's pages (they're part of the last 5 days of
-        // memorization). In reverse-order hifz, pages AFTER today's page are
-        // the most recently memorized.
+        // Dhuhr = 5 consecutive mushaf pages starting at YESTERDAY's page
+        // (today's page - 1). On the today's-page boundary, today's surah
+        // portion is filtered out via the todayKey check in Phase 2.
+        // For a user on Muddaththir day 3 (page 577), this yields pages
+        // 576, 577 (Qiyāmah portion only), 578, 579, 580.
         const memorizedPages=new Set();
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
@@ -829,8 +830,9 @@ export default function RihlatAlHifz() {
         });
         pagesCollectedSet=new Set();
         const todayPageForWalk=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
-        if(todayPageForWalk>0){
-          for(let p=todayPageForWalk+1;p<=604&&pagesCollectedSet.size<5;p++){
+        if(todayPageForWalk>1){
+          const yesterdayPage=todayPageForWalk-1;
+          for(let p=yesterdayPage;p<=604&&pagesCollectedSet.size<5;p++){
             if(memorizedPages.has(p)) pagesCollectedSet.add(p);
           }
         }
