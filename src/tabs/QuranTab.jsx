@@ -190,7 +190,15 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
-                    return (<div ref={cardRef} style={{padding:"14px 14px 12px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"72vh",display:"flex",flexDirection:"column"}}>
+                    return (<div ref={cardRef}
+                      onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
+                      onTouchEnd={e=>{
+                        const dx=e.changedTouches[0].clientX-(quranTouchRef.current||0);
+                        if(Math.abs(dx)<40) return;
+                        if(dx<0){ setMushafPage(p=>Math.max(1,p-1)); }
+                        else { setMushafPage(p=>Math.min(604,p+1)); }
+                      }}
+                      style={{padding:"14px 14px 10px",borderRadius:14,background:dark?"linear-gradient(180deg,rgba(15,26,43,0.65) 0%,rgba(10,17,32,0.55) 100%)":"rgba(240,228,200,0.45)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,boxShadow:dark?"inset 0 1px 0 rgba(255,255,255,0.03),0 6px 22px rgba(0,0,0,0.30)":"inset 0 1px 0 rgba(255,255,255,0.60),0 4px 16px rgba(0,0,0,0.10)",minHeight:"72vh",display:"flex",flexDirection:"column"}}>
                     {/* Top row: Surah name (left) · Part N (right) */}
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:6}}>
                       <span>{SURAH_EN[curSurahNum]||""}</span>
@@ -546,12 +554,15 @@ export default function QuranTab(props) {
             </div>
           )}
 
-          {/* Page nav */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)",flexShrink:0,background:dark?"#060C18":"#EADFC8"}}>
-            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>‹</div>
-            <div style={{flex:1}}/>
-            <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>›</div>
-          </div>
+          {/* External page nav — only in Mushaf image mode. Study mode has
+              Prev/Next inside the card. */}
+          {quranMode==="mushaf"&&(
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)",flexShrink:0,background:dark?"#060C18":"#EADFC8"}}>
+              <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>‹</div>
+              <div style={{flex:1}}/>
+              <div className="sbtn" onClick={()=>{setMushafSwipeAnim("right");setMushafPage(p=>Math.max(1,p-1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage>1?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>›</div>
+            </div>
+          )}
 
 
         </div>
