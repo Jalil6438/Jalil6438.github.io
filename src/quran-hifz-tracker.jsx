@@ -833,15 +833,13 @@ export default function RihlatAlHifz() {
           dayKeysCollected.add(k);
           pagesCollectedSet.add(p);
         }
-        // Include only ayahs whose exact (surah, page) is one of the 5 day-units
-        // collected — so each review page shows strictly that day's surah slice,
-        // not other surahs that share the physical page.
+        // Include all memorized ayahs on the 5 collected physical pages — the
+        // full mushaf page is preserved (tails/heads of surahs sharing a page
+        // stay visible). Unmemorized content (i>=allIdx) is still skipped so
+        // the tail-end of the actively memorizing surah never leaks in.
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
-          if(!v.page_number) return;
-          const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
-          const k=`${s}-${v.page_number}`;
-          if(!dayKeysCollected.has(k)) return;
+          if(!v.page_number||!pagesCollectedSet.has(v.page_number)) return;
           if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);

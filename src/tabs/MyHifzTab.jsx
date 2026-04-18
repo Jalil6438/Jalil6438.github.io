@@ -922,16 +922,14 @@ export default function MyHifzTab(props) {
                     authentic mushaf pages, one page per swipe. Much lighter than
                     walking 20+ cards of Study view when the batch is 100+ ayahs. ── */}
                 {["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
-                  // Group by (page, surah) — a physical page that holds two surahs'
-                  // slices (e.g. page 580 with Insān tail + Mursalāt start) splits
-                  // into two review slides for cleaner visual per-day reading, even
-                  // though the mushaf page is still page 580 in both.
+                  // Group by physical mushaf page — preserve the true page layout.
+                  // Boundary pages (two surahs' memorized slices on one page) render
+                  // as ONE slide showing both slices in mushaf order.
                   const pageGroups=[];
                   let curGroup=null;
                   batch.forEach(v=>{
                     const pn=v.page_number||0;
-                    const sn=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
-                    if(!curGroup||curGroup.page!==pn||curGroup.sn!==sn){ curGroup={page:pn,sn,ayahs:[]}; pageGroups.push(curGroup); }
+                    if(!curGroup||curGroup.page!==pn){ curGroup={page:pn,ayahs:[]}; pageGroups.push(curGroup); }
                     curGroup.ayahs.push(v);
                   });
                   const totalPages=pageGroups.length;
@@ -1033,16 +1031,7 @@ export default function MyHifzTab(props) {
                       {totalPages>1&&(
                         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 16px",gap:8}}>
                           <div className={safePage<totalPages-1?"sbtn":""} onClick={()=>{if(safePage<totalPages-1)setAyahPage(p=>p+1);}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage<totalPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage<totalPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage<totalPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
-                          {(()=>{
-                            // Count by unique physical pages — two slides of the same
-                            // mushaf page (shared surah-split) show the same index,
-                            // not two separate numbers.
-                            const uniquePages=[...new Set(pageGroups.map(g=>g.page))];
-                            const displayIdx=uniquePages.indexOf(currentPg.page)+1;
-                            return (
-                              <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{displayIdx} of {uniquePages.length}</div>
-                            );
-                          })()}
+                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{safePage+1} of {totalPages}</div>
                           <div className={safePage>0?"sbtn":""} onClick={()=>{if(safePage>0)setAyahPage(p=>p-1);}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:safePage>0?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:safePage>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${safePage>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev ›</div>
                         </div>
                       )}
