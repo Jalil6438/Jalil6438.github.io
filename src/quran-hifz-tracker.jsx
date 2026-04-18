@@ -820,17 +820,18 @@ export default function RihlatAlHifz() {
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
         const dayKeysCollected=new Set();
         pagesCollectedSet=new Set();
-        for(let i=allIdx-1;i>=0&&dayKeysCollected.size<5;i--){
+        // Collect 5 unique PHYSICAL pages (not day-units). A boundary page with
+        // two memorized surah slices still counts as 1 physical page — so the
+        // 5th page reaches further back when splits happen.
+        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
           const v=allJuzVerses[i];
           const s=v?.surah_number||parseInt(v?.verse_key?.split(":")?.[0]||"0",10);
           const p=v?.page_number;
           if(!p||!s) continue;
           const k=`${s}-${p}`;
           if(todayKey&&k===todayKey) continue;
-          if(!dayKeysCollected.has(k)){
-            dayKeysCollected.add(k);
-            pagesCollectedSet.add(p);
-          }
+          dayKeysCollected.add(k);
+          pagesCollectedSet.add(p);
         }
         // Include only ayahs whose exact (surah, page) is one of the 5 day-units
         // collected — so each review page shows strictly that day's surah slice,
