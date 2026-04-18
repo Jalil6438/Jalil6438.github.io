@@ -1231,6 +1231,10 @@ export default function RihlatAlHifz() {
       }
 
       console.log('[ASR POOL]',{freshCASize:freshCA.size,eligibleJuz,eligibleSurahs,juzStatusKeys:Object.keys(freshJS).filter(k=>freshJS[k]==="complete")});
+      // Shaykh's method: Asr starts when user has a full juz memorized.
+      // Individual surahs that don't add up to a full juz don't qualify —
+      // they need to be reviewed via Dhuhr until the juz itself is complete.
+      eligibleSurahs.length = 0;
       if(eligibleJuz.length === 0 && eligibleSurahs.length === 0) {
         // Nothing eligible — leave batch empty, show empty state
         setAsrReviewBatch([]);
