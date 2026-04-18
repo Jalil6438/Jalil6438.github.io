@@ -1088,7 +1088,7 @@ export default function MyHifzTab(props) {
                           const pct=Math.min((cr/10)*100,100);
                           return (
                             <div key={step.key} ref={idx===0?newestPairRef:null} className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[step.key]:Math.min(10,(prev[step.key]||0)+1)}))}
-                              style={{padding:"12px 14px",borderRadius:12,background:dark?(crDone?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)"):(crDone?"rgba(74,222,128,0.08)":"rgba(0,0,0,0.03)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.30)":"rgba(46,204,113,0.35)"):(dark?"rgba(217,177,95,0.18)":"rgba(0,0,0,0.10)")}`,transition:"all .15s"}}>
+                              style={{padding:"12px 14px",borderRadius:12,cursor:"pointer",userSelect:"none",background:dark?(crDone?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)"):(crDone?"rgba(74,222,128,0.08)":"rgba(0,0,0,0.03)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.30)":"rgba(46,204,113,0.35)"):(dark?"rgba(217,177,95,0.18)":"rgba(0,0,0,0.10)")}`,transition:"all .15s"}}>
                               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
                                 <div style={{fontSize:12,fontWeight:600,color:crDone?(dark?"#4ADE80":"#2ECC71"):(dark?"rgba(243,231,200,0.75)":"#3D2E0A")}}>{step.label}</div>
                                 <div style={{fontSize:11,fontFamily:"'IBM Plex Mono',monospace",color:crDone?"#4ADE80":"rgba(230,184,74,0.65)"}}>{cr}/10</div>
