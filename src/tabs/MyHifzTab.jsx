@@ -1124,17 +1124,17 @@ export default function MyHifzTab(props) {
                         <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:dark?"#F3E7BF":"#3D2E0A",lineHeight:1.3}}>{activeCloser.label}</div>
                         <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"rgba(100,70,10,0.65)",marginTop:6,lineHeight:1.5}}>Recite all ayahs together 10 times to seal the surah in memory.</div>
                       </div>
-                      <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2,padding:"14px 14px",borderRadius:12,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(217,177,95,0.15)":"rgba(140,100,20,0.12)"}`,marginBottom:16}}>
-                        {activeCloser.ayahs.map(a=>(
-                          <span key={a.verse_key}>
-                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.40)":"rgba(140,100,20,0.40)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>
-                          </span>
-                        ))}
-                      </div>
                       <div className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[activeCloser.key]:Math.min(10,(prev[activeCloser.key]||0)+1)}))}
-                        style={{padding:"18px 16px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .2s",background:dark?"rgba(212,175,55,0.06)":"rgba(212,175,55,0.06)",border:`1.5px solid ${dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 0 14px rgba(212,175,55,0.12),0 4px 14px rgba(0,0,0,0.18)"}}>
-                        <div style={{fontSize:13,fontWeight:700,color:dark?"rgba(243,231,200,0.80)":"#3D2E0A",marginBottom:10}}>Recited <span style={{color:"#F0C040",fontSize:16}}>{cr}/10</span> · Tap after each recitation</div>
+                        style={{padding:"16px 16px 18px",borderRadius:14,cursor:"pointer",transition:"all .2s",background:dark?"rgba(212,175,55,0.06)":"rgba(212,175,55,0.06)",border:`1.5px solid ${dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 0 14px rgba(212,175,55,0.12),0 4px 14px rgba(0,0,0,0.18)"}}>
+                        <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2,marginBottom:12}}>
+                          {activeCloser.ayahs.map(a=>(
+                            <span key={a.verse_key}>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                              <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.40)":"rgba(140,100,20,0.40)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>
+                            </span>
+                          ))}
+                        </div>
+                        <div style={{fontSize:13,fontWeight:700,color:dark?"rgba(243,231,200,0.80)":"#3D2E0A",marginBottom:8,textAlign:"center"}}>Recited <span style={{color:"#F0C040",fontSize:16}}>{cr}/10</span> · Tap to count</div>
                         <div style={{width:"100%",height:6,borderRadius:999,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)",overflow:"hidden"}}>
                           <div style={{height:"100%",width:`${pct}%`,borderRadius:999,background:"linear-gradient(90deg,#E6B84A,#F0C040)",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}/>
                         </div>
