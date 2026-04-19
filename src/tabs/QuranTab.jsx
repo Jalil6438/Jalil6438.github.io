@@ -56,17 +56,20 @@ export default function QuranTab(props) {
   // Paired with code_v2 PUA glyphs so each mushaf page renders at authentic
   // layout. Source: jsdelivr mirror of quran.com's font bundle.
   const loadQcfFont = (pageN) => {
-    if (!pageN) return;
+    if (!pageN || pageN < 1 || pageN > 604) return;
     if (document.getElementById(`qcf-font-${pageN}`)) return;
     const style = document.createElement("style");
     style.id = `qcf-font-${pageN}`;
-    style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:swap;}`;
+    // Prefer woff2 (smaller, faster) with woff fallback for older browsers.
+    style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:swap;}`;
     document.head.appendChild(style);
   };
-  useEffect(() => { loadQcfFont(mushafPage); }, [mushafPage]);
-  // Always preload page 1's font — used for the cross-surah bismillah header
-  // (Fatiha 1:1's glyphs render the authentic bismillah in QCF V2 style).
-  useEffect(() => { loadQcfFont(1); }, []);
+  useEffect(() => {
+    // Load current page's font + preload adjacent pages so swipes feel instant.
+    loadQcfFont(mushafPage);
+    loadQcfFont(mushafPage + 1);
+    loadQcfFont(mushafPage - 1);
+  }, [mushafPage]);
 
   // Track the rub_el_hizb_number of the LAST verse on the previous page so we
   // can detect when a new rub starts at the very first verse of the current
