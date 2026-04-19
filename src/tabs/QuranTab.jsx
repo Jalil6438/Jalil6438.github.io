@@ -209,13 +209,13 @@ export default function QuranTab(props) {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 12px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"center"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 6px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"center"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.25)",fontSize:11,letterSpacing:".12em"}}>Loading...</div>
               ):(
-                <div style={{padding:"0 4px"}}>
+                <div style={{padding:0}}>
                   {(()=>{
                     const playAyahAudio = (vk) => {
                       if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
@@ -236,7 +236,7 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
-                    return (<div style={{padding:"24px 12px 0",position:"relative"}}>
+                    return (<div style={{padding:"24px 2px 0",position:"relative"}}>
                     {surahGroups.map((group,gi)=>{
                       const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                       return (
@@ -245,7 +245,7 @@ export default function QuranTab(props) {
                           {(gi>0||isFirst)&&(
                             <div style={{textAlign:"center",padding:gi===0?"0 0 0":"16px 0 12px"}}>
                               <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?60:0}}>
-                                <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
+                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
                                 bismillahGlyphs&&loadedFonts.has(1)?(
@@ -287,7 +287,7 @@ export default function QuranTab(props) {
                               // line. No flex-justify: that was spreading
                               // short lines (Fatihah, Baqarah p2) unnaturally.
                               // Matches quran.com-frontend-next mobile layout.
-                              <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(16px,4.6vw,26px)",color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0"}}>
+                              <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(18px,5vw,30px)",color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0",whiteSpace:"nowrap"}}>
                                 {lineMap[ln].map((it,ii)=>{
                                   const sel=selectedAyah===it.verse_key;
                                   const isEnd=it.char_type==="end";
