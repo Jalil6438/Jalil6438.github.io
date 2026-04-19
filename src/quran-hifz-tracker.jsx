@@ -985,11 +985,12 @@ export default function RihlatAlHifz() {
   } = useAudio({ reciter, currentReciter, looping, quranReciter });
 
   // Stop Play-Page audio when navigating away — tab change, session change,
-  // or page change cuts the playback so it doesn't keep playing in the background.
+  // page flip (mushaf page, Dhuhr/Asr ayahPage, or Asr asrPage) cuts the
+  // playback so it doesn't keep playing in the background.
   useEffect(() => {
     if (mushafAudioPlaying) stopMushafAudio();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, currentSessionId, mushafPage, sessionIdx]);
+  }, [activeTab, currentSessionId, mushafPage, sessionIdx, ayahPage, asrPage]);
 
   const ASR_PAGE_SIZE = 5;
   const asrPages = Math.max(1, Math.ceil(batch.length / ASR_PAGE_SIZE));
