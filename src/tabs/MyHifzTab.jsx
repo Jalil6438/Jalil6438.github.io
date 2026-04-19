@@ -1021,7 +1021,7 @@ export default function MyHifzTab(props) {
                             );
                           }
                           return (
-                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}',serif`,fontSize:"clamp(18px,4.9vw,28px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}',serif`,fontSize:"clamp(22px,5.5vw,32px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
                               {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                             </div>
                           );
@@ -1165,7 +1165,7 @@ export default function MyHifzTab(props) {
                               );
                             }
                             return (
-                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(18px,4.9vw,28px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(22px,5.5vw,32px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
                                 {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                               </div>
                             );
@@ -1257,7 +1257,7 @@ export default function MyHifzTab(props) {
                             if(pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (
-                                <div style={{direction:"rtl",textAlign:"right",lineHeight:2,fontFamily:`'p${pn}',serif`,fontSize:"clamp(15px,4vw,22px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>
+                                <div style={{direction:"rtl",textAlign:"right",lineHeight:2,fontFamily:`'p${pn}',serif`,fontSize:"clamp(20px,5.2vw,30px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>
                                   {words.map((w,wi)=>(<span key={wi}>{w} </span>))}
                                 </div>
                               );
