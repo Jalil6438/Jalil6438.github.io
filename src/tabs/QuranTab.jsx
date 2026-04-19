@@ -215,7 +215,6 @@ export default function QuranTab(props) {
                                     transition:"background .15s",
                                   }}>
                                   <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}} dangerouslySetInnerHTML={{__html:(verse.text_uthmani_tajweed||verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}}/>
-                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
                                 </span>
                               );
                             })}
