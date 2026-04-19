@@ -61,19 +61,18 @@ export default function QuranTab(props) {
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
-    if (document.getElementById(`qcf-font-${pageN}`)) {
-      if (loadedFonts.has(pageN)) return;
-      // Style exists but state doesn't know yet — re-check readiness.
-      if (document.fonts && document.fonts.check(`16px 'p${pageN}'`)) {
-        setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
-      }
-      return;
+    const elId = `qcf-font-v2-${pageN}`;
+    if (!document.getElementById(elId)) {
+      // Clean up any stale version from a previous load (e.g. v4 leftovers
+      // under the legacy ID `qcf-font-${pageN}`).
+      const legacy = document.getElementById(`qcf-font-${pageN}`);
+      if (legacy) legacy.remove();
+      const style = document.createElement("style");
+      style.id = elId;
+      style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
+      document.head.appendChild(style);
     }
-    const style = document.createElement("style");
-    style.id = `qcf-font-${pageN}`;
-    style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:swap;}`;
-    document.head.appendChild(style);
-    // Notify state once the font's actually ready, then swap the render.
+    if (loadedFonts.has(pageN)) return;
     if (document.fonts && document.fonts.load) {
       document.fonts.load(`16px 'p${pageN}'`).then(() => {
         setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
@@ -225,12 +224,12 @@ export default function QuranTab(props) {
                         <div key={group.sn+"-"+gi}>
                           {/* Surah header — centered, outside RTL flow */}
                           {(gi>0||isFirst)&&(
-                            <div style={{textAlign:"center",padding:gi===0?"0 0 40px":"16px 0 12px"}}>
-                              <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?40:0}}>
+                            <div style={{textAlign:"center",padding:gi===0?"0 0 0":"16px 0 12px"}}>
+                              <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?60:0}}>
                                 <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2,marginBottom:28}}>
+                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>
                                   بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}
@@ -238,46 +237,41 @@ export default function QuranTab(props) {
                           )}
                           {(()=>{
                             const pageFontReady=loadedFonts.has(mushafPage);
-                            if(pageFontReady){
-                              // Mushaf line-by-line render using code_v2 grouped
-                              // by line_number. Each of the 15 lines flex-justifies
-                              // so words fill width evenly — authentic mushaf layout.
-                              const lineMap={};
-                              group.verses.forEach(v=>{
-                                (v.words||[]).forEach(w=>{
-                                  const ln=w.line_number;
-                                  if(typeof ln!=="number") return;
-                                  if(!lineMap[ln]) lineMap[ln]=[];
-                                  lineMap[ln].push({code:w.code_v2||"",verse_key:v.verse_key});
-                                });
-                              });
-                              const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
-                              return lines.map(ln=>(
-                                <div key={ln} style={{display:"flex",justifyContent:"space-between",alignItems:"center",direction:"rtl",fontFamily:`'p${mushafPage}',serif`,fontSize:fontSize,color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0"}}>
-                                  {lineMap[ln].map((it,ii)=>{
-                                    const sel=selectedAyah===it.verse_key;
-                                    return (
-                                      <span key={ii} className="sbtn" onClick={()=>{setSelectedAyah(sel?null:it.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",color:sel?(dark?"#F5E6B3":"#3A2200"):undefined,borderRadius:4,padding:"0 2px",background:sel?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent"}}>{it.code}</span>
-                                    );
-                                  })}
+                            if(!pageFontReady){
+                              return (
+                                <div style={{minHeight:400,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
+                                  <span>loading mushaf…</span>
                                 </div>
-                              ));
+                              );
                             }
-                            // Fallback: flowing text_uthmani + UthmanicHafs
-                            return (
-                              <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                                {group.verses.map(verse=>{
-                                  const aNum=verse.verse_key.split(":")[1];
-                                  const isSelected=selectedAyah===verse.verse_key;
+                            // Group words by line_number so each of the 15 mushaf lines
+                            // flex-justifies to fill the width — authentic layout.
+                            const lineMap={};
+                            group.verses.forEach(v=>{
+                              (v.words||[]).forEach(w=>{
+                                const ln=w.line_number;
+                                if(typeof ln!=="number") return;
+                                if(!lineMap[ln]) lineMap[ln]=[];
+                                lineMap[ln].push({code:w.code_v2||"",verse_key:v.verse_key,char_type:w.char_type_name});
+                              });
+                            });
+                            const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
+                            return lines.map(ln=>(
+                              // Natural inline flow — words render as spans
+                              // and the p{N} font's own glyph widths fill the
+                              // line. No flex-justify: that was spreading
+                              // short lines (Fatihah, Baqarah p2) unnaturally.
+                              // Matches quran.com-frontend-next mobile layout.
+                              <div key={ln} style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(18px,5.3vw,28px)",color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0",whiteSpace:"nowrap"}}>
+                                {lineMap[ln].map((it,ii)=>{
+                                  const sel=selectedAyah===it.verse_key;
+                                  const isEnd=it.char_type==="end";
                                   return (
-                                    <span key={verse.verse_key} className="sbtn" onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",borderRadius:6,padding:"2px 3px",background:isSelected?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent",boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",transition:"background .15s"}}>
-                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                      <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
-                                    </span>
+                                    <span key={ii} className="sbtn" onClick={()=>{setSelectedAyah(sel?null:it.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",color:sel?(dark?"#F5E6B3":"#3A2200"):(isEnd?(dark?"rgba(212,175,55,0.60)":"#A08848"):undefined),borderRadius:4,padding:"0 2px",background:sel?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent"}}>{it.code}</span>
                                   );
                                 })}
                               </div>
-                            );
+                            ));
                           })()}
                         </div>
                       );

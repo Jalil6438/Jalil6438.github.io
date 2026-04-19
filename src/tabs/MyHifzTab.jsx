@@ -108,7 +108,7 @@ export default function MyHifzTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=true&word_fields=line_number&fields=text_uthmani,text_uthmani_tajweed,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=true&word_fields=line_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
         if (!res.ok || cancelled) return;
         const data = await res.json();
         const vs = (data.verses || []).map(v => {

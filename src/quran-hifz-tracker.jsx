@@ -214,7 +214,7 @@ export default function RihlatAlHifz() {
       try {
         // Use same source as My Hifz — qurancdn returns clean text_uthmani, no stray tokens
         const [textRes, transRes] = await Promise.all([
-          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=line_number,code_v2,code_v4,char_type_name&fields=text_uthmani,text_uthmani_tajweed,verse_key,juz_number&per_page=50`),
+          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=line_number,code_v2,char_type_name&fields=text_uthmani,verse_key,juz_number&per_page=50`),
           fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?per_page=50&translations=203&fields=verse_key`)
         ]);
         if (!textRes.ok) throw new Error();
@@ -393,22 +393,7 @@ export default function RihlatAlHifz() {
     l.href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap";
     // Load UthmanicHafs for Interactive Quran mode — served locally to avoid CORS
     const ufs=document.createElement("style");
-    ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;}@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}@font-face{font-family:'KFGQPC Uthmanic Script HAFS';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}"
-      +"tajweed[class='ham_wasl'],tajweed.ham_wasl{color:#AAAAAA;}"
-      +"tajweed[class='slnt'],tajweed.slnt{color:#AAAAAA;}"
-      +"tajweed[class='laam_shamsiyah'],tajweed.laam_shamsiyah{color:#AAAAAA;}"
-      +"tajweed[class='madda_normal'],tajweed.madda_normal{color:#537FFF;}"
-      +"tajweed[class='madda_permissible'],tajweed.madda_permissible{color:#4050FF;}"
-      +"tajweed[class='madda_necessary'],tajweed.madda_necessary{color:#000EBC;}"
-      +"tajweed[class='qalaqah'],tajweed.qalaqah{color:#DD0008;}"
-      +"tajweed[class='madda_obligatory'],tajweed.madda_obligatory{color:#2144C1;}"
-      +"tajweed[class='ikhafa_shafawi'],tajweed.ikhafa_shafawi{color:#D500B7;}"
-      +"tajweed[class='ikhafa'],tajweed.ikhafa{color:#9400A8;}"
-      +"tajweed[class='idgham_shafawi'],tajweed.idgham_shafawi{color:#58B800;}"
-      +"tajweed[class='iqlab'],tajweed.iqlab{color:#26BFFD;}"
-      +"tajweed[class='idgham_ghunnah'],tajweed.idgham_ghunnah,tajweed[class='idgham_wo_ghunnah'],tajweed.idgham_wo_ghunnah{color:#169200;}"
-      +"tajweed[class='idgham_mutajanisayn'],tajweed.idgham_mutajanisayn,tajweed[class='idgham_mutaqaribayn'],tajweed.idgham_mutaqaribayn{color:#A1A1A1;}"
-      +"tajweed[class='ghunnah'],tajweed.ghunnah{color:#FF7E1E;}";
+    ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;}@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}@font-face{font-family:'KFGQPC Uthmanic Script HAFS';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}";
     document.head.appendChild(ufs);
     document.head.appendChild(l);
   },[]);
