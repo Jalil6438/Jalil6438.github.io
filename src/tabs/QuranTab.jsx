@@ -85,6 +85,27 @@ export default function QuranTab(props) {
     for (let i = -4; i <= 4; i++) loadQcfFont(mushafPage + i);
   }, [mushafPage]);
 
+  // Load the authoritative mushaf page layout — pre-computed line strings
+  // and alignment per page from public/mushaf-pages.json +
+  // public/mushaf-layout.json. Using these instead of the API's
+  // line_number guarantees each line matches the real KFGQPC mushaf.
+  const [mushafPagesData, setMushafPagesData] = useState(null);
+  const [mushafLayoutData, setMushafLayoutData] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [p, l] = await Promise.all([
+          fetch("/mushaf-pages.json"),
+          fetch("/mushaf-layout.json"),
+        ]);
+        if (!cancelled && p.ok) setMushafPagesData(await p.json());
+        if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Fetch Fatihah verse 1:1 (the universal bismillah) once. We render
   // every surah-opener bismillah using THESE exact glyphs + the p1 font,
   // so the style is identical to what you see on page 1 of the mushaf.
@@ -242,71 +263,73 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
+                    // Render ONCE per page directly from the authoritative
+                    // mushaf layout. Each page gives us its 15 line strings
+                    // plus per-line alignment (center vs space-between).
                     return (<div style={{padding:"8px 2px 0",position:"relative"}}>
-                    {surahGroups.map((group,gi)=>{
-                      const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
-                      return (
-                        <div key={group.sn+"-"+gi}>
-                          {/* Surah header — centered, outside RTL flow */}
-                          {(gi>0||isFirst)&&(
-                            <div style={{textAlign:"center",padding:gi===0?"0 0 0":"16px 0 12px"}}>
-                              <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?12:0}}>
-                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
-                              </div>
-                              {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                bismillahGlyphs&&loadedFonts.has(1)?(
-                                  <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>
-                                    {bismillahGlyphs}
-                                  </div>
-                                ):(
-                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>
-                                    بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
-                                  </div>
-                                )
-                              )}
+                      {(()=>{
+                        const pageFontReady=loadedFonts.has(mushafPage);
+                        if(!pageFontReady){
+                          return (
+                            <div style={{minHeight:400,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
+                              <span>loading mushaf…</span>
                             </div>
-                          )}
-                          {(()=>{
-                            const pageFontReady=loadedFonts.has(mushafPage);
-                            if(!pageFontReady){
-                              return (
-                                <div style={{minHeight:400,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
-                                  <span>loading mushaf…</span>
+                          );
+                        }
+                        const pageLines=mushafPagesData&&mushafPagesData[mushafPage];
+                        const pageLayout=mushafLayoutData&&mushafLayoutData[mushafPage];
+                        if(!pageLines||!pageLayout){
+                          return null;
+                        }
+                        // pageLines only contains AYAH rows (no surah_name
+                        // or basmallah rows). Track an ayah-row cursor to
+                        // pair each layout entry with the correct text.
+                        let ayahIdx=-1;
+                        return pageLayout.map((layoutEntry,i)=>{
+                          const type=layoutEntry.type;
+                          let lineText="";
+                          if(type!=="surah_name"&&type!=="basmallah"){
+                            ayahIdx++;
+                            lineText=pageLines[ayahIdx]||"";
+                          }
+                          const isCenter=layoutEntry.center===1;
+                          // Surah name line: render our custom ornament
+                          // instead of the font's surah_name glyph so it
+                          // matches our app's ornament aesthetic.
+                          if(type==="surah_name"){
+                            const sn=layoutEntry.sn;
+                            return (
+                              <div key={i} style={{textAlign:"center",padding:"8px 0"}}>
+                                <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                                    <span>surah</span>
+                                    <span>{String(sn).padStart(3,"0")}</span>
+                                  </span>
                                 </div>
-                              );
-                            }
-                            // Group words by line_number so each of the 15 mushaf lines
-                            // flex-justifies to fill the width — authentic layout.
-                            const lineMap={};
-                            group.verses.forEach(v=>{
-                              (v.words||[]).forEach(w=>{
-                                const ln=w.line_number;
-                                if(typeof ln!=="number") return;
-                                if(!lineMap[ln]) lineMap[ln]=[];
-                                lineMap[ln].push({code:w.code_v2||"",verse_key:v.verse_key,char_type:w.char_type_name});
-                              });
-                            });
-                            const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
-                            return lines.map(ln=>(
-                              // Natural inline flow — words render as spans
-                              // and the p{N} font's own glyph widths fill the
-                              // line. No flex-justify: that was spreading
-                              // short lines (Fatihah, Baqarah p2) unnaturally.
-                              // Matches quran.com-frontend-next mobile layout.
-                              <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(18px,5vw,30px)",color:dark?"#E8DFC0":"#2D2A26",padding:0,whiteSpace:"nowrap"}}>
-                                {lineMap[ln].map((it,ii)=>{
-                                  const sel=selectedAyah===it.verse_key;
-                                  const isEnd=it.char_type==="end";
-                                  return (
-                                    <span key={ii} className="sbtn" onClick={()=>{setSelectedAyah(sel?null:it.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",color:sel?(dark?"#F5E6B3":"#3A2200"):(isEnd?(dark?"rgba(212,175,55,0.60)":"#A08848"):undefined),borderRadius:4,padding:"0 2px",background:sel?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent"}}>{it.code}</span>
-                                  );
-                                })}
                               </div>
-                            ));
-                          })()}
-                        </div>
-                      );
-                    })}
+                            );
+                          }
+                          // Basmallah: use p1 font + Fatihah 1:1 glyphs so
+                          // every surah opener reads the same universal
+                          // bismillah.
+                          if(type==="basmallah"){
+                            return (
+                              <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
+                                {bismillahGlyphs&&loadedFonts.has(1)?(
+                                  <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
+                                ):(
+                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                )}
+                              </div>
+                            );
+                          }
+                          return (
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(18px,4.9vw,28px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                            {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
+                          </div>
+                          );
+                        });
+                      })()}
                     </div>);
                   })()}
                   {/* Bottom corner marker — page number + Hizb label, paired.

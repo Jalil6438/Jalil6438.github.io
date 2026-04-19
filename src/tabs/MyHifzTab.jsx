@@ -102,13 +102,95 @@ export default function MyHifzTab(props) {
 
   const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
   const fajrPageNum = rawBatch[0]?.page_number;
+  // Pages used by the Dhuhr/Asr/Maghrib/Isha batch — we fetch each with
+  // code_v2 + line_number so every session renders in the authentic
+  // KFGQPC V2 mushaf layout (matching Fajr + QuranTab).
+  const sessionPageNums = Array.from(new Set((rawBatch || []).map(v => v.page_number).filter(Boolean)));
+  useEffect(() => {
+    if (!sessionPageNums.length) return;
+    let cancelled = false;
+    (async () => {
+      for (const pn of sessionPageNums) {
+        if (fajrPageVerses[pn]) continue;
+        try {
+          const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${pn}?words=true&word_fields=line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
+          if (!res.ok || cancelled) continue;
+          const data = await res.json();
+          const vs = (data.verses || []).map(v => ({ ...v, text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652") }));
+          if (!cancelled) setFajrPageVerses(prev => prev[pn] ? prev : { ...prev, [pn]: vs });
+          loadQcfFont(pn);
+        } catch {}
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [sessionPageNums.join(",")]);
+
+  // KFGQPC V2 per-page fonts — used to render mushaf pages with authentic
+  // word widths & layout. Mirrors QuranTab's font-loading logic.
+  const [loadedFonts, setLoadedFonts] = useState(() => new Set());
+  const loadQcfFont = (pageN) => {
+    if (!pageN || pageN < 1 || pageN > 604) return;
+    const elId = `qcf-font-v2-${pageN}`;
+    if (!document.getElementById(elId)) {
+      const legacy = document.getElementById(`qcf-font-${pageN}`);
+      if (legacy) legacy.remove();
+      const style = document.createElement("style");
+      style.id = elId;
+      style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
+      document.head.appendChild(style);
+    }
+    if (loadedFonts.has(pageN)) return;
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load(`16px 'p${pageN}'`).then(() => {
+        setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
+      }).catch(() => {});
+    }
+  };
+  useEffect(() => {
+    if (!fajrPageNum) return;
+    for (let i = -1; i <= 1; i++) loadQcfFont(fajrPageNum + i);
+  }, [fajrPageNum]);
+
+  // Authoritative mushaf page layout JSON (pre-computed per-page line
+  // strings + alignment). Matches QuranTab's render path.
+  const [mushafPagesData, setMushafPagesData] = useState(null);
+  const [mushafLayoutData, setMushafLayoutData] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [p, l] = await Promise.all([fetch("/mushaf-pages.json"), fetch("/mushaf-layout.json")]);
+        if (!cancelled && p.ok) setMushafPagesData(await p.json());
+        if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Universal bismillah glyphs (Fatihah 1:1) — rendered in p1 font so every
+  // surah opener shows the authentic mushaf bismillah.
+  const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
+  useEffect(() => {
+    loadQcfFont(1);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("https://api.quran.com/api/v4/verses/by_key/1:1?words=true&word_fields=code_v2,char_type_name");
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const words = (data.verse?.words || []).filter(w => w.char_type_name === "word").map(w => w.code_v2 || "");
+        if (!cancelled && words.length) setBismillahGlyphs(words.join(""));
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
   useEffect(() => {
     if (!isPageBasedSession) return;
     if (!fajrPageNum || fajrPageVerses[fajrPageNum]) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=true&word_fields=line_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=true&word_fields=line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
         if (!res.ok || cancelled) return;
         const data = await res.json();
         const vs = (data.verses || []).map(v => {
@@ -844,7 +926,7 @@ export default function MyHifzTab(props) {
                           </div>
                         </div>
                       )}
-                    <div style={{padding:"0 14px"}}>
+                    <div style={{padding:"0 2px"}}>
                       {/* Top row: surah name (left) · Part N (right) — in-flow so the body
                           shrinks to content with no absolute-positioned reservations. */}
                       {(leadSurahNum>0||juzNum)&&(
@@ -858,29 +940,72 @@ export default function MyHifzTab(props) {
                         return (
                           <div key={group.sn+"-"+gi}>
                             {(gi>0||isFirst)&&(
-                              <div style={{textAlign:"center",padding:"10px 0 8px"}}>
-                                <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                  <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
+                              <div style={{textAlign:"center",padding:gi===0?"0 0 0":"16px 0 12px"}}>
+                                <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?12:0}}>
+                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                                    <span>surah</span>
+                                    <span>{String(group.sn).padStart(3,"0")}</span>
+                                  </span>
                                 </div>
                                 {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:8,marginBottom:20,direction:"rtl",lineHeight:1.8}}>
-                                    بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
-                                  </div>
+                                  bismillahGlyphs&&loadedFonts.has(1)?(
+                                    <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>
+                                      {bismillahGlyphs}
+                                    </div>
+                                  ):(
+                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:8,marginBottom:20,direction:"rtl",lineHeight:1.8}}>
+                                      بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+                                    </div>
+                                  )
                                 )}
                               </div>
                             )}
-                            <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2.1,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                              {group.verses.map((v)=>{
-                                const vKey=v.verse_key;
-                                const aNum=parseInt(vKey.split(":")[1],10);
+                            {(()=>{
+                              const pageFontReady=loadedFonts.has(fajrPageNum);
+                              if(!pageFontReady){
                                 return (
-                                  <span key={vKey}>
-                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
-                                    <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",margin:"0 2px 0 6px"}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
-                                  </span>
+                                  <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"center",lineHeight:2.1,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                                    {group.verses.map((v)=>{
+                                      const vKey=v.verse_key;
+                                      const aNum=parseInt(vKey.split(":")[1],10);
+                                      return (
+                                        <span key={vKey}>
+                                          <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                                          <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",margin:"0 2px 0 6px"}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
                                 );
-                              })}
-                            </div>
+                              }
+                              const lineMap={};
+                              const seenVerses=new Set();
+                              group.verses.forEach(v=>{
+                                if(seenVerses.has(v.verse_key)) return;
+                                if(v.page_number&&v.page_number!==fajrPageNum) return;
+                                seenVerses.add(v.verse_key);
+                                (v.words||[]).forEach(w=>{
+                                  const ct=w.char_type_name;
+                                  if(ct&&ct!=="word"&&ct!=="end") return;
+                                  if(w.page_number&&w.page_number!==fajrPageNum) return;
+                                  const ln=w.line_number;
+                                  if(typeof ln!=="number") return;
+                                  if(!lineMap[ln]) lineMap[ln]=[];
+                                  lineMap[ln].push({code:w.code_v2||"",char_type:ct});
+                                });
+                              });
+                              const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
+                              return lines.map(ln=>(
+                                <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${fajrPageNum}',serif`,fontSize:"clamp(18px,5vw,30px)",color:dark?"#E8DFC0":"#2D2A26",padding:"8px 0",whiteSpace:"nowrap"}}>
+                                  {lineMap[ln].map((it,ii)=>{
+                                    const isEnd=it.char_type==="end";
+                                    return (
+                                      <span key={ii} style={{color:isEnd?(dark?"rgba(212,175,55,0.60)":"#A08848"):undefined,borderRadius:4,padding:"0 2px"}}>{it.code}</span>
+                                    );
+                                  })}
+                                </div>
+                              ));
+                            })()}
                           </div>
                         );
                       })}
@@ -980,31 +1105,76 @@ export default function MyHifzTab(props) {
                           return (
                             <div key={sub.sNum+"-"+si}>
                               {(si>0||isFirst)&&(
-                                <div style={{textAlign:"center",padding:"12px 0 10px"}}>
-                                  <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                    <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[sub.sNum]?`سُورَةُ ${SURAH_AR[sub.sNum]}`:""}</span>
+                                <div style={{textAlign:"center",padding:si===0?"0 0 0":"16px 0 12px"}}>
+                                  <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:si===0?12:0}}>
+                                    <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                                      <span>surah</span>
+                                      <span>{String(sub.sNum).padStart(3,"0")}</span>
+                                    </span>
                                   </div>
                                   {isFirst&&sub.sNum!==9&&sub.sNum!==1&&(
-                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,marginBottom:20,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                    bismillahGlyphs&&loadedFonts.has(1)?(
+                                      <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>{bismillahGlyphs}</div>
+                                    ):(
+                                      <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,marginBottom:20,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                    )
                                   )}
                                 </div>
                               )}
-                              <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                                {sub.ayahs.map(v=>{
-                                  const vKey=v.verse_key;
-                                  const aNum=parseInt(vKey.split(":")[1],10);
-                                  const nowPlaying=playingKey===vKey;
+                              {(()=>{
+                                const pageNum=currentPg.page;
+                                const fullPage=fajrPageVerses[pageNum];
+                                const pageFontReady=loadedFonts.has(pageNum);
+                                const ayahSet=new Set(sub.ayahs.map(v=>v.verse_key));
+                                if(!pageFontReady||!fullPage){
                                   return (
-                                    <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
-                                      style={{cursor:"pointer",borderRadius:6,padding:"2px 4px",transition:"all .15s",
-                                        background:nowPlaying?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):"transparent",
-                                        boxShadow:nowPlaying?"0 0 10px rgba(212,175,55,0.25)":"none"}}>
-                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
-                                      <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",margin:"0 2px 0 6px"}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
-                                    </span>
+                                    <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"center",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                                      {sub.ayahs.map(v=>{
+                                        const vKey=v.verse_key;
+                                        const aNum=parseInt(vKey.split(":")[1],10);
+                                        const nowPlaying=playingKey===vKey;
+                                        return (
+                                          <span key={vKey} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
+                                            style={{cursor:"pointer",borderRadius:6,padding:"2px 4px",transition:"all .15s",
+                                              background:nowPlaying?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):"transparent",
+                                              boxShadow:nowPlaying?"0 0 10px rgba(212,175,55,0.25)":"none"}}>
+                                            <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",margin:"0 2px 0 6px"}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
                                   );
-                                })}
-                              </div>
+                                }
+                                const lineMap={};
+                                const seenVerses=new Set();
+                                fullPage.forEach(v=>{
+                                  if(!ayahSet.has(v.verse_key)) return;
+                                  if(seenVerses.has(v.verse_key)) return;
+                                  if(v.page_number&&v.page_number!==pageNum) return;
+                                  seenVerses.add(v.verse_key);
+                                  (v.words||[]).forEach(w=>{
+                                    const ct=w.char_type_name;
+                                    if(ct&&ct!=="word"&&ct!=="end") return;
+                                    if(w.page_number&&w.page_number!==pageNum) return;
+                                    const ln=w.line_number;
+                                    if(typeof ln!=="number") return;
+                                    if(!lineMap[ln]) lineMap[ln]=[];
+                                    lineMap[ln].push({code:w.code_v2||"",char_type:ct});
+                                  });
+                                });
+                                const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
+                                return lines.map(ln=>(
+                                  <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(18px,5vw,30px)",color:dark?"#E8DFC0":"#2D2A26",padding:"8px 0",whiteSpace:"nowrap"}}>
+                                    {lineMap[ln].map((it,ii)=>{
+                                      const isEnd=it.char_type==="end";
+                                      return (
+                                        <span key={ii} style={{color:isEnd?(dark?"rgba(212,175,55,0.60)":"#A08848"):undefined,borderRadius:4,padding:"0 2px"}}>{it.code}</span>
+                                      );
+                                    })}
+                                  </div>
+                                ));
+                              })()}
                             </div>
                           );
                         })}
@@ -1058,7 +1228,10 @@ export default function MyHifzTab(props) {
                           <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 4px 2px"}}>
                             <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(217,177,95,0) 0%,${dark?"rgba(232,200,120,0.30)":"rgba(140,100,20,0.25)"} 50%,rgba(217,177,95,0) 100%)`}}/>
                             <div style={{textAlign:"center"}}>
-                              <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,lineHeight:1.1}}>{SURAH_AR[sNum]?`سُورَةُ ${SURAH_AR[sNum]}`:""}</div>
+                              <div style={{fontFamily:"'surah-names',serif",fontSize:"clamp(22px,6vw,34px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                                <span>surah</span>
+                                <span>{String(sNum).padStart(3,"0")}</span>
+                              </div>
                             </div>
                             <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(217,177,95,0) 0%,${dark?"rgba(232,200,120,0.30)":"rgba(140,100,20,0.25)"} 50%,rgba(217,177,95,0) 100%)`}}/>
                           </div>
@@ -1145,7 +1318,7 @@ export default function MyHifzTab(props) {
                       </div>
                       <div className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[activeCloser.key]:Math.min(10,(prev[activeCloser.key]||0)+1)}))}
                         style={{padding:"16px 16px 18px",borderRadius:14,cursor:"pointer",transition:"all .2s",background:dark?"rgba(212,175,55,0.06)":"rgba(212,175,55,0.06)",border:`1.5px solid ${dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 0 14px rgba(212,175,55,0.12),0 4px 14px rgba(0,0,0,0.18)"}}>
-                        <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:2,marginBottom:12}}>
+                        <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"center",lineHeight:2,marginBottom:12}}>
                           {activeCloser.ayahs.map(a=>(
                             <span key={a.verse_key}>
                               <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
