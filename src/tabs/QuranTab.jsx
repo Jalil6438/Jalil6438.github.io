@@ -81,9 +81,9 @@ export default function QuranTab(props) {
     }
   };
   useEffect(() => {
-    loadQcfFont(mushafPage);
-    loadQcfFont(mushafPage + 1);
-    loadQcfFont(mushafPage - 1);
+    // Preload current + neighbors in a wider window so casual page flips
+    // (swipes, 'next/prev' taps) don't wait for network.
+    for (let i = -4; i <= 4; i++) loadQcfFont(mushafPage + i);
   }, [mushafPage]);
 
   // Track the rub_el_hizb_number of the LAST verse on the previous page so we
