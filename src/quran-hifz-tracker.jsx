@@ -214,7 +214,7 @@ export default function RihlatAlHifz() {
       try {
         // Use same source as My Hifz — qurancdn returns clean text_uthmani, no stray tokens
         const [textRes, transRes] = await Promise.all([
-          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=line_number,code_v2,char_type_name&fields=text_uthmani,text_uthmani_tajweed,verse_key,juz_number&per_page=50`),
+          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=line_number,code_v2,code_v4,char_type_name&fields=text_uthmani,text_uthmani_tajweed,verse_key,juz_number&per_page=50`),
           fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?per_page=50&translations=203&fields=verse_key`)
         ]);
         if (!textRes.ok) throw new Error();

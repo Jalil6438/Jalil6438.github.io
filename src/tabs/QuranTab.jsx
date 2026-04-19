@@ -236,35 +236,49 @@ export default function QuranTab(props) {
                               )}
                             </div>
                           )}
-                          <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                            {group.verses.map(verse=>{
-                              const aNum=verse.verse_key.split(":")[1];
-                              const isSelected=selectedAyah===verse.verse_key;
-                              const pageNum=verse.page_number||mushafPage;
-                              const fontReady=loadedFonts.has(pageNum);
-                              const hasCodeV2=fontReady&&(verse.words||[]).some(w=>w.code_v2);
-                              return (
-                                <span key={verse.verse_key} className="sbtn"
-                                  onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
-                                  style={{cursor:"pointer",borderRadius:6,padding:"2px 3px",
-                                    background:isSelected?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent",
-                                    boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",
-                                    transition:"background .15s",
-                                  }}>
-                                  {hasCodeV2?(
-                                    (verse.words||[]).map((w,wi)=>(
-                                      <span key={wi} style={{fontFamily:`'p${pageNum}',serif`,fontSize:Math.round(fontSize*1.15),color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{w.code_v2||""}{wi<(verse.words||[]).length-1?" ":""}</span>
-                                    ))
-                                  ):(
-                                    <>
+                          {(()=>{
+                            const pageFontReady=loadedFonts.has(mushafPage);
+                            if(pageFontReady){
+                              // Mushaf line-by-line render using code_v2 grouped
+                              // by line_number. Each of the 15 lines flex-justifies
+                              // so words fill width evenly — authentic mushaf layout.
+                              const lineMap={};
+                              group.verses.forEach(v=>{
+                                (v.words||[]).forEach(w=>{
+                                  const ln=w.line_number;
+                                  if(typeof ln!=="number") return;
+                                  if(!lineMap[ln]) lineMap[ln]=[];
+                                  lineMap[ln].push({code:w.code_v2||"",verse_key:v.verse_key});
+                                });
+                              });
+                              const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
+                              return lines.map(ln=>(
+                                <div key={ln} style={{display:"flex",justifyContent:"space-between",alignItems:"center",direction:"rtl",fontFamily:`'p${mushafPage}',serif`,fontSize:Math.round(fontSize*1.2),color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0"}}>
+                                  {lineMap[ln].map((it,ii)=>{
+                                    const sel=selectedAyah===it.verse_key;
+                                    return (
+                                      <span key={ii} className="sbtn" onClick={()=>{setSelectedAyah(sel?null:it.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",color:sel?(dark?"#F5E6B3":"#3A2200"):undefined,borderRadius:4,padding:"0 2px",background:sel?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent"}}>{it.code}</span>
+                                    );
+                                  })}
+                                </div>
+                              ));
+                            }
+                            // Fallback: flowing text_uthmani + UthmanicHafs
+                            return (
+                              <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
+                                {group.verses.map(verse=>{
+                                  const aNum=verse.verse_key.split(":")[1];
+                                  const isSelected=selectedAyah===verse.verse_key;
+                                  return (
+                                    <span key={verse.verse_key} className="sbtn" onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}} style={{cursor:"pointer",borderRadius:6,padding:"2px 3px",background:isSelected?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.15)"):"transparent",boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",transition:"background .15s"}}>
                                       <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                                       <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
-                                    </>
-                                  )}
-                                </span>
-                              );
-                            })}
-                          </div>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                         </div>
                       );
                     })}
