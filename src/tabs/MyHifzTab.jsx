@@ -108,7 +108,7 @@ export default function MyHifzTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=true&word_fields=line_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
+        const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${fajrPageNum}?words=true&word_fields=line_number&fields=text_uthmani,text_uthmani_tajweed,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
         if (!res.ok || cancelled) return;
         const data = await res.json();
         const vs = (data.verses || []).map(v => {
@@ -875,7 +875,7 @@ export default function MyHifzTab(props) {
                                 const aNum=parseInt(vKey.split(":")[1],10);
                                 return (
                                   <span key={vKey}>
-                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize,color:dark?"#E8DFC0":"#2D2A26"}} dangerouslySetInnerHTML={{__html:((v.text_uthmani_tajweed||v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim())+"\u2060"}}/>
                                     <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.40)":"#A08848",margin:"0 2px 0 6px"}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
                                   </span>
                                 );
