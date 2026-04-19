@@ -55,17 +55,32 @@ export default function QuranTab(props) {
   // Dynamically load the KFGQPC V2 per-page font (one font per mushaf page).
   // Paired with code_v2 PUA glyphs so each mushaf page renders at authentic
   // layout. Source: jsdelivr mirror of quran.com's font bundle.
+  // Track which pages' QCF V2 fonts are loaded & ready. Used to switch each
+  // page's render from the fallback (text_uthmani + UthmanicHafs) to the
+  // authentic (code_v2 + p{N}) once the per-page font has downloaded.
+  const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
-    if (document.getElementById(`qcf-font-${pageN}`)) return;
+    if (document.getElementById(`qcf-font-${pageN}`)) {
+      if (loadedFonts.has(pageN)) return;
+      // Style exists but state doesn't know yet — re-check readiness.
+      if (document.fonts && document.fonts.check(`16px 'p${pageN}'`)) {
+        setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
+      }
+      return;
+    }
     const style = document.createElement("style");
     style.id = `qcf-font-${pageN}`;
-    // Prefer woff2 (smaller, faster) with woff fallback for older browsers.
     style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:swap;}`;
     document.head.appendChild(style);
+    // Notify state once the font's actually ready, then swap the render.
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load(`16px 'p${pageN}'`).then(() => {
+        setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
+      }).catch(() => {});
+    }
   };
   useEffect(() => {
-    // Load current page's font + preload adjacent pages so swipes feel instant.
     loadQcfFont(mushafPage);
     loadQcfFont(mushafPage + 1);
     loadQcfFont(mushafPage - 1);
@@ -225,6 +240,9 @@ export default function QuranTab(props) {
                             {group.verses.map(verse=>{
                               const aNum=verse.verse_key.split(":")[1];
                               const isSelected=selectedAyah===verse.verse_key;
+                              const pageNum=verse.page_number||mushafPage;
+                              const fontReady=loadedFonts.has(pageNum);
+                              const hasCodeV2=fontReady&&(verse.words||[]).some(w=>w.code_v2);
                               return (
                                 <span key={verse.verse_key} className="sbtn"
                                   onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
@@ -233,8 +251,16 @@ export default function QuranTab(props) {
                                     boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",
                                     transition:"background .15s",
                                   }}>
-                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
+                                  {hasCodeV2?(
+                                    (verse.words||[]).map((w,wi)=>(
+                                      <span key={wi} style={{fontFamily:`'p${pageNum}',serif`,fontSize:Math.round(fontSize*1.15),color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{w.code_v2||""}{wi<(verse.words||[]).length-1?" ":""}</span>
+                                    ))
+                                  ):(
+                                    <>
+                                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                      <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
+                                    </>
+                                  )}
                                 </span>
                               );
                             })}
