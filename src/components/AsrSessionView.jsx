@@ -20,6 +20,19 @@ function AsrSessionView({
     const [loadedFonts, setLoadedFonts] = useState(() => new Set());
     const [pageVerses, setPageVerses] = useState({});
     const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
+    const [mushafPagesData, setMushafPagesData] = useState(null);
+    const [mushafLayoutData, setMushafLayoutData] = useState(null);
+    useEffect(() => {
+      let cancelled = false;
+      (async () => {
+        try {
+          const [p, l] = await Promise.all([fetch("/mushaf-pages.json"), fetch("/mushaf-layout.json")]);
+          if (!cancelled && p.ok) setMushafPagesData(await p.json());
+          if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+        } catch {}
+      })();
+      return () => { cancelled = true; };
+    }, []);
     const loadQcfFont = (pageN) => {
       if (!pageN || pageN < 1 || pageN > 604) return;
       const elId = `qcf-font-v2-${pageN}`;
@@ -223,83 +236,59 @@ function AsrSessionView({
                 ):<div/>}
               </div>
               <div key={safePage} ref={asrMushafScrollRef} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{flex:1,overflow:"hidden",padding:"8px 2px"}}>
-                {subs.map((sub,si)=>{
-                  const isFirst=sub.ayahs[0]&&sub.ayahs[0].verse_key.split(":")[1]==="1";
-                  return (
-                  <div key={sub.sNum+"-"+si}>
-                    {(si>0||isFirst)&&(
-                      <div style={{textAlign:"center",padding:si===0?"0 0 0":"16px 0 12px"}}>
-                        <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:si===0?12:0}}>
-                          <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
-                            <span>surah</span>
-                            <span>{String(sub.sNum).padStart(3,"0")}</span>
-                          </span>
-                        </div>
-                        {isFirst&&sub.sNum!==9&&sub.sNum!==1&&(
-                          bismillahGlyphs&&loadedFonts.has(1)?(
-                            <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>{bismillahGlyphs}</div>
-                          ):(
-                            <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",marginTop:10,direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                          )
-                        )}
+                {(()=>{
+                  const pageNum=currentPage.page;
+                  const pageFontReady=loadedFonts.has(pageNum);
+                  if(!pageFontReady){
+                    return (
+                      <div style={{minHeight:400,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
+                        <span>loading mushaf…</span>
                       </div>
-                    )}
-                    {(()=>{
-                      const pageNum=currentPage.page;
-                      const fullPage=pageVerses[pageNum];
-                      const pageFontReady=loadedFonts.has(pageNum);
-                      const ayahSet=new Set(sub.ayahs.map(v=>v.verse_key));
-                      if(!pageFontReady||!fullPage){
-                        return (
-                          <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"center",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
-                            {sub.ayahs.map(v=>{
-                              const vKey=v.verse_key;
-                              const aNum=parseInt(vKey.split(":")[1],10);
-                              const nowPlaying=playingKey===vKey;
-                              return (
-                                <span key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
-                                  style={{cursor:"pointer",borderRadius:6,padding:"2px 4px",transition:"all .15s",
-                                    background:nowPlaying?(dark?"rgba(212,175,55,0.18)":"rgba(212,175,55,0.18)"):"transparent",
-                                    boxShadow:nowPlaying?"0 0 10px rgba(212,175,55,0.25)":"none"}}>
-                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:nowPlaying?(dark?"#F6E27A":"#6B4F00"):(dark?"#E8DFC0":"#2D2A26")}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:2,marginLeft:2}}>﴿{toArabicDigits(aNum)}﴾</span>
-                                </span>
-                              );
-                            })}
+                    );
+                  }
+                  const pageLines=mushafPagesData&&mushafPagesData[pageNum];
+                  const pageLayout=mushafLayoutData&&mushafLayoutData[pageNum];
+                  if(!pageLines||!pageLayout) return null;
+                  let ayahIdx=-1;
+                  return pageLayout.map((layoutEntry,i)=>{
+                    const type=layoutEntry.type;
+                    let lineText="";
+                    if(type!=="surah_name"&&type!=="basmallah"){
+                      ayahIdx++;
+                      lineText=pageLines[ayahIdx]||"";
+                    }
+                    const isCenter=layoutEntry.center===1;
+                    if(type==="surah_name"){
+                      const sn=layoutEntry.sn;
+                      return (
+                        <div key={i} style={{textAlign:"center",padding:"8px 0"}}>
+                          <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                              <span>surah</span>
+                              <span>{String(sn).padStart(3,"0")}</span>
+                            </span>
                           </div>
-                        );
-                      }
-                      const lineMap={};
-                      const seenVerses=new Set();
-                      fullPage.forEach(v=>{
-                        if(!ayahSet.has(v.verse_key)) return;
-                        if(seenVerses.has(v.verse_key)) return;
-                        if(v.page_number&&v.page_number!==pageNum) return;
-                        seenVerses.add(v.verse_key);
-                        (v.words||[]).forEach(w=>{
-                          const ct=w.char_type_name;
-                          if(ct&&ct!=="word"&&ct!=="end") return;
-                          if(w.page_number&&w.page_number!==pageNum) return;
-                          const ln=w.line_number;
-                          if(typeof ln!=="number") return;
-                          if(!lineMap[ln]) lineMap[ln]=[];
-                          lineMap[ln].push({code:w.code_v2||"",char_type:ct});
-                        });
-                      });
-                      const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
-                      return lines.map(ln=>(
-                        <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(18px,5vw,30px)",color:dark?"#E8DFC0":"#2D2A26",padding:"8px 0",whiteSpace:"nowrap"}}>
-                          {lineMap[ln].map((it,ii)=>{
-                            const isEnd=it.char_type==="end";
-                            return (
-                              <span key={ii} style={{color:isEnd?(dark?"rgba(212,175,55,0.60)":"#A08848"):undefined,borderRadius:4,padding:"0 2px"}}>{it.code}</span>
-                            );
-                          })}
                         </div>
-                      ));
-                    })()}
-                  </div>);
-                })}
+                      );
+                    }
+                    if(type==="basmallah"){
+                      return (
+                        <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
+                          {bismillahGlyphs&&loadedFonts.has(1)?(
+                            <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
+                          ):(
+                            <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(18px,4.9vw,28px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                        {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
               {/* Page chrome bottom — hizb | page on the right */}
               <div style={{textAlign:"right",padding:"6px 14px 2px",flexShrink:0,marginTop:"auto",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em"}}>
