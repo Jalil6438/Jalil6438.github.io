@@ -85,6 +85,25 @@ export default function QuranTab(props) {
     for (let i = -4; i <= 4; i++) loadQcfFont(mushafPage + i);
   }, [mushafPage]);
 
+  // Fetch Fatihah verse 1:1 (the universal bismillah) once. We render
+  // every surah-opener bismillah using THESE exact glyphs + the p1 font,
+  // so the style is identical to what you see on page 1 of the mushaf.
+  const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
+  useEffect(() => {
+    loadQcfFont(1);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("https://api.quran.com/api/v4/verses/by_key/1:1?words=true&word_fields=code_v2,char_type_name");
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const words = (data.verse?.words || []).filter(w => w.char_type_name === "word").map(w => w.code_v2 || "");
+        if (!cancelled && words.length) setBismillahGlyphs(words.join(""));
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Track the rub_el_hizb_number of the LAST verse on the previous page so we
   // can detect when a new rub starts at the very first verse of the current
   // page (otherwise our transition-within-page check misses boundary pages).
@@ -190,7 +209,7 @@ export default function QuranTab(props) {
                 if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"#060C18":"#F3E9D2",padding:`10px 12px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"center"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 12px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"center"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
@@ -229,9 +248,15 @@ export default function QuranTab(props) {
                                 <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>
-                                  بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
-                                </div>
+                                bismillahGlyphs&&loadedFonts.has(1)?(
+                                  <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>
+                                    {bismillahGlyphs}
+                                  </div>
+                                ):(
+                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2,marginTop:0,marginBottom:0}}>
+                                    بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+                                  </div>
+                                )
                               )}
                             </div>
                           )}
@@ -262,7 +287,7 @@ export default function QuranTab(props) {
                               // line. No flex-justify: that was spreading
                               // short lines (Fatihah, Baqarah p2) unnaturally.
                               // Matches quran.com-frontend-next mobile layout.
-                              <div key={ln} style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(18px,5.3vw,28px)",color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0",whiteSpace:"nowrap"}}>
+                              <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(16px,4.6vw,26px)",color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0"}}>
                                 {lineMap[ln].map((it,ii)=>{
                                   const sel=selectedAyah===it.verse_key;
                                   const isEnd=it.char_type==="end";
