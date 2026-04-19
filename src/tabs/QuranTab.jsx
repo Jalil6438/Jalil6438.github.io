@@ -212,8 +212,8 @@ export default function QuranTab(props) {
                                 <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                <div style={{fontFamily:"'p1','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*1.15),color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",direction:"rtl",lineHeight:2,marginBottom:28}}>
-                                  {"ï±\uDC81 ï±\u201A ï±\u0192 ï±\u201E ï±\u2026"}
+                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2,marginBottom:28}}>
+                                  بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
                                 </div>
                               )}
                             </div>
