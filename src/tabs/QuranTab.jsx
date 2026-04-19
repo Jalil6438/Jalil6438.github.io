@@ -49,7 +49,22 @@ export default function QuranTab(props) {
     stopMushafAudio,
     playMushafRange,
     mushafLayout,
+    qpcPages,
   } = props;
+
+  // Dynamically load the KFGQPC V2 per-page font (one font per mushaf page).
+  // Paired with the qpcPages PUA glyph lines so each mushaf page renders at
+  // pixel-perfect authentic layout. Source: jsdelivr mirror of quran.com's
+  // font bundle (CORS-friendly, ~30-60KB per page). Cached by id so each
+  // font only loads once.
+  useEffect(() => {
+    if (!mushafPage) return;
+    if (document.getElementById(`qcf-font-${mushafPage}`)) return;
+    const style = document.createElement("style");
+    style.id = `qcf-font-${mushafPage}`;
+    style.textContent = `@font-face{font-family:'p${mushafPage}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${mushafPage}.woff') format('woff');font-display:swap;}`;
+    document.head.appendChild(style);
+  }, [mushafPage]);
 
   // Track the rub_el_hizb_number of the LAST verse on the previous page so we
   // can detect when a new rub starts at the very first verse of the current
@@ -201,11 +216,15 @@ export default function QuranTab(props) {
                               )}
                             </div>
                           )}
-                          {/* Flowing ayah text */}
+                          {/* Authentic KFGQPC V2 render — words use code_v2 PUA
+                              glyphs rendered with the page-specific font p{N}.
+                              Falls back to text_uthmani with UthmanicHafs when
+                              code_v2 isn't available. */}
                           <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"right",lineHeight:1.95,wordBreak:"keep-all",overflowWrap:"normal"}}>
                             {group.verses.map(verse=>{
-                              const aNum=verse.verse_key.split(":")[1];
                               const isSelected=selectedAyah===verse.verse_key;
+                              const pageNum=verse.page_number||mushafPage;
+                              const hasCodeV2=(verse.words||[]).some(w=>w.code_v2);
                               return (
                                 <span key={verse.verse_key} className="sbtn"
                                   onClick={()=>{setSelectedAyah(isSelected?null:verse.verse_key);setShowReflect(false);setDrawerView("default");}}
@@ -214,8 +233,13 @@ export default function QuranTab(props) {
                                     boxShadow:isSelected?(dark?"0 0 8px rgba(212,175,55,0.20)":"0 0 8px rgba(212,175,55,0.15)"):"none",
                                     transition:"background .15s",
                                   }}>
-                                  <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                                  <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,color:isSelected?(dark?"rgba(212,175,55,0.80)":"#7A5C0E"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:2,marginLeft:2}}>{`\u2060﴿${toArabicDigits(aNum)}﴾`}</span>
+                                  {hasCodeV2?(
+                                    (verse.words||[]).map((w,wi)=>(
+                                      <span key={wi} style={{fontFamily:`'p${pageNum}','UthmanicHafs',serif`,fontSize:Math.round(fontSize*1.15),color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{w.code_v2||""}{wi<(verse.words||[]).length-1?" ":""}</span>
+                                    ))
+                                  ):(
+                                    <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:isSelected?(dark?"#F5E6B3":"#3A2200"):(dark?"#E8DFC0":"#2D2A26")}}>{(verse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                                  )}
                                 </span>
                               );
                             })}
