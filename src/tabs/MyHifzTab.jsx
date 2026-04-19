@@ -987,6 +987,23 @@ export default function MyHifzTab(props) {
                         const pageLines=mushafPagesData&&mushafPagesData[fajrPageNum];
                         const pageLayout=mushafLayoutData&&mushafLayoutData[fajrPageNum];
                         if(!pageLines||!pageLayout) return null;
+                        // Only render lines belonging to surahs in today's
+                        // batch (derived from the filtered batch) — skips
+                        // tails/heads of other surahs on split pages.
+                        const batchSurahs=new Set(batch.map(v=>parseInt(v.verse_key.split(":")[0],10)));
+                        // Initial surah for the page: if the page layout has
+                        // a surah_name, any ayah lines *before* it belong to
+                        // the PREVIOUS surah (page tail continuation). Only
+                        // fall back to the batch's surah when the page has no
+                        // surah_name (full-page single-surah case).
+                        const firstSurahName=pageLayout.find(e=>e.type==="surah_name");
+                        const anyBatchVerse=batch.find(v=>(verseToPageMap?.[v.verse_key]||v.page_number)===fajrPageNum);
+                        const startSurah=firstSurahName
+                          ? firstSurahName.sn-1
+                          : (anyBatchVerse
+                              ? parseInt(anyBatchVerse.verse_key.split(":")[0],10)
+                              : null);
+                        let currentSurah=startSurah;
                         let ayahIdx=-1;
                         return pageLayout.map((layoutEntry,i)=>{
                           const type=layoutEntry.type;
@@ -995,6 +1012,13 @@ export default function MyHifzTab(props) {
                             ayahIdx++;
                             lineText=pageLines[ayahIdx]||"";
                           }
+                          if(type==="surah_name"){
+                            currentSurah=layoutEntry.sn;
+                          }
+                          // Skip lines that aren't part of today's batch —
+                          // drops tails of not-yet-memorized surahs and heads
+                          // of already-memorized surahs on split pages.
+                          if(batchSurahs.size>0&&!batchSurahs.has(currentSurah)) return null;
                           const isCenter=layoutEntry.center===1;
                           if(type==="surah_name"){
                             const sn=layoutEntry.sn;
@@ -1131,6 +1155,18 @@ export default function MyHifzTab(props) {
                           const pageLines=mushafPagesData&&mushafPagesData[pageNum];
                           const pageLayout=mushafLayoutData&&mushafLayoutData[pageNum];
                           if(!pageLines||!pageLayout) return null;
+                          // Only render lines for surahs that appear in this
+                          // page's batch (what's been memorized). Drops the
+                          // tail of the currently-memorizing surah when only
+                          // part of it is reviewed, and drops heads/tails of
+                          // surahs not yet in the review window.
+                          const pageSurahs=new Set(currentPg.ayahs.map(v=>
+                            v.surah_number||parseInt(v.verse_key.split(":")[0],10)));
+                          const firstSurahName=pageLayout.find(e=>e.type==="surah_name");
+                          let currentSurah=firstSurahName
+                            ? firstSurahName.sn-1
+                            : (currentPg.ayahs[0]?.surah_number
+                                ||parseInt(currentPg.ayahs[0]?.verse_key.split(":")[0],10));
                           let ayahIdx=-1;
                           return pageLayout.map((layoutEntry,i)=>{
                             const type=layoutEntry.type;
@@ -1139,6 +1175,8 @@ export default function MyHifzTab(props) {
                               ayahIdx++;
                               lineText=pageLines[ayahIdx]||"";
                             }
+                            if(type==="surah_name"){ currentSurah=layoutEntry.sn; }
+                            if(pageSurahs.size>0&&!pageSurahs.has(currentSurah)) return null;
                             const isCenter=layoutEntry.center===1;
                             if(type==="surah_name"){
                               const sn=layoutEntry.sn;

@@ -249,6 +249,16 @@ function AsrSessionView({
                   const pageLines=mushafPagesData&&mushafPagesData[pageNum];
                   const pageLayout=mushafLayoutData&&mushafLayoutData[pageNum];
                   if(!pageLines||!pageLayout) return null;
+                  // Only render lines for surahs in this Asr block's batch.
+                  // On the Tariq/Ala boundary page, 1st half shows Tariq only;
+                  // 2nd half shows Ala only.
+                  const pageSurahs=new Set(currentPage.ayahs.map(v=>
+                    v.surah_number||parseInt(v.verse_key.split(":")[0],10)));
+                  const firstSurahName=pageLayout.find(e=>e.type==="surah_name");
+                  let currentSurah=firstSurahName
+                    ? firstSurahName.sn-1
+                    : (currentPage.ayahs[0]?.surah_number
+                        ||parseInt(currentPage.ayahs[0]?.verse_key.split(":")[0],10));
                   let ayahIdx=-1;
                   return pageLayout.map((layoutEntry,i)=>{
                     const type=layoutEntry.type;
@@ -257,6 +267,8 @@ function AsrSessionView({
                       ayahIdx++;
                       lineText=pageLines[ayahIdx]||"";
                     }
+                    if(type==="surah_name"){ currentSurah=layoutEntry.sn; }
+                    if(pageSurahs.size>0&&!pageSurahs.has(currentSurah)) return null;
                     const isCenter=layoutEntry.center===1;
                     if(type==="surah_name"){
                       const sn=layoutEntry.sn;
