@@ -53,18 +53,20 @@ export default function QuranTab(props) {
   } = props;
 
   // Dynamically load the KFGQPC V2 per-page font (one font per mushaf page).
-  // Paired with the qpcPages PUA glyph lines so each mushaf page renders at
-  // pixel-perfect authentic layout. Source: jsdelivr mirror of quran.com's
-  // font bundle (CORS-friendly, ~30-60KB per page). Cached by id so each
-  // font only loads once.
-  useEffect(() => {
-    if (!mushafPage) return;
-    if (document.getElementById(`qcf-font-${mushafPage}`)) return;
+  // Paired with code_v2 PUA glyphs so each mushaf page renders at authentic
+  // layout. Source: jsdelivr mirror of quran.com's font bundle.
+  const loadQcfFont = (pageN) => {
+    if (!pageN) return;
+    if (document.getElementById(`qcf-font-${pageN}`)) return;
     const style = document.createElement("style");
-    style.id = `qcf-font-${mushafPage}`;
-    style.textContent = `@font-face{font-family:'p${mushafPage}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${mushafPage}.woff') format('woff');font-display:swap;}`;
+    style.id = `qcf-font-${pageN}`;
+    style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:swap;}`;
     document.head.appendChild(style);
-  }, [mushafPage]);
+  };
+  useEffect(() => { loadQcfFont(mushafPage); }, [mushafPage]);
+  // Always preload page 1's font — used for the cross-surah bismillah header
+  // (Fatiha 1:1's glyphs render the authentic bismillah in QCF V2 style).
+  useEffect(() => { loadQcfFont(1); }, []);
 
   // Track the rub_el_hizb_number of the LAST verse on the previous page so we
   // can detect when a new rub starts at the very first verse of the current
@@ -210,8 +212,8 @@ export default function QuranTab(props) {
                                 <span style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
-                                <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:17,color:dark?"rgba(232,200,120,0.55)":"rgba(0,0,0,0.45)",direction:"rtl",lineHeight:2,marginBottom:28}}>
-                                  بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ
+                                <div style={{fontFamily:"'p1','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:Math.round(fontSize*1.15),color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",direction:"rtl",lineHeight:2,marginBottom:28}}>
+                                  {"ï±\uDC81 ï±\u201A ï±\u0192 ï±\u201E ï±\u2026"}
                                 </div>
                               )}
                             </div>
