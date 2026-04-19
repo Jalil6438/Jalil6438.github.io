@@ -253,7 +253,7 @@ export default function QuranTab(props) {
                               });
                               const lines=Object.keys(lineMap).map(Number).sort((a,b)=>a-b);
                               return lines.map(ln=>(
-                                <div key={ln} style={{display:"flex",justifyContent:"space-between",alignItems:"center",direction:"rtl",fontFamily:`'p${mushafPage}',serif`,fontSize:Math.round(fontSize*1.2),color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0"}}>
+                                <div key={ln} style={{display:"flex",justifyContent:"space-between",alignItems:"center",direction:"rtl",fontFamily:`'p${mushafPage}',serif`,fontSize:fontSize,color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0"}}>
                                   {lineMap[ln].map((it,ii)=>{
                                     const sel=selectedAyah===it.verse_key;
                                     return (
