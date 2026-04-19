@@ -105,7 +105,21 @@ export default function MyHifzTab(props) {
   // Pages used by the Dhuhr/Asr/Maghrib/Isha batch — we fetch each with
   // code_v2 + line_number so every session renders in the authentic
   // KFGQPC V2 mushaf layout (matching Fajr + QuranTab).
-  const sessionPageNums = Array.from(new Set((rawBatch || []).map(v => v.page_number).filter(Boolean)));
+  // Fetch ±1 page around each batch page — API and Madinah layouts
+  // disagree on boundary verses (e.g. Al-Ala 11-15: API says page 591,
+  // Madinah says 592). Pulling both pages lets us rebuild the correct
+  // Madinah-page batch via verseToPageMap.
+  const sessionPageNums = (() => {
+    const s = new Set();
+    (rawBatch || []).forEach(v => {
+      const p = v.page_number;
+      if (!p) return;
+      s.add(p);
+      if (p > 1) s.add(p - 1);
+      if (p < 604) s.add(p + 1);
+    });
+    return Array.from(s);
+  })();
   useEffect(() => {
     if (!sessionPageNums.length) return;
     let cancelled = false;
@@ -155,13 +169,19 @@ export default function MyHifzTab(props) {
   // strings + alignment). Matches QuranTab's render path.
   const [mushafPagesData, setMushafPagesData] = useState(null);
   const [mushafLayoutData, setMushafLayoutData] = useState(null);
+  const [verseToPageMap, setVerseToPageMap] = useState(null);
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [p, l] = await Promise.all([fetch("/mushaf-pages.json"), fetch("/mushaf-layout.json")]);
+        const [p, l, v] = await Promise.all([
+          fetch("/mushaf-pages.json"),
+          fetch("/mushaf-layout.json"),
+          fetch("/verse-to-page.json"),
+        ]);
         if (!cancelled && p.ok) setMushafPagesData(await p.json());
         if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+        if (!cancelled && v.ok) setVerseToPageMap(await v.json());
       } catch {}
     })();
     return () => { cancelled = true; };
@@ -210,11 +230,26 @@ export default function MyHifzTab(props) {
     return () => { cancelled = true; };
   }, [isPageBasedSession, fajrPageNum]);
 
-  // Full mushaf page — used for the Mushaf reading render so the user sees the
-  // whole page, including the tail of the previous surah if any.
-  const pageBatch = (isPageBasedSession && fajrPageNum && fajrPageVerses[fajrPageNum]?.length)
-    ? fajrPageVerses[fajrPageNum]
-    : rawBatch;
+  // Full mushaf page — UNION of fajrPageNum and neighbors ±1, since the API
+  // might place a verse on one page while Madinah places it on another. We
+  // filter down via verseToPageMap later to get today's Madinah page set.
+  const pageBatch = (() => {
+    if (!isPageBasedSession || !fajrPageNum) return rawBatch;
+    const all = [];
+    const seen = new Set();
+    for (const p of [fajrPageNum - 1, fajrPageNum, fajrPageNum + 1]) {
+      (fajrPageVerses[p] || []).forEach(v => {
+        if (!seen.has(v.verse_key)) { seen.add(v.verse_key); all.push(v); }
+      });
+    }
+    all.sort((a, b) => {
+      const sa = parseInt(a.verse_key.split(":")[0], 10);
+      const sb = parseInt(b.verse_key.split(":")[0], 10);
+      if (sa !== sb) return sa - sb;
+      return parseInt(a.verse_key.split(":")[1], 10) - parseInt(b.verse_key.split(":")[1], 10);
+    });
+    return all.length > 0 ? all : rawBatch;
+  })();
 
   // Dynamically load the KFGQPC V2 per-page font for the current mushaf page.
   // Source: jsdelivr mirror of quran.com's font bundle (CORS-friendly). Each
@@ -305,7 +340,12 @@ export default function MyHifzTab(props) {
 
   // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) show the
   // active surah + any other surahs that begin fresh on the same page.
-  const batch = isPageBasedSession ? filterActivePlusFresh(pageBatch) : pageBatch;
+  // For single-page sessions (Fajr/Maghrib/Isha), cap to verses actually on
+  // today's Madinah page via verseToPageMap. Dhuhr spans 5 pages so skip.
+  const batchPreFilter = isPageBasedSession ? filterActivePlusFresh(pageBatch) : pageBatch;
+  const batch = verseToPageMap && fajrPageNum && isPageBasedSession
+    ? batchPreFilter.filter(v => verseToPageMap[v.verse_key] === fajrPageNum)
+    : batchPreFilter;
 
   // Share the page batch with the main component so Maghrib / Isha activity
   // descriptions ("Listened to ..." / "Final review of ...") reflect the
@@ -1154,12 +1194,18 @@ export default function MyHifzTab(props) {
 
                 {/* ── AYAH ROWS — Fajr Study mode only (review sessions use Mushaf render above) ── */}
                 {currentSessionId==="fajr"&&hifzViewMode==="interactive"&&(()=>{
+                  // Filter batch to verses on today's Madinah page per the
+                  // authoritative verse-to-page mapping (same page layout
+                  // as Fajr Mushaf).
+                  const filteredBatch=verseToPageMap
+                    ? batch.filter(v=>verseToPageMap[v.verse_key]===fajrPageNum)
+                    : batch;
                   const APS=7;
-                  const aPages=Math.max(1,Math.ceil(batch.length/APS));
+                  const aPages=Math.max(1,Math.ceil(filteredBatch.length/APS));
                   const aSafe=Math.min(ayahPage,aPages-1);
                   const aStart=aSafe*APS;
-                  const aEnd=Math.min(aStart+APS,batch.length);
-                  const pageAyahs=batch.slice(aStart,aEnd);
+                  const aEnd=Math.min(aStart+APS,filteredBatch.length);
+                  const pageAyahs=filteredBatch.slice(aStart,aEnd);
                   return (
                 <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}
                   onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}}
@@ -1196,10 +1242,18 @@ export default function MyHifzTab(props) {
                             {currentSessionId==="fajr"&&<span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>}
                           </div>
                           {(()=>{
-                            const pn=v.page_number;
-                            const fullPage=fajrPageVerses[pn];
+                            // Use Madinah page (from verseToPageMap) so the
+                            // visual font matches what Fajr Mushaf shows.
+                            const pn=(verseToPageMap&&verseToPageMap[vKey])||v.page_number;
                             const pageFontReady=loadedFonts.has(pn);
-                            const fullVerse=fullPage&&fullPage.find(x=>x.verse_key===vKey);
+                            // Search across any fetched page for this verse's
+                            // words — API may have them in a different page
+                            // than where Madinah places them.
+                            let fullVerse=null;
+                            for(const key of Object.keys(fajrPageVerses||{})){
+                              const found=(fajrPageVerses[key]||[]).find(x=>x.verse_key===vKey);
+                              if(found){ fullVerse=found; break; }
+                            }
                             if(pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (
