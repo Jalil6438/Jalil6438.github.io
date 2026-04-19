@@ -203,13 +203,19 @@ export default function QuranTab(props) {
             </div>
           ):(
             <div
-              onTouchStart={(e)=>{ quranTouchRef.current=e.touches[0].clientX; }}
+              onTouchStart={(e)=>{ quranTouchRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY}; }}
               onTouchEnd={(e)=>{
-                const dx=e.changedTouches[0].clientX-quranTouchRef.current;
-                if(dx < -40){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
-                if(dx > 40){ setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
+                const start=quranTouchRef.current;
+                if(!start||typeof start!=="object") return;
+                const dx=e.changedTouches[0].clientX-start.x;
+                const dy=e.changedTouches[0].clientY-start.y;
+                // Only treat as a page swipe if horizontal movement clearly
+                // dominates — otherwise this was a vertical scroll.
+                if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)) return;
+                if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
+                else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 6px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"center"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 6px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
@@ -236,7 +242,7 @@ export default function QuranTab(props) {
                       if(!cg||cg.sn!==sn){cg={sn,verses:[]};surahGroups.push(cg);}
                       cg.verses.push(verse);
                     });
-                    return (<div style={{padding:"24px 2px 0",position:"relative"}}>
+                    return (<div style={{padding:"8px 2px 0",position:"relative"}}>
                     {surahGroups.map((group,gi)=>{
                       const isFirst=group.verses[0]&&group.verses[0].verse_key.split(":")[1]==="1";
                       return (
@@ -244,7 +250,7 @@ export default function QuranTab(props) {
                           {/* Surah header — centered, outside RTL flow */}
                           {(gi>0||isFirst)&&(
                             <div style={{textAlign:"center",padding:gi===0?"0 0 0":"16px 0 12px"}}>
-                              <div style={{position:"relative",width:"100%",height:90,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?60:0}}>
+                              <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:gi===0?12:0}}>
                                 <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:20,color:dark?"#E8C878":"#6B4F00",fontWeight:700,transform:"translateY(0%)"}}>{SURAH_AR[group.sn]?`سُورَةُ ${SURAH_AR[group.sn]}`:""}</span>
                               </div>
                               {isFirst&&group.sn!==9&&group.sn!==1&&(
@@ -287,7 +293,7 @@ export default function QuranTab(props) {
                               // line. No flex-justify: that was spreading
                               // short lines (Fatihah, Baqarah p2) unnaturally.
                               // Matches quran.com-frontend-next mobile layout.
-                              <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(18px,5vw,30px)",color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0",whiteSpace:"nowrap"}}>
+                              <div key={ln} style={{direction:"rtl",textAlign:"center",width:"100%",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(18px,5vw,30px)",color:dark?"#E8DFC0":"#2D2A26",padding:0,whiteSpace:"nowrap"}}>
                                 {lineMap[ln].map((it,ii)=>{
                                   const sel=selectedAyah===it.verse_key;
                                   const isEnd=it.char_type==="end";
