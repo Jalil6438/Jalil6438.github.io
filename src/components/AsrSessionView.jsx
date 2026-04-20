@@ -321,7 +321,7 @@ function AsrSessionView({
                       );
                     }
                     return (
-                      <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(26px,6.5vw,36px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                      <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
                         {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                       </div>
                     );
@@ -384,7 +384,7 @@ function AsrSessionView({
                         <span style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>{SURAH_EN[sNum]||`Surah ${sNum}`} · {vKey}</span>
                       </div>
                       <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(26px,6.5vw,36px)",color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                         <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                       </div>
                     </div>
