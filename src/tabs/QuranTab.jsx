@@ -281,6 +281,16 @@ export default function QuranTab(props) {
                         if(!pageLines||!pageLayout){
                           return null;
                         }
+                        // Build a physical-line → first-verse-key lookup so
+                        // tapping a mushaf line selects the ayah that starts
+                        // (or spans) that line. Layout entries are 1-indexed
+                        // relative to the physical 15-line mushaf page.
+                        const lineToVerse={};
+                        (mushafVerses||[]).forEach(v=>{
+                          const lines=new Set();
+                          (v.words||[]).forEach(w=>{ if(typeof w.line_number==="number") lines.add(w.line_number); });
+                          lines.forEach(ln=>{ if(!lineToVerse[ln]) lineToVerse[ln]=v.verse_key; });
+                        });
                         // pageLines only contains AYAH rows (no surah_name
                         // or basmallah rows). Track an ayah-row cursor to
                         // pair each layout entry with the correct text.
@@ -323,8 +333,10 @@ export default function QuranTab(props) {
                               </div>
                             );
                           }
+                          const lineNum=i+1;
+                          const vkForLine=lineToVerse[lineNum];
                           return (
-                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
                             {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                           </div>
                           );
@@ -395,8 +407,9 @@ export default function QuranTab(props) {
                     onClick={e=>e.stopPropagation()}
                     style={{
                       position:"fixed",bottom:drawerView==="tafsir"?0:100,left:0,right:0,zIndex:200,
-                      height:drawerView==="tafsir"?"100vh":"50vh",
-                      transition:"height .25s ease, bottom .25s ease",
+                      height:drawerView==="tafsir"?"100vh":"auto",
+                      maxHeight:drawerView==="tafsir"?"100vh":"85vh",
+                      transition:"max-height .25s ease, bottom .25s ease",
                       background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)",
                       borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",
                       borderRadius:"20px 20px 0 0",
@@ -428,11 +441,24 @@ export default function QuranTab(props) {
 
                     {/* ── VIEW: DEFAULT ── */}
                     {drawerView==="default"&&(
-                      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",padding:"8px 20px 0"}}>
+                      <div style={{display:"flex",flexDirection:"column",overflow:"hidden",padding:"8px 20px 0",minHeight:0}}>
+                        {/* Arabic text of the tapped ayah — use mushaf font
+                            from the current page when the verse's words are
+                            available; fall back to UthmanicHafs otherwise. */}
+                        {selVerse&&(selVerse.words?.some(w=>w.code_v2)?(
+                          <div style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
+                            {selVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map((w,wi)=>(<span key={wi}>{w.code_v2||""} </span>))}
+                          </div>
+                        ):selVerse.text_uthmani?(
+                          <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
+                            {(selVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
+                            <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.45)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(aNum,10))}﴾</span>
+                          </div>
+                        ):null)}
                         {/* Translation */}
-                        <div style={{flex:1,overflowY:"auto",marginBottom:10}}>
+                        <div style={{overflowY:"auto",marginBottom:10,minHeight:0}}>
                           {transText?(
-                            <div style={{fontSize:15,color:dark?"rgba(243,231,200,0.78)":"#2D2A26",lineHeight:1.85,fontFamily:"'DM Sans',sans-serif",textAlign:"center",padding:"12px 8px",display:"flex",alignItems:"center",justifyContent:"center",height:"100%"}}>
+                            <div style={{fontSize:15,color:dark?"rgba(243,231,200,0.78)":"#2D2A26",lineHeight:1.85,fontFamily:"'DM Sans',sans-serif",textAlign:"center",padding:"12px 8px"}}>
                               {transText}
                             </div>
                           ):(
@@ -448,7 +474,14 @@ export default function QuranTab(props) {
                             {icon:"📖", label:"Tafsir",
                               action:()=>{ if(!selectedAyah)return; setTafsirAyah(selectedAyah); fetchTafsir(selectedAyah); setDrawerView("tafsir"); }},
                             {icon:isSaved?"✦":"🔖", label:isSaved?"Saved":"Save",
-                              action:()=>{ setDrawerView("save-options"); }},
+                              action:()=>{
+                                if(!selectedAyah) return;
+                                const bm=[...mushafBookmarks];
+                                const idx=bm.indexOf(selectedAyah);
+                                if(idx>=0) bm.splice(idx,1); else bm.push(selectedAyah);
+                                setMushafBookmarks(bm);
+                                try{ localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }catch{}
+                              }},
                             {icon:"✏️", label:"Reflect", action:()=>setDrawerView("reflect")},
                           ].map(btn=>(
                             <div key={btn.label} className="sbtn"
@@ -529,7 +562,7 @@ export default function QuranTab(props) {
                             const isFullArabic = TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar";
                             if(isFullArabic) {
                               // Full Arabic tafsir — render as one styled block
-                              return <div style={{fontFamily:"'Amiri',serif",fontSize:16,lineHeight:2.2,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",direction:"rtl",textAlign:"right"}}>{rawText}</div>;
+                              return <div style={{fontFamily:"'Amiri',serif",fontSize:19,lineHeight:2.2,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",direction:"rtl",textAlign:"center"}}>{rawText}</div>;
                             }
                             const blocks = parseTafsirBlocks(rawText);
                             return blocks.map((block,i) => (
