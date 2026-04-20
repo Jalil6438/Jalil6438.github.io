@@ -710,7 +710,10 @@ export default function RihlatAlHifz() {
   // Sheikh Al-Qasim's 2-page rule — allow up to 2 full pages worth of content.
   // Uses distinct-page counting so it works in any traversal order (hifz is
   // descending by surah, so page_number decreases as you go forward).
+  // Custom plan users have explicitly chosen to break the Shaykh's rule,
+  // so the cap is lifted — they get exactly the targetDaily count.
   const twoPageLimit=(()=>{
+    if(userPlanMode==="custom") return {count:targetDaily,capped:false};
     if(!sessionVerses.length||sessionIdx>=sessionVerses.length) return {count:targetDaily,capped:false};
     const startPage=sessionVerses[sessionIdx]?.page_number;
     if(!startPage) return {count:targetDaily,capped:false};
@@ -864,17 +867,19 @@ export default function RihlatAlHifz() {
       }
     }
     // Fallback merges. In Shaykh mode, only include ayahs whose page is in
-    // pagesCollectedSet so we don't accidentally pull in stale pages from
-    // recentBatches. In custom mode, merge freely to backfill a short walkback.
-    const passFallback=(v)=>{
-      if(!v.verse_key||seen.has(v.verse_key)) return false;
-      if(isShaykh&&pagesCollectedSet){
-        return !!(v.page_number&&pagesCollectedSet.has(v.page_number));
-      }
-      return true;
-    };
-    (yesterdayBatch||[]).forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
-    (recentBatches||[]).flat().forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
+    // pagesCollectedSet. In custom mode, skip fallback — the dailyNew*5 slice
+    // is authoritative and shouldn't be inflated by yesterdayBatch/recentBatches.
+    if(isShaykh){
+      const passFallback=(v)=>{
+        if(!v.verse_key||seen.has(v.verse_key)) return false;
+        if(pagesCollectedSet){
+          return !!(v.page_number&&pagesCollectedSet.has(v.page_number));
+        }
+        return true;
+      };
+      (yesterdayBatch||[]).forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
+      (recentBatches||[]).flat().forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
+    }
     // Display in natural mushaf order (page ascending, then ayah) so the
     // review reads Al-Baqarah → An-Nas direction like a user holding the mushaf
     // open. (Memorization goes descending; review goes ascending.)
@@ -1782,6 +1787,7 @@ export default function RihlatAlHifz() {
               asrIsCustomized={asrIsCustomized}
               completedAyahs={completedAyahs}
               fontSize={fontSize}
+              isShaykhPlan={userPlanMode!=="custom"}
             />
           ):null}
           haramainMeta={haramainMeta}

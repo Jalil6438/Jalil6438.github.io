@@ -98,7 +98,7 @@ export default function MyHifzTab(props) {
   const isFajr = currentSessionId === "fajr";
   const isMaghribOrIsha = currentSessionId === "maghrib" || currentSessionId === "isha";
   const isPageBasedSession = isShaykhPlan && (isFajr || isMaghribOrIsha);
-  const isMushafFajr = isFajr && hifzViewMode === "mushaf";
+  const isMushafFajr = isFajr && isShaykhPlan && hifzViewMode === "mushaf";
 
   const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
   const fajrPageNum = rawBatch[0]?.page_number;
@@ -585,6 +585,18 @@ export default function MyHifzTab(props) {
   // Fajr milestone tracking — log 20× phase + connection phase in activity feed
   const repsLoggedRef = useRef(null); // tracks which page's 20× was logged
   const connLoggedRef = useRef(null); // tracks which page's connections were logged
+  const reviewMushafRef = useRef(null); // Dhuhr/Maghrib/Isha review mushaf wrapper
+  useEffect(() => {
+    // Only scroll in Shaykh plan Dhuhr (5-page review). Custom plan uses short
+    // Study cards (5 ayahs/page) where no scroll reset is needed. Maghrib/Isha
+    // only show today's Fajr page (1 page) so scroll isn't useful either.
+    if (!isShaykhPlan) return;
+    if (currentSessionId !== "dhuhr") return;
+    const el = reviewMushafRef.current;
+    if (el && typeof el.scrollIntoView === "function") {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [ayahPage, currentSessionId, isShaykhPlan]);
   useEffect(() => {
     if (currentSessionId !== "fajr" || !pushActivity || !batch.length) return;
     const APS = 7;
@@ -872,7 +884,7 @@ export default function MyHifzTab(props) {
                 {/* Batch header + view toggle for Fajr */}
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
                   <div style={{fontSize:9,color:T.accent,letterSpacing:".18em",textTransform:"uppercase"}}>{currentSessionId==="fajr"?"Fajr":currentSessionId==="dhuhr"?"Dhuhr Review":currentSessionId==="asr"?"Asr Review":currentSessionId==="maghrib"?"Listening":"Isha Review"} — Ayah Batch</div>
-                  {currentSessionId==="fajr"&&(
+                  {currentSessionId==="fajr"&&isShaykhPlan&&(
                     <div style={{display:"flex",gap:4}}>
                       {["interactive","mushaf"].map(m=>(
                         <div key={m} className="sbtn" onClick={()=>setHifzViewMode(m)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:hifzViewMode===m?700:400,letterSpacing:".06em",textTransform:"uppercase",color:hifzViewMode===m?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.35)":"#9A8A6A"),background:hifzViewMode===m?(dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)"):"transparent",border:`1px solid ${hifzViewMode===m?(dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"):"transparent"}`}}>
@@ -893,7 +905,7 @@ export default function MyHifzTab(props) {
                 {/* ── MUSHAF MODE — the full mushaf page the user is on, rendered for
                     reading. Uses pageBatch (the whole page) rather than the Study batch,
                     so the user still sees the tail of the previous surah as they read. ── */}
-                {currentSessionId==="fajr"&&hifzViewMode==="mushaf"&&(()=>{
+                {currentSessionId==="fajr"&&isShaykhPlan&&hifzViewMode==="mushaf"&&(()=>{
                   const pageNum = pageBatch[0]?.page_number;
                   const juzNum = pageBatch[0]?.juz_number;
                   // Page-header surah, per mushaf convention: whichever surah has the
@@ -970,7 +982,7 @@ export default function MyHifzTab(props) {
                       {/* Top row: surah name (left) · Part N (right) — in-flow so the body
                           shrinks to content with no absolute-positioned reservations. */}
                       {(leadSurahNum>0||juzNum)&&(
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:4}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:20}}>
                           <span>{leadSurahNum>0?(SURAH_EN[leadSurahNum]||""):""}</span>
                           <span>{juzNum?`Part ${juzNum}`:""}</span>
                         </div>
@@ -1078,7 +1090,7 @@ export default function MyHifzTab(props) {
                 {/* ── REVIEW MUSHAF — Dhuhr / Maghrib / Isha render their batches as
                     authentic mushaf pages, one page per swipe. Much lighter than
                     walking 20+ cards of Study view when the batch is 100+ ayahs. ── */}
-                {["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
+                {isShaykhPlan&&["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
                   // Group by physical mushaf page — preserve the true page layout.
                   // Boundary pages (two surahs' memorized slices on one page) render
                   // as ONE slide showing both slices in mushaf order.
@@ -1130,7 +1142,7 @@ export default function MyHifzTab(props) {
                     sg.ayahs.push(v);
                   });
                   return (
-                    <div style={{marginBottom:16}}>
+                    <div ref={reviewMushafRef} style={{marginBottom:16}}>
                       <div style={{position:"relative",padding:"32px 12px 70px"}}>
                         {dominantSurah>0&&(
                           <div style={{position:"absolute",top:0,left:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
@@ -1230,12 +1242,70 @@ export default function MyHifzTab(props) {
                   );
                 })()}
 
-                {/* ── AYAH ROWS — Fajr Study mode only (review sessions use Mushaf render above) ── */}
-                {currentSessionId==="fajr"&&hifzViewMode==="interactive"&&(()=>{
-                  // Filter batch to verses on today's Madinah page per the
-                  // authoritative verse-to-page mapping (same page layout
-                  // as Fajr Mushaf).
-                  const filteredBatch=verseToPageMap
+                {/* ── REVIEW STUDY — Dhuhr / Maghrib / Isha in custom plan, card view.
+                    Uses the same per-page KFGQPC V2 font + surah ornament as
+                    Mushaf, just laid out as cards since the ayah batch doesn't
+                    fill full pages. ── */}
+                {!isShaykhPlan&&["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
+                  const APS=5;
+                  const rPages=Math.max(1,Math.ceil(batch.length/APS));
+                  const rSafe=Math.min(ayahPage,rPages-1);
+                  const rStart=rSafe*APS;
+                  const rEnd=Math.min(rStart+APS,batch.length);
+                  const pageAyahs=batch.slice(rStart,rEnd);
+                  return (
+                  <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}
+                    onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}}
+                    onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx>40&&rSafe<rPages-1)setAyahPage(p=>p+1);else if(dx<-40&&rSafe>0)setAyahPage(p=>p-1);}}>
+                    {pageAyahs.map((v,i)=>{
+                      const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
+                      const vKey=v.verse_key;
+                      const prevSurah=i>0?(pageAyahs[i-1].surah_number||parseInt(pageAyahs[i-1].verse_key?.split(":")?.[0]||"0",10)):null;
+                      const showSurahBreak=i===0||prevSurah!==sNum;
+                      return (
+                        <Fragment key={vKey}>
+                          {showSurahBreak&&(
+                            <div style={{textAlign:"center",padding:"8px 0"}}>
+                              <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"100% 100%",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                                  <span>surah</span>
+                                  <span>{String(sNum).padStart(3,"0")}</span>
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
+                            style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:"1px solid rgba(230,184,74,0.08)",boxShadow:"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
+                            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                              <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
+                            </div>
+                            <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.5vw,32px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                              <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                            </div>
+                          </div>
+                        </Fragment>
+                      );
+                    })}
+                    {rPages>1&&(
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:8}}>
+                        <div className={rSafe<rPages-1?"sbtn":""} onClick={()=>{if(rSafe<rPages-1)setAyahPage(p=>Math.min(rPages-1,p+1));}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:rSafe<rPages-1?(dark?"#E6B84A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:rSafe<rPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${rSafe<rPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
+                        <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.50)":"#8B6A10",fontFamily:"'IBM Plex Mono',monospace"}}>Page {rSafe+1} of {rPages}</div>
+                        <div className={rSafe>0?"sbtn":""} onClick={()=>{if(rSafe>0)setAyahPage(p=>Math.max(0,p-1));}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:rSafe>0?(dark?"#E6B84A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:rSafe>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${rSafe>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev ›</div>
+                      </div>
+                    )}
+                  </div>
+                  );
+                })()}
+
+                {/* ── AYAH ROWS — Fajr Study mode (custom-plan users always see this,
+                    since Mushaf mode is Shaykh-plan only) ── */}
+                {currentSessionId==="fajr"&&(hifzViewMode==="interactive"||!isShaykhPlan)&&(()=>{
+                  // Shaykh plan: filter batch to verses on today's Madinah page
+                  // per the authoritative verse-to-page mapping (same page
+                  // layout as Fajr Mushaf). Custom plan: render the batch as-is
+                  // since the N-ayah slice may span pages.
+                  const filteredBatch=isShaykhPlan&&verseToPageMap
                     ? batch.filter(v=>verseToPageMap[v.verse_key]===fajrPageNum)
                     : batch;
                   const APS=7;
@@ -1292,7 +1362,10 @@ export default function MyHifzTab(props) {
                               const found=(fajrPageVerses[key]||[]).find(x=>x.verse_key===vKey);
                               if(found){ fullVerse=found; break; }
                             }
-                            if(pageFontReady&&fullVerse&&fullVerse.words){
+                            // Custom plan skips mushaf font — API/Madinah page
+                            // mismatches cause glyphs to render as neighbor
+                            // verses. UthmanicHafs always renders correctly.
+                            if(isShaykhPlan&&pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (
                                 <div style={{direction:"rtl",textAlign:"right",lineHeight:2,fontFamily:`'p${pn}',serif`,fontSize:"clamp(20px,5.2vw,30px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>
@@ -1415,7 +1488,7 @@ export default function MyHifzTab(props) {
                       <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
                         <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
                         {/* Arabic */}
-                        <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
+                        <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.5vw,32px)",lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
                           {(mv.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                         </div>
                         {/* Reference */}
@@ -1496,8 +1569,13 @@ export default function MyHifzTab(props) {
                   // Review sessions (Dhuhr/Maghrib/Isha) paginate by mushaf-page, not by
                   // 7-ayah chunks, so count distinct page_numbers for the Next/Complete button.
                   const isReviewMushaf=["dhuhr","maghrib","isha"].includes(currentSessionId);
+                  // Custom plan review sessions use 5-ayah Study cards (not
+                  // page-based Mushaf), so count by ceil(batch/5). Shaykh plan
+                  // review sessions page by distinct mushaf page_number.
                   const batchPages=isMushafFajr?1
-                    :isReviewMushaf?Math.max(1,new Set(batch.map(v=>v.page_number||0).filter(Boolean)).size)
+                    :isReviewMushaf?(isShaykhPlan
+                        ?Math.max(1,new Set(batch.map(v=>v.page_number||0).filter(Boolean)).size)
+                        :Math.max(1,Math.ceil(batch.length/5)))
                     :Math.max(1,Math.ceil(batch.length/7));
                   const onLastPage=ayahPage>=batchPages-1;
                   const isFinal=onLastPage;

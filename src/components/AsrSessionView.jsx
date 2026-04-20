@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
 import { SURAH_AR } from "../data/quran-metadata";
@@ -12,8 +12,12 @@ function AsrSessionView({
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,completedAyahs,
     playMushafRange,stopMushafAudio,mushafAudioPlaying,
     fontSize = 19,
+    isShaykhPlan = true,
   }) {
-    const [asrViewMode,setAsrViewMode]=useState("mushaf"); // "mushaf" default, "study" for cards
+    // Custom plan users have ayah-based batches that don't fill full pages —
+    // force Study view and hide the toggle.
+    const [asrViewMode,setAsrViewMode]=useState(isShaykhPlan?"mushaf":"study");
+    useEffect(() => { if (!isShaykhPlan) setAsrViewMode("study"); }, [isShaykhPlan]);
     const asrMushafScrollRef=useRef(null);
     // KFGQPC V2 per-page fonts + bismillah glyphs — same authentic mushaf
     // rendering used in QuranTab / MyHifzTab Fajr/Dhuhr views.
@@ -22,13 +26,19 @@ function AsrSessionView({
     const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
     const [mushafPagesData, setMushafPagesData] = useState(null);
     const [mushafLayoutData, setMushafLayoutData] = useState(null);
+    const [verseToPageMap, setVerseToPageMap] = useState(null);
     useEffect(() => {
       let cancelled = false;
       (async () => {
         try {
-          const [p, l] = await Promise.all([fetch("/mushaf-pages.json"), fetch("/mushaf-layout.json")]);
+          const [p, l, v] = await Promise.all([
+            fetch("/mushaf-pages.json"),
+            fetch("/mushaf-layout.json"),
+            fetch("/verse-to-page.json"),
+          ]);
           if (!cancelled && p.ok) setMushafPagesData(await p.json());
           if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+          if (!cancelled && v.ok) setVerseToPageMap(await v.json());
         } catch {}
       })();
       return () => { cancelled = true; };
@@ -70,6 +80,20 @@ function AsrSessionView({
       })();
       return () => { cancelled = true; };
     }, [asrPageNums.join(",")]);
+    // On page change, scroll the Asr session panel up so the surah label
+    // (top of the page) lands at the top of the viewport instead of jumping
+    // all the way to the app header.
+    useEffect(() => {
+      // Study mode is short (custom plan, ~5 ayahs/page) — no need to scroll
+      // on page change. Mushaf mode shows a full page and needs the reset.
+      if (asrViewMode==="study") return;
+      const el = asrMushafScrollRef.current;
+      if (el && typeof el.scrollIntoView === "function") {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, [asrSafePage, asrViewMode]);
     useEffect(() => {
       loadQcfFont(1);
       let cancelled = false;
@@ -154,13 +178,15 @@ function AsrSessionView({
           </div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
             <div style={{color:dark?T2.ivory:"#2D2A26",fontSize:14,fontWeight:600,lineHeight:1.25,maxWidth:"70%"}}>{asrSelectionSummary||"Asr Review"}</div>
-            <div style={{display:"flex",gap:4}}>
-              {["mushaf","study"].map(m=>(
-                <div key={m} className="sbtn" onClick={()=>setAsrViewMode(m)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:asrViewMode===m?700:400,letterSpacing:".06em",textTransform:"uppercase",color:asrViewMode===m?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.35)":"#9A8A6A"),background:asrViewMode===m?(dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)"):"transparent",border:`1px solid ${asrViewMode===m?(dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"):"transparent"}`}}>
-                  {m==="mushaf"?"Mushaf":"Study"}
-                </div>
-              ))}
-            </div>
+            {isShaykhPlan&&(
+              <div style={{display:"flex",gap:4}}>
+                {["mushaf","study"].map(m=>(
+                  <div key={m} className="sbtn" onClick={()=>setAsrViewMode(m)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:asrViewMode===m?700:400,letterSpacing:".06em",textTransform:"uppercase",color:asrViewMode===m?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.35)":"#9A8A6A"),background:asrViewMode===m?(dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)"):"transparent",border:`1px solid ${asrViewMode===m?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>
+                    {m==="mushaf"?"Mushaf":"Study"}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ── MUSHAF MODE — paged by surah ── */}
@@ -333,44 +359,75 @@ function AsrSessionView({
               else if(delta<0&&asrSafePage>0){ setAsrSlideDir("right"); setAsrPage(p=>Math.max(0,p-1)); }
             }}
           >
-            <div className="asr-arw left" onClick={()=>{if(asrSafePage===0)return;setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}} style={{opacity:asrSafePage===0?0.25:1,pointerEvents:asrSafePage===0?"none":"auto"}}>‹</div>
-            <div className="asr-arw right" onClick={()=>{if(asrSafePage>=asrPages-1)return;setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{opacity:asrSafePage>=asrPages-1?0.25:1,pointerEvents:asrSafePage>=asrPages-1?"none":"auto"}}>›</div>
-
             {/* Ayah list — slides on page change */}
             <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{display:"flex",flexDirection:"column",gap:8,padding:"4px 0"}}>
               {asrVisibleAyahs.map((v,idx)=>{
                 const vKey=v.verse_key;
                 const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
+                const prevSurah=idx>0?(asrVisibleAyahs[idx-1].surah_number||parseInt(asrVisibleAyahs[idx-1].verse_key?.split(":")?.[0]||"0",10)):null;
+                const showSurahBreak=idx===0||prevSurah!==sNum;
                 return (
-                  <div key={vKey} className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
-                    style={{borderRadius:14,padding:"12px 14px",background:dark?"rgba(14,22,40,0.80)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.08)":"1px solid rgba(0,0,0,0.08)",boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",transition:"all .15s"}}>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                      <span style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>{SURAH_EN[sNum]||`Surah ${sNum}`} · {vKey}</span>
+                  <Fragment key={vKey}>
+                    {showSurahBreak&&(
+                      <div style={{textAlign:"center",padding:"8px 0"}}>
+                        <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"100% 100%",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                          <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                            <span>surah</span>
+                            <span>{String(sNum).padStart(3,"0")}</span>
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="sbtn" onClick={()=>{setAsrExpandedAyah(vKey);if(!translations[vKey])fetchTranslations([v]);}}
+                      style={{borderRadius:14,padding:"12px 14px",background:dark?"rgba(14,22,40,0.80)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.08)":"1px solid rgba(0,0,0,0.08)",boxShadow:dark?"0 2px 8px rgba(0,0,0,0.20)":"0 2px 8px rgba(0,0,0,0.06)",transition:"all .15s"}}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                        <span style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>{SURAH_EN[sNum]||`Surah ${sNum}`} · {vKey}</span>
+                      </div>
+                      <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
+                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.5vw,32px)",color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                        <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                      </div>
                     </div>
-                    <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                      <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                      <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
-                    </div>
-                  </div>
+                  </Fragment>
                 );
               })}
             </div>
 
           </div>
+          {asrPages>1&&(
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px 6px",gap:8}}>
+              <div className={asrSafePage<asrPages-1?"sbtn":""} onClick={()=>{if(asrSafePage<asrPages-1){setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:asrSafePage<asrPages-1?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:asrSafePage<asrPages-1?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${asrSafePage<asrPages-1?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>‹ Next</div>
+              <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#8B7355",fontFamily:"'IBM Plex Mono',monospace"}}>{asrSafePage+1} of {asrPages}</div>
+              <div className={asrSafePage>0?"sbtn":""} onClick={()=>{if(asrSafePage>0){setAsrSlideDir("right");setAsrPage(p=>Math.max(0,p-1));}}} style={{padding:"8px 18px",borderRadius:10,fontSize:13,fontWeight:600,color:asrSafePage>0?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.15)":"rgba(0,0,0,0.15)"),background:asrSafePage>0?(dark?"rgba(217,177,95,0.08)":"rgba(180,140,40,0.06)"):"transparent",border:`1px solid ${asrSafePage>0?(dark?"rgba(217,177,95,0.20)":"rgba(140,100,20,0.15)"):"transparent"}`}}>Prev ›</div>
+            </div>
+          )}
           </div>
           )}
 
           <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
 
-          {/* Buttons */}
+          {/* Buttons — when not on the last page, primary button advances
+              the page; only the last page reveals Complete Asr Session so
+              the user reads the whole batch before finishing. */}
+          {(()=>{
+            const onLast=asrSafePage>=asrPages-1;
+            return (
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 20px"}}>
-            <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E0BD78 0%,#CEAA60 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.10),inset 0 1px 0 rgba(255,255,255,0.10)"}}>
-              Complete Asr Session
-            </div>
+            {onLast?(
+              <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E0BD78 0%,#CEAA60 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.10),inset 0 1px 0 rgba(255,255,255,0.10)"}}>
+                Complete Asr Session
+              </div>
+            ):(
+              <div className="sbtn" onClick={()=>{setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E0BD78 0%,#CEAA60 100%)",color:"#0A1020",boxShadow:"0 8px 18px rgba(210,168,90,0.10),inset 0 1px 0 rgba(255,255,255,0.10)"}}>
+                Next Page
+              </div>
+            )}
             <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:18,textAlign:"center",fontSize:13,fontWeight:600,color:"rgba(226,188,114,0.82)",border:"1px solid rgba(210,170,95,0.14)",background:"rgba(8,16,30,0.22)"}}>
               Change Selection
             </div>
           </div>
+            );
+          })()}
         </div>{/* end flex column wrapper */}
 
         {/* Ayah popup modal — outside scroll container */}
