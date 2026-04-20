@@ -91,16 +91,102 @@ export default function QuranTab(props) {
   // line_number guarantees each line matches the real KFGQPC mushaf.
   const [mushafPagesData, setMushafPagesData] = useState(null);
   const [mushafLayoutData, setMushafLayoutData] = useState(null);
+  const [pageContentMap, setPageContentMap] = useState(null); // { [page]: [{sNum, minA, maxA}, ...] }
+  // Tajweed colouring — fetched text_uthmani_tajweed per verse + on/off toggle.
+  const [tajweedOn, setTajweedOn] = useState(() => { try { return localStorage.getItem("rihlat-tajweed") === "1"; } catch { return false; } });
+  const [tajweedCache, setTajweedCache] = useState({});
+  const toggleTajweed = () => {
+    setTajweedOn(v => { const nv = !v; try { localStorage.setItem("rihlat-tajweed", nv ? "1" : "0"); } catch {} return nv; });
+  };
+  const fetchTajweed = async (vk) => {
+    if (!vk || tajweedCache[vk]) return;
+    try {
+      const res = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?verse_key=${vk}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const html = data?.verses?.[0]?.text_uthmani_tajweed || "";
+      if (html) setTajweedCache(prev => ({ ...prev, [vk]: html }));
+    } catch {}
+  };
+  useEffect(() => {
+    if (tajweedOn && selectedAyah) fetchTajweed(selectedAyah);
+  }, [tajweedOn, selectedAyah]);
+  // Map tajweed rule classes to colours (quran.com convention).
+  const TAJWEED_COLORS = {
+    ham_wasl: "#AAAAAA",
+    laam_shamsiyah: "#AAAAAA",
+    slnt: "#AAAAAA",
+    madda_normal: "#537FFF",
+    madda_permissible: "#4050FF",
+    madda_necessary: "#000EBC",
+    madda_obligatory: "#2144C1",
+    qalaqah: "#DD0008",
+    ikhafa_shafawi: "#D500B7",
+    ikhafa: "#9400A8",
+    idgham_shafawi: "#58B800",
+    iqlab: "#26BFFD",
+    idgham_ghunnah: "#169777",
+    idgham_wo_ghunnah: "#169200",
+    idgham_mutajanisayn: "#A1A1A1",
+    idgham_mutaqaribayn: "#A1A1A1",
+    ghunnah: "#FF7E1E",
+  };
+  const renderTajweed = (html) => {
+    // API returns unquoted class attrs: <tajweed class=madda_obligatory>..</tajweed>
+    // plus end-marker: <span class=end>N</span>. Walk the string sequentially so
+    // interleaved plain text between tags is preserved in order.
+    const parts = [];
+    const re = /<(tajweed|span)\s+class=(?:"([^"]+)"|([^\s>]+))\s*>([^<]*)<\/\1>/g;
+    let lastIdx = 0, m, key = 0;
+    while ((m = re.exec(html)) !== null) {
+      if (m.index > lastIdx) parts.push(<span key={key++}>{html.slice(lastIdx, m.index)}</span>);
+      const tag = m[1];
+      const cls = (m[2] || m[3] || "").trim();
+      const text = m[4] || "";
+      if (tag === "span" && cls === "end") {
+        parts.push(<span key={key++} style={{ fontFamily: "'Amiri Quran','Amiri',serif", fontSize: 14, color: dark ? "rgba(212,175,55,0.45)" : "#A08848", marginRight: 4 }}>﴿{text}﴾</span>);
+      } else {
+        const color = TAJWEED_COLORS[cls] || (dark ? "#E8DFC0" : "#2D2A26");
+        parts.push(<span key={key++} style={{ color }}>{text}</span>);
+      }
+      lastIdx = re.lastIndex;
+    }
+    if (lastIdx < html.length) parts.push(<span key={key++}>{html.slice(lastIdx)}</span>);
+    return parts;
+  };
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [p, l] = await Promise.all([
+        const [p, l, v] = await Promise.all([
           fetch("/mushaf-pages.json"),
           fetch("/mushaf-layout.json"),
+          fetch("/verse-to-page.json"),
         ]);
         if (!cancelled && p.ok) setMushafPagesData(await p.json());
         if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+        if (!cancelled && v.ok) {
+          const map = await v.json();
+          // Invert verse->page into page->[{sNum,minA,maxA}] so bookmark
+          // pages can list their surahs + ayah ranges.
+          const inv = {};
+          Object.entries(map).forEach(([vk, pg]) => {
+            const [s, a] = vk.split(":").map(Number);
+            if (!inv[pg]) inv[pg] = {};
+            if (!inv[pg][s]) inv[pg][s] = { min: a, max: a };
+            else {
+              if (a < inv[pg][s].min) inv[pg][s].min = a;
+              if (a > inv[pg][s].max) inv[pg][s].max = a;
+            }
+          });
+          const out = {};
+          Object.entries(inv).forEach(([pg, surahs]) => {
+            out[pg] = Object.entries(surahs)
+              .map(([s, r]) => ({ sNum: Number(s), minA: r.min, maxA: r.max }))
+              .sort((a, b) => a.sNum - b.sNum);
+          });
+          setPageContentMap(out);
+        }
       } catch {}
     })();
     return () => { cancelled = true; };
@@ -434,18 +520,29 @@ export default function QuranTab(props) {
                             {SURAH_EN[surahN]||""} · {sNum}:{aNum}
                           </div>
                         )}
-                        <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");}}
-                          style={{fontSize:18,color:dark?"rgba(243,231,200,0.20)":"rgba(0,0,0,0.30)",lineHeight:1,padding:"0 4px"}}>×</div>
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div className="sbtn" onClick={toggleTajweed}
+                            style={{fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",padding:"4px 10px",borderRadius:999,color:tajweedOn?(dark?"#0A0E1A":"#2D2A26"):(dark?"rgba(212,175,55,0.60)":"#6B645A"),background:tajweedOn?(dark?"linear-gradient(180deg,#E0BD78,#CEAA60)":"#E6B84A"):"transparent",border:`1px solid ${tajweedOn?"transparent":(dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.25)")}`,fontFamily:"'DM Sans',sans-serif"}}>
+                            Tajweed
+                          </div>
+                          <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");}}
+                            style={{fontSize:18,color:dark?"rgba(243,231,200,0.20)":"rgba(0,0,0,0.30)",lineHeight:1,padding:"0 4px"}}>×</div>
+                        </div>
                       </div>
                     </div>
 
                     {/* ── VIEW: DEFAULT ── */}
                     {drawerView==="default"&&(
                       <div style={{display:"flex",flexDirection:"column",overflow:"hidden",padding:"8px 20px 0",minHeight:0}}>
-                        {/* Arabic text of the tapped ayah — use mushaf font
-                            from the current page when the verse's words are
-                            available; fall back to UthmanicHafs otherwise. */}
-                        {selVerse&&(selVerse.words?.some(w=>w.code_v2)?(
+                        {/* Arabic text of the tapped ayah — tajweed mode
+                            renders UthmanicHafs with colored rule spans;
+                            otherwise use per-page mushaf font when words
+                            are available; fall back to UthmanicHafs. */}
+                        {selVerse&&(tajweedOn&&tajweedCache[selectedAyah]?(
+                          <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
+                            {renderTajweed(tajweedCache[selectedAyah])}
+                          </div>
+                        ):selVerse.words?.some(w=>w.code_v2)?(
                           <div style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
                             {selVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map((w,wi)=>(<span key={wi}>{w.code_v2||""} </span>))}
                           </div>
@@ -511,6 +608,12 @@ export default function QuranTab(props) {
                               action:()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }},
                             {icon:"⏭", label:"Range", action:()=>{ stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true); }},
                             {icon:"🎙️", label:"Reciter", action:()=>{ setReciterMode("quran");setShowReciterModal(true); }},
+                            {icon:isBookmarkedPage?"✦":"📑", label:isBookmarkedPage?"Saved Pg":"Save Pg",
+                              action:()=>{
+                                const bm=isBookmarkedPage?mushafBookmarks.filter(p=>p!==mushafPage):[...mushafBookmarks,mushafPage];
+                                setMushafBookmarks(bm);
+                                try{ localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }catch{}
+                              }},
                             {icon:"🔖", label:"Bookmarks",
                               action:()=>{ setDrawerView("bookmarks"); }},
                           ].map(btn=>(
@@ -667,13 +770,19 @@ export default function QuranTab(props) {
                           {mushafBookmarks.filter(b=>typeof b==="number").length>0&&(
                             <div style={{marginBottom:12}}>
                               <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",fontWeight:600,marginBottom:6}}>Bookmarked Pages</div>
-                              {mushafBookmarks.filter(b=>typeof b==="number").sort((a,b)=>a-b).map(pg=>(
+                              {mushafBookmarks.filter(b=>typeof b==="number").sort((a,b)=>a-b).map(pg=>{
+                                const content=pageContentMap&&pageContentMap[pg];
+                                const label=content&&content.length>0
+                                  ? content.map(c=>`${SURAH_EN[c.sNum]||c.sNum} ${c.minA}${c.minA===c.maxA?"":"-"+c.maxA}`).join(" · ")
+                                  : null;
+                                return (
                                 <div key={pg} className="sbtn" onClick={()=>{setMushafPage(pg);setDrawerView("default");setSelectedAyah(null);}}
-                                  style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(255,255,255,0.05)":"1px solid rgba(0,0,0,0.06)"}}>
-                                  <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>Page {pg}</span>
-                                  <span style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>→</span>
+                                  style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,padding:"8px 10px",borderRadius:8,marginBottom:4,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(255,255,255,0.05)":"1px solid rgba(0,0,0,0.06)"}}>
+                                  <div style={{flex:1,minWidth:0,fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{label||`Page ${pg}`}</div>
+                                  <span style={{flexShrink:0,fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",fontFamily:"'IBM Plex Mono',monospace"}}>Page {pg}</span>
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           )}
                           {/* Reflections */}
