@@ -41,6 +41,7 @@ export default function MyMemorizationView({
   const [mushafPagesData, setMushafPagesData] = useState(null);
   const [mushafLayoutData, setMushafLayoutData] = useState(null);
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
+  const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -48,6 +49,20 @@ export default function MyMemorizationView({
         const [p, l] = await Promise.all([fetch("/mushaf-pages.json"), fetch("/mushaf-layout.json")]);
         if (!cancelled && p.ok) setMushafPagesData(await p.json());
         if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  useEffect(() => {
+    loadQcfFont(1, loadedFonts, setLoadedFonts);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("https://api.quran.com/api/v4/verses/by_key/1:1?words=true&word_fields=code_v2,char_type_name");
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const words = (data.verse?.words || []).filter(w => w.char_type_name === "word").map(w => w.code_v2 || "");
+        if (!cancelled && words.length) setBismillahGlyphs(words.join(""));
       } catch {}
     })();
     return () => { cancelled = true; };
@@ -120,16 +135,26 @@ export default function MyMemorizationView({
             if (!juzSurahsSet.has(currentSurah)) return null;
             const isCenter = entry.center === 1;
             if (type === "surah_name") {
+              const sn = entry.sn;
               return (
-                <div key={i} style={{textAlign:"center",padding:"6px 0"}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:dark?"rgba(232,200,120,0.80)":"rgba(0,0,0,0.65)",fontWeight:700}}>{SURAH_EN[entry.sn] || `Surah ${entry.sn}`}</div>
+                <div key={i} style={{textAlign:"center",padding:"8px 0"}}>
+                  <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"100% 100%",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                      <span>surah</span>
+                      <span>{String(sn).padStart(3,"0")}</span>
+                    </span>
+                  </div>
                 </div>
               );
             }
             if (type === "basmallah") {
               return (
                 <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
-                  <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,5vw,26px)",color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",direction:"rtl",lineHeight:1.8}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
+                  {bismillahGlyphs && loadedFonts.has(1) ? (
+                    <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
+                  ) : (
+                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                  )}
                 </div>
               );
             }
