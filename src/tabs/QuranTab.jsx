@@ -178,9 +178,9 @@ export default function QuranTab(props) {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:100}}>
 
           {/* Header — only the title row is the tap target for toggling (picker clicks stay isolated). */}
-          <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28}}>
+          <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28,position:"relative",zIndex:201}}>
             {/* Dropdown — surah, tafsir, reciter, mushaf/study — slides down ABOVE the title */}
-            <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px"}}>
+            <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px",position:"relative",zIndex:2}}>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
                 <div className="sbtn" onClick={e=>{e.stopPropagation();setShowQuranSurahModal(true);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
                   <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
