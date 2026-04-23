@@ -412,15 +412,12 @@ export default function QuranTab(props) {
                   <div
                     onClick={e=>e.stopPropagation()}
                     style={{
-                      position:"fixed",bottom:drawerView==="tafsir"?0:100,left:0,right:0,zIndex:200,
-                      height:drawerView==="tafsir"?"100vh":"auto",
-                      maxHeight:drawerView==="tafsir"?"100vh":"85vh",
-                      transition:"max-height .25s ease, bottom .25s ease",
+                      position:"fixed",left:0,right:0,zIndex:200,
+                      ...(drawerView==="tafsir"
+                        ? {top:110,bottom:0,borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",borderRadius:"0 0 20px 20px",boxShadow:dark?"0 12px 40px rgba(0,0,0,0.70)":"0 12px 40px rgba(0,0,0,0.12)",animation:"slideDownDrawer .22s ease-out"}
+                        : {bottom:100,maxHeight:"85vh",borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",borderRadius:"20px 20px 0 0",boxShadow:dark?"0 -12px 40px rgba(0,0,0,0.70)":"0 -12px 40px rgba(0,0,0,0.12)",animation:"slideUpDrawer .22s ease-out"}),
+                      transition:"max-height .25s ease, bottom .25s ease, top .25s ease",
                       background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)",
-                      borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",
-                      borderRadius:"20px 20px 0 0",
-                      boxShadow:dark?"0 -12px 40px rgba(0,0,0,0.70)":"0 -12px 40px rgba(0,0,0,0.12)",
-                      animation:"slideUpDrawer .22s ease-out",
                       display:"flex",flexDirection:"column",
                     }}
                   >
