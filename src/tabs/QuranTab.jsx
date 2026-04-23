@@ -727,29 +727,6 @@ export default function QuranTab(props) {
 
           {/* Page nav — ‹ / › prev-next */}
           <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)"}}>
-            {/* Bottom options — slides up together with the top dropdown */}
-            <div style={{maxHeight:showPickers&&!selectedAyah?44:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers&&!selectedAyah?"6px 16px 4px":"0 16px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:4,height:32}}>
-                {[
-                  {icon:mushafAudioPlaying?"⏹":"▶", label:mushafAudioPlaying?"Stop":"Page",
-                    action:()=>{ if(mushafAudioPlaying){stopMushafAudio();}else{setMushafRangeStart(null);setMushafRangeEnd(null);playMushafRange(mushafVerses);} }},
-                  {icon:"⏭", label:"Range", action:()=>{ stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true); }},
-                  {icon:mushafBookmarks.includes(mushafPage)?"✦":"📑", label:mushafBookmarks.includes(mushafPage)?"Saved":"Save Pg",
-                    action:()=>{
-                      const bm=mushafBookmarks.includes(mushafPage)?mushafBookmarks.filter(p=>p!==mushafPage):[...mushafBookmarks,mushafPage];
-                      setMushafBookmarks(bm);
-                      try{ localStorage.setItem("rihlat-mushaf-bookmarks",JSON.stringify(bm)); }catch{}
-                    }},
-                  {icon:"🔖", label:"Saved", action:()=>{ setDrawerView("bookmarks");setShowPickers(false); }},
-                ].map(btn=>(
-                  <div key={btn.label} className="sbtn" onClick={e=>{e.stopPropagation();btn.action();}}
-                    style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,padding:"0 6px",borderRadius:8,fontSize:10,fontWeight:700,color:dark?"rgba(243,231,191,0.72)":"#4A3A10",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",height:26,whiteSpace:"nowrap"}}>
-                    <span style={{fontSize:11}}>{btn.icon}</span>
-                    <span>{btn.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 20px"}}>
               <div className="sbtn" onClick={()=>{setMushafSwipeAnim("left");setMushafPage(p=>Math.min(604,p+1));}} style={{padding:"10px 22px",fontSize:22,color:mushafPage<604?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.20)"),borderRadius:10,border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.05)"}}>‹</div>
               <div style={{flex:1}}/>
