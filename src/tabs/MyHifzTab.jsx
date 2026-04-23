@@ -8,7 +8,7 @@ import { saveCompletedAyahs, toArabicDigits } from "../utils";
 // Mushaf line — base font is deliberately large; each line measures its own
 // natural width against the container and shrinks only if it would overflow,
 // so we get maximum size on short lines without any clipping.
-function MushafAutoLine({ lineText, fontFamily, isCenter, color, baseSize = 52 }) {
+function MushafAutoLine({ lineText, fontFamily, isCenter, color, baseSize = 68 }) {
   const ref = useRef(null);
   const [size, setSize] = useState(baseSize);
   useLayoutEffect(() => {
