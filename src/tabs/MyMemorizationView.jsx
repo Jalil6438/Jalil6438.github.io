@@ -108,9 +108,9 @@ export default function MyMemorizationView({
             <div style={{fontSize:12,color:"rgba(243,231,200,0.55)",fontWeight:600}}>Completed Juz <span style={{color:"rgba(243,231,200,0.30)"}}>({completedJuz.length})</span></div>
             <div style={{color:"rgba(217,177,95,0.40)",fontSize:14,transition:"transform .2s",transform:openSection.completed?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
           </div>
-          {openSection.completed&&(
+          {openSection.completed&&(<>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {completedJuz.map(j=>{
+              {(openSection.completedAll?completedJuz:completedJuz.slice(0,3)).map(j=>{
                 const jMeta=JUZ_META.find(m=>m.num===j.num);
                 return (
                   <div key={j.num} style={{padding:"16px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.12)"}}>
@@ -133,7 +133,14 @@ export default function MyMemorizationView({
                 );
               })}
             </div>
-          )}
+            {completedJuz.length>3&&(
+              <div className="sbtn" onClick={()=>toggleSection("completedAll")}
+                style={{textAlign:"center",padding:"8px",marginTop:10,borderRadius:8,fontSize:10,fontWeight:500,
+                  color:"rgba(217,177,95,0.30)",border:"1px dashed rgba(217,177,95,0.08)",background:"transparent"}}>
+                {openSection.completedAll?"Show less":"View all "+completedJuz.length+" completed"}
+              </div>
+            )}
+          </>)}
         </div>
       )}
 
