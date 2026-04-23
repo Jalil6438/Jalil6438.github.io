@@ -69,10 +69,16 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
         )}
         <path ref={el=>{
           if(el&&completed>0&&completed<30){
-            const len=el.getTotalLength();
-            const pt=el.getPointAtLength(len*(completed/30));
+            const wp=waypoints.find(w=>w.juz===completed);
+            let x, y;
+            if(wp){ x=wp.x; y=wp.y; }
+            else {
+              const len=el.getTotalLength();
+              const pt=el.getPointAtLength(len*(completed/30));
+              x=pt.x; y=pt.y;
+            }
             const marker=el.parentNode.querySelector('#juzMarker');
-            if(marker){marker.setAttribute('transform',`translate(${pt.x},${pt.y})`);marker.style.display='';}
+            if(marker){marker.setAttribute('transform',`translate(${x},${y})`);marker.style.display='';}
           }
         }} d={pathD} fill="none" stroke="none"/>
         <g id="juzMarker" style={{display:completed>0&&completed<30?'':'none'}}>
