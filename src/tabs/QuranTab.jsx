@@ -177,8 +177,8 @@ export default function QuranTab(props) {
   return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:100}}>
 
-          {/* Header — tap anywhere on the strip to toggle the drawers. */}
-          <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28}}>
+          {/* Header — only the title row is the tap target for toggling (picker clicks stay isolated). */}
+          <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28}}>
             {/* Dropdown — surah, tafsir, reciter, mushaf/study — slides down ABOVE the title */}
             <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px"}}>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
@@ -201,8 +201,8 @@ export default function QuranTab(props) {
                 </div>
               </div>
             </div>
-            {/* Title row — surah name (left) + Part N (right). Sits below the dropdown so pickers pop above it. */}
-            <div style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+            {/* Title row — tappable to toggle the drawers */}
+            <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
               <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
             </div>
