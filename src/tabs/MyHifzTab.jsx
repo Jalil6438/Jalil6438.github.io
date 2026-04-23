@@ -4,7 +4,6 @@ import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
 import { getSessionWisdom } from "../data/sessions";
 import { saveCompletedAyahs, toArabicDigits } from "../utils";
-import MushafAutoLine from "../components/MushafAutoLine";
 
 export default function MyHifzTab(props) {
   const {
@@ -1058,7 +1057,9 @@ export default function MyHifzTab(props) {
                             );
                           }
                           return (
-                            <MushafAutoLine key={i} lineText={lineText} fontFamily={`p${fajrPageNum}`} isCenter={isCenter} color={dark?"#E8DFC0":"#2D2A26"} />
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                              {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
+                            </div>
                           );
                         });
                       })()}
@@ -1214,7 +1215,9 @@ export default function MyHifzTab(props) {
                               );
                             }
                             return (
-                              <MushafAutoLine key={i} lineText={lineText} fontFamily={`p${pageNum}`} isCenter={isCenter} color={dark?"#E8DFC0":"#2D2A26"} />
+                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                                {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
+                              </div>
                             );
                           });
                         })()}

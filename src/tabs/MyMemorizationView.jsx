@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS } from "../data/quran-metadata";
 
@@ -12,7 +13,10 @@ export default function MyMemorizationView({
   memSections, setMemSections,
   setActiveTab,
   setRihlahTab,
+  setMushafPage,
+  setQuranMode,
 }) {
+  const [reviewJuz, setReviewJuz] = useState(null);
   const isJDone = (n) => juzStatus[n] === "complete" || (JUZ_SURAHS[n] || []).every(s => juzStatus[`s${s.s}`] === "complete");
   const currentJuz = sessionJuz || 30;
   const currentMeta = JUZ_META.find(j => j.num === currentJuz) || JUZ_META[0];
@@ -32,6 +36,33 @@ export default function MyMemorizationView({
   const journeyItems = [...allJourneyNums].sort((a, b) => b - a).slice(0, 6).map(num => ({
     num, state: num === currentJuz ? "current" : isJDone(num) ? "completed" : "upcoming"
   }));
+
+  if (reviewJuz != null) {
+    const meta = JUZ_META.find(m => m.num === reviewJuz);
+    const surahs = JUZ_SURAHS[reviewJuz] || [];
+    return (
+      <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"14px 16px 120px"}} className="fi gold-particles">
+        <div style={{marginBottom:20}}>
+          <div className="sbtn" onClick={()=>setReviewJuz(null)} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.10)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back</div>
+          <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.60)":"rgba(140,100,20,0.65)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>Review · Juz {reviewJuz}</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:dark?"#F3E7C8":"#2D2A26",fontWeight:700,marginTop:6}}>Juz {meta?.roman || reviewJuz}</div>
+          {meta?.arabic&&<div style={{fontFamily:"'Amiri',serif",fontSize:16,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.65)",direction:"rtl",marginTop:2}}>{meta.arabic}</div>}
+          <div style={{fontSize:11,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)",marginTop:10}}>{surahs.length} surah{surahs.length!==1?"s":""} · Complete — Alhamdulillah</div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {surahs.map(s=>(
+            <div key={s.s} className={setMushafPage?"sbtn":undefined} onClick={setMushafPage?()=>{setMushafPage(s.page||1);if(setQuranMode)setQuranMode("mushaf");setActiveTab("quran");}:undefined} style={{padding:"14px 16px",borderRadius:12,background:dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:dark?"rgba(243,231,200,0.80)":"#2D2A26"}}>{SURAH_EN[s.s]||`Surah ${s.s}`}</div>
+                <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:2,letterSpacing:".06em"}}>Surah {s.s} · {s.a} ayahs</div>
+              </div>
+              {setMushafPage&&<div style={{fontSize:16,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)"}}>›</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"14px 16px 120px"}} className="fi gold-particles">
@@ -122,7 +153,7 @@ export default function MyMemorizationView({
                       </div>
                         <div style={{fontSize:11,color:"rgba(230,184,74,0.45)",marginTop:4,textShadow:"0 0 6px rgba(230,184,74,0.10)"}}>Complete — Alhamdulillah</div>
                       </div>
-                      <div className="sbtn" onClick={()=>{setSessionJuz(j.num);setActiveTab("myhifz");}} style={{padding:"6px 12px",borderRadius:10,fontSize:10,fontWeight:500,color:"rgba(243,231,200,0.30)",background:"transparent",border:"1px solid rgba(217,177,95,0.08)"}}>
+                      <div className="sbtn" onClick={()=>setReviewJuz(j.num)} style={{padding:"6px 12px",borderRadius:10,fontSize:10,fontWeight:500,color:"rgba(243,231,200,0.30)",background:"transparent",border:"1px solid rgba(217,177,95,0.08)"}}>
                         Review
                       </div>
                     </div>

@@ -2,7 +2,6 @@ import { SURAH_EN } from "../data/constants";
 import { SURAH_AR } from "../data/quran-metadata";
 import { useState, useEffect } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
-import MushafAutoLine from "../components/MushafAutoLine";
 
 export default function QuranTab(props) {
   const {
@@ -348,7 +347,9 @@ export default function QuranTab(props) {
                           const lineNum=i+1;
                           const vkForLine=lineToVerse[lineNum];
                           return (
-                            <MushafAutoLine key={i} lineText={lineText} fontFamily={`p${mushafPage}`} isCenter={isCenter} color={dark?"#E8DFC0":"#2D2A26"} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");}:undefined} />
+                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
+                            {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
+                          </div>
                           );
                         });
                       })()}
