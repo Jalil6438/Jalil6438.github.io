@@ -1702,7 +1702,7 @@ export default function RihlatAlHifz() {
                 {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
                 {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
               ].map((pill,i)=>(
-                <div key={i} style={{fontSize:9,color:pill.color,background:pill.bg,padding:"3px 8px",borderRadius:20,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
+                <div key={i} style={{fontSize:8,color:pill.color,background:pill.bg,padding:"2px 7px",borderRadius:14,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
               ))}
             </div>
             {/* Progress row */}
