@@ -690,7 +690,7 @@ export default function QuranTab(props) {
           {/* Page nav — ‹ / › prev-next */}
           <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)"}}>
             {/* Bottom options — slides up together with the top dropdown */}
-            <div style={{maxHeight:showPickers?44:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"6px 16px 4px":"0 16px"}}>
+            <div style={{maxHeight:showPickers&&!selectedAyah?44:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers&&!selectedAyah?"6px 16px 4px":"0 16px"}}>
               <div style={{display:"flex",alignItems:"center",gap:4,height:32}}>
                 {[
                   {icon:mushafAudioPlaying?"⏹":"▶", label:mushafAudioPlaying?"Stop":"Page",
