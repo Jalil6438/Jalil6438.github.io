@@ -225,7 +225,7 @@ export default function QuranTab(props) {
                 src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
                 draggable={false}
-                onClick={()=>setShowPickers(v=>!v)}
+                onClick={()=>setShowMushafSheet(true)}
                 className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
                 style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none",cursor:"pointer"}}
               />
