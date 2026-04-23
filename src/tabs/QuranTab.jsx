@@ -179,8 +179,13 @@ export default function QuranTab(props) {
 
           {/* Header — tap anywhere on the strip to toggle the drawers. */}
           <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28}}>
-            {/* Dropdown — surah, tafsir, reciter, mushaf/study — hidden until tapped */}
-            <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"8px 12px 4px":"0 12px"}}>
+            {/* Title row — surah name (left) + Part N (right). */}
+            <div style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
+            </div>
+            {/* Dropdown — surah, tafsir, reciter, mushaf/study — hidden until tapped, slides DOWN below the title */}
+            <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px"}}>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
                 <div className="sbtn" onClick={e=>{e.stopPropagation();setShowQuranSurahModal(true);setShowPickers(false);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
                   <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
@@ -201,11 +206,6 @@ export default function QuranTab(props) {
                 </div>
               </div>
             </div>
-            {/* Title row — surah name (left) + Part N (right). The whole header strip is the tap target. */}
-            <div style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
-              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
-            </div>
             <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
 
@@ -225,7 +225,7 @@ export default function QuranTab(props) {
                 src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
                 alt={`Mushaf page ${mushafPage}`}
                 draggable={false}
-                onClick={()=>setShowMushafSheet(true)}
+                onClick={()=>setShowPickers(v=>!v)}
                 className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
                 style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none",cursor:"pointer"}}
               />
