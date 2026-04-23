@@ -1900,10 +1900,14 @@ export default function RihlatAlHifz() {
           {/* ── GOAL SECTION ── */}
           <div style={{marginBottom:24}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:"#F3E7C8",fontWeight:700,lineHeight:1.2,marginBottom:6}}>
-              {goalYears}-Year{goalMonths>0?` ${goalMonths}-Month`:""} Hifz Plan
+              {userPlanMode==="custom"
+                ? `${goalYears}-Year${goalMonths>0?` ${goalMonths}-Month`:""} Hifz Plan`
+                : `${goalLabel.replace(" Hafiz","")} Hifz Plan`}
             </div>
             <div style={{fontSize:13,color:"rgba(243,231,200,0.45)"}}>
-              {dailyNew} ayahs per day · {timeline.juzLeft} juz remaining
+              {userPlanMode==="custom"
+                ? `${dailyNew} ayahs per day`
+                : "1 page per day"} · {timeline.juzLeft} juz remaining
             </div>
             <div style={{fontSize:12,color:"rgba(230,184,74,0.40)",marginTop:6}}>
               You are on track — Alhamdulillah
@@ -1925,12 +1929,12 @@ export default function RihlatAlHifz() {
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Your Pace</div>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
               <span style={{fontSize:14}}>📖</span>
-              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{dailyNew} ayahs / day</span>
+              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${dailyNew} ayahs / day`:"1 page / day"}</span>
             </div>
             <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.35) 50%,rgba(217,177,95,0) 100%)"}}/>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
               <span style={{fontSize:14}}>📆</span>
-              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{timeline.juzPerMonth} juz / month</span>
+              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${timeline.juzPerMonth} juz / month`:"~1.5 juz / month"}</span>
             </div>
           </div>
 

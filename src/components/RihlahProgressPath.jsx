@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,timeline,pct,goalYears,goalMonths}){
+export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,timeline,pct,goalYears,goalMonths,goalLabel}){
   const completed=completedCount;
   const waypoints=[
     {x:320,y:175,juz:5},
@@ -48,7 +48,7 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
         <div>
           <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.6)":"#6B645A",fontWeight:700}}>Your Memorization Journey</div>
           <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"#8B7355",marginTop:2}}>You are currently on Juz {sessionJuz||"—"}</div>
-          <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:3}}>{completedCount} of 30 Juz · Goal: {goalYears} year{goalYears!==1?"s":""}{goalMonths>0?` ${goalMonths}mo`:""}</div>
+          <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:3}}>{completedCount} of 30 Juz · Goal: {goalLabel || `${goalYears} year${goalYears!==1?"s":""}${goalMonths>0?` ${goalMonths}mo`:""}`}</div>
         </div>
       </div>
       <svg viewBox="-140 -50 540 280" style={{width:"80%",height:"auto",margin:"0 auto",display:"block",overflow:"visible"}}>

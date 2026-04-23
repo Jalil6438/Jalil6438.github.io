@@ -71,12 +71,6 @@ export default function SettingsModal({
                   <div style={{width:16,height:16,borderRadius:"50%",background:"#fff",transition:"all .2s"}}/>
                 </div>
               </div>
-              {/* Font Size */}
-              <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
-                <div style={{fontSize:12,color:T.text,flexShrink:0}}>🔤 Font Size</div>
-                <input type="range" min="14" max="32" value={fontSize} onChange={e=>setFontSize(Number(e.target.value))} style={{flex:1}}/>
-                <div style={{fontSize:11,color:"#F0C040",fontWeight:700,flexShrink:0,minWidth:26,textAlign:"right"}}>{fontSize}</div>
-              </div>
               {/* Name Change */}
               <div className="sbtn" onClick={()=>{setEditName(localStorage.getItem("rihlat-username")||"");setShowNameModal(true);}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
                 <div style={{fontSize:13,color:T.text}}>👤 Name Change</div>
