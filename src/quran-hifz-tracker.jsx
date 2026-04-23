@@ -16,7 +16,6 @@ import RihlahProgressPath from "./components/RihlahProgressPath";
 import RihlahHome from "./tabs/RihlahHome";
 import TwoPageWarningModal from "./components/TwoPageWarningModal";
 import MushafRangePickerModal from "./components/MushafRangePickerModal";
-import QuranJuzModal from "./components/QuranJuzModal";
 import ReciterModal from "./components/ReciterModal";
 import HaramainPlayer from "./components/HaramainPlayer";
 import useHifzProgress from "./hooks/useHifzProgress";
@@ -114,7 +113,6 @@ export default function RihlatAlHifz() {
   const [mushafLoading,setMushafLoading]=useState(false);
   const [mushafSurahInfo,setMushafSurahInfo]=useState("");
   const [showSurahPicker,setShowSurahPicker]=useState(false);
-  const [showQuranJuzModal,setShowQuranJuzModal]=useState(false);
   const [showQuranSurahModal,setShowQuranSurahModal]=useState(false);
   const [selectedSurahNum,setSelectedSurahNum]=useState(1);
   const [mushafLayout,setMushafLayout]=useState(null); // loaded from /quran-layout.json
@@ -1537,8 +1535,8 @@ export default function RihlatAlHifz() {
 
   const TABS=[
     {id:"myhifz",     label:"My Hifz"},
-    {id:"rihlah",     label:"My Rihlah"},
-    {id:"quran",      label:"Al-Quran Al-Karim"},
+    {id:"quran",      label:"Al-Qur'an"},
+    {id:"rihlah",     label:"Journey"},
     {id:"masjidayn",  label:"🕋 Al-Masjidayn"},
   ];
 
@@ -1636,7 +1634,7 @@ export default function RihlatAlHifz() {
           <div style={{position:"fixed",inset:0,background:dark?"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 50%,#E8DCBE 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)":"radial-gradient(circle at 50% 0%,rgba(139,106,16,0.06),transparent 60%)"}}/>
             {/* Bismillah pinned above the card */}
-            <div style={{position:"absolute",top:"18vh",left:0,right:0,textAlign:"center"}}>
+            <div style={{position:"absolute",top:"4vh",left:0,right:0,textAlign:"center"}}>
               <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(22px,5vw,30px)",color:dark?"#F6E27A":"#2D2A26",direction:"rtl",lineHeight:1.6,textShadow:dark?"0 0 18px rgba(212,175,55,0.18)":"none"}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
             </div>
             <div className="fi" style={{position:"relative",background:dark?"linear-gradient(180deg,rgba(15,20,32,0.97) 0%,rgba(9,13,22,0.99) 100%), radial-gradient(circle at 50% 30%,rgba(212,175,55,0.05),transparent 65%)":"linear-gradient(180deg,#D8CCB0 0%,#CCBFA3 100%)",border:dark?"1px solid rgba(212,175,55,0.20)":"1px solid rgba(139,106,16,0.18)",borderRadius:20,padding:"28px 24px",maxWidth:500,width:"100%",textAlign:"center",boxShadow:dark?"0 20px 50px rgba(0,0,0,0.45),0 0 30px rgba(212,175,55,0.08),inset 0 1px 0 rgba(212,175,55,0.10)":"0 10px 30px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.5)"}}>
@@ -1723,8 +1721,8 @@ export default function RihlatAlHifz() {
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
         {[
           {id:"myhifz",  img:"/tab-hifz.png",   label:"My Hifz"},
-          {id:"rihlah",  img:"/tab-rihlah.png",  label:"My Rihlah"},
           {id:"quran",   img:"/tab-quran.png",   label:"Al-Qur'an"},
+          {id:"rihlah",  img:"/tab-rihlah.png",  label:"Journey"},
           {id:"masjidayn",icon:"\uD83D\uDD4B",  label:"Haramain"},
         ].map(t=>(
           <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
@@ -1870,7 +1868,6 @@ export default function RihlatAlHifz() {
           setTafsirAyah={setTafsirAyah} fetchTafsir={fetchTafsir}
           reflections={reflections} setReflections={setReflections}
           croppedPages={croppedPages}
-          setShowQuranJuzModal={setShowQuranJuzModal}
           setShowQuranSurahModal={setShowQuranSurahModal}
           setShowMushafSheet={setShowMushafSheet}
           setShowMushafRangePicker={setShowMushafRangePicker}
@@ -2105,17 +2102,6 @@ export default function RihlatAlHifz() {
         mushafRangeStart={mushafRangeStart} setMushafRangeStart={setMushafRangeStart}
         mushafRangeEnd={mushafRangeEnd} setMushafRangeEnd={setMushafRangeEnd}
         playMushafRange={playMushafRange}
-      />
-
-      {/* Quran Juz Picker Modal */}
-      <QuranJuzModal
-        show={showQuranJuzModal}
-        onClose={()=>setShowQuranJuzModal(false)}
-        dark={dark}
-        JUZ_PAGES={JUZ_PAGES}
-        mushafJuzNum={mushafJuzNum}
-        setMushafJuzNum={setMushafJuzNum}
-        setMushafPage={setMushafPage}
       />
 
       {/* Quran Surah Picker Modal */}
