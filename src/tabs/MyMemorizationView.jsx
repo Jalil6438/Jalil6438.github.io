@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS } from "../data/quran-metadata";
 
@@ -36,6 +36,8 @@ export default function MyMemorizationView({
   setQuranMode,
 }) {
   const [reviewJuz, setReviewJuz] = useState(null);
+  const [reviewPageIdx, setReviewPageIdx] = useState(0);
+  const touchStartX = useRef(0);
   const [mushafPagesData, setMushafPagesData] = useState(null);
   const [mushafLayoutData, setMushafLayoutData] = useState(null);
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
@@ -52,6 +54,7 @@ export default function MyMemorizationView({
   }, []);
   useEffect(() => {
     if (reviewJuz == null) return;
+    setReviewPageIdx(0);
     const first = JUZ_PAGES[reviewJuz - 1];
     const last = (JUZ_PAGES[reviewJuz] || 605) - 1;
     for (let p = first; p <= last; p++) loadQcfFont(p, loadedFonts, setLoadedFonts);
@@ -91,58 +94,70 @@ export default function MyMemorizationView({
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:dark?"#F3E7C8":"#2D2A26",fontWeight:700,marginTop:6}}>Juz {meta?.roman || reviewJuz}</div>
           <div style={{fontSize:11,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)",marginTop:6}}>Pages {firstPage}–{lastPage} · Complete — Alhamdulillah</div>
         </div>
-        <div style={{display:"flex",flexDirection:"column",gap:20}}>
-          {pages.map(pn => {
-            const fontReady = loadedFonts.has(pn);
-            const pageLines = mushafPagesData && mushafPagesData[pn];
-            const pageLayout = mushafLayoutData && mushafLayoutData[pn];
-            if (!pageLines || !pageLayout || !fontReady) {
+        {(() => {
+          const pn = pages[Math.max(0, Math.min(reviewPageIdx, pages.length - 1))];
+          const fontReady = loadedFonts.has(pn);
+          const pageLines = mushafPagesData && mushafPagesData[pn];
+          const pageLayout = mushafLayoutData && mushafLayoutData[pn];
+          const canPrev = reviewPageIdx > 0;
+          const canNext = reviewPageIdx < pages.length - 1;
+          const goPrev = () => { if (canPrev) setReviewPageIdx(i => i - 1); };
+          const goNext = () => { if (canNext) setReviewPageIdx(i => i + 1); };
+          if (!pageLines || !pageLayout || !fontReady) {
+            return (
+              <div style={{minHeight:200,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:11,letterSpacing:".08em"}}>
+                loading page {pn}…
+              </div>
+            );
+          }
+          const firstSurahName = pageLayout.find(e => e.type === "surah_name");
+          let currentSurah = firstSurahName ? firstSurahName.sn - 1 : ((JUZ_SURAHS[reviewJuz] || [])[0]?.s || null);
+          let ayahIdx = -1;
+          const rendered = pageLayout.map((entry, i) => {
+            const type = entry.type;
+            if (type !== "surah_name" && type !== "basmallah") ayahIdx++;
+            if (type === "surah_name") currentSurah = entry.sn;
+            if (!juzSurahsSet.has(currentSurah)) return null;
+            const isCenter = entry.center === 1;
+            if (type === "surah_name") {
               return (
-                <div key={pn} style={{minHeight:80,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:11,letterSpacing:".08em"}}>
-                  loading page {pn}…
+                <div key={i} style={{textAlign:"center",padding:"6px 0"}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:dark?"rgba(232,200,120,0.80)":"rgba(0,0,0,0.65)",fontWeight:700}}>{SURAH_EN[entry.sn] || `Surah ${entry.sn}`}</div>
                 </div>
               );
             }
-            const firstSurahName = pageLayout.find(e => e.type === "surah_name");
-            let currentSurah = firstSurahName ? firstSurahName.sn - 1 : ((JUZ_SURAHS[reviewJuz] || [])[0]?.s || null);
-            let ayahIdx = -1;
-            const rendered = pageLayout.map((entry, i) => {
-              const type = entry.type;
-              if (type !== "surah_name" && type !== "basmallah") ayahIdx++;
-              if (type === "surah_name") currentSurah = entry.sn;
-              if (!juzSurahsSet.has(currentSurah)) return null;
-              const isCenter = entry.center === 1;
-              if (type === "surah_name") {
-                return (
-                  <div key={i} style={{textAlign:"center",padding:"6px 0"}}>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:dark?"rgba(232,200,120,0.80)":"rgba(0,0,0,0.65)",fontWeight:700}}>{SURAH_EN[entry.sn] || `Surah ${entry.sn}`}</div>
-                  </div>
-                );
-              }
-              if (type === "basmallah") {
-                return (
-                  <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
-                    <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,5vw,26px)",color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",direction:"rtl",lineHeight:1.8}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
-                  </div>
-                );
-              }
-              const lineText = pageLines[ayahIdx] || "";
+            if (type === "basmallah") {
               return (
-                <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pn}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
-                  {lineText.split(" ").map((w, wi) => (<span key={wi}>{w}</span>))}
+                <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
+                  <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,5vw,26px)",color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",direction:"rtl",lineHeight:1.8}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
                 </div>
               );
-            });
-            const visible = rendered.filter(Boolean);
-            if (visible.length === 0) return null;
+            }
+            const lineText = pageLines[ayahIdx] || "";
             return (
-              <div key={pn}>
-                {visible}
-                <div style={{textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.30)":"rgba(140,100,20,0.40)",marginTop:6}}>Page {pn}</div>
+              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pn}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                {lineText.split(" ").map((w, wi) => (<span key={wi}>{w}</span>))}
               </div>
             );
-          })}
-        </div>
+          }).filter(Boolean);
+          return (
+            <div
+              onTouchStart={e=>{ touchStartX.current = e.touches[0].clientX; }}
+              onTouchEnd={e=>{
+                const dx = e.changedTouches[0].clientX - touchStartX.current;
+                if (Math.abs(dx) < 40) return;
+                if (dx < 0) goNext(); else goPrev();
+              }}
+            >
+              {rendered}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:18,padding:"10px 8px",borderTop:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)"}}>
+                <div className="sbtn" onClick={goPrev} style={{padding:"8px 16px",fontSize:18,borderRadius:8,color:canPrev?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.18)"),border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)"}}>‹</div>
+                <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.55)"}}>Page {pn} · {reviewPageIdx+1} / {pages.length}</div>
+                <div className="sbtn" onClick={goNext} style={{padding:"8px 16px",fontSize:18,borderRadius:8,color:canNext?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.18)"),border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)"}}>›</div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
