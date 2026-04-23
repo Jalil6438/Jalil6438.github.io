@@ -344,7 +344,7 @@ export default function QuranTab(props) {
                           const lineNum=i+1;
                           const vkForLine=lineToVerse[lineNum];
                           return (
-                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
+                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setShowPickers(true);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
                             {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                           </div>
                           );
@@ -408,7 +408,7 @@ export default function QuranTab(props) {
                 };
                 return (
                   <>
-                  <div onClick={()=>{setSelectedAyah(null);setDrawerView("default");}} style={{position:"fixed",inset:0,zIndex:199,background:"transparent"}}/>
+                  <div onClick={()=>{setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}} style={{position:"fixed",inset:0,zIndex:199,background:"transparent"}}/>
                   <div
                     onClick={e=>e.stopPropagation()}
                     style={{
@@ -441,7 +441,7 @@ export default function QuranTab(props) {
                           </div>
                         )}
                         <div style={{display:"flex",alignItems:"center",gap:10}}>
-                          <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");}}
+                          <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}}
                             style={{fontSize:18,color:dark?"rgba(243,231,200,0.20)":"rgba(0,0,0,0.30)",lineHeight:1,padding:"0 4px"}}>×</div>
                         </div>
                       </div>
@@ -630,7 +630,7 @@ export default function QuranTab(props) {
                               {mushafBookmarks.filter(b=>typeof b==="string").map(vk=>{
                                 const [s]=vk.split(":");
                                 return (
-                                  <div key={vk} className="sbtn" onClick={()=>{const pg=SURAH_PAGES[Number(s)]||1;setMushafPage(pg);setSelectedAyah(null);setDrawerView("default");}}
+                                  <div key={vk} className="sbtn" onClick={()=>{const pg=SURAH_PAGES[Number(s)]||1;setMushafPage(pg);setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}}
                                     style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px",borderRadius:8,marginBottom:4,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(255,255,255,0.05)":"1px solid rgba(0,0,0,0.06)"}}>
                                     <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{SURAH_EN[Number(s)]} · {vk}</span>
                                     <span style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>→</span>
