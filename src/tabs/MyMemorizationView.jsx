@@ -126,6 +126,7 @@ export default function MyMemorizationView({
             );
           }
           const firstSurahName = pageLayout.find(e => e.type === "surah_name");
+          const leadSurahNum = firstSurahName ? firstSurahName.sn : ((JUZ_SURAHS[reviewJuz] || [])[0]?.s || 0);
           let currentSurah = firstSurahName ? firstSurahName.sn - 1 : ((JUZ_SURAHS[reviewJuz] || [])[0]?.s || null);
           let ayahIdx = -1;
           const rendered = pageLayout.map((entry, i) => {
@@ -174,6 +175,12 @@ export default function MyMemorizationView({
                 if (dx < 0) goPrev(); else goNext();
               }}
             >
+              {(leadSurahNum>0||reviewJuz)&&(
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:14}}>
+                  <span>{leadSurahNum>0?(SURAH_EN[leadSurahNum]||""):""}</span>
+                  <span>{reviewJuz?`Part ${reviewJuz}`:""}</span>
+                </div>
+              )}
               {rendered}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:18,padding:"10px 8px",borderTop:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)"}}>
                 <div className="sbtn" onClick={goNext} style={{padding:"8px 16px",fontSize:18,borderRadius:8,color:canNext?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.18)"),border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)"}}>‹</div>
