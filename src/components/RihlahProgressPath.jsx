@@ -12,6 +12,33 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
   ];
   const startPt={x:-130,y:210};
   const pathD=`M ${startPt.x} ${startPt.y} C -60 240 370 190 ${waypoints[0].x} ${waypoints[0].y} C 370 155 -50 145 ${waypoints[1].x} ${waypoints[1].y} C -50 105 340 98 ${waypoints[2].x} ${waypoints[2].y} C 340 65 20 55 ${waypoints[3].x} ${waypoints[3].y} C 20 22 380 15 ${waypoints[4].x} ${waypoints[4].y}`;
+  // Find the cumulative path length at each waypoint by sampling, then
+  // interpolate a lit-length that actually reaches the waypoint the user is on.
+  const computeLitLen=(el)=>{
+    if(!el||completed<=0) return 0;
+    const totalLen=el.getTotalLength();
+    if(completed>=25) return totalLen;
+    const sample=300, step=totalLen/sample;
+    const wpLens=[];
+    let cursor=0;
+    for(const wp of waypoints.slice(0,5)){
+      let bestLen=cursor, bestD=Infinity;
+      for(let len=cursor;len<=totalLen;len+=step){
+        const p=el.getPointAtLength(len);
+        const d=(p.x-wp.x)*(p.x-wp.x)+(p.y-wp.y)*(p.y-wp.y);
+        if(d<bestD){ bestD=d; bestLen=len; }
+      }
+      wpLens.push(bestLen);
+      cursor=bestLen;
+    }
+    const wpIdx=Math.floor(completed/5)-1;  // 5→0, 10→1, …
+    const prevJuz=(wpIdx+1)*5;
+    const prevLen=wpIdx>=0?wpLens[wpIdx]:0;
+    if(completed===prevJuz) return prevLen;
+    const nextLen=wpIdx+1<wpLens.length?wpLens[wpIdx+1]:totalLen;
+    const progress=(completed-prevJuz)/5;
+    return prevLen+progress*(nextLen-prevLen);
+  };
   const litCount=waypoints.filter(w=>completed>=w.juz).length;
   const currentWpIdx=waypoints.findIndex(w=>completed<w.juz);
   const currentWp=currentWpIdx>=0?waypoints[currentWpIdx]:waypoints[5];
@@ -53,7 +80,7 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
           <path ref={el=>{
             if(el){
               const totalLen=el.getTotalLength();
-              const litLen=totalLen*(Math.min(completed,25)/25);
+              const litLen=computeLitLen(el);
               el.style.strokeDasharray=`${litLen} ${totalLen}`;
             }
           }} d={pathD} fill="none" stroke={dark?"#F5C518":"#B45309"} strokeWidth="6" strokeLinecap="round" opacity={dark?0.8:0.95} filter="url(#fireGlow)" strokeDasharray="0 9999"/>
@@ -62,7 +89,7 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
           <path ref={el=>{
             if(el){
               const totalLen=el.getTotalLength();
-              const litLen=totalLen*(Math.min(completed,25)/25);
+              const litLen=computeLitLen(el);
               el.style.strokeDasharray=`${litLen} ${totalLen}`;
             }
           }} d={pathD} fill="none" stroke={dark?"#FFEAA0":"#D97706"} strokeWidth="3" strokeLinecap="round" filter="url(#pathGlow)" strokeDasharray="0 9999"/>
