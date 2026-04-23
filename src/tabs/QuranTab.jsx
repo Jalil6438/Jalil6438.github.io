@@ -179,12 +179,7 @@ export default function QuranTab(props) {
 
           {/* Header — tap anywhere on the strip to toggle the drawers. */}
           <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28}}>
-            {/* Title row — surah name (left) + Part N (right). */}
-            <div style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
-              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
-            </div>
-            {/* Dropdown — surah, tafsir, reciter, mushaf/study — hidden until tapped, slides DOWN below the title */}
+            {/* Dropdown — surah, tafsir, reciter, mushaf/study — slides down ABOVE the title */}
             <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px"}}>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
                 <div className="sbtn" onClick={e=>{e.stopPropagation();setShowQuranSurahModal(true);setShowPickers(false);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
@@ -205,6 +200,11 @@ export default function QuranTab(props) {
                   <div className="sbtn" onClick={e=>{e.stopPropagation();setQuranMode("interactive");}} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,letterSpacing:".04em",color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Study</div>
                 </div>
               </div>
+            </div>
+            {/* Title row — surah name (left) + Part N (right). Sits below the dropdown so pickers pop above it. */}
+            <div style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
             </div>
             <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
