@@ -1,6 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS } from "../data/quran-metadata";
+
+const JUZ_PAGES = [1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582,605];
+
+function loadQcfFont(pageN, loadedFonts, setLoadedFonts) {
+  if (!pageN || pageN < 1 || pageN > 604) return;
+  const elId = `qcf-font-v2-${pageN}`;
+  if (!document.getElementById(elId)) {
+    const style = document.createElement("style");
+    style.id = elId;
+    style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
+    document.head.appendChild(style);
+  }
+  if (loadedFonts.has(pageN)) return;
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load(`16px 'p${pageN}'`).then(() => {
+      setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
+    }).catch(() => {});
+  }
+}
 
 export default function MyMemorizationView({
   dark,
@@ -17,6 +36,26 @@ export default function MyMemorizationView({
   setQuranMode,
 }) {
   const [reviewJuz, setReviewJuz] = useState(null);
+  const [mushafPagesData, setMushafPagesData] = useState(null);
+  const [mushafLayoutData, setMushafLayoutData] = useState(null);
+  const [loadedFonts, setLoadedFonts] = useState(() => new Set());
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [p, l] = await Promise.all([fetch("/mushaf-pages.json"), fetch("/mushaf-layout.json")]);
+        if (!cancelled && p.ok) setMushafPagesData(await p.json());
+        if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  useEffect(() => {
+    if (reviewJuz == null) return;
+    const first = JUZ_PAGES[reviewJuz - 1];
+    const last = (JUZ_PAGES[reviewJuz] || 605) - 1;
+    for (let p = first; p <= last; p++) loadQcfFont(p, loadedFonts, setLoadedFonts);
+  }, [reviewJuz]);
   const isJDone = (n) => juzStatus[n] === "complete" || (JUZ_SURAHS[n] || []).every(s => juzStatus[`s${s.s}`] === "complete");
   const currentJuz = sessionJuz || 30;
   const currentMeta = JUZ_META.find(j => j.num === currentJuz) || JUZ_META[0];
@@ -39,26 +78,70 @@ export default function MyMemorizationView({
 
   if (reviewJuz != null) {
     const meta = JUZ_META.find(m => m.num === reviewJuz);
-    const surahs = JUZ_SURAHS[reviewJuz] || [];
+    const firstPage = JUZ_PAGES[reviewJuz - 1];
+    const lastPage = (JUZ_PAGES[reviewJuz] || 605) - 1;
+    const juzSurahsSet = new Set((JUZ_SURAHS[reviewJuz] || []).map(s => s.s));
+    const pages = [];
+    for (let p = firstPage; p <= lastPage; p++) pages.push(p);
     return (
       <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"14px 16px 120px"}} className="fi gold-particles">
-        <div style={{marginBottom:20}}>
+        <div style={{marginBottom:16}}>
           <div className="sbtn" onClick={()=>setReviewJuz(null)} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.10)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:10}}>← Back</div>
           <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.60)":"rgba(140,100,20,0.65)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:600}}>Review · Juz {reviewJuz}</div>
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:dark?"#F3E7C8":"#2D2A26",fontWeight:700,marginTop:6}}>Juz {meta?.roman || reviewJuz}</div>
-          {meta?.arabic&&<div style={{fontFamily:"'Amiri',serif",fontSize:16,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.65)",direction:"rtl",marginTop:2}}>{meta.arabic}</div>}
-          <div style={{fontSize:11,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)",marginTop:10}}>{surahs.length} surah{surahs.length!==1?"s":""} · Complete — Alhamdulillah</div>
+          <div style={{fontSize:11,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)",marginTop:6}}>Pages {firstPage}–{lastPage} · Complete — Alhamdulillah</div>
         </div>
-        <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {surahs.map(s=>(
-            <div key={s.s} className={setMushafPage?"sbtn":undefined} onClick={setMushafPage?()=>{setMushafPage(s.page||1);if(setQuranMode)setQuranMode("mushaf");setActiveTab("quran");}:undefined} style={{padding:"14px 16px",borderRadius:12,background:dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:dark?"rgba(243,231,200,0.80)":"#2D2A26"}}>{SURAH_EN[s.s]||`Surah ${s.s}`}</div>
-                <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:2,letterSpacing:".06em"}}>Surah {s.s} · {s.a} ayahs</div>
+        <div style={{display:"flex",flexDirection:"column",gap:20}}>
+          {pages.map(pn => {
+            const fontReady = loadedFonts.has(pn);
+            const pageLines = mushafPagesData && mushafPagesData[pn];
+            const pageLayout = mushafLayoutData && mushafLayoutData[pn];
+            if (!pageLines || !pageLayout || !fontReady) {
+              return (
+                <div key={pn} style={{minHeight:80,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:11,letterSpacing:".08em"}}>
+                  loading page {pn}…
+                </div>
+              );
+            }
+            const firstSurahName = pageLayout.find(e => e.type === "surah_name");
+            let currentSurah = firstSurahName ? firstSurahName.sn - 1 : ((JUZ_SURAHS[reviewJuz] || [])[0]?.s || null);
+            let ayahIdx = -1;
+            const rendered = pageLayout.map((entry, i) => {
+              const type = entry.type;
+              if (type !== "surah_name" && type !== "basmallah") ayahIdx++;
+              if (type === "surah_name") currentSurah = entry.sn;
+              if (!juzSurahsSet.has(currentSurah)) return null;
+              const isCenter = entry.center === 1;
+              if (type === "surah_name") {
+                return (
+                  <div key={i} style={{textAlign:"center",padding:"6px 0"}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:dark?"rgba(232,200,120,0.80)":"rgba(0,0,0,0.65)",fontWeight:700}}>{SURAH_EN[entry.sn] || `Surah ${entry.sn}`}</div>
+                  </div>
+                );
+              }
+              if (type === "basmallah") {
+                return (
+                  <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
+                    <div style={{fontFamily:"'Amiri',serif",fontSize:"clamp(18px,5vw,26px)",color:dark?"rgba(232,200,120,0.75)":"rgba(0,0,0,0.55)",direction:"rtl",lineHeight:1.8}}>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>
+                  </div>
+                );
+              }
+              const lineText = pageLines[ayahIdx] || "";
+              return (
+                <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pn}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                  {lineText.split(" ").map((w, wi) => (<span key={wi}>{w}</span>))}
+                </div>
+              );
+            });
+            const visible = rendered.filter(Boolean);
+            if (visible.length === 0) return null;
+            return (
+              <div key={pn}>
+                {visible}
+                <div style={{textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.30)":"rgba(140,100,20,0.40)",marginTop:6}}>Page {pn}</div>
               </div>
-              {setMushafPage&&<div style={{fontSize:16,color:dark?"rgba(230,184,74,0.45)":"rgba(140,100,20,0.55)"}}>›</div>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
