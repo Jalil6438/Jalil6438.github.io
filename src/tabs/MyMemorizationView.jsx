@@ -146,14 +146,14 @@ export default function MyMemorizationView({
               onTouchEnd={e=>{
                 const dx = e.changedTouches[0].clientX - touchStartX.current;
                 if (Math.abs(dx) < 40) return;
-                if (dx < 0) goNext(); else goPrev();
+                if (dx < 0) goPrev(); else goNext();
               }}
             >
               {rendered}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:18,padding:"10px 8px",borderTop:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)"}}>
-                <div className="sbtn" onClick={goPrev} style={{padding:"8px 16px",fontSize:18,borderRadius:8,color:canPrev?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.18)"),border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)"}}>‹</div>
+                <div className="sbtn" onClick={goNext} style={{padding:"8px 16px",fontSize:18,borderRadius:8,color:canNext?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.18)"),border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)"}}>‹</div>
                 <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:10,color:dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.55)"}}>Page {pn} · {reviewPageIdx+1} / {pages.length}</div>
-                <div className="sbtn" onClick={goNext} style={{padding:"8px 16px",fontSize:18,borderRadius:8,color:canNext?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.18)"),border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)"}}>›</div>
+                <div className="sbtn" onClick={goPrev} style={{padding:"8px 16px",fontSize:18,borderRadius:8,color:canPrev?(dark?"rgba(217,177,95,0.60)":"#6B645A"):(dark?"rgba(217,177,95,0.15)":"rgba(0,0,0,0.18)"),border:dark?"1px solid rgba(217,177,95,0.15)":"1px solid rgba(139,106,16,0.18)",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)"}}>›</div>
               </div>
             </div>
           );
