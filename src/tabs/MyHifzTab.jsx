@@ -8,7 +8,7 @@ import { saveCompletedAyahs, toArabicDigits } from "../utils";
 // Mushaf line — base font is deliberately large; each line measures its own
 // natural width against the container and shrinks only if it would overflow,
 // so we get maximum size on short lines without any clipping.
-function MushafAutoLine({ lineText, fontFamily, isCenter, color, baseSize = 40 }) {
+function MushafAutoLine({ lineText, fontFamily, isCenter, color, baseSize = 52 }) {
   const ref = useRef(null);
   const [size, setSize] = useState(baseSize);
   useLayoutEffect(() => {
@@ -18,13 +18,13 @@ function MushafAutoLine({ lineText, fontFamily, isCenter, color, baseSize = 40 }
     m.style.cssText = `position:absolute;top:-9999px;left:-9999px;visibility:hidden;white-space:nowrap;direction:rtl;font-family:'${fontFamily}',serif;font-size:${baseSize}px`;
     m.textContent = lineText;
     document.body.appendChild(m);
-    const containerW = Math.max(1, el.clientWidth - 8);
+    const containerW = Math.max(1, el.clientWidth - 2);
     const naturalW = m.scrollWidth;
     document.body.removeChild(m);
     setSize(naturalW > containerW ? Math.max(14, baseSize * (containerW / naturalW)) : baseSize);
   }, [lineText, fontFamily, baseSize]);
   return (
-    <div ref={ref} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'${fontFamily}',serif`,fontSize:`${size}px`,color,padding:"6px 4px",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+    <div ref={ref} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",width:"100%",maxWidth:"min(680px,99vw)",marginInline:"auto",fontFamily:`'${fontFamily}',serif`,fontSize:`${size}px`,color,padding:"6px 2px",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
       {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
     </div>
   );
