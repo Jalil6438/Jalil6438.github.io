@@ -161,8 +161,8 @@ export default function MyMemorizationView({
             }
             const lineText = pageLines[ayahIdx] || "";
             return (
-              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pn}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
-                {lineText.split(" ").map((w, wi) => (<span key={wi}>{w}</span>))}
+              <div key={i} style={{direction:"rtl",textAlign:isCenter?"center":"justify",textAlignLast:isCenter?"center":"justify",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${pn}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",lineHeight:1.9}}>
+                {lineText}
               </div>
             );
           }).filter(Boolean);
