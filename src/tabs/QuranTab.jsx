@@ -209,8 +209,46 @@ export default function QuranTab(props) {
             <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
 
+          {/* Inline Tafsir — replaces the viewer when active, keeps header pickers visible */}
+          {drawerView==="tafsir"&&selectedAyah&&(()=>{
+            const selVerse=(mushafVerses||[]).find(v=>v.verse_key===selectedAyah);
+            const transText=selVerse?._translation||translations[selectedAyah]||"";
+            return (
+              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)"}}>
+                <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 16px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)"}}>
+                  <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}} style={{fontSize:11,fontWeight:700,color:dark?"#E6B84A":"#8B6A10",padding:"6px 10px",borderRadius:8,background:dark?"rgba(230,184,74,0.08)":"rgba(180,140,40,0.06)",border:dark?"1px solid rgba(230,184,74,0.25)":"1px solid rgba(160,120,20,0.25)"}}>← Back to Qur'an</div>
+                  <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase"}}>{SURAH_EN[parseInt(selectedAyah.split(":")[0],10)]||""} · {selectedAyah}</div>
+                </div>
+                <div style={{flexShrink:0,padding:"12px 20px 10px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)",background:dark?"rgba(0,0,0,0.15)":"rgba(0,0,0,0.03)"}}>
+                  <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
+                    {(selVerse?.text_uthmani||"").replace(/۟/g,"ْ")}
+                  </div>
+                  {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
+                </div>
+                <div style={{display:"flex",borderBottom:dark?"1px solid rgba(212,175,55,0.10)":"1px solid rgba(0,0,0,0.06)",padding:"0 20px",flexShrink:0,gap:4}}>
+                  {TAFSIR_SOURCES.map(src=>(
+                    <div key={src.id} className="sbtn" onClick={()=>{setTafsirTab(src.id);if(!tafsirData[`${src.id}-${selectedAyah}`])fetchTafsir(selectedAyah);}}
+                      style={{flex:1,textAlign:"center",padding:"10px 4px 8px",fontSize:11,fontWeight:tafsirTab===src.id?700:500,letterSpacing:".02em",color:tafsirTab===src.id?(dark?"#E8C76A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#9A9488"),borderBottom:`2.5px solid ${tafsirTab===src.id?(dark?"#E8C76A":"#D4AF37"):"transparent"}`,transition:"all .2s ease"}}>
+                      {src.name}
+                    </div>
+                  ))}
+                </div>
+                <div style={{flex:1,overflowY:"auto",padding:"20px 20px 120px"}}>
+                  {(()=>{
+                    const rawText=tafsirData[`${tafsirTab}-${selectedAyah}`];
+                    if(!rawText) return <div style={{textAlign:"center",padding:40,color:dark?"rgba(243,231,200,0.20)":"#6B645A",fontSize:11}}>Loading...</div>;
+                    const isFullArabic=TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar";
+                    if(isFullArabic) return <div style={{fontFamily:"'Amiri',serif",fontSize:19,lineHeight:2.2,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",direction:"rtl",textAlign:"center"}}>{rawText}</div>;
+                    const blocks=parseTafsirBlocks(rawText);
+                    return blocks.map((block,i)=>(block.type==="arabic"?(<div key={i} style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,lineHeight:2.2,color:dark?"#E8C76A":"#2D2A26",direction:"rtl",textAlign:"center",padding:"20px 16px",margin:"16px 0",background:dark?"rgba(212,175,55,0.04)":"rgba(212,175,55,0.06)",borderRadius:12,border:dark?"1px solid rgba(212,175,55,0.10)":"1px solid rgba(0,0,0,0.06)"}}>{block.text}</div>):(<div key={i} style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.85,color:dark?"rgba(243,231,200,0.75)":"#2D2A26",marginBottom:18,direction:"ltr",textAlign:"left"}}>{block.text}</div>)));
+                  })()}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Viewer */}
-          {quranMode==="mushaf"?(
+          {drawerView!=="tafsir"&&(quranMode==="mushaf"?(
             <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0b1a2b":"#F3E9D2",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
               onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={e=>{
@@ -390,8 +428,8 @@ export default function QuranTab(props) {
                 </div>
               )}
 
-              {/* ── UNIFIED 50% DRAWER ── */}
-              {(selectedAyah||drawerView==="bookmarks")&&(()=>{
+              {/* ── UNIFIED 50% DRAWER ── (skip for tafsir — renders inline above) */}
+              {(selectedAyah||drawerView==="bookmarks")&&drawerView!=="tafsir"&&(()=>{
                 const [sNum,aNum] = (selectedAyah||"").split(":");
                 const surahN = parseInt(sNum,10);
                 const selVerse = (mushafVerses||[]).find(v=>v.verse_key===selectedAyah);
@@ -685,7 +723,7 @@ export default function QuranTab(props) {
                 );
               })()}
             </div>
-          )}
+          ))}
 
           {/* Page nav — ‹ / › prev-next */}
           <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",borderTop:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(139,106,16,0.15)"}}>
