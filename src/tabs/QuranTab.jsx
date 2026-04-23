@@ -177,8 +177,8 @@ export default function QuranTab(props) {
   return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:100}}>
 
-          {/* Header — only the title row is the tap target for toggling (picker clicks stay isolated). */}
-          <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28,position:"relative",zIndex:201}}>
+          {/* Header — sticky so it's always visible regardless of scroll. Only title row toggles. */}
+          <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
             {/* Dropdown — surah, tafsir, reciter, mushaf/study — slides down ABOVE the title */}
             <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px",position:"relative",zIndex:2}}>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
