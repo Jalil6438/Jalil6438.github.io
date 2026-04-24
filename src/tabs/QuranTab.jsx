@@ -393,7 +393,10 @@ export default function QuranTab(props) {
                           </div>
                           );
                         });
-                        // Short pages (1-2): split header (surah+basmallah) from ayahs so ayahs can center vertically in the remaining space, while the ornament stays near the top.
+                        // Short pages (1-2): center the whole block vertically.
+                        if(mushafPage<=2){
+                          return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>{entries}</div>);
+                        }
                         return entries;
                       })()}
                     </div>);
