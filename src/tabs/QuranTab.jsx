@@ -383,19 +383,7 @@ export default function QuranTab(props) {
                           const vkForLine=lineToVerse[lineNum];
                           return (
                           <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setShowPickers(true);setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(16px,4vw,24px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default",flex:1,minHeight:0}}>
-                            {(()=>{
-                              // Glue ayah-marker tokens to the preceding word so they don't drift in space-between layout.
-                              // Markers in the KFGQPC page fonts live in the private-use area above the main word glyphs;
-                              // we treat any 1-char trailing PUA token as a marker.
-                              const raw=lineText.split(" ");
-                              const merged=[];
-                              for(const t of raw){
-                                const isMarker=t.length===1&&t.charCodeAt(0)>=0xE000;
-                                if(isMarker&&merged.length>0){ merged[merged.length-1]=merged[merged.length-1]+t; }
-                                else merged.push(t);
-                              }
-                              return merged.map((w,wi)=>(<span key={wi}>{w}</span>));
-                            })()}
+                            {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                           </div>
                           );
                         });
