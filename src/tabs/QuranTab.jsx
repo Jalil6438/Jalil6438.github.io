@@ -182,25 +182,28 @@ export default function QuranTab(props) {
           <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
             {/* Dropdown — surah, tafsir, reciter, mushaf/study — slides down ABOVE the title */}
             <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px",position:"relative",zIndex:2}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-around",gap:6}}>
-                {(()=>{
-                  const iconBtn = (icon, title, onClick) => (
-                    <div className="sbtn" onClick={e=>{e.stopPropagation();onClick();}} title={title}
-                      style={{display:"flex",alignItems:"center",justifyContent:"center",width:32,height:32,borderRadius:999,background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",fontSize:14,color:dark?"rgba(243,231,191,0.80)":"#4A3A10",flexShrink:0,cursor:"pointer"}}>
-                      {icon}
-                    </div>
-                  );
-                  return (<>
-                    {setActiveTab&&iconBtn("←","Back to Hifz",()=>setActiveTab("myhifz"))}
-                    {iconBtn("📋","Select surah",()=>setShowQuranSurahModal(true))}
-                    {iconBtn("📖","Tafsir",()=>{const vk=selectedAyah||mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");})}
-                    {iconBtn("🎙️","Select reciter",()=>{setReciterMode("quran");setShowReciterModal(true);})}
-                  </>);
-                })()}
-                <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:94,flexShrink:0,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
-                  <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40), 0 0 4px rgba(212,175,55,0.20)",transition:"left .25s ease"}}/>
-                  <div className="sbtn" onClick={e=>{e.stopPropagation();setQuranMode("mushaf");}} title="Mushaf" style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.55)":"rgba(0,0,0,0.55)",transition:"color .2s ease",fontWeight:700}}>📜</div>
-                  <div className="sbtn" onClick={e=>{e.stopPropagation();setQuranMode("interactive");}} title="Study" style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.55)":"rgba(0,0,0,0.55)",transition:"color .2s ease",fontWeight:700}}>✦</div>
+              <div style={{display:"flex",alignItems:"center",gap:4}}>
+                {setActiveTab&&(
+                  <div className="sbtn" onClick={e=>{e.stopPropagation();setActiveTab("myhifz");}} style={{flexShrink:0,padding:"0 8px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,fontWeight:600,color:dark?"rgba(232,200,120,0.80)":"#6B4F00",display:"flex",alignItems:"center",height:24,whiteSpace:"nowrap"}}>
+                    ← Hifz
+                  </div>
+                )}
+                <div className="sbtn" onClick={e=>{e.stopPropagation();setShowQuranSurahModal(true);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
+                  <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
+                  <span style={{fontSize:8,opacity:0.5,flexShrink:0}}>▾</span>
+                </div>
+                <div className="sbtn" onClick={e=>{e.stopPropagation();const vk=selectedAyah||mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
+                  <span>Tafsir</span>
+                  <span style={{fontSize:8,opacity:0.5,flexShrink:0}}>▾</span>
+                </div>
+                <div className="sbtn" onClick={e=>{e.stopPropagation();setReciterMode("quran");setShowReciterModal(true);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
+                  <span>Reciter</span>
+                  <span style={{fontSize:8,opacity:0.5,flexShrink:0}}>▾</span>
+                </div>
+                <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:110,flexShrink:0,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:24}}>
+                  <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:20,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40), 0 0 4px rgba(212,175,55,0.20)",transition:"left .25s ease"}}/>
+                  <div className="sbtn" onClick={e=>{e.stopPropagation();setQuranMode("mushaf");}} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,letterSpacing:".04em",color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Mushaf</div>
+                  <div className="sbtn" onClick={e=>{e.stopPropagation();setQuranMode("interactive");}} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,letterSpacing:".04em",color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Study</div>
                 </div>
               </div>
             </div>
