@@ -363,7 +363,7 @@ export default function QuranTab(props) {
                             return (
                               <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
                                 <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.9em",direction:"rtl",letterSpacing:"0.14em"}}>
+                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
                                     <span>surah</span>
                                     <span>{String(sn).padStart(3,"0")}</span>
                                   </span>
