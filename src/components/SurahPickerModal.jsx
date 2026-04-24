@@ -44,7 +44,7 @@ export default function SurahPickerModal({
           return (
             <div key={g.juz} style={{marginBottom:14}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,padding:"0 2px"}}>
-                <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700}}>Juz {g.juz}</div>
+                <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700}}>Part {g.juz}</div>
                 {meta?.roman && <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"rgba(107,100,90,0.55)",fontStyle:"italic"}}>{meta.roman}</div>}
                 <div style={{flex:1,height:1,background:dark?"linear-gradient(90deg,rgba(217,177,95,0.25) 0%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(140,100,20,0.25) 0%,rgba(140,100,20,0) 100%)"}}/>
               </div>
