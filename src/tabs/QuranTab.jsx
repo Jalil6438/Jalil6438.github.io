@@ -191,7 +191,7 @@ export default function QuranTab(props) {
                     </div>
                   );
                   return (<>
-                    {setActiveTab&&iconBtn("🏠","Back to Hifz",()=>setActiveTab("myhifz"))}
+                    {setActiveTab&&iconBtn("←","Back to Hifz",()=>setActiveTab("myhifz"))}
                     {iconBtn("📋","Select surah",()=>setShowQuranSurahModal(true))}
                     {iconBtn("📖","Tafsir",()=>{const vk=selectedAyah||mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");})}
                     {iconBtn("🎙️","Select reciter",()=>{setReciterMode("quran");setShowReciterModal(true);})}
