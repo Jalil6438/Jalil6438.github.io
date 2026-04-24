@@ -431,7 +431,7 @@ export default function QuranTab(props) {
                       ? (hizbLabel?`${hizbLabel} | Page ${mushafPage}`:`Page ${mushafPage}`)
                       : (hizbLabel?`Page ${mushafPage} | ${hizbLabel}`:`Page ${mushafPage}`);
                     return (
-                      <div style={{marginTop:6,textAlign:isOdd?"right":"left",padding:isOdd?"0 20px 0 0":"0 0 0 20px",fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
+                      <div style={{position:"absolute",bottom:16,[isOdd?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
                         {text}
                       </div>
                     );
