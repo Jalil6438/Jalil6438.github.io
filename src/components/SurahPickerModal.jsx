@@ -42,7 +42,7 @@ export default function SurahPickerModal({
         {juzGroups.map(g => (
           <div key={g.juz} style={{marginBottom:14}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,padding:"0 2px"}}>
-              <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700}}>Part {g.juz}</div>
+              <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700}}>Juz {g.juz}</div>
               <div style={{flex:1,height:1,background:dark?"linear-gradient(90deg,rgba(217,177,95,0.25) 0%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(140,100,20,0.25) 0%,rgba(140,100,20,0) 100%)"}}/>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
