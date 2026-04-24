@@ -1717,7 +1717,8 @@ export default function RihlatAlHifz() {
         );
       })()}
 
-      {/* TABS — fixed bottom bar with icons */}
+      {/* TABS — fixed bottom bar with icons (hidden on Quran tab for immersive reading) */}
+      {activeTab!=="quran"&&(
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
         {[
           {id:"myhifz",  img:"/tab-hifz.png",   label:"My Hifz"},
@@ -1735,6 +1736,7 @@ export default function RihlatAlHifz() {
           </div>
         ))}
       </div>
+      )}
 
       {/* ═══ TODAY SESSION ═══ */}
       {activeTab==="myhifz"&&!showTerms&&(
@@ -1845,6 +1847,7 @@ export default function RihlatAlHifz() {
         <QuranTab
           haramainMeta={haramainMeta}
           dark={dark}
+          setActiveTab={setActiveTab}
           SURAH_PAGES={SURAH_PAGES}
           TAFSIR_SOURCES={TAFSIR_SOURCES}
           parseTafsirBlocks={parseTafsirBlocks}
