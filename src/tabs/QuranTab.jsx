@@ -183,6 +183,11 @@ export default function QuranTab(props) {
             {/* Dropdown — surah, tafsir, reciter, mushaf/study — slides down ABOVE the title */}
             <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px",position:"relative",zIndex:2}}>
               <div style={{display:"flex",alignItems:"center",gap:4}}>
+                {setActiveTab&&(
+                  <div className="sbtn" onClick={e=>{e.stopPropagation();setActiveTab("myhifz");}} style={{flexShrink:0,padding:"0 8px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,fontWeight:600,color:dark?"rgba(232,200,120,0.80)":"#6B4F00",display:"flex",alignItems:"center",height:24,whiteSpace:"nowrap"}}>
+                    ← Hifz
+                  </div>
+                )}
                 <div className="sbtn" onClick={e=>{e.stopPropagation();setShowQuranSurahModal(true);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
                   <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
                   <span style={{fontSize:8,opacity:0.5,flexShrink:0}}>▾</span>
@@ -202,17 +207,10 @@ export default function QuranTab(props) {
                 </div>
               </div>
             </div>
-            {/* Title row — back button on left, surah name, Part N on right; tappable middle toggles drawers */}
-            <div style={{display:"flex",alignItems:"center",padding:"10px 12px",gap:8}}>
-              {setActiveTab&&(
-                <div className="sbtn" onClick={e=>{e.stopPropagation();setActiveTab("myhifz");}} style={{flexShrink:0,display:"flex",alignItems:"center",gap:3,padding:"4px 8px",borderRadius:8,fontSize:11,fontWeight:600,color:dark?"rgba(232,200,120,0.80)":"#6B4F00",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.18)"}}>
-                  ← Hifz
-                </div>
-              )}
-              <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{flex:1,display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-                <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
-              </div>
+            {/* Title row — tappable to toggle the drawers */}
+            <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
             </div>
             <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
