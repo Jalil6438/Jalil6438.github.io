@@ -208,7 +208,7 @@ export default function QuranTab(props) {
               </div>
             </div>
             {/* Title row — tappable to toggle the drawers */}
-            <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+            <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"6px 16px",gap:8}}>
               <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Part {mushafJuzNum}</div>
             </div>
