@@ -288,7 +288,7 @@ export default function QuranTab(props) {
                 if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:mushafPage<=2?`6vh 0 36px`:`4px 0 36px`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
+              style={{position:"relative",flex:1,overflowY:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:mushafPage<=2?`4px 0 18vh`:`4px 0 36px`,display:"flex",flexDirection:"column",justifyContent:mushafPage<=2?"center":"flex-start"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
