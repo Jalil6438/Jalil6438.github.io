@@ -294,7 +294,7 @@ export default function QuranTab(props) {
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.25)",fontSize:11,letterSpacing:".12em"}}>Loading...</div>
               ):(
-                <div style={{padding:0}}>
+                <div style={{padding:0,flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
                   {(()=>{
                     const playAyahAudio = (vk) => {
                       if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
@@ -395,13 +395,14 @@ export default function QuranTab(props) {
                         });
                         // Short pages (1-2): split header (surah+basmallah) from ayahs so ayahs can center vertically in the remaining space, while the ornament stays near the top.
                         if(mushafPage<=2){
-                          const headerCount=pageLayout.findIndex(e=>e.type!=="surah_name"&&e.type!=="basmallah");
+                          // Only the surah ornament sits up top — basmallah stays with the ayahs so the whole reading block centers together.
+                          const headerCount=pageLayout.findIndex(e=>e.type!=="surah_name");
                           const headerNodes=headerCount>0?entries.slice(0,headerCount):[];
-                          const ayahNodes=headerCount>0?entries.slice(headerCount):entries;
+                          const bodyNodes=headerCount>0?entries.slice(headerCount):entries;
                           return (<>
                             {headerNodes}
-                            <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",marginTop:"3vh"}}>
-                              {ayahNodes}
+                            <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                              {bodyNodes}
                             </div>
                           </>);
                         }
