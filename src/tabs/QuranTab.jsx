@@ -318,7 +318,7 @@ export default function QuranTab(props) {
                     // Render ONCE per page directly from the authoritative
                     // mushaf layout. Each page gives us its 15 line strings
                     // plus per-line alignment (center vs space-between).
-                    return (<div style={{padding:"2px 2px 0",position:"relative",display:"flex",flexDirection:"column",flex:1,minHeight:0}}>
+                    return (<div style={{padding:"2px 2px 0",position:"relative",display:"flex",flexDirection:"column",flex:1,minHeight:0,justifyContent:mushafPage>2?"space-between":"flex-start"}}>
                       {(()=>{
                         const pageFontReady=loadedFonts.has(mushafPage);
                         if(!pageFontReady){
@@ -388,7 +388,7 @@ export default function QuranTab(props) {
                           const lineNum=i+1;
                           const vkForLine=lineToVerse[lineNum];
                           return (
-                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setShowPickers(true);setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",width:"100%",maxWidth:"min(420px,92vw)",marginInline:"auto",padding:"1px 6px",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(14px,3.7vw,22px)",color:dark?"#E8DFC0":"#2D2A26",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default",boxSizing:"border-box"}}>
+                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setShowPickers(true);setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",width:"100%",maxWidth:"min(420px,92vw)",marginInline:"auto",padding:"1px 6px",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(14px,3.7vw,22px)",color:dark?"#E8DFC0":"#2D2A26",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default",boxSizing:"border-box",...(mushafPage>2?{flex:1,minHeight:0}:{})}}>
                             {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                           </div>
                           );
