@@ -362,8 +362,8 @@ export default function QuranTab(props) {
                             const sn=layoutEntry.sn;
                             return (
                               <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
-                                <div style={{position:"relative",width:"100%",height:56,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(18px,5vw,28px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.5em",direction:"rtl",letterSpacing:"0.06em"}}>
+                                <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.9em",direction:"rtl",letterSpacing:"0.14em"}}>
                                     <span>surah</span>
                                     <span>{String(sn).padStart(3,"0")}</span>
                                   </span>
@@ -400,7 +400,9 @@ export default function QuranTab(props) {
                           const headerNodes=headerCount>0?entries.slice(0,headerCount):[];
                           const bodyNodes=headerCount>0?entries.slice(headerCount):entries;
                           return (<>
-                            {headerNodes}
+                            <div style={{marginTop:"6vh",flexShrink:0}}>
+                              {headerNodes}
+                            </div>
                             <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
                               {bodyNodes}
                             </div>
