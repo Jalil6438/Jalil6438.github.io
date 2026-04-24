@@ -1,5 +1,5 @@
 import React from "react";
-import { SURAH_EN } from "../data/constants";
+import { SURAH_EN, SURAH_AYAH_COUNTS, MADANI_SURAHS } from "../data/constants";
 import { JUZ_SURAHS } from "../data/quran-metadata";
 
 const SURAH_PAGES={1:1,2:2,3:50,4:77,5:106,6:128,7:151,8:177,9:187,10:208,11:221,12:235,13:249,14:255,15:262,16:267,17:282,18:293,19:305,20:312,21:322,22:332,23:342,24:350,25:359,26:367,27:377,28:385,29:396,30:404,31:411,32:415,33:418,34:428,35:434,36:440,37:446,38:453,39:458,40:467,41:477,42:483,43:489,44:496,45:499,46:502,47:507,48:511,49:515,50:518,51:520,52:523,53:526,54:528,55:531,56:534,57:537,58:542,59:545,60:549,61:551,62:553,63:554,64:556,65:558,66:560,67:562,68:564,69:566,70:568,71:570,72:572,73:574,74:575,75:577,76:578,77:580,78:582,79:583,80:585,81:586,82:587,83:587,84:589,85:590,86:591,87:591,88:592,89:593,90:594,91:595,92:595,93:596,94:596,95:597,96:597,97:598,98:598,99:599,100:599,101:600,102:600,103:601,104:601,105:601,106:602,107:602,108:602,109:603,110:603,111:603,112:604,113:604,114:604};
@@ -56,7 +56,10 @@ export default function SurahPickerModal({
                       border:`1px solid ${isSel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.08)"}`,
                       boxShadow:isSel?"0 0 18px rgba(232,200,120,0.25),inset 0 0 10px rgba(217,177,95,0.06)":"none"}}>
                     <div style={{fontSize:10,width:26,textAlign:"center",color:isSel?"#F6E27A":dark?"rgba(217,177,95,0.40)":"rgba(107,100,90,0.55)",fontFamily:"'IBM Plex Mono',monospace"}}>{n}</div>
-                    <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:isSel?600:500,color:isSel?"#F6E27A":dark?"rgba(243,231,200,0.80)":"#2D2A26",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[n]}</div>
+                    <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:2}}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:isSel?600:500,color:isSel?"#F6E27A":dark?"rgba(243,231,200,0.80)":"#2D2A26",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[n]}</div>
+                      <div style={{fontSize:9,color:isSel?"rgba(246,226,122,0.55)":dark?"rgba(217,177,95,0.40)":"rgba(107,100,90,0.55)",letterSpacing:".08em",textTransform:"uppercase",fontWeight:600,fontFamily:"'DM Sans',sans-serif"}}>{SURAH_AYAH_COUNTS[n]} Ayahs · {MADANI_SURAHS.has(n)?"Madani":"Meccan"}</div>
+                    </div>
                   </div>
                 );
               })}
