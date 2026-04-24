@@ -288,7 +288,7 @@ export default function QuranTab(props) {
                 if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:mushafPage<=2?`4px 0 18vh`:`4px 0 36px`,display:"flex",flexDirection:"column",justifyContent:mushafPage<=2?"center":"flex-start"}}
+              style={{position:"relative",flex:1,overflowY:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`4px 0 36px`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
@@ -318,7 +318,7 @@ export default function QuranTab(props) {
                     // Render ONCE per page directly from the authoritative
                     // mushaf layout. Each page gives us its 15 line strings
                     // plus per-line alignment (center vs space-between).
-                    return (<div style={{padding:"2px 2px 0",position:"relative"}}>
+                    return (<div style={{padding:"2px 2px 0",position:"relative",display:"flex",flexDirection:"column",flex:1,minHeight:0}}>
                       {(()=>{
                         const pageFontReady=loadedFonts.has(mushafPage);
                         if(!pageFontReady){
@@ -347,7 +347,7 @@ export default function QuranTab(props) {
                         // or basmallah rows). Track an ayah-row cursor to
                         // pair each layout entry with the correct text.
                         let ayahIdx=-1;
-                        return pageLayout.map((layoutEntry,i)=>{
+                        const entries=pageLayout.map((layoutEntry,i)=>{
                           const type=layoutEntry.type;
                           let lineText="";
                           if(type!=="surah_name"&&type!=="basmallah"){
@@ -393,6 +393,19 @@ export default function QuranTab(props) {
                           </div>
                           );
                         });
+                        // Short pages (1-2): split header (surah+basmallah) from ayahs so ayahs can center vertically in the remaining space, while the ornament stays near the top.
+                        if(mushafPage<=2){
+                          const headerCount=pageLayout.findIndex(e=>e.type!=="surah_name"&&e.type!=="basmallah");
+                          const headerNodes=headerCount>0?entries.slice(0,headerCount):[];
+                          const ayahNodes=headerCount>0?entries.slice(headerCount):entries;
+                          return (<>
+                            {headerNodes}
+                            <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+                              {ayahNodes}
+                            </div>
+                          </>);
+                        }
+                        return entries;
                       })()}
                     </div>);
                   })()}
