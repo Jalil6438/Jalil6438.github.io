@@ -395,18 +395,8 @@ export default function QuranTab(props) {
                         });
                         // Short pages (1-2): split header (surah+basmallah) from ayahs so ayahs can center vertically in the remaining space, while the ornament stays near the top.
                         if(mushafPage<=2){
-                          // Only the surah ornament sits up top — basmallah stays with the ayahs so the whole reading block centers together.
-                          const headerCount=pageLayout.findIndex(e=>e.type!=="surah_name");
-                          const headerNodes=headerCount>0?entries.slice(0,headerCount):[];
-                          const bodyNodes=headerCount>0?entries.slice(headerCount):entries;
-                          return (<>
-                            <div style={{marginTop:"14vh",flexShrink:0}}>
-                              {headerNodes}
-                            </div>
-                            <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
-                              {bodyNodes}
-                            </div>
-                          </>);
+                          // Center the entire block (ornament + bismillah + ayahs) vertically as one unit.
+                          return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>{entries}</div>);
                         }
                         return entries;
                       })()}
