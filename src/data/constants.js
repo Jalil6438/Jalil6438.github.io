@@ -48,6 +48,10 @@ export const SURAH_AYAH_COUNTS = {
   101:11,102:8,103:3,104:9,105:5,106:4,107:7,108:3,109:6,110:3,111:5,112:4,113:5,114:6,
 };
 
+// ── SURAH REVELATION PLACE (standard Hafs classification) ──
+// Madani surah numbers; any surah NOT in this set is Meccan.
+export const MADANI_SURAHS = new Set([2,3,4,5,8,9,22,24,33,47,48,49,57,58,59,60,61,62,63,64,65,66,98,99,110]);
+
 // ── JUZ RANGES ──
 export const JUZ_RANGES = {
   1:{start:"1:1",  end:"2:141", total:148}, 2:{start:"2:142",end:"2:252", total:111},
