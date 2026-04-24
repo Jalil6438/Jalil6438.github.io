@@ -288,13 +288,13 @@ export default function QuranTab(props) {
                 if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`4px 0 36px`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
+              style={{position:"relative",flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 6px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.25)",fontSize:11,letterSpacing:".12em"}}>Loading...</div>
               ):(
-                <div style={{padding:0,flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
+                <div style={{padding:0}}>
                   {(()=>{
                     const playAyahAudio = (vk) => {
                       if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
@@ -318,7 +318,7 @@ export default function QuranTab(props) {
                     // Render ONCE per page directly from the authoritative
                     // mushaf layout. Each page gives us its 15 line strings
                     // plus per-line alignment (center vs space-between).
-                    return (<div style={{padding:"2px 2px 0",position:"relative",display:"flex",flexDirection:"column",flex:1,minHeight:0,justifyContent:mushafPage>2?"space-between":"flex-start"}}>
+                    return (<div style={{padding:"8px 2px 0",position:"relative"}}>
                       {(()=>{
                         const pageFontReady=loadedFonts.has(mushafPage);
                         if(!pageFontReady){
@@ -388,7 +388,7 @@ export default function QuranTab(props) {
                           const lineNum=i+1;
                           const vkForLine=lineToVerse[lineNum];
                           return (
-                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setShowPickers(true);setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:"center",alignItems:"center",width:"100%",maxWidth:"min(340px,86vw)",marginInline:"auto",padding:"1px 6px",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(14px,3.7vw,22px)",color:dark?"#E8DFC0":"#2D2A26",whiteSpace:"nowrap",gap:"0.25em",cursor:vkForLine?"pointer":"default",boxSizing:"border-box",...(mushafPage>2?{flex:1,minHeight:0}:{})}}>
+                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setShowPickers(true);setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
                             {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                           </div>
                           );
