@@ -1,4 +1,4 @@
-import { SURAH_EN, SURAH_AYAH_COUNTS, MADANI_SURAHS } from "../data/constants";
+import { SURAH_EN } from "../data/constants";
 import { SURAH_AR } from "../data/quran-metadata";
 import { useState, useEffect } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
@@ -360,8 +360,6 @@ export default function QuranTab(props) {
                           // matches our app's ornament aesthetic.
                           if(type==="surah_name"){
                             const sn=layoutEntry.sn;
-                            const ayahCount=SURAH_AYAH_COUNTS[sn];
-                            const place=MADANI_SURAHS.has(sn)?"Madani":"Meccan";
                             return (
                               <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
                                 <div style={{position:"relative",width:"100%",height:46,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -369,9 +367,6 @@ export default function QuranTab(props) {
                                     <span>surah</span>
                                     <span>{String(sn).padStart(3,"0")}</span>
                                   </span>
-                                </div>
-                                <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".12em",textTransform:"uppercase",fontWeight:600,marginTop:2,fontFamily:"'DM Sans',sans-serif"}}>
-                                  {ayahCount} Ayahs · {place}
                                 </div>
                               </div>
                             );
