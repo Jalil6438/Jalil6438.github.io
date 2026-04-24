@@ -176,7 +176,7 @@ export default function QuranTab(props) {
   const inkColor = "#E8D5A3";
 
   return (
-        <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment,paddingBottom:100}}>
+        <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment}}>
 
           {/* Header — sticky so it's always visible regardless of scroll. Only title row toggles. */}
           <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
@@ -459,7 +459,7 @@ export default function QuranTab(props) {
                       position:"fixed",left:0,right:0,zIndex:200,
                       ...(drawerView==="tafsir"
                         ? {top:0,bottom:0,boxShadow:dark?"0 12px 40px rgba(0,0,0,0.70)":"0 12px 40px rgba(0,0,0,0.12)",animation:"slideDownDrawer .22s ease-out"}
-                        : {bottom:100,maxHeight:`calc(100vh - ${showPickers?180:130}px)`,borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",borderRadius:"20px 20px 0 0",boxShadow:dark?"0 -12px 40px rgba(0,0,0,0.70)":"0 -12px 40px rgba(0,0,0,0.12)",animation:"slideUpDrawer .22s ease-out"}),
+                        : {bottom:0,maxHeight:`calc(100vh - ${showPickers?180:130}px)`,height:"auto",borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",borderRadius:"20px 20px 0 0",boxShadow:dark?"0 -12px 40px rgba(0,0,0,0.70)":"0 -12px 40px rgba(0,0,0,0.12)",animation:"slideUpDrawer .22s ease-out"}),
                       transition:"max-height .25s ease, bottom .25s ease, top .25s ease",
                       background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)",
                       display:"flex",flexDirection:"column",
@@ -471,23 +471,18 @@ export default function QuranTab(props) {
                         <div style={{width:36,height:4,borderRadius:2,background:dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.20)"}}/>
                       </div>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}}
-                          style={{fontSize:11,fontWeight:700,color:dark?"#E6B84A":"#8B6A10",display:"flex",alignItems:"center",gap:4,fontFamily:"'DM Sans',sans-serif",padding:"6px 10px",borderRadius:8,background:dark?"rgba(230,184,74,0.08)":"rgba(180,140,40,0.06)",border:dark?"1px solid rgba(230,184,74,0.25)":"1px solid rgba(160,120,20,0.25)"}}>
-                          ← Back to Qur'an
-                        </div>
-                        <div style={{display:"flex",alignItems:"center",gap:10}}>
-                          {drawerView!=="default"&&(
-                            <div className="sbtn" onClick={()=>setDrawerView("default")}
-                              style={{fontSize:11,color:dark?"rgba(212,175,55,0.60)":"#6B645A",fontFamily:"'DM Sans',sans-serif"}}>
-                              ← View
-                            </div>
-                          )}
+                        {drawerView!=="default"?(
+                          <div className="sbtn" onClick={()=>setDrawerView("default")}
+                            style={{fontSize:11,color:dark?"rgba(212,175,55,0.60)":"#6B645A",fontFamily:"'DM Sans',sans-serif"}}>
+                            ← Back
+                          </div>
+                        ):(
                           <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.50)":"#6B645A",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>
                             {SURAH_EN[surahN]||""} · {sNum}:{aNum}
                           </div>
-                          <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}}
-                            style={{fontSize:22,color:dark?"rgba(243,231,200,0.55)":"rgba(0,0,0,0.55)",lineHeight:1,padding:"0 4px",fontWeight:300}}>×</div>
-                        </div>
+                        )}
+                        <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}}
+                          style={{fontSize:22,color:dark?"rgba(243,231,200,0.55)":"rgba(0,0,0,0.55)",lineHeight:1,padding:"0 4px",fontWeight:300}}>×</div>
                       </div>
                     </div>
 
