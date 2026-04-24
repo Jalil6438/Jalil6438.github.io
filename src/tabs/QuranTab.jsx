@@ -400,7 +400,7 @@ export default function QuranTab(props) {
                           const headerNodes=headerCount>0?entries.slice(0,headerCount):[];
                           const bodyNodes=headerCount>0?entries.slice(headerCount):entries;
                           return (<>
-                            <div style={{marginTop:"6vh",flexShrink:0}}>
+                            <div style={{marginTop:"14vh",flexShrink:0}}>
                               {headerNodes}
                             </div>
                             <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
