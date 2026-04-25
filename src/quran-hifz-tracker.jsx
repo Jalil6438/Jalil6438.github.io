@@ -99,7 +99,10 @@ export default function RihlatAlHifz() {
   const [mushafPage,setMushafPage]=useState(()=>{try{return parseInt(localStorage.getItem("jalil-quran-lastpage"))||1;}catch{return 1;}});
   const [mushafSwipeAnim,setMushafSwipeAnim]=useState("idle"); // "idle"|"exit-left"|"exit-right"
   const [croppedPages,setCroppedPages]=useState({});
-  const [quranMode,setQuranMode]=useState("interactive"); // "mushaf" | "interactive"
+  const [quranMode,setQuranMode]=useState(()=>{
+    try{return localStorage.getItem("rihlat-default-reading-mode")||"interactive";}catch{return "interactive";}
+  }); // "mushaf" | "interactive"
+  useEffect(()=>{try{localStorage.setItem("rihlat-default-reading-mode",quranMode);}catch{}},[quranMode]);
   const [selectedAyah,setSelectedAyah]=useState(null);
   const [drawerView,setDrawerView]=useState("default"); // "default"|"tafsir"|"reflect"|"bookmarks"
   const [showTranslation,setShowTranslation]=useState(true);
