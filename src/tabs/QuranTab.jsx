@@ -235,7 +235,7 @@ export default function QuranTab(props) {
                   {(()=>{
                     const NavRow=({img,emoji,label,onClick})=>(
                       <div className="sbtn" onClick={onClick} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 10px",borderRadius:10,marginBottom:2,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",fontSize:13,fontWeight:500,cursor:"pointer"}}>
-                        {img?<img src={img} alt="" style={{width:28,height:28,objectFit:"contain",flexShrink:0,opacity:0.85}}/>:<span style={{fontSize:22,width:28,height:28,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{emoji}</span>}
+                        {img?<img src={img} alt="" style={{width:36,height:36,objectFit:"contain",flexShrink:0,opacity:0.95}}/>:<span style={{fontSize:28,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{emoji}</span>}
                         <span style={{flex:1,minWidth:0}}>{label}</span>
                       </div>
                     );
