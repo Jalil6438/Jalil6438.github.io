@@ -20,16 +20,14 @@ export default function ReciterModal({
           if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; }
         } else { setReciter(r.id); }
         onClose();
-      }} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,transition:"all .15s",
+      }} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",borderRadius:10,transition:"all .15s",
         background:isSelected?(dark?"rgba(230,184,74,0.10)":"rgba(180,140,40,0.08)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
         border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.35)":"rgba(160,120,20,0.40)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
         boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
-        <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12}}>🎙️</div>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.65)":"rgba(40,30,10,0.65)")}}>{r.name}</div>
-          <div style={{fontFamily:"'Amiri',serif",fontSize:12,color:isSelected?(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.70)"):(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.40)"),marginTop:1}}>{r.arabic}</div>
-        </div>
-        {isSelected&&<div style={{fontSize:14,color:"#E6B84A",fontWeight:700,flexShrink:0}}>✓</div>}
+        <div style={{width:22,height:22,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10}}>🎙️</div>
+        <div style={{flex:1,minWidth:0,fontSize:12,fontWeight:isSelected?700:500,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.70)":"rgba(40,30,10,0.70)"),overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div>
+        <div style={{fontFamily:"'Amiri',serif",fontSize:13,direction:"rtl",color:isSelected?(dark?"rgba(230,184,74,0.75)":"rgba(140,100,20,0.85)"):(dark?"rgba(243,231,200,0.40)":"rgba(40,30,10,0.50)"),flexShrink:0}}>{r.arabic}</div>
+        {isSelected&&<div style={{fontSize:12,color:"#E6B84A",fontWeight:700,flexShrink:0,marginLeft:2}}>✓</div>}
       </div>
     );
   };
