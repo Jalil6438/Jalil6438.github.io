@@ -166,7 +166,6 @@ export default function Onboarding({
               <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12,fontSize:12,color:"rgba(243,231,191,0.75)",lineHeight:1.6,textAlign:"center"}}>
                 <div>20 repetitions per ayah</div>
                 <div>10 repetitions to connect each pair</div>
-                <div>One page of the mushaf each day</div>
               </div>
               <div style={{height:1,background:"linear-gradient(90deg,rgba(212,175,55,0) 0%,rgba(232,200,120,0.30) 50%,rgba(212,175,55,0) 100%)",margin:"0 0 12px"}}/>
               <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,191,0.70)",lineHeight:1.5}}>
