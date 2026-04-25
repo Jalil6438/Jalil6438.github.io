@@ -210,22 +210,13 @@ export default function RihlatAlHifz() {
     (async () => {
       setMushafLoading(true);
       try {
-        // Use same source as My Hifz — qurancdn returns clean text_uthmani, no stray tokens
-        const [textRes, transRes] = await Promise.all([
-          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,page_number,juz_number&per_page=50`),
-          fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?per_page=50&translations=203&fields=verse_key`)
-        ]);
+        // qurancdn returns clean text_uthmani, no stray tokens. Translations come
+        // from the local JSON loaded via translationSource.
+        const textRes = await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,page_number,juz_number&per_page=50`);
         if (!textRes.ok) throw new Error();
         const textData = await textRes.json();
         if (cancelled) return;
         const vs = textData.verses || [];
-        // Merge translations if available
-        if (transRes.ok) {
-          const transData = await transRes.json();
-          const transMap = {};
-          (transData.verses||[]).forEach(v => { transMap[v.verse_key] = v.translations?.[0]?.text || ""; });
-          vs.forEach(v => { v._translation = (transMap[v.verse_key]||"").replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").replace(/\s*,\s*,/g,",").replace(/\s*,\s*$/,"").replace(/\s{2,}/g," ").trim(); });
-        }
         // Fix U+06DF (small high rounded zero) → remove it for UthmanicHafs compatibility
         vs.forEach(v => { if(v.text_uthmani) v.text_uthmani = v.text_uthmani.replace(/\u06DF/g, "\u0652"); });
         setMushafVerses(vs);
@@ -378,7 +369,17 @@ export default function RihlatAlHifz() {
     setHaramainPlaybackRate,
   } = useHaramainPlayer({ activeTab });
   const [showTrans,setShowTrans]=useState(true);
+  const [translationSource,setTranslationSource]=useState(()=>{
+    try{return localStorage.getItem("rihlat-translation-source")||"muhsin_khan";}catch{return "muhsin_khan";}
+  });
+  useEffect(()=>{try{localStorage.setItem("rihlat-translation-source",translationSource);}catch{}},[translationSource]);
   const [translations,setTranslations]=useState({});
+  useEffect(()=>{
+    const slug=translationSource==="sahih_intl"?"sahih-international":"muhsin-khan";
+    let cancelled=false;
+    fetch(`/translations/${slug}.json`).then(r=>r.ok?r.json():null).then(d=>{if(!cancelled&&d)setTranslations(d);}).catch(()=>{});
+    return ()=>{cancelled=true;};
+  },[translationSource]);
   const touchStartRef=useRef(0);
   const [ramadanMosque,setRamadanMosque]=useState("makkah");
   const [liveSource,setLiveSource]=useState("aloula");
@@ -649,25 +650,9 @@ export default function RihlatAlHifz() {
     }
   },[loaded,juzStatus,juzCompletedInSession]);
 
-  const fetchTranslations=async(verses)=>{
-    const needed=verses.filter(v=>!translations[v.verse_key]);
-    if(!needed.length) return;
-    const surahSet=new Set(needed.map(v=>v.verse_key.split(":")[0]));
-    const updated={};
-    for(const surahNum of surahSet){
-      try{
-        const res=await fetch(`https://api.quran.com/api/v4/quran/translations/203?chapter_number=${surahNum}`);
-        if(!res.ok) continue;
-        const data=await res.json();
-        if(!data.translations?.length) continue;
-        data.translations.forEach((t,i)=>{
-          const key=`${surahNum}:${i+1}`;
-          updated[key]=(t.text||"").replace(/<sup[^>]*>.*?<\/sup>/gi,"").replace(/<[^>]+>/g,"").replace(/\s*,\s*,/g,",").replace(/\s*,\s*$/,"").replace(/\s{2,}/g," ").trim();
-        });
-      }catch{}
-    }
-    if(Object.keys(updated).length) setTranslations(prev=>({...prev,...updated}));
-  };
+  // Translations are bundled locally and loaded by the translationSource effect
+  // above. This function is kept as a no-op for callers that still invoke it.
+  const fetchTranslations=async()=>{};
 
   // Fetch quran text tab
   useEffect(()=>{
@@ -1865,6 +1850,7 @@ export default function RihlatAlHifz() {
           selectedAyah={selectedAyah} setSelectedAyah={setSelectedAyah}
           drawerView={drawerView} setDrawerView={setDrawerView}
           translations={translations} fetchTranslations={fetchTranslations}
+          translationSource={translationSource} setTranslationSource={setTranslationSource}
           mushafBookmarks={mushafBookmarks} setMushafBookmarks={setMushafBookmarks}
           playingKey={playingKey} setPlayingKey={setPlayingKey}
           quranReciter={quranReciter}

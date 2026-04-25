@@ -28,6 +28,7 @@ export default function QuranTab(props) {
     selectedAyah, setSelectedAyah,
     drawerView, setDrawerView,
     translations, fetchTranslations,
+    translationSource, setTranslationSource,
     mushafBookmarks, setMushafBookmarks,
     playingKey, setPlayingKey,
     quranReciter,
@@ -289,12 +290,17 @@ export default function QuranTab(props) {
                   <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",fontStyle:"italic"}}>coming soon</div>
                 </div>
                 {/* Translation source */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Translation source</div>
-                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Sahih International · Muhsin Khan</div>
+                <div style={{padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
+                  <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26",marginBottom:2}}>Translation source</div>
+                  <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>Used in Study mode and the ayah drawer</div>
+                  <div style={{display:"flex",gap:6}}>
+                    {[{id:"muhsin_khan",name:"Muhsin Khan"},{id:"sahih_intl",name:"Sahih International"}].map(src=>{
+                      const sel=translationSource===src.id;
+                      return (
+                        <div key={src.id} className="sbtn" onClick={()=>setTranslationSource&&setTranslationSource(src.id)} style={{flex:1,padding:"8px 6px",borderRadius:10,fontSize:11,fontWeight:600,textAlign:"center",background:sel?"rgba(217,177,95,0.12)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${sel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.06)"}`,color:sel?"#F6E27A":dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{src.name}</div>
+                      );
+                    })}
                   </div>
-                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",fontStyle:"italic"}}>coming soon</div>
                 </div>
                 {/* Show translation inline */}
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
