@@ -219,6 +219,7 @@ export default function QuranTab(props) {
                     );
                     return (<>
                       <Row icon="📋" label="Surah" onClick={()=>{setShowQuranSurahModal(true);setShowPickers(false);}}/>
+                      <Row icon="🌐" label="Translation" onClick={()=>{setDrawerView("translation");setShowPickers(false);}}/>
                       <Row icon="📖" label="Tafsir" onClick={()=>{const vk=selectedAyah||mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");setShowPickers(false);}}/>
                       <Row icon="🎙️" label="Reciter" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);setShowPickers(false);}}/>
                       <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:30,margin:"6px 4px 4px"}}>
@@ -357,8 +358,42 @@ export default function QuranTab(props) {
             );
           })()}
 
+          {/* Page Translation — full-page list of every ayah on the current mushaf page with its translation */}
+          {drawerView==="translation"&&(()=>{
+            const sourceLabel=translationSource==="sahih_intl"?"Sahih International":"Muhsin Khan";
+            return (
+              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)"}}>
+                <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 16px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)"}}>
+                  <div className="sbtn" onClick={()=>{setDrawerView("default");setShowPickers(false);}} style={{fontSize:11,fontWeight:700,color:dark?"#E6B84A":"#8B6A10",padding:"6px 10px",borderRadius:8,background:dark?"rgba(230,184,74,0.08)":"rgba(180,140,40,0.06)",border:dark?"1px solid rgba(230,184,74,0.25)":"1px solid rgba(160,120,20,0.25)"}}>← Back to Qur'an</div>
+                  <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase"}}>Page {mushafPage}</div>
+                </div>
+                <div style={{flexShrink:0,padding:"10px 20px 0",textAlign:"center"}}>
+                  <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700}}>Translation · {sourceLabel}</div>
+                </div>
+                <div style={{flex:1,overflowY:"auto",padding:"14px 20px 120px"}}>
+                  {(mushafVerses||[]).length===0?(
+                    <div style={{textAlign:"center",padding:40,color:dark?"rgba(243,231,200,0.20)":"#6B645A",fontSize:11}}>Loading...</div>
+                  ):(mushafVerses||[]).map(v=>{
+                    const t=translations[v.verse_key]||"";
+                    return (
+                      <div key={v.verse_key} style={{marginBottom:22,paddingBottom:18,borderBottom:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.05)"}}>
+                        <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,marginBottom:8,fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[parseInt(v.verse_key.split(":")[0],10)]||""} · {v.verse_key}</div>
+                        <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"right",marginBottom:10}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
+                        {t?(
+                          <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.75,color:dark?"rgba(243,231,200,0.80)":"#2D2A26"}}>{t}</div>
+                        ):(
+                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A9488",fontStyle:"italic"}}>Loading translation…</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Viewer */}
-          {drawerView!=="tafsir"&&(quranMode==="mushaf"?(
+          {drawerView!=="tafsir"&&drawerView!=="translation"&&(quranMode==="mushaf"?(
             <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0b1a2b":"#F3E9D2",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
               onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={e=>{
@@ -544,7 +579,7 @@ export default function QuranTab(props) {
               )}
 
               {/* ── UNIFIED 50% DRAWER ── (skip for tafsir — renders inline above) */}
-              {(selectedAyah||drawerView==="bookmarks")&&drawerView!=="tafsir"&&(()=>{
+              {(selectedAyah||drawerView==="bookmarks")&&drawerView!=="tafsir"&&drawerView!=="translation"&&(()=>{
                 const [sNum,aNum] = (selectedAyah||"").split(":");
                 const surahN = parseInt(sNum,10);
                 const selVerse = (mushafVerses||[]).find(v=>v.verse_key===selectedAyah);
