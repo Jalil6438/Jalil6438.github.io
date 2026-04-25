@@ -51,7 +51,7 @@ export default function MushafRangePickerModal({
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:isPicked?"#F6E27A":"rgba(243,231,200,0.85)"}}>{surahName}</div>
               <div style={{fontSize:9,color:"rgba(217,177,95,0.55)",letterSpacing:".08em",fontFamily:"'IBM Plex Mono',monospace"}}>Ayah {a}</div>
             </div>
-            <div style={{flex:1,minWidth:0,fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:17,lineHeight:1.5,color:isPicked?"#F5E6B3":"rgba(243,231,200,0.65)",direction:"rtl",textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
+            <div style={{flex:1,minWidth:0,fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:17,lineHeight:1.5,color:isPicked?"#F5E6B3":"rgba(243,231,200,0.65)",direction:"rtl",textAlign:"right",overflow:"hidden",whiteSpace:"nowrap",WebkitMaskImage:"linear-gradient(to left, black 65%, transparent 100%)",maskImage:"linear-gradient(to left, black 65%, transparent 100%)"}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
           </div>
         );
       })}
