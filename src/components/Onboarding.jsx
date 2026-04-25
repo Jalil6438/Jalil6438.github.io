@@ -191,8 +191,9 @@ export default function Onboarding({
                   <div key={j.num} style={{borderRadius:18,overflow:"hidden",border:juzComplete?"1px solid rgba(246,226,122,0.45)":someChecked?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(212,175,55,0.12)",background:juzComplete?"linear-gradient(180deg,rgba(18,22,34,0.97) 0%,rgba(10,13,22,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.07),transparent 60%)":"linear-gradient(180deg,rgba(14,18,28,0.97) 0%,rgba(8,11,20,0.99) 100%), radial-gradient(circle at 50% 40%,rgba(212,175,55,0.04),transparent 60%)",transition:"all .18s ease",boxShadow:juzComplete?"0 0 20px rgba(212,175,55,0.14),0 12px 28px rgba(0,0,0,0.38),inset 0 1px 0 rgba(212,175,55,0.12)":"0 0 12px rgba(212,175,55,0.05),0 8px 22px rgba(0,0,0,0.32),inset 0 1px 0 rgba(212,175,55,0.06)"}}>
                     {/* Juz header — text truly centered; check+chevron floated absolute right */}
                     <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{position:"relative",padding:"8px 14px"}}>
-                      <div style={{textAlign:"center"}}>
-                        <div style={{fontSize:11,color:juzComplete?"#F6E27A":"rgba(243,231,200,0.85)",letterSpacing:".06em",fontWeight:600}}>Juz {j.num}{j.roman?` · ${j.roman}`:""}</div>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,paddingRight:24}}>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:juzComplete?"#F6E27A":"rgba(243,231,200,0.90)"}}>{j.roman||""}</div>
+                        <div style={{fontSize:10,color:juzComplete?"#F6E27A":"rgba(243,231,200,0.45)",letterSpacing:".10em",fontFamily:"'IBM Plex Mono',monospace"}}>Juz {j.num}</div>
                       </div>
                       <div style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",color:"rgba(212,175,55,0.7)",fontSize:13,transition:"transform .2s"}}>
                         <div style={{transition:"transform .2s",transform:isOpen?"rotate(180deg)":"rotate(0deg)"}}>▾</div>
