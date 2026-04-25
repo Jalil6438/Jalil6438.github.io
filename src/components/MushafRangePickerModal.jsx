@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
+import { SURAH_EN } from "../data/constants";
+
+function formatLabel(verseKey){
+  if(!verseKey) return "—";
+  const [s,a]=verseKey.split(":");
+  return `${SURAH_EN[Number(s)]||`Surah ${s}`} ${a}`;
+}
 
 export default function MushafRangePickerModal({
   show, onClose, dark, mushafPage, mushafVerses,
   mushafRangeStart, setMushafRangeStart,
   mushafRangeEnd, setMushafRangeEnd,
   playMushafRange,
+  looping, setLooping,
 }){
   const [pickerMode, setPickerMode] = useState("compact"); // "compact" | "from" | "to"
 
@@ -67,21 +75,33 @@ export default function MushafRangePickerModal({
                 {label:"To",   value:endKey,   onClick:()=>setPickerMode("to")},
               ].map(f=>(
                 <div key={f.label} className="sbtn" onClick={f.onClick}
-                  style={{flex:1,padding:"12px 14px",borderRadius:12,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)",border:"1px solid rgba(217,177,95,0.14)",display:"flex",flexDirection:"column",gap:4}}>
+                  style={{flex:1,minWidth:0,padding:"12px 14px",borderRadius:12,background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.04)",border:"1px solid rgba(217,177,95,0.14)",display:"flex",flexDirection:"column",gap:4}}>
                   <div style={{fontSize:9,color:"rgba(217,177,95,0.55)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700}}>{f.label}</div>
-                  <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:15,color:dark?"#F3E7C8":"#3D2E0A",fontWeight:700}}>{f.value || "—"}</div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:dark?"#F3E7C8":"#3D2E0A",fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{formatLabel(f.value)}</div>
                 </div>
               ))}
             </div>
 
-            <div className="sbtn"
-              onClick={()=>{
-                const slice=mushafVerses.slice(startIdx,endIdx+1);
-                onClose();
-                playMushafRange(slice);
-              }}
-              style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",fontSize:14,fontWeight:700,border:"1px solid transparent",boxShadow:"0 8px 24px rgba(212,175,55,0.22)"}}>
-              Play {startKey} → {endKey}
+            <div style={{display:"flex",gap:10,alignItems:"stretch"}}>
+              <div className="sbtn"
+                onClick={()=>{
+                  const slice=mushafVerses.slice(startIdx,endIdx+1);
+                  onClose();
+                  playMushafRange(slice);
+                }}
+                style={{flex:1,padding:"14px",borderRadius:14,textAlign:"center",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",fontSize:14,fontWeight:700,border:"1px solid transparent",boxShadow:"0 8px 24px rgba(212,175,55,0.22)"}}>
+                Play {formatLabel(startKey)} → {formatLabel(endKey)}
+              </div>
+              {setLooping&&(
+                <div className="sbtn" onClick={()=>setLooping(!looping)} title={looping?"Repeat on":"Repeat off"}
+                  style={{flexShrink:0,width:54,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,
+                    background:looping?"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",
+                    border:`1px solid ${looping?"rgba(232,200,120,0.65)":"rgba(217,177,95,0.14)"}`,
+                    boxShadow:looping?"0 0 14px rgba(212,175,55,0.35)":"none",
+                    color:looping?"#0A0E1A":"inherit",opacity:looping?1:0.55}}>
+                  🔁
+                </div>
+              )}
             </div>
           </>
         ) : (

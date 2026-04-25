@@ -2079,6 +2079,7 @@ export default function RihlatAlHifz() {
         mushafRangeStart={mushafRangeStart} setMushafRangeStart={setMushafRangeStart}
         mushafRangeEnd={mushafRangeEnd} setMushafRangeEnd={setMushafRangeEnd}
         playMushafRange={playMushafRange}
+        looping={looping} setLooping={setLooping}
       />
 
       {/* Quran Surah Picker Modal */}
