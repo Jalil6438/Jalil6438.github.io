@@ -86,7 +86,14 @@ export default function QuranTab(props) {
       const src = isTajweedEd
         ? `url('/fonts/v4/p${pageN}.woff2') format('woff2')`
         : `url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff')`;
-      style.textContent = `@font-face{font-family:'${family}';src:${src};font-display:block;}`;
+      // For the V4 tajweed font, register a custom palette that overrides the
+      // base ink color (index 0 — the non-tajweed letters) to ivory so the
+      // text remains legible on dark mode while tajweed-rule colors stay
+      // intact. The @font-palette-values rule binds to this specific family.
+      const paletteRule = isTajweedEd
+        ? `@font-palette-values --dark-${family}{font-family:'${family}';base-palette:0;override-colors:0 #E8DFC0;}`
+        : "";
+      style.textContent = `@font-face{font-family:'${family}';src:${src};font-display:block;}${paletteRule}`;
       document.head.appendChild(style);
     }
     const key = `${ed}-${pageN}`;
@@ -272,7 +279,7 @@ export default function QuranTab(props) {
       } catch {}
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [tajweedFont]);
 
   // Track the rub_el_hizb_number of the LAST verse on the previous page so we
   // can detect when a new rub starts at the very first verse of the current
@@ -765,7 +772,7 @@ export default function QuranTab(props) {
                           glyphCursor+=rowGlyphs;
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
-                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,fontPalette:dark&&fontEd==="v4"?"dark":undefined}}>
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
                             {tokens.map((w,wi)=>{
                               const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
                               return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
