@@ -104,8 +104,111 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     setPlayingKey(null); setAudioLoading(null); setMushafAudioPlaying(false);
   }
 
+  // Cache of per-surah ayah text (used for proportional time estimates on
+  // reciters without quran.com verse_timings).
+  const surahTextCache = {};
+
+  async function fetchSurahText(surahNum){
+    if(surahTextCache[surahNum]) return surahTextCache[surahNum];
+    try{
+      const r=await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${surahNum}?fields=text_uthmani&per_page=300`);
+      if(!r.ok) return null;
+      const d=await r.json();
+      const verses=(d.verses||[]).map(v=>({verse_key:v.verse_key,len:(v.text_uthmani||"").length}));
+      surahTextCache[surahNum]=verses;
+      return verses;
+    }catch{ return null; }
+  }
+
+  // Continuous range player for reciters without quran.com segments.
+  // Uses the full surah audio file (quranicaudio.com) and estimates the
+  // From/To timestamps proportionally from each ayah's character length —
+  // smooth playback (no stitching) at the cost of some seek imprecision.
+  async function playMushafRangeContinuous(verses, reciterObj){
+    setMushafAudioPlaying(true);
+
+    // Group consecutive verses by surah (same as the segment-based player).
+    const groups=[];
+    verses.forEach(v=>{
+      const sNum=Number(v.verse_key.split(":")[0]);
+      const last=groups[groups.length-1];
+      if(!last||last.sNum!==sNum) groups.push({sNum,verses:[v]});
+      else last.verses.push(v);
+    });
+
+    // For each group, derive an estimated startMs/endMs using char-weighted
+    // proportions and the file's actual duration (read after metadata loads).
+    const segments=[];
+    for(const g of groups){
+      const url=`https://download.quranicaudio.com/quran/${reciterObj.quranicaudio}/${String(g.sNum).padStart(3,"0")}.mp3`;
+      const surahText=await fetchSurahText(g.sNum);
+      if(!surahText) continue;
+      const totalChars=surahText.reduce((s,v)=>s+v.len,0);
+      // cumChars[verse_key] = total chars up to and including this ayah
+      const cumChars={};
+      let cum=0;
+      surahText.forEach(v=>{ cum+=v.len; cumChars[v.verse_key]=cum; });
+      const firstVk=g.verses[0].verse_key;
+      const lastVk=g.verses[g.verses.length-1].verse_key;
+      const firstObj=surahText.find(v=>v.verse_key===firstVk);
+      if(!firstObj||!cumChars[lastVk]) continue;
+      const startChars=cumChars[firstVk]-firstObj.len;
+      const endChars=cumChars[lastVk];
+      segments.push({audio_url:url, sNum:g.sNum, startFrac:startChars/totalChars, endFrac:endChars/totalChars, totalChars, surahText, cumChars});
+    }
+
+    if(!segments.length){ setMushafAudioPlaying(false); return; }
+
+    function playSegment(idx){
+      if(idx>=segments.length){
+        if(looping){ playSegment(0); return; }
+        setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return;
+      }
+      const seg=segments[idx];
+      const audio=new Audio(seg.audio_url);
+      audio.preload="auto";
+      audioRef.current=audio;
+      let startMs=0, endMs=0;
+      let lastVk=null;
+      let advanced=false;
+      const advance=()=>{
+        if(advanced) return;
+        advanced=true;
+        audio.onended=null; audio.ontimeupdate=null;
+        try{ audio.pause(); }catch{}
+        if(audioRef.current===audio) audioRef.current=null;
+        playSegment(idx+1);
+      };
+
+      audio.onloadedmetadata=()=>{
+        const durMs=(audio.duration||0)*1000;
+        startMs=seg.startFrac*durMs;
+        endMs=seg.endFrac*durMs;
+        try{ audio.currentTime=startMs/1000; }catch{}
+        audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
+      };
+      audio.ontimeupdate=()=>{
+        if(!(audio.duration>0)) return;
+        const ms=audio.currentTime*1000;
+        // Estimate which ayah is "playing" for the drawer highlight.
+        const charPos=(ms/(audio.duration*1000))*seg.totalChars;
+        const vt=seg.surahText.find(v=>charPos<=seg.cumChars[v.verse_key]);
+        if(vt&&vt.verse_key!==lastVk){
+          lastVk=vt.verse_key;
+          setPlayingKey(vt.verse_key);
+          setAudioLoading(null);
+        }
+        if(ms>=endMs){ advance(); }
+      };
+      audio.onended=()=>advance();
+      audio.onerror=()=>advance();
+    }
+
+    playSegment(0);
+  }
+
   // Old chopped-clip range player — used as fallback when a reciter has no
-  // qurancdn recitationId (e.g. Saudi haram-only reciters via everyayah only).
+  // qurancdn recitationId AND no quranicaudio path.
   function playMushafRangeChopped(verses){
     const folder=getEveryayahFolder(quranReciter)||getEveryayahFolder(reciter);
     if(!folder){ return; }
@@ -152,7 +255,14 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     const reciterId=quranReciter||reciter;
     const reciterObj=QURAN_RECITERS.find(r=>r.id===reciterId)||RECITERS.find(r=>r.id===reciterId);
     const recitationId=reciterObj?.recitationId;
-    if(!recitationId){ return playMushafRangeChopped(verses); }
+    // Routing:
+    //   1. quran.com segments → continuous + precise (Sudais, Mishari, etc.)
+    //   2. quranicaudio full file → continuous + estimated (Budair, Muaiqly, etc.)
+    //   3. chopped per-ayah clips → fallback (sequential, has natural gaps)
+    if(!recitationId){
+      if(reciterObj?.quranicaudio){ return playMushafRangeContinuous(verses, reciterObj); }
+      return playMushafRangeChopped(verses);
+    }
 
     stopMushafAudio();
     setMushafAudioPlaying(true);
