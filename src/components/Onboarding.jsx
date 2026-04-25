@@ -179,7 +179,7 @@ export default function Onboarding({
               <div style={{fontSize:9,color:"rgba(243,231,191,0.65)",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
               <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{completedCount} Juz completed</div>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
               {displayedJuz.map(j=>{
                 const isOpen=openJuzPanel===j.num;
                 const surahs=JUZ_SURAHS[j.num]||[];
