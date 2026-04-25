@@ -95,11 +95,11 @@ export default function QuranTab(props) {
   const [mushafPagesData, setMushafPagesData] = useState(null);
   const [mushafLayoutData, setMushafLayoutData] = useState(null);
   const [pageContentMap, setPageContentMap] = useState(null); // { [page]: [{sNum, minA, maxA}, ...] }
-  // Spillover verses for pages that begin with the END of the previous surah
-  // (e.g. p593 has Al-Ghashiyah 23-26 above the Al-Fajr header). by_page
-  // groups by surah-starts-here, not by words-on-this-page, so we fetch the
-  // previous page when needed and keep only verses with words physically here.
-  const [spilloverVerses, setSpilloverVerses] = useState([]);
+  // Verses physically on the current mushaf page per OUR layout
+  // (KFGQPC v2 verse-to-page.json). quran.com's default by_page uses
+  // different page boundaries, so we drive the Translation view from
+  // pageContentMap and fetch the exact verses we need.
+  const [pageVerses, setPageVerses] = useState([]);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -138,29 +138,32 @@ export default function QuranTab(props) {
     return () => { cancelled = true; };
   }, []);
 
-  // Fetch spillover verses (end of previous surah on top of this page).
+  // Build the exact list of verses physically on this page (per our layout)
+  // by fetching the surahs covering it and slicing to the right ayah ranges.
   useEffect(() => {
-    const layout = mushafLayoutData?.[mushafPage] || [];
-    const surahNameIdx = layout.findIndex(e => e.type === "surah_name");
-    const ayahRowsBefore = surahNameIdx > 0
-      ? layout.slice(0, surahNameIdx).filter(e => e.type === "ayah").length
-      : 0;
-    if (ayahRowsBefore === 0 || mushafPage <= 1) { setSpilloverVerses([]); return; }
+    if (drawerView !== "translation") return;
+    const surahs = pageContentMap?.[mushafPage];
+    if (!surahs || !surahs.length) return;
     let cancelled = false;
     (async () => {
-      try {
-        const r = await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage - 1}?words=true&word_fields=line_number,page_number&fields=text_uthmani,verse_key&per_page=50`);
-        if (!r.ok) return;
-        const d = await r.json();
-        if (cancelled) return;
-        const here = (d.verses || []).filter(v =>
-          (v.words || []).some(w => w.page_number === mushafPage)
-        );
-        setSpilloverVerses(here);
-      } catch {}
+      const all = [];
+      for (const s of surahs) {
+        try {
+          const r = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${s.sNum}?words=false&fields=text_uthmani,verse_key&per_page=300`);
+          if (!r.ok) continue;
+          const d = await r.json();
+          if (cancelled) return;
+          const filtered = (d.verses || []).filter(v => {
+            const a = parseInt(v.verse_key.split(":")[1], 10);
+            return a >= s.minA && a <= s.maxA;
+          });
+          all.push(...filtered);
+        } catch {}
+      }
+      if (!cancelled) setPageVerses(all);
     })();
     return () => { cancelled = true; };
-  }, [mushafLayoutData, mushafPage]);
+  }, [drawerView, mushafPage, pageContentMap]);
 
   // Fetch Fatihah verse 1:1 (the universal bismillah) once. We render
   // every surah-opener bismillah using THESE exact glyphs + the p1 font,
@@ -403,15 +406,11 @@ export default function QuranTab(props) {
                   <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700}}>Translation · {sourceLabel}</div>
                 </div>
                 <div style={{flex:1,overflowY:"auto",padding:"14px 20px 120px"}}>
-                  {(mushafVerses||[]).length===0?(
+                  {(pageVerses||[]).length===0?(
                     <div style={{textAlign:"center",padding:40,color:dark?"rgba(243,231,200,0.20)":"#6B645A",fontSize:11}}>Loading...</div>
                   ):(()=>{
-                    // Prepend spillover (e.g. Al-Ghashiyah 23-26 above the
-                    // Al-Fajr header on p593). Both lists are already in
-                    // mushaf order; spillover is from the previous surah.
-                    const allVerses=[...(spilloverVerses||[]),...(mushafVerses||[])];
                     let prevSurah=null;
-                    return allVerses.map(v=>{
+                    return pageVerses.map(v=>{
                       const t=translations[v.verse_key]||"";
                       const sNum=parseInt(v.verse_key.split(":")[0],10);
                       const showSurahHeader=sNum!==prevSurah;
