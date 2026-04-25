@@ -207,8 +207,56 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     playSegment(0);
   }
 
+  // Full-page MP3 player — used when the user's range covers the entire
+  // visible mushaf page AND the reciter has everyayah PageMp3s. Plays one
+  // continuous file (the reciter's own recording of that exact page) with
+  // no stitching. Highlight tracking is char-proportion based — at page
+  // scale the drift is small enough to feel right.
+  function playMushafRangePage(verses, mushafPage, reciterObj){
+    setMushafAudioPlaying(true);
+    const folder=reciterObj.everyayah;
+    const url=`https://everyayah.com/data/${folder}/PageMp3s/Page${String(mushafPage).padStart(3,"0")}.mp3`;
+
+    // Per-verse char distribution → estimated time slice for highlight.
+    const lens=verses.map(v=>(v.text_uthmani||"").length||1);
+    const totalChars=lens.reduce((a,b)=>a+b,0);
+    const cum=[]; { let c=0; lens.forEach(l=>{ c+=l; cum.push(c); }); }
+
+    function playOnce(){
+      const audio=new Audio(url);
+      audio.preload="auto";
+      audioRef.current=audio;
+      let lastVk=null;
+      let advanced=false;
+      const advance=()=>{
+        if(advanced) return;
+        advanced=true;
+        audio.onended=null; audio.ontimeupdate=null;
+        try{ audio.pause(); }catch{}
+        if(audioRef.current===audio) audioRef.current=null;
+        if(looping){ playOnce(); return; }
+        setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null);
+      };
+      audio.onloadedmetadata=()=>{
+        audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
+      };
+      audio.ontimeupdate=()=>{
+        if(!(audio.duration>0)) return;
+        const ms=audio.currentTime;
+        const charPos=(ms/audio.duration)*totalChars;
+        let vIdx=cum.findIndex(c=>charPos<=c);
+        if(vIdx<0) vIdx=verses.length-1;
+        const vk=verses[vIdx]?.verse_key;
+        if(vk&&vk!==lastVk){ lastVk=vk; setPlayingKey(vk); setAudioLoading(null); }
+      };
+      audio.onended=()=>advance();
+      audio.onerror=()=>advance();
+    }
+    playOnce();
+  }
+
   // Old chopped-clip range player — used as fallback when a reciter has no
-  // qurancdn recitationId AND no quranicaudio path.
+  // qurancdn recitationId AND no everyayah pageMp3 (or partial-page range).
   function playMushafRangeChopped(verses){
     const folder=getEveryayahFolder(quranReciter)||getEveryayahFolder(reciter);
     if(!folder){ return; }
@@ -248,20 +296,25 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   // verse_timings so the reciter's natural wasl (continuous recitation
   // across ayah boundaries) is preserved without seam artifacts. Falls
   // back to the chopped-clip player when the reciter has no recitationId.
-  async function playMushafRange(verses){
+  async function playMushafRange(verses, opts={}){
     if(!verses||verses.length===0) return;
     if(mushafAudioPlaying){ stopMushafAudio(); return; }
 
+    const { mushafPage, isFullPage } = opts;
     const reciterId=quranReciter||reciter;
     const reciterObj=QURAN_RECITERS.find(r=>r.id===reciterId)||RECITERS.find(r=>r.id===reciterId);
     const recitationId=reciterObj?.recitationId;
-    // Routing:
-    //   1. quran.com segments → continuous + precise (Sudais, Mishari, etc.)
-    //   2. chopped per-ayah clips → fallback for everyone else
-    // (We had a quranicaudio full-file path that estimated From/To from
-    //  ayah character distribution — but the reciter's pace doesn't track
-    //  char count closely enough, so start/end/highlight all drifted.
-    //  Sequential chopped is honest and reliable for those reciters.)
+
+    // Routing (best → worst):
+    //   1. Full-page range AND reciter has everyayah pageMp3 → page MP3
+    //      (single continuous file of the reciter's actual page recording).
+    //   2. quran.com segments → precise continuous range (Sudais, Mishari…).
+    //   3. Chopped per-ayah clips → sequential fallback for partial ranges
+    //      and reciters without segments or pageMp3.
+    if(isFullPage && mushafPage && reciterObj?.pageMp3){
+      stopMushafAudio();
+      return playMushafRangePage(verses, mushafPage, reciterObj);
+    }
     if(!recitationId){ return playMushafRangeChopped(verses); }
 
     stopMushafAudio();

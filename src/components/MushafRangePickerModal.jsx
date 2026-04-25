@@ -89,8 +89,9 @@ export default function MushafRangePickerModal({
               <div className="sbtn"
                 onClick={()=>{
                   const slice=mushafVerses.slice(startIdx,endIdx+1);
+                  const isFullPage=startIdx===0&&endIdx===mushafVerses.length-1;
                   onClose();
-                  playMushafRange(slice);
+                  playMushafRange(slice,{ mushafPage, isFullPage });
                 }}
                 style={{flex:1,padding:"14px",borderRadius:14,textAlign:"center",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",color:"#060A07",fontSize:14,fontWeight:700,border:"1px solid transparent",boxShadow:"0 8px 24px rgba(212,175,55,0.22)"}}>
                 Play {formatLabel(startKey)} → {formatLabel(endKey)}
