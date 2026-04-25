@@ -183,6 +183,19 @@ export default function QuranTab(props) {
     setSelectedAyah(playingKey);
   }, [playingKey, mushafAudioPlaying]);
 
+  // Clear selectedAyah when navigating to a new page where the ayah no
+  // longer lives — otherwise the drawer keeps showing a stale verse from
+  // the previous page after a swipe or surah pick.
+  useEffect(() => {
+    if (!selectedAyah) return;
+    if (mushafAudioPlaying) return; // Range playback intentionally crosses pages.
+    const surahsOnPage = pageContentMap?.[mushafPage];
+    if (!surahsOnPage) return;
+    const [sn,a] = selectedAyah.split(":").map(Number);
+    const onPage = surahsOnPage.some(s => sn===s.sNum && a>=s.minA && a<=s.maxA);
+    if (!onPage) setSelectedAyah(null);
+  }, [mushafPage, pageContentMap]);
+
   // Fetch Fatihah verse 1:1 (the universal bismillah) once. We render
   // every surah-opener bismillah using THESE exact glyphs + the p1 font,
   // so the style is identical to what you see on page 1 of the mushaf.
