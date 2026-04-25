@@ -191,7 +191,7 @@ export default function Onboarding({
                     {/* Juz header — text truly centered; check+chevron floated absolute right */}
                     <div className="sbtn" onClick={()=>setOpenJuzPanel(isOpen?null:j.num)} style={{position:"relative",padding:"8px 14px"}}>
                       <div style={{textAlign:"center"}}>
-                        <div style={{fontSize:9,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:8,letterSpacing:".08em"}}>Juz {j.num}</div>
+                        <div style={{fontSize:9,color:juzComplete?"#F6E27A":"rgba(255,255,255,0.40)",marginBottom:4,letterSpacing:".08em"}}>Juz {j.num}{j.roman?` · ${j.roman}`:""}</div>
                         <div style={{fontFamily:"'Amiri',serif",fontSize:18,lineHeight:1.6,direction:"rtl",color:juzComplete?"#FFF6D6":"#E8DFC0",textShadow:juzComplete?"0 0 16px rgba(212,175,55,0.18)":"0 0 10px rgba(255,240,200,0.12)",letterSpacing:"0.5px"}}>{JUZ_OPENERS[j.num]}</div>
                       </div>
                       <div style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",color:"rgba(212,175,55,0.7)",fontSize:13,transition:"transform .2s"}}>
