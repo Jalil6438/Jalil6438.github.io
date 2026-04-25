@@ -1,5 +1,6 @@
 import { calcTimeline } from "../utils";
 import { JUZ_META, JUZ_SURAHS, JUZ_OPENERS } from "../data/quran-metadata";
+import { SURAH_EN, SURAH_AYAH_COUNTS, MADANI_SURAHS } from "../data/constants";
 
 export default function Onboarding({
   userName, setUserName,
@@ -179,7 +180,7 @@ export default function Onboarding({
               <div style={{fontSize:9,color:"rgba(243,231,191,0.65)",letterSpacing:".16em",textTransform:"uppercase"}}>Mark Your Memorization</div>
               <div style={{fontSize:11,color:"rgba(212,175,55,0.75)",fontWeight:700}}>{completedCount} Juz completed</div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:12}}>
               {displayedJuz.map(j=>{
                 const isOpen=openJuzPanel===j.num;
                 const surahs=JUZ_SURAHS[j.num]||[];
@@ -217,9 +218,9 @@ export default function Onboarding({
                           <div style={{width:18,height:18,borderRadius:5,background:allChecked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:allChecked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:allChecked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{allChecked?"✓":""}</div>
                           <div style={{fontSize:12,color:allChecked?"#F6E27A":"rgba(212,175,55,0.8)",fontWeight:700,letterSpacing:".02em"}}>Select all surahs in Juz {j.num}</div>
                         </div>
-                        {/* Surah grid */}
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-                          {surahs.map((s,si)=>{
+                        {/* Surah list — picker-style rows (number + name + meta) */}
+                        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                          {surahs.map(s=>{
                             const checked=juzStatus[`s${s.s}`]==="complete";
                             return (
                               <div key={s.s} className="sbtn" onClick={()=>{
@@ -231,13 +232,14 @@ export default function Onboarding({
                                   if(allNow) next[j.num]="complete"; else delete next[j.num];
                                   return next;
                                 });
-                                // V9: add/remove this surah's ayahs
                                 if(completing) v9MarkSurahComplete(s.s);
                                 else v9MarkSurahIncomplete(s.s);
-                              }} style={{display:"flex",alignItems:"center",gap:7,padding:"9px 10px",borderRadius:10,background:checked?"linear-gradient(180deg,rgba(212,175,55,0.08) 0%,rgba(12,16,26,0.96) 100%)":"rgba(255,255,255,0.02)",border:checked?"1px solid rgba(212,175,55,0.38)":"1px solid rgba(255,255,255,0.05)",boxShadow:checked?"0 0 14px rgba(212,175,55,0.12)":"none",transform:checked?"scale(1.01)":"scale(1)",transition:"all .18s ease"}}>
-                                <div style={{width:14,height:14,borderRadius:4,background:checked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:checked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:800,flexShrink:0,boxShadow:checked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{checked?"✓":""}</div>
-                                <div style={{fontSize:10,color:checked?"#F6E27A":"rgba(255,255,255,0.65)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:checked?600:400}}>{s.name}</div>
-                                <div style={{fontSize:8,color:"rgba(255,255,255,0.25)",flexShrink:0}}>{s.a}v</div>
+                              }} style={{padding:"10px 14px",borderRadius:12,display:"flex",alignItems:"center",gap:10,background:checked?"rgba(217,177,95,0.12)":"rgba(255,255,255,0.03)",border:`1px solid ${checked?"rgba(232,200,120,0.65)":"rgba(217,177,95,0.10)"}`,boxShadow:checked?"0 0 18px rgba(232,200,120,0.25),inset 0 0 10px rgba(217,177,95,0.06)":"none",transition:"all .18s ease"}}>
+                                <div style={{fontSize:10,width:26,textAlign:"center",color:checked?"#F6E27A":"rgba(217,177,95,0.40)",fontFamily:"'IBM Plex Mono',monospace"}}>{s.s}</div>
+                                <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",gap:2}}>
+                                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:checked?600:500,color:checked?"#F6E27A":"rgba(243,231,200,0.80)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{SURAH_EN[s.s]||s.name}</div>
+                                  <div style={{fontSize:9,color:checked?"rgba(246,226,122,0.55)":"rgba(217,177,95,0.40)",letterSpacing:".08em",textTransform:"uppercase",fontWeight:600,fontFamily:"'DM Sans',sans-serif"}}>{SURAH_AYAH_COUNTS[s.s]||s.a} Ayahs · {MADANI_SURAHS.has(s.s)?"Madani":"Meccan"}</div>
+                                </div>
                               </div>
                             );
                           })}
