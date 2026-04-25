@@ -34,17 +34,17 @@ export default function MushafRangePickerModal({
                     setMushafRangeEnd(i);
                   }
                 }}
-                style={{padding:"10px 14px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",
+                style={{padding:"10px 14px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,
                   background:inRange?"rgba(217,177,95,0.10)":isStart||isEnd?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.03)",
                   border:`1px solid ${isStart?"rgba(232,200,120,0.70)":isEnd?"rgba(232,200,120,0.50)":inRange?"rgba(217,177,95,0.20)":"rgba(217,177,95,0.08)"}`,
                 }}>
-                <div style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{fontSize:10,fontFamily:"'IBM Plex Mono',monospace",color:"rgba(217,177,95,0.40)",width:44}}>{vKey}</div>
-                  <div style={{fontSize:12,color:inRange||isStart||isEnd?"#F5E6B3":"rgba(243,231,200,0.55)",direction:"rtl",maxWidth:220,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.text_uthmani||""}</div>
+                <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+                  <div style={{fontSize:10,fontFamily:"'IBM Plex Mono',monospace",color:"rgba(217,177,95,0.50)",minWidth:42}}>{vKey}</div>
+                  <div style={{fontSize:10,color:isStart?"#F6E27A":isEnd?"rgba(246,226,122,0.60)":"transparent",fontWeight:600}}>
+                    {isStart?"START":isEnd?"END":""}
+                  </div>
                 </div>
-                <div style={{fontSize:10,color:isStart?"#F6E27A":isEnd?"rgba(246,226,122,0.60)":"transparent",fontWeight:600,flexShrink:0}}>
-                  {isStart?"START":isEnd?"END":""}
-                </div>
+                <div style={{flex:1,minWidth:0,fontSize:12,color:inRange||isStart||isEnd?"#F5E6B3":"rgba(243,231,200,0.55)",direction:"rtl",textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{v.text_uthmani||""}</div>
               </div>
             );
           })}
