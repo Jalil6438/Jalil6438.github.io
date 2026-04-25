@@ -1,6 +1,6 @@
-import { SURAH_EN } from "../data/constants";
+import { SURAH_EN, MADANI_SURAHS } from "../data/constants";
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
 
 export default function QuranTab(props) {
@@ -374,20 +374,38 @@ export default function QuranTab(props) {
                 <div style={{flex:1,overflowY:"auto",padding:"14px 20px 120px"}}>
                   {(mushafVerses||[]).length===0?(
                     <div style={{textAlign:"center",padding:40,color:dark?"rgba(243,231,200,0.20)":"#6B645A",fontSize:11}}>Loading...</div>
-                  ):(mushafVerses||[]).map(v=>{
-                    const t=translations[v.verse_key]||"";
-                    return (
-                      <div key={v.verse_key} style={{marginBottom:22,paddingBottom:18,borderBottom:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.05)"}}>
-                        <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,marginBottom:8,fontFamily:"'IBM Plex Mono',monospace"}}>{SURAH_EN[parseInt(v.verse_key.split(":")[0],10)]||""} · {v.verse_key}</div>
-                        <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"right",marginBottom:10}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
-                        {t?(
-                          <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.75,color:dark?"rgba(243,231,200,0.80)":"#2D2A26"}}>{t}</div>
-                        ):(
-                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A9488",fontStyle:"italic"}}>Loading translation…</div>
-                        )}
-                      </div>
-                    );
-                  })}
+                  ):(()=>{
+                    let prevSurah=null;
+                    return (mushafVerses||[]).map(v=>{
+                      const t=translations[v.verse_key]||"";
+                      const sNum=parseInt(v.verse_key.split(":")[0],10);
+                      const showSurahHeader=sNum!==prevSurah;
+                      prevSurah=sNum;
+                      return (
+                        <React.Fragment key={v.verse_key}>
+                          {showSurahHeader&&(
+                            <div style={{display:"flex",alignItems:"center",gap:10,margin:"10px 0 18px"}}>
+                              <div style={{flex:1,height:1,background:dark?"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.45) 100%)":"linear-gradient(90deg,rgba(140,100,20,0) 0%,rgba(140,100,20,0.40) 100%)"}}/>
+                              <div style={{textAlign:"center",flexShrink:0}}>
+                                <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:600,color:dark?"#F6E27A":"#8B6A10",letterSpacing:".02em"}}>{SURAH_EN[sNum]||""}</div>
+                                <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700,marginTop:2}}>Surah {sNum} · {MADANI_SURAHS.has(sNum)?"Madani":"Meccan"}</div>
+                              </div>
+                              <div style={{flex:1,height:1,background:dark?"linear-gradient(90deg,rgba(232,200,120,0.45) 0%,rgba(217,177,95,0) 100%)":"linear-gradient(90deg,rgba(140,100,20,0.40) 0%,rgba(140,100,20,0) 100%)"}}/>
+                            </div>
+                          )}
+                          <div style={{marginBottom:22,paddingBottom:18,borderBottom:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.05)"}}>
+                            <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,marginBottom:8,fontFamily:"'IBM Plex Mono',monospace"}}>{v.verse_key}</div>
+                            <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"right",marginBottom:10}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
+                            {t?(
+                              <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.75,color:dark?"rgba(243,231,200,0.80)":"#2D2A26"}}>{t}</div>
+                            ):(
+                              <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A9488",fontStyle:"italic"}}>Loading translation…</div>
+                            )}
+                          </div>
+                        </React.Fragment>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             );
