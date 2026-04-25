@@ -63,12 +63,23 @@ export default function QuranTab(props) {
   // page's render from the fallback (text_uthmani + UthmanicHafs) to the
   // authentic (code_v2 + p{N}) once the per-page font has downloaded.
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
+  // Tajweed font preference — drives which font URL the per-page loader uses.
+  const [tajweedFont, setTajweedFont] = useState(() => {
+    try { return localStorage.getItem("rihlat-tajweed") === "on"; } catch { return false; }
+  });
+  useEffect(() => {
+    try { if (tajweedFont) localStorage.setItem("rihlat-tajweed","on"); else localStorage.removeItem("rihlat-tajweed"); } catch {}
+    // Wipe loaded font records + stale stylesheets so the next render
+    // re-resolves to the new edition's URLs without a page reload.
+    document.querySelectorAll('style[id^="qcf-font-v"]').forEach(el => el.remove());
+    setLoadedFonts(new Set());
+  }, [tajweedFont]);
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
     // V2 fonts (quran.com CDN) for plain Study mode, V4-tajweed (self-hosted
     // in /fonts/v4/) when the user opts into tajweed coloring. Same family
     // name so the renderer doesn't have to know which is active.
-    const isTajweed = (() => { try { return localStorage.getItem("rihlat-tajweed") === "on"; } catch { return false; } })();
+    const isTajweed = tajweedFont;
     const elId = `qcf-font-${isTajweed ? "v4" : "v2"}-${pageN}`;
     if (!document.getElementById(elId)) {
       ["v2","v4"].forEach(suf => {
@@ -471,17 +482,11 @@ export default function QuranTab(props) {
                     <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Study font</div>
                     <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Plain text or tajweed colors</div>
                   </div>
-                  {(()=>{
-                    const on = typeof window!=="undefined" && (()=>{try{return localStorage.getItem("rihlat-tajweed")==="on";}catch{return false;}})();
-                    const setOn=(v)=>{try{ if(v) localStorage.setItem("rihlat-tajweed","on"); else localStorage.removeItem("rihlat-tajweed"); }catch{} location.reload();};
-                    return (
-                      <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:140,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
-                        <div style={{position:"absolute",top:2,left:!on?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
-                        <div className="sbtn" onClick={()=>setOn(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:!on?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Study</div>
-                        <div className="sbtn" onClick={()=>setOn(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:on?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Tajweed</div>
-                      </div>
-                    );
-                  })()}
+                  <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:140,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
+                    <div style={{position:"absolute",top:2,left:!tajweedFont?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
+                    <div className="sbtn" onClick={()=>setTajweedFont(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:!tajweedFont?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Study</div>
+                    <div className="sbtn" onClick={()=>setTajweedFont(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:tajweedFont?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Tajweed</div>
+                  </div>
                 </div>
               </div>
             </>
