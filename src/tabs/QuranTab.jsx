@@ -1,5 +1,5 @@
 import { SURAH_EN } from "../data/constants";
-import { SURAH_AR } from "../data/quran-metadata";
+import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import { useState, useEffect } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
 
@@ -210,7 +210,7 @@ export default function QuranTab(props) {
             {/* Title row — tappable to toggle the drawers */}
             <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"6px 16px",gap:8}}>
               <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0}}>Juz {mushafJuzNum}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0,whiteSpace:"nowrap"}}>{(()=>{const r=JUZ_META.find(m=>m.num===mushafJuzNum)?.roman;return r?`Juz ${mushafJuzNum} · ${r}`:`Juz ${mushafJuzNum}`;})()}</div>
             </div>
             <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
