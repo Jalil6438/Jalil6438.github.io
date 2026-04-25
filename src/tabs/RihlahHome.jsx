@@ -317,11 +317,9 @@ export default function RihlahHome({
           </div>
         ):(
           activeSteps.map((step,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 10px",borderRadius:8,marginBottom:2,background:activeDone?"rgba(74,222,128,0.06)":"transparent",border:activeDone?"1px solid rgba(74,222,128,0.1)":"1px solid transparent"}}>
-              <div style={{width:20,height:20,borderRadius:5,background:activeDone?"linear-gradient(135deg,#4ADE80,#22C55E)":(dark?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.06)"),border:activeDone?"none":`1px solid ${dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)"}`,boxShadow:activeDone?"0 0 10px rgba(74,222,128,0.3)":"none",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12,color:activeDone?"#fff":(dark?"rgba(255,255,255,0.15)":"rgba(0,0,0,0.15)")}}>
-                {activeDone?"✓":""}
-              </div>
-              <span style={{fontSize:12,color:activeDone?(dark?"rgba(245,231,184,0.7)":"rgba(40,30,10,0.50)"):(dark?"rgba(255,255,255,0.85)":"#2D2A26"),textDecoration:activeDone?"line-through":"none",opacity:activeDone?0.6:1}}>{step}</span>
+            <div key={i} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"4px 10px",fontSize:12,color:activeDone?(dark?"rgba(245,231,184,0.6)":"rgba(40,30,10,0.50)"):(dark?"rgba(255,255,255,0.85)":"#2D2A26"),lineHeight:1.5}}>
+              <span style={{flexShrink:0,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.55)",marginTop:1}}>•</span>
+              <span style={{opacity:activeDone?0.65:1}}>{step}</span>
             </div>
           ))
         )}
