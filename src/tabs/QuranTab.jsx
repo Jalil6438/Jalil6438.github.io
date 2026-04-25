@@ -75,7 +75,11 @@ export default function QuranTab(props) {
     const ed = tajweedFont ? "v4" : "v2";
     const isTajweedEd = tajweedFont;
     const family = `p${pageN}-${ed}`;
-    const elId = `qcf-font-${ed}-${pageN}`;
+    // ID includes the family name to avoid collision with other consumers
+    // (MyHifz, Asr, Memorization) which register `font-family: 'p${pageN}'`
+    // under id `qcf-font-v2-${pageN}`. Same id would short-circuit our
+    // registration and our `p${pageN}-${ed}` family would never exist.
+    const elId = `qcf-font-${family}`;
     if (!document.getElementById(elId)) {
       const style = document.createElement("style");
       style.id = elId;
