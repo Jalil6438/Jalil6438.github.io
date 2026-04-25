@@ -472,15 +472,19 @@ export default function QuranTab(props) {
                         if(!pageLines||!pageLayout){
                           return null;
                         }
-                        // Build a physical-line → first-verse-key lookup so
-                        // tapping a mushaf line selects the ayah that starts
-                        // (or spans) that line. Layout entries are 1-indexed
-                        // relative to the physical 15-line mushaf page.
-                        const lineToVerse={};
+                        // Word-level verse-key map per physical line. Pages with
+                        // multiple ayahs on one line (e.g. p50 line 3 holds 3:1,
+                        // 3:2, and start of 3:3) need per-word selection — a
+                        // line-level click would always pick the first ayah.
+                        // Token count in pages.json aligns 1:1 with API word
+                        // count per line, so we pair tokens by index.
+                        const lineWordKeys={};
                         (mushafVerses||[]).forEach(v=>{
-                          const lines=new Set();
-                          (v.words||[]).forEach(w=>{ if(typeof w.line_number==="number") lines.add(w.line_number); });
-                          lines.forEach(ln=>{ if(!lineToVerse[ln]) lineToVerse[ln]=v.verse_key; });
+                          (v.words||[]).forEach(w=>{
+                            if(typeof w.line_number!=="number") return;
+                            if(!lineWordKeys[w.line_number]) lineWordKeys[w.line_number]=[];
+                            lineWordKeys[w.line_number].push(v.verse_key);
+                          });
                         });
                         // pageLines only contains AYAH rows (no surah_name
                         // or basmallah rows). Track an ayah-row cursor to
@@ -524,11 +528,16 @@ export default function QuranTab(props) {
                               </div>
                             );
                           }
-                          const lineNum=i+1;
-                          const vkForLine=lineToVerse[lineNum];
+                          const lineNum=layoutEntry.ln||(i+1);
+                          const wordsOnLine=lineWordKeys[lineNum]||[];
+                          const tokens=lineText.split(" ");
+                          const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
-                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
-                            {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                            {tokens.map((w,wi)=>{
+                              const vk=wordsOnLine[wi];
+                              return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
+                            })}
                           </div>
                           );
                         });
