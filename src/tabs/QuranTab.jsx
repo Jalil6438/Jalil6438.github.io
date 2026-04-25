@@ -360,7 +360,7 @@ export default function QuranTab(props) {
                 {/* Translation source */}
                 <div style={{padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
                   <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26",marginBottom:2}}>Translation</div>
-                  <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>Used in Study mode and the ayah drawer</div>
+                  <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>Mushaf mode always renders full-page translation</div>
                   <div style={{display:"flex",gap:6}}>
                     {[{id:"muhsin_khan",name:"Muhsin Khan"},{id:"sahih_intl",name:"Sahih International"}].map(src=>{
                       const sel=translationSource===src.id;
@@ -370,7 +370,7 @@ export default function QuranTab(props) {
                     })}
                   </div>
                 </div>
-                {/* Default tafsir source */}
+                {/* Tafsir */}
                 <div style={{padding:"12px 6px"}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginBottom:4}}>
                     <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Tafsir</div>
