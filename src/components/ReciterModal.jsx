@@ -26,7 +26,7 @@ export default function ReciterModal({
         boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
         <div style={{width:22,height:22,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10}}>🎙️</div>
         <div style={{flex:1,minWidth:0,fontSize:12,fontWeight:isSelected?700:500,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.70)":"rgba(40,30,10,0.70)"),overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div>
-        <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,direction:"rtl",color:isSelected?(dark?"rgba(230,184,74,0.85)":"rgba(140,100,20,0.90)"):(dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.65)"),flexShrink:0,display:"flex",alignItems:"center",height:22,lineHeight:1}}>{r.arabic}</div>
+        <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,direction:"rtl",color:isSelected?(dark?"rgba(230,184,74,0.85)":"rgba(140,100,20,0.90)"):(dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.65)"),flexShrink:0,lineHeight:1,transform:"translateY(-3px)"}}>{r.arabic}</div>
         {isSelected&&<div style={{fontSize:12,color:"#E6B84A",fontWeight:700,flexShrink:0,marginLeft:2}}>✓</div>}
       </div>
     );
