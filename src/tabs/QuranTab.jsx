@@ -65,21 +65,22 @@ export default function QuranTab(props) {
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
-    // V2 (quran.com CDN) or V4-tajweed (self-hosted in /fonts/v4/) based on
-    // localStorage.rihlat-mushaf-edition. Switching the font edition forces
-    // a page reload anyway (Settings toggle) so the cache rebuilds cleanly.
-    const isV4 = (() => { try { return localStorage.getItem("rihlat-mushaf-edition") === "v4"; } catch { return false; } })();
-    const elId = `qcf-font-${isV4 ? "v4" : "v2"}-${pageN}`;
+    // V2 fonts (quran.com CDN) or V4-tajweed fonts (self-hosted, colored
+    // letters via OpenType COLR/CPAL). Driven by localStorage.rihlat-tajweed.
+    // Same font-family name in both — the renderer doesn't need to change.
+    const isTajweed = (() => { try { return localStorage.getItem("rihlat-tajweed") === "on"; } catch { return false; } })();
+    const elId = `qcf-font-${isTajweed ? "v4" : "v2"}-${pageN}`;
     if (!document.getElementById(elId)) {
-      // Remove any prior version's stylesheet for this page so a single
-      // page never has competing @font-face definitions registered.
-      ["v2","v4","" /* legacy */].forEach(suf => {
-        const stale = document.getElementById(`qcf-font-${suf?suf+"-":""}${pageN}`);
+      // If the OTHER edition's stylesheet is registered for this page,
+      // remove it so the active one wins (Settings toggle reloads anyway,
+      // but defensive in case it doesn't).
+      ["v2","v4"].forEach(suf => {
+        const stale = document.getElementById(`qcf-font-${suf}-${pageN}`);
         if (stale && stale.id !== elId) stale.remove();
       });
       const style = document.createElement("style");
       style.id = elId;
-      const src = isV4
+      const src = isTajweed
         ? `url('/fonts/v4/p${pageN}.woff2') format('woff2')`
         : `url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff')`;
       style.textContent = `@font-face{font-family:'p${pageN}';src:${src};font-display:block;}`;
@@ -123,17 +124,10 @@ export default function QuranTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        // TEMP A/B: switch to V4 layout files via ?v4=1 in the URL or
-        // localStorage.setItem('rihlat-mushaf-edition','v4'). Defaults to v2.
-        const isV4 = typeof window!=="undefined" && (
-          new URLSearchParams(window.location.search).get("v4") === "1" ||
-          (() => { try { return localStorage.getItem("rihlat-mushaf-edition")==="v4"; } catch { return false; } })()
-        );
-        const base = isV4 ? "/v4" : "";
         const [p, l, v] = await Promise.all([
-          fetch(`${base}/mushaf-pages.json`),
-          fetch(`${base}/mushaf-layout.json`),
-          fetch(`${base}/verse-to-page.json`),
+          fetch("/mushaf-pages.json"),
+          fetch("/mushaf-layout.json"),
+          fetch("/verse-to-page.json"),
         ]);
         if (!cancelled && p.ok) setMushafPagesData(await p.json());
         if (!cancelled && l.ok) setMushafLayoutData(await l.json());
@@ -474,21 +468,22 @@ export default function QuranTab(props) {
                     })}
                   </div>
                 </div>
-                {/* TEMP: A/B test V2 vs V4 mushaf layout */}
+                {/* Tajweed colors — swaps the per-page font from V2 (plain)
+                    to V4 (with OpenType color glyphs for tajweed rules). */}
                 <div style={{padding:"12px 6px",borderTop:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.12)",marginTop:6}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginBottom:4}}>
                     <div>
-                      <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Mushaf edition <span style={{fontSize:9,color:dark?"rgba(217,177,95,0.45)":"#9A8A6A",fontStyle:"italic",fontWeight:500,marginLeft:4}}>test</span></div>
-                      <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>KFGQPC layout — page reload required</div>
+                      <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Tajweed</div>
+                      <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Color the recitation rules in Study mode</div>
                     </div>
                     {(()=>{
-                      const cur = (typeof window!=="undefined" && (()=>{try{return localStorage.getItem("rihlat-mushaf-edition");}catch{return null;}})())||"v2";
-                      const setEdition=(v)=>{try{ if(v==="v4") localStorage.setItem("rihlat-mushaf-edition","v4"); else localStorage.removeItem("rihlat-mushaf-edition"); }catch{} location.reload();};
+                      const on = typeof window!=="undefined" && (()=>{try{return localStorage.getItem("rihlat-tajweed")==="on";}catch{return false;}})();
+                      const setOn=(v)=>{try{ if(v) localStorage.setItem("rihlat-tajweed","on"); else localStorage.removeItem("rihlat-tajweed"); }catch{} location.reload();};
                       return (
                         <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:90,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:26}}>
-                          <div style={{position:"absolute",top:2,left:cur==="v2"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:22,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
-                          <div className="sbtn" onClick={()=>setEdition("v2")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".05em",color:cur==="v2"?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>V2</div>
-                          <div className="sbtn" onClick={()=>setEdition("v4")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".05em",color:cur==="v4"?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>V4</div>
+                          <div style={{position:"absolute",top:2,left:!on?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:22,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
+                          <div className="sbtn" onClick={()=>setOn(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".05em",color:!on?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Off</div>
+                          <div className="sbtn" onClick={()=>setOn(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,letterSpacing:".05em",color:on?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>On</div>
                         </div>
                       );
                     })()}
