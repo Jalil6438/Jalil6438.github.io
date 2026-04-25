@@ -69,43 +69,31 @@ export default function QuranTab(props) {
   });
   useEffect(() => {
     try { if (tajweedFont) localStorage.setItem("rihlat-tajweed","on"); else localStorage.removeItem("rihlat-tajweed"); } catch {}
-    // Wipe loaded font records + stale stylesheets so the next render
-    // re-resolves to the new edition's URLs without a page reload.
-    document.querySelectorAll('style[id^="qcf-font-v"]').forEach(el => el.remove());
-    // Also evict any FontFace already registered in document.fonts under
-    // the per-page family — otherwise the browser keeps the old edition's
-    // cached glyphs even after the @font-face stylesheet is gone.
-    if (document.fonts) {
-      const toDelete = [];
-      document.fonts.forEach(f => { if (/^p\d+$/.test(f.family)) toDelete.push(f); });
-      toDelete.forEach(f => { try { document.fonts.delete(f); } catch {} });
-    }
-    setLoadedFonts(new Set());
   }, [tajweedFont]);
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
     // V2 fonts (quran.com CDN) for plain Study mode, V4-tajweed (self-hosted
-    // in /fonts/v4/) when the user opts into tajweed coloring. Same family
-    // name so the renderer doesn't have to know which is active.
-    const isTajweed = tajweedFont;
-    const elId = `qcf-font-${isTajweed ? "v4" : "v2"}-${pageN}`;
+    // in /fonts/v4/) when the user opts into tajweed coloring. Use a per-
+    // edition family name (p${pageN}-v2 / p${pageN}-v4) so both editions
+    // can coexist without collision and the renderer picks the active one.
+    const ed = tajweedFont ? "v4" : "v2";
+    const isTajweedEd = tajweedFont;
+    const family = `p${pageN}-${ed}`;
+    const elId = `qcf-font-${ed}-${pageN}`;
     if (!document.getElementById(elId)) {
-      ["v2","v4"].forEach(suf => {
-        const stale = document.getElementById(`qcf-font-${suf}-${pageN}`);
-        if (stale && stale.id !== elId) stale.remove();
-      });
       const style = document.createElement("style");
       style.id = elId;
-      const src = isTajweed
+      const src = isTajweedEd
         ? `url('/fonts/v4/p${pageN}.woff2') format('woff2')`
         : `url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff')`;
-      style.textContent = `@font-face{font-family:'p${pageN}';src:${src};font-display:block;}`;
+      style.textContent = `@font-face{font-family:'${family}';src:${src};font-display:block;}`;
       document.head.appendChild(style);
     }
-    if (loadedFonts.has(pageN)) return;
+    const key = `${ed}-${pageN}`;
+    if (loadedFonts.has(key)) return;
     if (document.fonts && document.fonts.load) {
-      document.fonts.load(`16px 'p${pageN}'`).then(() => {
-        setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
+      document.fonts.load(`16px '${family}'`).then(() => {
+        setLoadedFonts(prev => { const n = new Set(prev); n.add(key); return n; });
       }).catch(() => {});
     }
   };
@@ -712,7 +700,8 @@ export default function QuranTab(props) {
                     // plus per-line alignment (center vs space-between).
                     return (<div style={mushafPage<=2?{padding:"8px 2px 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 2px 0",position:"relative"}}>
                       {(()=>{
-                        const pageFontReady=loadedFonts.has(mushafPage);
+                        const fontEd=tajweedFont?"v4":"v2";
+                        const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
                         if(!pageFontReady){
                           return (
                             <div style={{minHeight:400,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
@@ -762,8 +751,8 @@ export default function QuranTab(props) {
                           if(type==="basmallah"){
                             return (
                               <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
-                                {bismillahGlyphs&&loadedFonts.has(1)?(
-                                  <div style={{fontFamily:"'p1',serif",fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
+                                {bismillahGlyphs&&loadedFonts.has(`${tajweedFont?"v4":"v2"}-1`)?(
+                                  <div style={{fontFamily:`'p1-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
                                 ):(
                                   <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                                 )}
@@ -783,7 +772,7 @@ export default function QuranTab(props) {
                           glyphCursor+=rowGlyphs;
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
-                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
                             {tokens.map((w,wi)=>{
                               const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
                               return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
@@ -898,7 +887,7 @@ export default function QuranTab(props) {
                         {/* Arabic text — per-page mushaf font when words are
                             available; fall back to UthmanicHafs. */}
                         {selVerse&&(selVerse.words?.some(w=>w.code_v2)?(
-                          <div style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
+                          <div style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
                             {selVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map((w,wi)=>(<span key={wi}>{w.code_v2||""} </span>))}
                           </div>
                         ):selVerse.text_uthmani?(
