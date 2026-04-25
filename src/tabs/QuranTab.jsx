@@ -114,10 +114,17 @@ export default function QuranTab(props) {
     let cancelled = false;
     (async () => {
       try {
+        // TEMP A/B: switch to V4 layout files via ?v4=1 in the URL or
+        // localStorage.setItem('rihlat-mushaf-edition','v4'). Defaults to v2.
+        const isV4 = typeof window!=="undefined" && (
+          new URLSearchParams(window.location.search).get("v4") === "1" ||
+          (() => { try { return localStorage.getItem("rihlat-mushaf-edition")==="v4"; } catch { return false; } })()
+        );
+        const base = isV4 ? "/v4" : "";
         const [p, l, v] = await Promise.all([
-          fetch("/mushaf-pages.json"),
-          fetch("/mushaf-layout.json"),
-          fetch("/verse-to-page.json"),
+          fetch(`${base}/mushaf-pages.json`),
+          fetch(`${base}/mushaf-layout.json`),
+          fetch(`${base}/verse-to-page.json`),
         ]);
         if (!cancelled && p.ok) setMushafPagesData(await p.json());
         if (!cancelled && l.ok) setMushafLayoutData(await l.json());
