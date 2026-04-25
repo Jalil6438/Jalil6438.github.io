@@ -340,7 +340,10 @@ export default function QuranTab(props) {
                   </div>
                   {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
                 </div>
-                <div style={{flex:1,overflowY:"auto",padding:"20px 20px 120px"}}>
+                <div style={{flexShrink:0,padding:"10px 20px 0",textAlign:"center"}}>
+                  <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700}}>Tafsir · {TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.name||""}</div>
+                </div>
+                <div style={{flex:1,overflowY:"auto",padding:"14px 20px 120px"}}>
                   {(()=>{
                     const rawText=tafsirData[`${tafsirTab}-${selectedAyah}`];
                     if(!rawText) return <div style={{textAlign:"center",padding:40,color:dark?"rgba(243,231,200,0.20)":"#6B645A",fontSize:11}}>Loading...</div>;
@@ -658,21 +661,12 @@ export default function QuranTab(props) {
                           </div>
                           {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
                         </div>
-                        {/* Tab selector — removed; default is set in Settings */}
-                        <div style={{display:"none"}}>
-                          {TAFSIR_SOURCES.map(src=>(
-                            <div key={src.id} onClick={()=>{setTafsirTab(src.id);if(!tafsirData[`${src.id}-${selectedAyah}`])fetchTafsir(selectedAyah);}}
-                              style={{flex:1,textAlign:"center",padding:"10px 4px 8px",fontSize:11,fontWeight:tafsirTab===src.id?700:500,
-                              letterSpacing:".02em",
-                              color:tafsirTab===src.id?(dark?"#E8C76A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#9A9488"),
-                              borderBottom:`2.5px solid ${tafsirTab===src.id?(dark?"#E8C76A":"#D4AF37"):"transparent"}`,
-                              transition:"all .2s ease"}}>
-                              {src.name}
-                            </div>
-                          ))}
+                        {/* Source name — set in Settings */}
+                        <div style={{flexShrink:0,padding:"10px 20px 0",textAlign:"center"}}>
+                          <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700}}>Tafsir · {TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.name||""}</div>
                         </div>
                         {/* Tafsir content — parsed into blocks */}
-                        <div style={{flex:1,overflowY:"auto",padding:"20px 20px 120px"}}>
+                        <div style={{flex:1,overflowY:"auto",padding:"14px 20px 120px"}}>
                           {(()=>{
                             const rawText = tafsirData[`${tafsirTab}-${selectedAyah}`];
                             if(!rawText) return <div style={{textAlign:"center",padding:40,color:dark?"rgba(243,231,200,0.20)":"#6B645A",fontSize:11}}>Loading...</div>;
