@@ -154,9 +154,11 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       }
       const item=queue[idx];
       const audio=preloaded[idx];
-      // Reset currentTime so loops (and preloaded clips left at their end
-      // by the cross-fade prefetch below) start from the beginning.
-      try{ audio.currentTime=0; }catch{}
+      // Reset currentTime only if the clip isn't already running (e.g. from
+      // the cross-fade prefetch). Otherwise we'd rewind it mid-playback and
+      // the user hears the start of the ayah twice. For loops the clip is
+      // paused at the end, so this still resets cleanly.
+      if(audio.paused){ try{ audio.currentTime=0; }catch{} }
       nextTriggered=false;
       audioRef.current=audio;
       // For Bismillah clips, don't set playingKey (it's not a real verse_key in
