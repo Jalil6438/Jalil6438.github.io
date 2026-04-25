@@ -107,95 +107,135 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     setPlayingKey(null); setAudioLoading(null); setMushafAudioPlaying(false);
   }
 
-  function playMushafRange(verses){
-    if(!verses||verses.length===0) return;
-    if(mushafAudioPlaying){ stopMushafAudio(); return; }
-    // Prefer quranReciter (Quran-tab selection); fall back to the hifz reciter
-    // so the Hifz-side Play Page works as soon as the user picks any reciter.
+  // Old chopped-clip range player — used as fallback when a reciter has no
+  // qurancdn recitationId (e.g. Saudi haram-only reciters via everyayah only).
+  function playMushafRangeChopped(verses){
     const folder=getEveryayahFolder(quranReciter)||getEveryayahFolder(reciter);
-    // No reciter picked anywhere — don't silently fall back to Dossari.
     if(!folder){ return; }
-    stopMushafAudio();
     setMushafAudioPlaying(true);
     function urlFor(vKey){
       const [s,a]=vKey.split(":");
       return `https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
     }
-
-    // Build the playback queue — inject a Bismillah clip before every surah
-    // that starts fresh on the page (verse_key ends in ":1") except for
-    // Surah 1 (Al-Fatiha — Bismillah IS its ayah 1) and Surah 9
-    // (At-Tawbah — the only surah that opens without Bismillah).
-    // The Bismillah clip comes from the reciter's own Al-Fatiha ayah 1 file.
-    const bismillahUrl = `https://everyayah.com/data/${folder}/001001.mp3`;
-    const queue = [];
-    verses.forEach((v, i) => {
-      const [s, a] = v.verse_key.split(":");
-      const sNum = Number(s);
-      if (a === "1" && sNum !== 1 && sNum !== 9) {
-        queue.push({ isBismillah: true, vKey: `bismillah-${i}` });
-      }
-      queue.push({ verse_key: v.verse_key, isBismillah: false });
+    const bismillahUrl=`https://everyayah.com/data/${folder}/001001.mp3`;
+    const queue=[];
+    verses.forEach((v,i)=>{
+      const [s,a]=v.verse_key.split(":");
+      const sNum=Number(s);
+      if(a==="1"&&sNum!==1&&sNum!==9){ queue.push({isBismillah:true,vKey:`bismillah-${i}`}); }
+      queue.push({verse_key:v.verse_key,isBismillah:false});
     });
-
-    // Pre-load every audio element in the queue
-    const preloaded = queue.map(item => {
-      const a = new Audio(item.isBismillah ? bismillahUrl : urlFor(item.verse_key));
-      a.preload = "auto";
-      return a;
-    });
-
+    const preloaded=queue.map(item=>{const a=new Audio(item.isBismillah?bismillahUrl:urlFor(item.verse_key));a.preload="auto";return a;});
     let nextTriggered=false;
-
     function playIdx(idx){
-      if(idx>=queue.length){
-        if(looping){ playIdx(0); return; }
-        setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return;
-      }
-      const item=queue[idx];
-      const audio=preloaded[idx];
-      // Reset currentTime only if the clip isn't already running (e.g. from
-      // the cross-fade prefetch). Otherwise we'd rewind it mid-playback and
-      // the user hears the start of the ayah twice. For loops the clip is
-      // paused at the end, so this still resets cleanly.
+      if(idx>=queue.length){ if(looping){ playIdx(0); return; } setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
+      const item=queue[idx]; const audio=preloaded[idx];
       if(audio.paused){ try{ audio.currentTime=0; }catch{} }
-      nextTriggered=false;
-      audioRef.current=audio;
-      // For Bismillah clips, don't set playingKey (it's not a real verse_key in
-      // the rendered batch). For real verses, highlight as before.
-      if (!item.isBismillah) {
-        setPlayingKey(item.verse_key);
-        setAudioLoading(item.verse_key);
-      } else {
-        setPlayingKey(null);
-        setAudioLoading(null);
-      }
-
+      nextTriggered=false; audioRef.current=audio;
+      if(!item.isBismillah){ setPlayingKey(item.verse_key); setAudioLoading(item.verse_key); } else { setPlayingKey(null); setAudioLoading(null); }
       audio.oncanplay=()=>{ if(!item.isBismillah) setAudioLoading(null); };
       audio.onended=()=>playIdx(idx+1);
       audio.onerror=()=>playIdx(idx+1);
-
-      // Start next clip 0.25s before current ends — eliminates the gap.
-      // Also advance the highlight (playingKey) at the same moment so the
-      // gold glow hops with the audio rather than lagging behind it.
       audio.ontimeupdate=()=>{
-        if(!nextTriggered && audio.duration>0 && audio.currentTime >= audio.duration - 0.25){
+        if(!nextTriggered&&audio.duration>0&&audio.currentTime>=audio.duration-0.25){
           nextTriggered=true;
           if(idx+1<queue.length){
-            const nextItem=queue[idx+1];
-            const nextAudio=preloaded[idx+1];
-            nextAudio.currentTime=0;
-            nextAudio.play().catch(()=>{});
-            if (nextItem.isBismillah) setPlayingKey(null);
-            else setPlayingKey(nextItem.verse_key);
+            const nextItem=queue[idx+1]; const nextAudio=preloaded[idx+1];
+            nextAudio.currentTime=0; nextAudio.play().catch(()=>{});
+            if(nextItem.isBismillah) setPlayingKey(null); else setPlayingKey(nextItem.verse_key);
           }
         }
       };
-
       audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
     }
-
     playIdx(0);
+  }
+
+  // Proper range player — uses qurancdn's full surah audio files with
+  // verse_timings so the reciter's natural wasl (continuous recitation
+  // across ayah boundaries) is preserved without seam artifacts. Falls
+  // back to the chopped-clip player when the reciter has no recitationId.
+  async function playMushafRange(verses){
+    if(!verses||verses.length===0) return;
+    if(mushafAudioPlaying){ stopMushafAudio(); return; }
+
+    const reciterId=quranReciter||reciter;
+    const reciterObj=QURAN_RECITERS.find(r=>r.id===reciterId)||RECITERS.find(r=>r.id===reciterId);
+    const recitationId=reciterObj?.recitationId;
+    if(!recitationId){ return playMushafRangeChopped(verses); }
+
+    stopMushafAudio();
+    setMushafAudioPlaying(true);
+
+    // Group consecutive verses by surah so we play one continuous slice per
+    // surah audio file. Cross-surah jumps are the only audible seams.
+    const groups=[];
+    verses.forEach(v=>{
+      const sNum=Number(v.verse_key.split(":")[0]);
+      const last=groups[groups.length-1];
+      if(!last||last.sNum!==sNum) groups.push({sNum,verses:[v]});
+      else last.verses.push(v);
+    });
+
+    let segments;
+    try{
+      const fetched=await Promise.all(groups.map(async g=>{
+        const r=await fetch(`https://api.qurancdn.com/api/qdc/audio/reciters/${recitationId}/audio_files?chapter_number=${g.sNum}&segments=true`);
+        if(!r.ok) return null;
+        const d=await r.json();
+        const f=d.audio_files?.[0];
+        if(!f||!f.verse_timings) return null;
+        const firstVk=g.verses[0].verse_key;
+        const lastVk=g.verses[g.verses.length-1].verse_key;
+        const firstT=f.verse_timings.find(t=>t.verse_key===firstVk);
+        const lastT=f.verse_timings.find(t=>t.verse_key===lastVk);
+        if(!firstT||!lastT) return null;
+        // Range starts at verse :1 of a surah → start at file's beginning so
+        // any bismillah preroll baked into the file is included naturally.
+        const isOpener=firstVk.endsWith(":1");
+        const startMs=isOpener?0:firstT.timestamp_from;
+        const endMs=lastT.timestamp_to;
+        return { audio_url:f.audio_url, verse_timings:f.verse_timings, startMs, endMs, sNum:g.sNum };
+      }));
+      segments=fetched.filter(Boolean);
+    }catch{ segments=[]; }
+
+    if(!segments.length){ setMushafAudioPlaying(false); return playMushafRangeChopped(verses); }
+
+    function playSegment(idx){
+      if(idx>=segments.length){
+        if(looping){ playSegment(0); return; }
+        setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return;
+      }
+      const seg=segments[idx];
+      const audio=new Audio(seg.audio_url);
+      audio.preload="auto";
+      audioRef.current=audio;
+      let lastVk=null;
+
+      audio.onloadedmetadata=()=>{
+        try{ audio.currentTime=seg.startMs/1000; }catch{}
+        audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
+      };
+      audio.ontimeupdate=()=>{
+        const ms=audio.currentTime*1000;
+        const vt=seg.verse_timings.find(t=>ms>=t.timestamp_from&&ms<t.timestamp_to);
+        if(vt&&vt.verse_key!==lastVk){
+          lastVk=vt.verse_key;
+          setPlayingKey(vt.verse_key);
+          setAudioLoading(null);
+        }
+        if(ms>=seg.endMs-30){
+          audio.onended=null; audio.ontimeupdate=null;
+          try{ audio.pause(); }catch{}
+          if(audioRef.current===audio) audioRef.current=null;
+          playSegment(idx+1);
+        }
+      };
+      audio.onerror=()=>{ playSegment(idx+1); };
+    }
+
+    playSegment(0);
   }
 
   function getQuranSurahUrl(reciterId,surahNum){
