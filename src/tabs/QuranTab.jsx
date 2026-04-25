@@ -9,6 +9,7 @@ export default function QuranTab(props) {
     // theme
     dark,
     setActiveTab,
+    setRihlahTab,
     // constants/helpers passed from parent (defined inside main component)
     SURAH_PAGES,
     TAFSIR_SOURCES,
@@ -178,42 +179,75 @@ export default function QuranTab(props) {
   return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment}}>
 
-          {/* Header — sticky so it's always visible regardless of scroll. Only title row toggles. */}
+          {/* Header — sticky so it's always visible regardless of scroll. */}
           <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
-            {/* Dropdown — surah, tafsir, reciter, mushaf/study — slides down ABOVE the title */}
-            <div style={{maxHeight:showPickers?54:0,overflow:"hidden",transition:"max-height .28s ease",padding:showPickers?"0 12px 6px":"0 12px",position:"relative",zIndex:2}}>
-              <div style={{display:"flex",alignItems:"center",gap:4}}>
-                {setActiveTab&&(
-                  <div className="sbtn" onClick={e=>{e.stopPropagation();setActiveTab("myhifz");}} style={{flexShrink:0,padding:"0 8px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,fontWeight:600,color:dark?"rgba(232,200,120,0.80)":"#6B4F00",display:"flex",alignItems:"center",height:24,whiteSpace:"nowrap"}}>
-                    ← Hifz
-                  </div>
-                )}
-                <div className="sbtn" onClick={e=>{e.stopPropagation();setShowQuranSurahModal(true);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
-                  <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{SURAH_EN[curSurahNum]||"Surah"}</span>
-                  <span style={{fontSize:8,opacity:0.5,flexShrink:0}}>▾</span>
-                </div>
-                <div className="sbtn" onClick={e=>{e.stopPropagation();const vk=selectedAyah||mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
-                  <span>Tafsir</span>
-                  <span style={{fontSize:8,opacity:0.5,flexShrink:0}}>▾</span>
-                </div>
-                <div className="sbtn" onClick={e=>{e.stopPropagation();setReciterMode("quran");setShowReciterModal(true);}} style={{flex:1,padding:"0 6px",background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.06)",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.20)",borderRadius:8,fontSize:10,color:dark?"rgba(243,231,191,0.70)":"#4A3A10",display:"flex",alignItems:"center",justifyContent:"center",gap:2,overflow:"hidden",height:24,whiteSpace:"nowrap"}}>
-                  <span>Reciter</span>
-                  <span style={{fontSize:8,opacity:0.5,flexShrink:0}}>▾</span>
-                </div>
-                <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:110,flexShrink:0,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:24}}>
-                  <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:20,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40), 0 0 4px rgba(212,175,55,0.20)",transition:"left .25s ease"}}/>
-                  <div className="sbtn" onClick={e=>{e.stopPropagation();setQuranMode("mushaf");}} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,letterSpacing:".04em",color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Mushaf</div>
-                  <div className="sbtn" onClick={e=>{e.stopPropagation();setQuranMode("interactive");}} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,letterSpacing:".04em",color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.35)":"rgba(0,0,0,0.40)",transition:"color .2s ease",fontWeight:700}}>Study</div>
-                </div>
+            {/* Title row — hamburger left, surah/juz right */}
+            <div style={{display:"flex",alignItems:"center",padding:"6px 12px",gap:10}}>
+              <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}} aria-label="Open menu">
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
               </div>
-            </div>
-            {/* Title row — tappable to toggle the drawers */}
-            <div className="sbtn" onClick={()=>setShowPickers(v=>!v)} style={{display:"flex",alignItems:"center",padding:"6px 16px",gap:8}}>
               <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0,whiteSpace:"nowrap"}}>Juz {mushafJuzNum}</div>
             </div>
             <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
+
+          {/* ── SIDE MENU ── slides in from the left, partial width */}
+          {showPickers&&(
+            <>
+              <div onClick={()=>setShowPickers(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",backdropFilter:"blur(2px)",zIndex:300,animation:"fi .18s ease"}}/>
+              <div style={{position:"fixed",top:0,bottom:0,left:0,width:"min(280px,78vw)",zIndex:301,background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRight:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.18)",boxShadow:"6px 0 28px rgba(0,0,0,0.45)",display:"flex",flexDirection:"column",animation:"sideMenuIn .22s ease-out",paddingTop:"env(safe-area-inset-top,28px)"}} onClick={e=>e.stopPropagation()}>
+                {/* Close + label */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px 8px"}}>
+                  <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.55)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700}}>Menu</div>
+                  <div className="sbtn" onClick={()=>setShowPickers(false)} style={{fontSize:20,color:dark?"rgba(243,231,200,0.55)":"rgba(0,0,0,0.55)",lineHeight:1,padding:"0 6px",fontWeight:300}}>×</div>
+                </div>
+                <div style={{flex:1,overflowY:"auto",padding:"4px 12px 16px"}}>
+                  {/* QURAN section */}
+                  <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.55)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,padding:"6px 8px"}}>Qur'an</div>
+                  {(()=>{
+                    const Row=({icon,label,onClick,disabled})=>(
+                      <div className={disabled?undefined:"sbtn"} onClick={disabled?undefined:onClick} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 10px",borderRadius:10,marginBottom:2,opacity:disabled?0.35:1,cursor:disabled?"default":"pointer",color:dark?"rgba(243,231,200,0.85)":"#2D2A26",fontSize:13,fontWeight:500}}>
+                        <span style={{fontSize:16,width:22,textAlign:"center",flexShrink:0}}>{icon}</span>
+                        <span style={{flex:1,minWidth:0}}>{label}</span>
+                      </div>
+                    );
+                    return (<>
+                      <Row icon="📋" label="Surah" onClick={()=>{setShowQuranSurahModal(true);setShowPickers(false);}}/>
+                      <Row icon="📖" label="Tafsir" onClick={()=>{const vk=selectedAyah||mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");setShowPickers(false);}}/>
+                      <Row icon="🎙️" label="Reciter" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);setShowPickers(false);}}/>
+                      <Row icon="🔖" label="Bookmark" onClick={()=>{setDrawerView(selectedAyah?"save-options":"bookmarks");if(!selectedAyah)setSelectedAyah(null);setShowPickers(false);}}/>
+                      <Row icon="✏️" label="Reflect" disabled={!selectedAyah} onClick={()=>{if(!selectedAyah)return;setDrawerView("reflect");setShowPickers(false);}}/>
+                      <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:30,margin:"6px 4px 4px"}}>
+                        <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:26,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
+                        <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Mushaf</div>
+                        <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Study</div>
+                      </div>
+                    </>);
+                  })()}
+                  {/* Divider */}
+                  <div style={{height:1,background:dark?"linear-gradient(90deg,transparent,rgba(217,177,95,0.18),transparent)":"linear-gradient(90deg,transparent,rgba(139,106,16,0.18),transparent)",margin:"14px 0 10px"}}/>
+                  {/* NAVIGATE section */}
+                  <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.55)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,padding:"6px 8px"}}>Navigate</div>
+                  {(()=>{
+                    const NavRow=({img,emoji,label,onClick})=>(
+                      <div className="sbtn" onClick={onClick} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 10px",borderRadius:10,marginBottom:2,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",fontSize:13,fontWeight:500,cursor:"pointer"}}>
+                        {img?<img src={img} alt="" style={{width:28,height:28,objectFit:"contain",flexShrink:0,opacity:0.85}}/>:<span style={{fontSize:22,width:28,height:28,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{emoji}</span>}
+                        <span style={{flex:1,minWidth:0}}>{label}</span>
+                      </div>
+                    );
+                    return (<>
+                      {setActiveTab&&<NavRow img="/tab-hifz.png" label="My Hifz" onClick={()=>{setActiveTab("myhifz");setShowPickers(false);}}/>}
+                      {setActiveTab&&setRihlahTab&&<NavRow img="/tab-rihlah.png" label="Journey" onClick={()=>{setRihlahTab("home");setActiveTab("rihlah");setShowPickers(false);}}/>}
+                      {setActiveTab&&<NavRow emoji="🕋" label="Haramain" onClick={()=>{setActiveTab("masjidayn");setShowPickers(false);}}/>}
+                    </>);
+                  })()}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Inline Tafsir — replaces the viewer when active, keeps header pickers visible */}
           {drawerView==="tafsir"&&selectedAyah&&(()=>{
@@ -388,7 +422,7 @@ export default function QuranTab(props) {
                           const lineNum=i+1;
                           const vkForLine=lineToVerse[lineNum];
                           return (
-                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setShowPickers(true);setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
+                          <div key={i} className={vkForLine?"sbtn":undefined} onClick={vkForLine?()=>{setSelectedAyah(vkForLine);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);}:undefined} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0,cursor:vkForLine?"pointer":"default"}}>
                             {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                           </div>
                           );
