@@ -148,9 +148,15 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     let nextTriggered=false;
 
     function playIdx(idx){
-      if(idx>=queue.length){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
+      if(idx>=queue.length){
+        if(looping){ playIdx(0); return; }
+        setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return;
+      }
       const item=queue[idx];
       const audio=preloaded[idx];
+      // Reset currentTime so loops (and preloaded clips left at their end
+      // by the cross-fade prefetch below) start from the beginning.
+      try{ audio.currentTime=0; }catch{}
       nextTriggered=false;
       audioRef.current=audio;
       // For Bismillah clips, don't set playingKey (it's not a real verse_key in
