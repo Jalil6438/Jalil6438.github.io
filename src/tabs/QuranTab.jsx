@@ -365,7 +365,7 @@ export default function QuranTab(props) {
                     {[{id:"muhsin_khan",name:"Muhsin Khan"},{id:"sahih_intl",name:"Sahih International"}].map(src=>{
                       const sel=translationSource===src.id;
                       return (
-                        <div key={src.id} className="sbtn" onClick={()=>setTranslationSource&&setTranslationSource(src.id)} style={{flex:1,padding:"8px 6px",borderRadius:10,fontSize:11,fontWeight:600,textAlign:"center",background:sel?"rgba(217,177,95,0.12)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${sel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.06)"}`,color:sel?"#F6E27A":dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{src.name}</div>
+                        <div key={src.id} className="sbtn" onClick={()=>setTranslationSource&&setTranslationSource(src.id)} style={{flex:1,padding:"8px 6px",borderRadius:10,fontSize:11,fontWeight:700,textAlign:"center",background:sel?"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${sel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.06)"}`,boxShadow:sel?"0 0 10px rgba(212,175,55,0.40)":"none",color:sel?"#0A0E1A":dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{src.name}</div>
                       );
                     })}
                   </div>
@@ -384,9 +384,12 @@ export default function QuranTab(props) {
                   </div>
                   <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>Mushaf mode always renders full-page tafsir</div>
                   <div style={{display:"flex",gap:6}}>
-                    {TAFSIR_SOURCES.map(src=>(
-                      <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,padding:"8px 6px",borderRadius:10,fontSize:11,fontWeight:600,textAlign:"center",background:tafsirTab===src.id?"rgba(217,177,95,0.12)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${tafsirTab===src.id?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.06)"}`,color:tafsirTab===src.id?"#F6E27A":dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{src.name}</div>
-                    ))}
+                    {TAFSIR_SOURCES.map(src=>{
+                      const sel=tafsirTab===src.id;
+                      return (
+                        <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,padding:"8px 6px",borderRadius:10,fontSize:11,fontWeight:700,textAlign:"center",background:sel?"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${sel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.06)"}`,boxShadow:sel?"0 0 10px rgba(212,175,55,0.40)":"none",color:sel?"#0A0E1A":dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{src.name}</div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
