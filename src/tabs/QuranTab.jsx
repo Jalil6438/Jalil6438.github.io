@@ -828,8 +828,9 @@ export default function QuranTab(props) {
                             {icon:"🔖", label:"Bookmark", action:()=>setDrawerView("save-options")},
                             {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
                               action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(selectedAyah);} }},
-                            {icon:"⏭", label:"Play Range",
-                              action:()=>{ stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true); }},
+                            mushafAudioPlaying
+                              ? {icon:"⏹", label:"Stop", action:()=>{ stopMushafAudio(); }}
+                              : {icon:"⏭", label:"Play Range", action:()=>{ stopMushafAudio();setMushafRangeStart(null);setMushafRangeEnd(null);setShowMushafRangePicker(true); }},
                             {icon:"✏️", label:"Reflect", action:()=>setDrawerView("reflect")},
                           ].map(btn=>(
                             <div key={btn.label} className="sbtn"
