@@ -359,7 +359,7 @@ export default function QuranTab(props) {
                 </div>
                 {/* Translation source */}
                 <div style={{padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
-                  <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26",marginBottom:2}}>Translation source</div>
+                  <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26",marginBottom:2}}>Translation</div>
                   <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>Used in Study mode and the ayah drawer</div>
                   <div style={{display:"flex",gap:6}}>
                     {[{id:"muhsin_khan",name:"Muhsin Khan"},{id:"sahih_intl",name:"Sahih International"}].map(src=>{
@@ -373,7 +373,7 @@ export default function QuranTab(props) {
                 {/* Default tafsir source */}
                 <div style={{padding:"12px 6px"}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginBottom:4}}>
-                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Tafsir source</div>
+                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Tafsir</div>
                     {setTafsirView&&(
                       <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:120,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:26}}>
                         <div style={{position:"absolute",top:2,left:tafsirView==="single"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:22,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
