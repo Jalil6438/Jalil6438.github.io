@@ -65,13 +65,22 @@ export default function QuranTab(props) {
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
-    // V2 per-page fonts from quran.com CDN. Layout uses V4 (tighter line
-    // wrapping) but glyphs are V2-compatible since codepoints match.
-    const elId = `qcf-font-${pageN}`;
+    // V2 fonts (quran.com CDN) for plain Study mode, V4-tajweed (self-hosted
+    // in /fonts/v4/) when the user opts into tajweed coloring. Same family
+    // name so the renderer doesn't have to know which is active.
+    const isTajweed = (() => { try { return localStorage.getItem("rihlat-tajweed") === "on"; } catch { return false; } })();
+    const elId = `qcf-font-${isTajweed ? "v4" : "v2"}-${pageN}`;
     if (!document.getElementById(elId)) {
+      ["v2","v4"].forEach(suf => {
+        const stale = document.getElementById(`qcf-font-${suf}-${pageN}`);
+        if (stale && stale.id !== elId) stale.remove();
+      });
       const style = document.createElement("style");
       style.id = elId;
-      style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
+      const src = isTajweed
+        ? `url('/fonts/v4/p${pageN}.woff2') format('woff2')`
+        : `url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff')`;
+      style.textContent = `@font-face{font-family:'p${pageN}';src:${src};font-display:block;}`;
       document.head.appendChild(style);
     }
     if (loadedFonts.has(pageN)) return;
@@ -455,6 +464,24 @@ export default function QuranTab(props) {
                       );
                     })}
                   </div>
+                </div>
+                {/* Study mode font: V2 (plain) or V4 (tajweed colors). */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderTop:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.12)",marginTop:6}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Study font</div>
+                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Plain text or tajweed colors</div>
+                  </div>
+                  {(()=>{
+                    const on = typeof window!=="undefined" && (()=>{try{return localStorage.getItem("rihlat-tajweed")==="on";}catch{return false;}})();
+                    const setOn=(v)=>{try{ if(v) localStorage.setItem("rihlat-tajweed","on"); else localStorage.removeItem("rihlat-tajweed"); }catch{} location.reload();};
+                    return (
+                      <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:140,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
+                        <div style={{position:"absolute",top:2,left:!on?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
+                        <div className="sbtn" onClick={()=>setOn(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:!on?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Study</div>
+                        <div className="sbtn" onClick={()=>setOn(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:on?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Tajweed</div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </>
