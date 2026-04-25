@@ -123,27 +123,41 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       queue.push({verse_key:v.verse_key,isBismillah:false});
     });
     const preloaded=queue.map(item=>{const a=new Audio(item.isBismillah?bismillahUrl:urlFor(item.verse_key));a.preload="auto";return a;});
+    const FADE=0.6; // seconds — crossfade window
     let nextTriggered=false;
+    let nextAudio=null;
+    let fadeStart=0;
     function playIdx(idx){
       if(idx>=queue.length){ if(looping){ playIdx(0); return; } setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return; }
       const item=queue[idx]; const audio=preloaded[idx];
-      if(audio.paused){ try{ audio.currentTime=0; }catch{} }
-      nextTriggered=false; audioRef.current=audio;
+      // If this clip wasn't already running (loop reset, or first play),
+      // restart from 0 at full volume. If it was crossfading in, leave the
+      // volume ramp alone — it'll hit 1.0 by the time the previous clip ends.
+      if(audio.paused){ try{ audio.currentTime=0; audio.volume=1; }catch{} }
+      nextTriggered=false; nextAudio=null; audioRef.current=audio;
       if(!item.isBismillah){ setPlayingKey(item.verse_key); setAudioLoading(item.verse_key); } else { setPlayingKey(null); setAudioLoading(null); }
       audio.oncanplay=()=>{ if(!item.isBismillah) setAudioLoading(null); };
       audio.onended=()=>playIdx(idx+1);
       audio.onerror=()=>playIdx(idx+1);
       audio.ontimeupdate=()=>{
-        // Larger 0.6s overlap masks the per-clip leading/trailing silence
-        // on chopped everyayah recordings — used for reciters that don't
-        // have qurancdn verse_timings (e.g. Budair, Muaiqly, Dosari pre-fix).
-        if(!nextTriggered&&audio.duration>0&&audio.currentTime>=audio.duration-0.6){
+        if(!(audio.duration>0)) return;
+        // Kick off crossfade — start the next clip at silence, mark fadeStart.
+        if(!nextTriggered&&audio.currentTime>=audio.duration-FADE){
           nextTriggered=true;
           if(idx+1<queue.length){
-            const nextItem=queue[idx+1]; const nextAudio=preloaded[idx+1];
-            nextAudio.currentTime=0; nextAudio.play().catch(()=>{});
+            const nextItem=queue[idx+1];
+            nextAudio=preloaded[idx+1];
+            try{ nextAudio.currentTime=0; nextAudio.volume=0; }catch{}
+            nextAudio.play().catch(()=>{});
+            fadeStart=audio.currentTime;
             if(nextItem.isBismillah) setPlayingKey(null); else setPlayingKey(nextItem.verse_key);
           }
+        }
+        // DJ-style gain ramp during the overlap window. A fades 1→0 while
+        // B fades 0→1, so the seam blends instead of doubling.
+        if(nextTriggered&&nextAudio){
+          const progress=Math.min(1,Math.max(0,(audio.currentTime-fadeStart)/FADE));
+          try{ audio.volume=1-progress; nextAudio.volume=progress; }catch{}
         }
       };
       audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
