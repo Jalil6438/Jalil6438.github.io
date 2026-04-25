@@ -10,6 +10,7 @@ export default function QuranTab(props) {
     dark,
     setActiveTab,
     setRihlahTab,
+    setDark,
     // constants/helpers passed from parent (defined inside main component)
     SURAH_PAGES,
     TAFSIR_SOURCES,
@@ -172,6 +173,7 @@ export default function QuranTab(props) {
   const curSurahNum = mushafSurahNum;
   const curSurahPage = SURAH_PAGES[curSurahNum] || 1;
   const [showPickers, setShowPickers] = useState(false);
+  const [showQuranSettings, setShowQuranSettings] = useState(false);
   const parchment = dark ? "linear-gradient(180deg,#0B1220,#0E1628)" : "#F3E9D2";
   const goldColor = "#E8D5A3";
   const inkColor = "#E8D5A3";
@@ -242,6 +244,75 @@ export default function QuranTab(props) {
                       {setActiveTab&&<NavRow emoji="🕋" label="Haramain" onClick={()=>{setActiveTab("masjidayn");setShowPickers(false);}}/>}
                     </>);
                   })()}
+                </div>
+                {/* Settings — pinned to bottom */}
+                <div style={{borderTop:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.12)",padding:"10px 12px"}}>
+                  <div className="sbtn" onClick={()=>{setShowQuranSettings(true);setShowPickers(false);}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 10px",borderRadius:10,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",fontSize:13,fontWeight:500,cursor:"pointer"}}>
+                    <span style={{fontSize:18,width:22,textAlign:"center",flexShrink:0}}>⚙️</span>
+                    <span style={{flex:1,minWidth:0}}>Settings</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── QURAN SETTINGS SHEET ── */}
+          {showQuranSettings&&(
+            <>
+              <div onClick={()=>setShowQuranSettings(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",backdropFilter:"blur(4px)",zIndex:998}}/>
+              <div onClick={e=>e.stopPropagation()} style={{position:"fixed",bottom:0,left:0,right:0,zIndex:999,maxHeight:"80vh",background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:"18px 18px 0 0",borderTop:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(139,106,16,0.18)",boxShadow:"0 -8px 40px rgba(0,0,0,0.40)",padding:"14px 18px 32px",overflowY:"auto",animation:"slideUpDrawer .22s ease-out"}}>
+                <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 14px"}}/>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+                  <div style={{fontSize:11,color:dark?"rgba(217,177,95,0.65)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700}}>Qur'an Settings</div>
+                  <div className="sbtn" onClick={()=>setShowQuranSettings(false)} style={{fontSize:20,color:dark?"rgba(243,231,200,0.55)":"rgba(0,0,0,0.55)",lineHeight:1,padding:"0 4px",fontWeight:300}}>×</div>
+                </div>
+                {/* Theme */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Theme</div>
+                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Dark or light parchment</div>
+                  </div>
+                  {setDark&&(
+                    <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:110,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
+                      <div style={{position:"absolute",top:2,left:dark?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
+                      <div className="sbtn" onClick={()=>setDark(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:dark?"#0A0E1A":"rgba(0,0,0,0.50)",fontWeight:700}}>Dark</div>
+                      <div className="sbtn" onClick={()=>setDark(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:!dark?"#0A0E1A":"rgba(212,175,55,0.45)",fontWeight:700}}>Light</div>
+                    </div>
+                  )}
+                </div>
+                {/* Default reading mode */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Default reading mode</div>
+                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Mushaf page or Study verses</div>
+                  </div>
+                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",fontStyle:"italic"}}>coming soon</div>
+                </div>
+                {/* Translation source */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Translation source</div>
+                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Sahih · Muhsin Khan · Pickthall · Yusuf Ali</div>
+                  </div>
+                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",fontStyle:"italic"}}>coming soon</div>
+                </div>
+                {/* Show translation inline */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Show translation inline</div>
+                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Below each ayah in Study mode</div>
+                  </div>
+                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",fontStyle:"italic"}}>coming soon</div>
+                </div>
+                {/* Default tafsir source */}
+                <div style={{padding:"12px 6px"}}>
+                  <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26",marginBottom:2}}>Default tafsir source</div>
+                  <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>What opens first when you tap Tafsir</div>
+                  <div style={{display:"flex",gap:6}}>
+                    {TAFSIR_SOURCES.map(src=>(
+                      <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,padding:"8px 6px",borderRadius:10,fontSize:11,fontWeight:600,textAlign:"center",background:tafsirTab===src.id?"rgba(217,177,95,0.12)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${tafsirTab===src.id?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.06)"}`,color:tafsirTab===src.id?"#F6E27A":dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{src.name}</div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </>

@@ -1847,6 +1847,7 @@ export default function RihlatAlHifz() {
         <QuranTab
           haramainMeta={haramainMeta}
           dark={dark}
+          setDark={setDark}
           setActiveTab={setActiveTab}
           setRihlahTab={setRihlahTab}
           SURAH_PAGES={SURAH_PAGES}
