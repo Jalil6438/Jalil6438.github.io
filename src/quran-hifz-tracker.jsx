@@ -818,8 +818,11 @@ export default function RihlatAlHifz() {
         // the user works back-to-front by surah or page-by-page within
         // a surah. Today's page is excluded — its verses are filtered
         // by the todayKey check below for the boundary-page case.
+        // Collect up to 6 pages going backward in hifz order. Buffer of 1
+        // so that if a page is fully covered by today's surah (filtered
+        // out below), Dhuhr still shows 5 effective pages.
         pagesCollectedSet=new Set();
-        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
+        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<6;i--){
           const p=allJuzVerses[i].page_number;
           if(p) pagesCollectedSet.add(p);
         }
