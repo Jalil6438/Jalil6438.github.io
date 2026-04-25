@@ -171,11 +171,17 @@ export default function QuranTab(props) {
     return () => { cancelled = true; };
   }, [mushafPage]);
 
-  // Header surah = the first surah actually visible on the current page, not
-  // necessarily the one the user picked (e.g. picking An-Nas lands on page 604
-  // which begins with Al-Ikhlas — the header should follow what's on top).
+  // Header surah priority:
+  //   1. If a surah header (ornament) is on this page, that's the surah the
+  //      page "introduces" — matches the surah picker which jumps to the page
+  //      where a surah's header lives.
+  //   2. Otherwise, fall back to the first verse actually visible on the page.
+  //   3. Last resort: the user's last picked surah.
+  const surahHeaderOnPage = (mushafLayoutData?.[mushafPage]||[]).find(e=>e.type==="surah_name")?.sn;
   const firstVerseOnPage = (mushafVerses||[])[0]?.verse_key;
-  const curSurahNum = firstVerseOnPage ? parseInt(firstVerseOnPage.split(":")[0],10) : mushafSurahNum;
+  const curSurahNum = surahHeaderOnPage
+    ? surahHeaderOnPage
+    : (firstVerseOnPage ? parseInt(firstVerseOnPage.split(":")[0],10) : mushafSurahNum);
   const curSurahPage = SURAH_PAGES[curSurahNum] || 1;
   const [showPickers, setShowPickers] = useState(false);
   const [showQuranSettings, setShowQuranSettings] = useState(false);
@@ -543,14 +549,23 @@ export default function QuranTab(props) {
                               </div>
                             );
                           }
-                          const lineNum=layoutEntry.ln||(i+1);
-                          const wordsOnLine=lineWordKeys[lineNum]||[];
+                          // The API's word.line_number is the 1-based ordinal
+                          // of AYAH rows on the page (it skips surah_name and
+                          // basmallah lines), not the physical mushaf line.
+                          // Use ayahIdx+1 to look up, otherwise pages with
+                          // surah headers (e.g. 592 — Al-Ghashiyah opens mid-
+                          // page) drift and tap selects the wrong ayah.
+                          const apiLineNum=ayahIdx+1;
+                          const wordsOnLine=lineWordKeys[apiLineNum]||[];
                           const tokens=lineText.split(" ");
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
                           <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
                             {tokens.map((w,wi)=>{
-                              const vk=wordsOnLine[wi];
+                              // Token count can drift slightly from API word count when a line
+                              // includes a rub-el-hizb or other non-verse glyph. Fall back to the
+                              // nearest verse_key (last known) so every token stays tappable.
+                              const vk=wordsOnLine[wi]||wordsOnLine[wordsOnLine.length-1];
                               return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
                             })}
                           </div>
