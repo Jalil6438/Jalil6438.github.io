@@ -224,7 +224,7 @@ export default function QuranTab(props) {
                     return (<>
                       <Row icon="📋" label="Surah" onClick={()=>{setShowQuranSurahModal(true);setShowPickers(false);}}/>
                       <Row icon="🌐" label="Translation" onClick={()=>{setDrawerView("translation");setShowPickers(false);}}/>
-                      <Row icon="📖" label="Tafsir" onClick={()=>{const vk=selectedAyah||mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");setShowPickers(false);}}/>
+                      <Row icon="📖" label="Tafsir" onClick={()=>{const onPage=(mushafVerses||[]).some(v=>v.verse_key===selectedAyah);const vk=onPage?selectedAyah:mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");setShowPickers(false);}}/>
                       <Row icon="🎙️" label="Reciter" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);setShowPickers(false);}}/>
                     </>);
                   })()}
