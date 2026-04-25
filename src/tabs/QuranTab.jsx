@@ -270,7 +270,24 @@ export default function QuranTab(props) {
                     return (<>
                       <Row icon="📋" label="Surah" onClick={()=>{setShowQuranSurahModal(true);setShowPickers(false);}}/>
                       <Row icon="🌐" label="Translation" onClick={()=>{setDrawerView("translation");setShowPickers(false);}}/>
-                      <Row icon="📖" label="Tafsir" onClick={()=>{setDrawerView("tafsir-page");setShowPickers(false);}}/>
+                      <Row icon="📖" label="Tafsir" onClick={()=>{
+                        if(quranMode==="interactive"){
+                          // Study mode: single-ayah tafsir. Full-page would be a wall
+                          // of text (esp. Ibn Kathir). Use selectedAyah if it's on this
+                          // page, otherwise the first ayah of the page.
+                          const surahsOnPage=pageContentMap?.[mushafPage]||[];
+                          const firstVk=surahsOnPage[0]?`${surahsOnPage[0].sNum}:${surahsOnPage[0].minA}`:null;
+                          const onPage=selectedAyah&&surahsOnPage.some(s=>{const [sn,a]=selectedAyah.split(":").map(Number);return sn===s.sNum&&a>=s.minA&&a<=s.maxA;});
+                          const vk=onPage?selectedAyah:firstVk;
+                          if(!vk){setShowPickers(false);return;}
+                          setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");
+                        }else{
+                          // Mushaf mode: image is read-only, so full-page is the only
+                          // sensible default — there's no way to tap a specific ayah.
+                          setDrawerView("tafsir-page");
+                        }
+                        setShowPickers(false);
+                      }}/>
                       <Row icon="🎙️" label="Reciter" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);setShowPickers(false);}}/>
                     </>);
                   })()}
