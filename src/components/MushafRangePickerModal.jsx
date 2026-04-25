@@ -37,18 +37,21 @@ export default function MushafRangePickerModal({
     <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:20}}>
       {mushafVerses.map((v,i)=>{
         const vKey=v.verse_key;
+        const [s,a]=vKey.split(":");
+        const surahName=SURAH_EN[Number(s)]||`Surah ${s}`;
         const isPicked = (pickerMode === "from" && i === startIdx) || (pickerMode === "to" && i === endIdx);
         return(
           <div key={vKey} className="sbtn"
             onClick={()=>onPick(i)}
-            style={{padding:"10px 14px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,
+            style={{padding:"10px 14px",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,
               background:isPicked?"rgba(217,177,95,0.14)":"rgba(255,255,255,0.03)",
               border:`1px solid ${isPicked?"rgba(232,200,120,0.70)":"rgba(217,177,95,0.08)"}`,
             }}>
-            <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-              <div style={{fontSize:10,fontFamily:"'IBM Plex Mono',monospace",color:"rgba(217,177,95,0.50)",minWidth:42}}>{vKey}</div>
+            <div style={{display:"flex",flexDirection:"column",gap:2,flexShrink:0,minWidth:90}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:isPicked?"#F6E27A":"rgba(243,231,200,0.85)"}}>{surahName}</div>
+              <div style={{fontSize:9,color:"rgba(217,177,95,0.55)",letterSpacing:".08em",fontFamily:"'IBM Plex Mono',monospace"}}>Ayah {a}</div>
             </div>
-            <div style={{flex:1,minWidth:0,fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.7,color:isPicked?"#F5E6B3":"rgba(243,231,200,0.65)",direction:"rtl",textAlign:"right"}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
+            <div style={{flex:1,minWidth:0,fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:17,lineHeight:1.5,color:isPicked?"#F5E6B3":"rgba(243,231,200,0.65)",direction:"rtl",textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
           </div>
         );
       })}
