@@ -257,12 +257,12 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     const recitationId=reciterObj?.recitationId;
     // Routing:
     //   1. quran.com segments → continuous + precise (Sudais, Mishari, etc.)
-    //   2. quranicaudio full file → continuous + estimated (Budair, Muaiqly, etc.)
-    //   3. chopped per-ayah clips → fallback (sequential, has natural gaps)
-    if(!recitationId){
-      if(reciterObj?.quranicaudio){ return playMushafRangeContinuous(verses, reciterObj); }
-      return playMushafRangeChopped(verses);
-    }
+    //   2. chopped per-ayah clips → fallback for everyone else
+    // (We had a quranicaudio full-file path that estimated From/To from
+    //  ayah character distribution — but the reciter's pace doesn't track
+    //  char count closely enough, so start/end/highlight all drifted.
+    //  Sequential chopped is honest and reliable for those reciters.)
+    if(!recitationId){ return playMushafRangeChopped(verses); }
 
     stopMushafAudio();
     setMushafAudioPlaying(true);
