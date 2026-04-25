@@ -65,15 +65,24 @@ export default function QuranTab(props) {
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
-    const elId = `qcf-font-v2-${pageN}`;
+    // V2 (quran.com CDN) or V4-tajweed (self-hosted in /fonts/v4/) based on
+    // localStorage.rihlat-mushaf-edition. Switching the font edition forces
+    // a page reload anyway (Settings toggle) so the cache rebuilds cleanly.
+    const isV4 = (() => { try { return localStorage.getItem("rihlat-mushaf-edition") === "v4"; } catch { return false; } })();
+    const elId = `qcf-font-${isV4 ? "v4" : "v2"}-${pageN}`;
     if (!document.getElementById(elId)) {
-      // Clean up any stale version from a previous load (e.g. v4 leftovers
-      // under the legacy ID `qcf-font-${pageN}`).
-      const legacy = document.getElementById(`qcf-font-${pageN}`);
-      if (legacy) legacy.remove();
+      // Remove any prior version's stylesheet for this page so a single
+      // page never has competing @font-face definitions registered.
+      ["v2","v4","" /* legacy */].forEach(suf => {
+        const stale = document.getElementById(`qcf-font-${suf?suf+"-":""}${pageN}`);
+        if (stale && stale.id !== elId) stale.remove();
+      });
       const style = document.createElement("style");
       style.id = elId;
-      style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
+      const src = isV4
+        ? `url('/fonts/v4/p${pageN}.woff2') format('woff2')`
+        : `url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff')`;
+      style.textContent = `@font-face{font-family:'p${pageN}';src:${src};font-display:block;}`;
       document.head.appendChild(style);
     }
     if (loadedFonts.has(pageN)) return;
