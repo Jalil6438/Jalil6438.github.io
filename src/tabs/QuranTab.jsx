@@ -262,7 +262,17 @@ export default function QuranTab(props) {
                     return (<>
                       <Row icon="📋" label="Surah" onClick={()=>{setShowQuranSurahModal(true);setShowPickers(false);}}/>
                       <Row icon="🌐" label="Translation" onClick={()=>{setDrawerView("translation");setShowPickers(false);}}/>
-                      <Row icon="📖" label="Tafsir" onClick={()=>{const onPage=(mushafVerses||[]).some(v=>v.verse_key===selectedAyah);const vk=onPage?selectedAyah:mushafVerses?.[0]?.verse_key;if(!vk)return;setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");setShowPickers(false);}}/>
+                      <Row icon="📖" label="Tafsir" onClick={()=>{
+                        // Use our pageContentMap (KFGQPC v2 / Madinah 15-line, matching the
+                        // image-based mushaf rendering) — quran.com's by_page boundaries
+                        // disagree, so mushafVerses[0] picks the wrong first ayah.
+                        const surahsOnPage=pageContentMap?.[mushafPage]||[];
+                        const firstVk=surahsOnPage[0]?`${surahsOnPage[0].sNum}:${surahsOnPage[0].minA}`:null;
+                        const onPage=selectedAyah&&surahsOnPage.some(s=>{const [sn,a]=selectedAyah.split(":").map(Number);return sn===s.sNum&&a>=s.minA&&a<=s.maxA;});
+                        const vk=onPage?selectedAyah:firstVk;
+                        if(!vk)return;
+                        setSelectedAyah(vk);setTafsirAyah(vk);fetchTafsir(vk);setDrawerView("tafsir");setShowPickers(false);
+                      }}/>
                       <Row icon="🎙️" label="Reciter" onClick={()=>{setReciterMode("quran");setShowReciterModal(true);setShowPickers(false);}}/>
                     </>);
                   })()}
