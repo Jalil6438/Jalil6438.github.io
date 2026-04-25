@@ -44,7 +44,7 @@ export default function MushafRangePickerModal({
                     {isStart?"START":isEnd?"END":""}
                   </div>
                 </div>
-                <div style={{flex:1,minWidth:0,fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.4,color:inRange||isStart||isEnd?"#F5E6B3":"rgba(243,231,200,0.65)",direction:"rtl",textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
+                <div style={{flex:1,minWidth:0,fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,lineHeight:1.7,color:inRange||isStart||isEnd?"#F5E6B3":"rgba(243,231,200,0.65)",direction:"rtl",textAlign:"right"}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
               </div>
             );
           })}
