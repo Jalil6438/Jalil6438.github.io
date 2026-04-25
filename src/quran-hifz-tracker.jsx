@@ -100,7 +100,7 @@ export default function RihlatAlHifz() {
   const [mushafSwipeAnim,setMushafSwipeAnim]=useState("idle"); // "idle"|"exit-left"|"exit-right"
   const [croppedPages,setCroppedPages]=useState({});
   const [quranMode,setQuranMode]=useState(()=>{
-    try{return localStorage.getItem("rihlat-default-reading-mode")||"interactive";}catch{return "interactive";}
+    try{return localStorage.getItem("rihlat-default-reading-mode")||"mushaf";}catch{return "mushaf";}
   }); // "mushaf" | "interactive"
   useEffect(()=>{try{localStorage.setItem("rihlat-default-reading-mode",quranMode);}catch{}},[quranMode]);
   const [selectedAyah,setSelectedAyah]=useState(null);
