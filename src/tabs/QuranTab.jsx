@@ -63,13 +63,9 @@ export default function QuranTab(props) {
   // page's render from the fallback (text_uthmani + UthmanicHafs) to the
   // authentic (code_v2 + p{N}) once the per-page font has downloaded.
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
-  // Tajweed font preference — drives which font URL the per-page loader uses.
-  const [tajweedFont, setTajweedFont] = useState(() => {
-    try { return localStorage.getItem("rihlat-tajweed") === "on"; } catch { return false; }
-  });
-  useEffect(() => {
-    try { if (tajweedFont) localStorage.setItem("rihlat-tajweed","on"); else localStorage.removeItem("rihlat-tajweed"); } catch {}
-  }, [tajweedFont]);
+  // Tajweed coloring is just the third Reading mode — derived, not its own
+  // state. quranMode persistence happens in the parent.
+  const tajweedFont = quranMode === "tajweed";
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
     // V2 fonts (quran.com CDN) for plain Study mode, V4-tajweed (self-hosted
@@ -428,15 +424,20 @@ export default function QuranTab(props) {
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
                   <div>
                     <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Reading mode</div>
-                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Mushaf page or Study verses</div>
+                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Mushaf · Study · Tajweed colors</div>
                   </div>
-                  {setQuranMode&&(
-                    <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:130,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
-                      <div style={{position:"absolute",top:2,left:quranMode==="mushaf"?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
-                      <div className="sbtn" onClick={()=>setQuranMode("mushaf")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:quranMode==="mushaf"?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Mushaf</div>
-                      <div className="sbtn" onClick={()=>setQuranMode("interactive")} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:quranMode==="interactive"?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Study</div>
-                    </div>
-                  )}
+                  {setQuranMode&&(()=>{
+                    const modes=[{id:"mushaf",label:"Mushaf"},{id:"interactive",label:"Study"},{id:"tajweed",label:"Tajweed"}];
+                    const idx=Math.max(0,modes.findIndex(m=>m.id===quranMode));
+                    return (
+                      <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:210,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
+                        <div style={{position:"absolute",top:2,left:`calc((100% - 4px) * ${idx} / 3 + 2px)`,width:"calc((100% - 4px) / 3)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
+                        {modes.map(m=>(
+                          <div key={m.id} className="sbtn" onClick={()=>setQuranMode(m.id)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:quranMode===m.id?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>{m.label}</div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
                 {/* Translation source */}
                 <div style={{padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
@@ -471,18 +472,6 @@ export default function QuranTab(props) {
                         <div key={src.id} className="sbtn" onClick={()=>setTafsirTab(src.id)} style={{flex:1,padding:"8px 6px",borderRadius:10,fontSize:11,fontWeight:700,textAlign:"center",background:sel?"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${sel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.10)":"rgba(0,0,0,0.06)"}`,boxShadow:sel?"0 0 10px rgba(212,175,55,0.40)":"none",color:sel?"#0A0E1A":dark?"rgba(243,231,200,0.70)":"#2D2A26"}}>{src.name}</div>
                       );
                     })}
-                  </div>
-                </div>
-                {/* Study mode font: V2 (plain) or V4 (tajweed colors). */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderTop:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.12)",marginTop:6}}>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Study font</div>
-                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Plain text or tajweed colors</div>
-                  </div>
-                  <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:140,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
-                    <div style={{position:"absolute",top:2,left:!tajweedFont?2:"calc(50% + 1px)",width:"calc(50% - 3px)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
-                    <div className="sbtn" onClick={()=>setTajweedFont(false)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:!tajweedFont?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Study</div>
-                    <div className="sbtn" onClick={()=>setTajweedFont(true)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:tajweedFont?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>Tajweed</div>
                   </div>
                 </div>
               </div>
