@@ -171,7 +171,11 @@ export default function QuranTab(props) {
     return () => { cancelled = true; };
   }, [mushafPage]);
 
-  const curSurahNum = mushafSurahNum;
+  // Header surah = the first surah actually visible on the current page, not
+  // necessarily the one the user picked (e.g. picking An-Nas lands on page 604
+  // which begins with Al-Ikhlas — the header should follow what's on top).
+  const firstVerseOnPage = (mushafVerses||[])[0]?.verse_key;
+  const curSurahNum = firstVerseOnPage ? parseInt(firstVerseOnPage.split(":")[0],10) : mushafSurahNum;
   const curSurahPage = SURAH_PAGES[curSurahNum] || 1;
   const [showPickers, setShowPickers] = useState(false);
   const [showQuranSettings, setShowQuranSettings] = useState(false);
