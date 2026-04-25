@@ -806,7 +806,7 @@ export default function MyHifzTab(props) {
                             background:checked?"rgba(217,177,95,0.10)":"rgba(255,255,255,0.03)",
                             border:`1px solid ${checked?"rgba(232,200,120,0.55)":"rgba(255,255,255,0.05)"}`,
                             boxShadow:checked?"0 0 22px rgba(217,177,95,0.20),0 0 6px rgba(217,177,95,0.12),inset 0 0 10px rgba(217,177,95,0.05)":"none"}}>
-                          <div style={{fontSize:13,color:checked?"#F6E27A":"rgba(243,231,200,0.65)",fontWeight:checked?600:400}}>{s.name}</div>
+                          <div style={{fontSize:13,color:checked?"#F6E27A":"rgba(243,231,200,0.65)",fontWeight:checked?600:400}}>{SURAH_EN[s.s]||s.name}</div>
                         </div>
                       );
                     })}
