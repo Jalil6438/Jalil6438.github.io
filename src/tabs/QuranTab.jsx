@@ -72,6 +72,14 @@ export default function QuranTab(props) {
     // Wipe loaded font records + stale stylesheets so the next render
     // re-resolves to the new edition's URLs without a page reload.
     document.querySelectorAll('style[id^="qcf-font-v"]').forEach(el => el.remove());
+    // Also evict any FontFace already registered in document.fonts under
+    // the per-page family — otherwise the browser keeps the old edition's
+    // cached glyphs even after the @font-face stylesheet is gone.
+    if (document.fonts) {
+      const toDelete = [];
+      document.fonts.forEach(f => { if (/^p\d+$/.test(f.family)) toDelete.push(f); });
+      toDelete.forEach(f => { try { document.fonts.delete(f); } catch {} });
+    }
     setLoadedFonts(new Set());
   }, [tajweedFont]);
   const loadQcfFont = (pageN) => {
@@ -103,9 +111,10 @@ export default function QuranTab(props) {
   };
   useEffect(() => {
     // Preload current + neighbors in a wider window so casual page flips
-    // (swipes, 'next/prev' taps) don't wait for network.
+    // (swipes, 'next/prev' taps) don't wait for network. Also re-runs
+    // when the user flips the Study/Tajweed toggle so fonts re-fetch.
     for (let i = -4; i <= 4; i++) loadQcfFont(mushafPage + i);
-  }, [mushafPage]);
+  }, [mushafPage, tajweedFont]);
 
   // Load the authoritative mushaf page layout — pre-computed line strings
   // and alignment per page from public/mushaf-pages.json +
