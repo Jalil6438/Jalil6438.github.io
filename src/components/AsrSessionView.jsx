@@ -410,7 +410,11 @@ function AsrSessionView({
               the page; only the last page reveals Complete Asr Session so
               the user reads the whole batch before finishing. */}
           {(()=>{
-            const onLast=asrSafePage>=asrPages-1;
+            // Treat any page that has the final batch index as "last" — defends
+            // against off-by-one from rounding (e.g. batch.length not divisible
+            // by ASR_PAGE_SIZE). asrPageEnd is min(start+5, batch.length), so
+            // when it equals batch.length we've shown the last ayah.
+            const onLast=(asrSafePage>=asrPages-1) || (asrPageEnd>=asrBatch.length && asrBatch.length>0);
             return (
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 20px"}}>
             {onLast?(
