@@ -382,7 +382,7 @@ export default function QuranTab(props) {
                       </div>
                     )}
                   </div>
-                  <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>Mushaf mode always renders full-page tafsir</div>
+                  <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginBottom:10}}>Mushaf mode only supports full-page tafsir</div>
                   <div style={{display:"flex",gap:6}}>
                     {TAFSIR_SOURCES.map(src=>{
                       const sel=tafsirTab===src.id;
