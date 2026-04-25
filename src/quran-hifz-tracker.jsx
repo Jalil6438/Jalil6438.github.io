@@ -811,23 +811,17 @@ export default function RihlatAlHifz() {
         const todaySurah=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPage=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
         const todayKey=todaySurah&&todayPage?`${todaySurah}-${todayPage}`:null;
-        // Dhuhr = 5 consecutive mushaf pages starting at YESTERDAY's page
-        // (today's page - 1). On the today's-page boundary, today's surah
-        // portion is filtered out via the todayKey check in Phase 2.
-        // For a user on Muddaththir day 3 (page 577), this yields pages
-        // 576, 577 (Qiyāmah portion only), 578, 579, 580.
-        const memorizedPages=new Set();
-        allJuzVerses.forEach((v,i)=>{
-          if(i>=allIdx) return;
-          if(v.page_number) memorizedPages.add(v.page_number);
-        });
+        // Dhuhr = 5 most-recently-memorized pages (in hifz order), then
+        // displayed in mushaf order so the user reads naturally front→back.
+        // Walking backward in allJuzVerses (which is in hifz-descending
+        // order) finds yesterday → day-before → … regardless of whether
+        // the user works back-to-front by surah or page-by-page within
+        // a surah. Today's page is excluded — its verses are filtered
+        // by the todayKey check below for the boundary-page case.
         pagesCollectedSet=new Set();
-        const todayPageForWalk=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
-        if(todayPageForWalk>1){
-          const yesterdayPage=todayPageForWalk-1;
-          for(let p=yesterdayPage;p<=604&&pagesCollectedSet.size<5;p++){
-            if(memorizedPages.has(p)) pagesCollectedSet.add(p);
-          }
+        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
+          const p=allJuzVerses[i].page_number;
+          if(p) pagesCollectedSet.add(p);
         }
         const dayKeysCollected=new Set();
         // Include memorized ayahs on the collected pages, but filter out the
@@ -1315,26 +1309,18 @@ export default function RihlatAlHifz() {
       allVerses.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
 
       // Compute the Dhuhr page window so Asr can exclude it — mirrors the
-      // Dhuhr forward-walk logic (5 memorized pages immediately after today's
-      // Fajr page in mushaf order). So today's Asr never repeats today's Dhuhr.
+      // Dhuhr review = the 5 most recently memorized pages in HIFZ ORDER
+      // (not mushaf-page order). Walking backward in allJuzVerses finds
+      // yesterday → day-before → … regardless of whether the user
+      // memorizes back-to-front (Sheikh Al-Qasim) or front-to-back.
       const dhuhrPages = new Set();
       if (allJuzVerses.length > 0) {
         const currentKey = sessionVerses[sessionIdx]?.verse_key;
         let allIdx = currentKey ? allJuzVerses.findIndex(v => v.verse_key === currentKey) : allJuzVerses.length;
         if (allIdx < 0) allIdx = allJuzVerses.length;
-        const memorizedPages = new Set();
-        allJuzVerses.forEach((v, i) => {
-          if (i >= allIdx) return;
-          if (v.page_number) memorizedPages.add(v.page_number);
-        });
-        const todayPage = fajrBatch[0]?.page_number || sessionVerses[sessionIdx]?.page_number || 0;
-        if (todayPage > 1) {
-          // Mirror Dhuhr walk: start at yesterday's page (todayPage-1), walk
-          // forward 5 consecutive memorized pages.
-          const yesterdayPage = todayPage - 1;
-          for (let p = yesterdayPage; p <= 604 && dhuhrPages.size < 5; p++) {
-            if (memorizedPages.has(p)) dhuhrPages.add(p);
-          }
+        for (let i = allIdx - 1; i >= 0 && dhuhrPages.size < 5; i--) {
+          const p = allJuzVerses[i].page_number;
+          if (p) dhuhrPages.add(p);
         }
       }
 
