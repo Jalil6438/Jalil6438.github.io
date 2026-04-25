@@ -1392,12 +1392,43 @@ export default function RihlatAlHifz() {
           chunks.push(juzVerses.slice(bestBoundary));
         }
       }
-      // Append any verses from filtered whose juz isn't a complete memorized
-      // juz (i.e., individual-surah marks outside a fully-memorized juz) as a
-      // single trailing chunk.
+      // Asr is meant to be half-juz blocks. For partial juz (some surahs
+      // memorized but not all), only push a chunk if a full half-juz is
+      // covered. Compute the half-ayah midpoint over JUZ_SURAHS[j], split
+      // the juz into halves, and require every surah in a half to be
+      // fully memorized before adding it. This fixes the case where the
+      // user finishes one surah of an unmemorized juz and Asr starts
+      // showing them un-memorized neighbors as part of a "trailing chunk".
       const coveredJuz = new Set(eligibleJuzSorted);
-      const extraVerses = filtered.filter(v => !coveredJuz.has(v.juz_number));
-      if (extraVerses.length > 0) chunks.push(extraVerses);
+      const partialJuzIds = new Set();
+      filtered.forEach(v => { if (!coveredJuz.has(v.juz_number)) partialJuzIds.add(v.juz_number); });
+      for (const j of [...partialJuzIds].sort((a, b) => a - b)) {
+        const juzSurahList = JUZ_SURAHS[j] || [];
+        if (!juzSurahList.length) continue;
+        const totalAyahs = juzSurahList.reduce((sum, s) => sum + s.a, 0);
+        const mid = totalAyahs / 2;
+        let cum = 0, bestIdx = 0, bestDiff = Infinity;
+        juzSurahList.forEach((s, i) => {
+          cum += s.a;
+          const diff = Math.abs(cum - mid);
+          if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+        });
+        const half1Surahs = juzSurahList.slice(0, bestIdx + 1).map(s => s.s);
+        const half2Surahs = juzSurahList.slice(bestIdx + 1).map(s => s.s);
+        const halfComplete = (surahs) => surahs.length > 0 && surahs.every(s => freshIsSurahComplete(s) || freshJS[`s${s}`] === "complete");
+        const versesIn = (surahs) => filtered.filter(v => {
+          const sn = v.surah_number || parseInt(v.verse_key.split(":")[0], 10);
+          return v.juz_number === j && surahs.includes(sn);
+        });
+        if (halfComplete(half1Surahs)) {
+          const v = versesIn(half1Surahs);
+          if (v.length) chunks.push(v);
+        }
+        if (halfComplete(half2Surahs)) {
+          const v = versesIn(half2Surahs);
+          if (v.length) chunks.push(v);
+        }
+      }
 
       const numChunks = chunks.length || 1;
       const chunkIdx = ((asrCycle % numChunks) + numChunks) % numChunks;
