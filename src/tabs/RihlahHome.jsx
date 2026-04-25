@@ -277,8 +277,8 @@ export default function RihlahHome({
       {/* Nav buttons moved to after Overall Progress */}
 
 
-      {/* ── 5. ACTIVE SESSION CHECKLIST — emphasized so the current step stands out ── */}
-      <div style={{background:dark?`linear-gradient(135deg,rgba(30,35,50,0.95) 0%,rgba(20,25,40,0.85) 100%), radial-gradient(circle at 50% 0%,${activeSess.color}22 0%,transparent 60%)`:"#EADFC8",backdropFilter:"blur(20px)",border:`1.5px solid ${activeSess.color}66`,borderRadius:22,boxShadow:dark?`0 12px 40px rgba(0,0,0,0.45),0 0 28px ${activeSess.color}33,inset 0 1px 0 ${activeSess.color}22`:"0 6px 22px rgba(0,0,0,0.10),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"14px",marginBottom:10,transform:"scale(1.01)"}}>
+      {/* ── 5. ACTIVE SESSION CHECKLIST ── */}
+      <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <div style={{width:36,height:36,borderRadius:12,background:`linear-gradient(135deg,${activeSess.color}88,${activeSess.color}44)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 4px 12px ${activeSess.color}40`}}>
