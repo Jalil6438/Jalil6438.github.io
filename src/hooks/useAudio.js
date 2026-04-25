@@ -198,7 +198,6 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
         setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return;
       }
       const seg=segments[idx];
-      const isLast=idx===segments.length-1;
       const audio=new Audio(seg.audio_url);
       audio.preload="auto";
       audioRef.current=audio;
@@ -225,12 +224,11 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
           setPlayingKey(vt.verse_key);
           setAudioLoading(null);
         }
-        // Only enforce a mid-stream cutoff when there's a next surah to
-        // hand off to. For the last segment we let the audio finish
-        // naturally — quran.com's last-verse timestamp_to is sometimes a
-        // tick after the file's actual duration, so a hard stop here
-        // would clip the final word.
-        if(!isLast && ms>=seg.endMs){ advance(); }
+        // Always honor the user's range — cut at the last picked ayah's
+        // timestamp_to. audio.onended is the safety net for ranges that
+        // run to the natural file end (last verse of a surah where
+        // timestamp_to may slightly exceed the file's duration).
+        if(ms>=seg.endMs){ advance(); }
       };
       audio.onended=()=>advance();
       audio.onerror=()=>advance();
