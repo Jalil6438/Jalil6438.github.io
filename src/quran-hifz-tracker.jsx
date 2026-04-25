@@ -1946,7 +1946,7 @@ export default function RihlatAlHifz() {
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:14}}>Your Daily Plan</div>
             <div style={{display:"flex",flexDirection:"column",gap:0}}>
               {[
-                {icon:"\u{1F305}",name:"Fajr",label:"Begin your memorization",desc:`Memorize ${dailyNew} new ayahs \u2014 the foundation is repetition`,glow:"rgba(240,192,64,0.35)"},
+                {icon:"\u{1F305}",name:"Fajr",label:"Begin your memorization",desc:userPlanMode==="custom"?`Memorize ${dailyNew} new ayahs \u2014 the foundation is repetition`:"Memorize 1 mushaf page \u2014 the foundation is repetition",glow:"rgba(240,192,64,0.35)"},
                 {icon:"\u2600\uFE0F",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier",glow:"rgba(246,166,35,0.30)"},
                 {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Revision scales as you progress",glow:"rgba(78,205,196,0.25)"},
                 {icon:"\u{1F306}",name:"Maghrib",label:"Sit with the Qur'an and listen",desc:"Listen and follow along (15\u201320 min)",glow:"rgba(183,148,244,0.25)"},

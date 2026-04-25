@@ -236,20 +236,41 @@ export default function RihlahHome({
         <div style={{height:5,background:"rgba(255,255,255,0.08)",borderRadius:999,overflow:"hidden",marginBottom:12}}>
           <div style={{height:"100%",width:`${Math.round((checkedCount/SESSIONS.length)*100)}%`,background:"linear-gradient(90deg,#D4AF37,#E6B84A)",borderRadius:999,boxShadow:"0 0 10px rgba(212,175,55,0.3)",transition:"width .5s"}}/>
         </div>
-        <div style={{background:"rgba(255,255,255,0.02)",padding:"12px",borderRadius:16,boxShadow:"inset 0 0 10px rgba(255,255,255,0.02)"}}>
-          {SESSIONS.map((s,i)=>{
-            const done=!!dailyChecks[s.id];
-            const isActive=s.id===activeSess?.id&&!done;
-            const isInactive=!done&&!isActive;
-            return (
-              <div key={s.id} className="sbtn" onClick={()=>toggleCheck(s.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:12,marginBottom:i<SESSIONS.length-1?(isActive?14:10):0,background:isActive?"linear-gradient(180deg,rgba(240,192,64,0.08),rgba(240,192,64,0.02))":done?"rgba(34,197,94,0.06)":"transparent",border:isActive?"1.5px solid rgba(240,192,64,0.6)":done?"1px solid rgba(34,197,94,0.15)":"1px solid transparent",boxShadow:isActive?"0 0 35px rgba(240,192,64,0.18),0 0 30px rgba(240,192,64,0.25),inset 0 0 12px rgba(240,192,64,0.08)":"none",opacity:isInactive?0.2:1,filter:isInactive?"grayscale(0.7)":"none",transition:"all .2s"}}>
-                <div style={{width:18,height:18,borderRadius:"50%",background:done?s.color:"rgba(255,255,255,0.08)",border:done?`2px solid ${s.color}`:"1px solid rgba(255,255,255,0.1)",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:done?`0 0 8px ${s.color}60`:"none",filter:isActive?"drop-shadow(0 0 6px rgba(240,192,64,0.4))":"none",transition:"all .2s"}}>
-                  {done&&<span style={{fontSize:8,color:"#fff",fontWeight:700}}>✓</span>}
+        <div style={{background:"rgba(255,255,255,0.02)",padding:"14px 12px",borderRadius:16,boxShadow:"inset 0 0 10px rgba(255,255,255,0.02)"}}>
+          {(()=>{
+            const planRows=[
+              {id:"fajr",label:"Begin your memorization",desc:isShaykhPlan?"Memorize 1 mushaf page — the foundation is repetition":`Memorize ${dailyNew} new ayahs — the foundation is repetition`,glow:"rgba(240,192,64,0.35)"},
+              {id:"dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier",glow:"rgba(246,166,35,0.30)"},
+              {id:"asr",label:"Strengthen your memorization",desc:"Revision scales as you progress",glow:"rgba(78,205,196,0.25)"},
+              {id:"maghrib",label:"Sit with the Qur'an and listen",desc:"Listen and follow along (15–20 min)",glow:"rgba(183,148,244,0.25)"},
+              {id:"isha",label:"Complete today's journey",desc:"Recite everything one final time",glow:"rgba(104,211,145,0.25)"},
+            ];
+            return planRows.map((row,i,arr)=>{
+              const sess=SESSIONS.find(s=>s.id===row.id);
+              const done=!!dailyChecks[row.id];
+              const isActive=row.id===activeSess?.id&&!done;
+              return (
+                <div key={row.id}>
+                  <div className="sbtn" onClick={()=>toggleCheck(row.id)} style={{padding:"10px 4px",cursor:"pointer"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:30,height:30,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0,background:`radial-gradient(circle,${row.glow} 0%,transparent 70%)`,filter:`drop-shadow(0 0 6px ${row.glow})`,position:"relative"}}>
+                        {sess?.icon}
+                        {done&&<div style={{position:"absolute",bottom:-2,right:-2,width:14,height:14,borderRadius:"50%",background:sess?.color||"#4ADE80",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:800,boxShadow:`0 0 6px ${sess?.color||"#4ADE80"}80`}}>✓</div>}
+                      </div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:13,fontWeight:600}}>
+                          <span style={{color:isActive?"#F0C040":done?(sess?.color||"#4ADE80"):"#E6B84A",textShadow:isActive?"0 0 10px rgba(240,192,64,0.30)":"0 0 10px rgba(230,184,74,0.25)"}}>{sess?.time||row.id}</span>{" "}
+                          <span style={{fontWeight:400,color:"rgba(243,231,200,0.55)"}}>— {row.label}</span>
+                        </div>
+                        <div style={{fontSize:11,color:"rgba(243,231,200,0.30)",marginTop:2}}>{row.desc}</div>
+                      </div>
+                    </div>
+                  </div>
+                  {i<arr.length-1&&<div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>}
                 </div>
-                <span style={{fontSize:12,color:isActive?"#F0C040":done?s.color:"rgba(255,255,255,0.6)",fontWeight:isActive||done?600:400,flex:1,transition:"color .2s"}}>{s.icon} {s.time} — {s.title}</span>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
       </div>
 
