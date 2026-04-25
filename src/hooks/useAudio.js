@@ -208,10 +208,20 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
         setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); return;
       }
       const seg=segments[idx];
+      const isLast=idx===segments.length-1;
       const audio=new Audio(seg.audio_url);
       audio.preload="auto";
       audioRef.current=audio;
       let lastVk=null;
+      let advanced=false;
+      const advance=()=>{
+        if(advanced) return;
+        advanced=true;
+        audio.onended=null; audio.ontimeupdate=null;
+        try{ audio.pause(); }catch{}
+        if(audioRef.current===audio) audioRef.current=null;
+        playSegment(idx+1);
+      };
 
       audio.onloadedmetadata=()=>{
         try{ audio.currentTime=seg.startMs/1000; }catch{}
@@ -225,14 +235,15 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
           setPlayingKey(vt.verse_key);
           setAudioLoading(null);
         }
-        if(ms>=seg.endMs-30){
-          audio.onended=null; audio.ontimeupdate=null;
-          try{ audio.pause(); }catch{}
-          if(audioRef.current===audio) audioRef.current=null;
-          playSegment(idx+1);
-        }
+        // Only enforce a mid-stream cutoff when there's a next surah to
+        // hand off to. For the last segment we let the audio finish
+        // naturally — quran.com's last-verse timestamp_to is sometimes a
+        // tick after the file's actual duration, so a hard stop here
+        // would clip the final word.
+        if(!isLast && ms>=seg.endMs){ advance(); }
       };
-      audio.onerror=()=>{ playSegment(idx+1); };
+      audio.onended=()=>advance();
+      audio.onerror=()=>advance();
     }
 
     playSegment(0);
