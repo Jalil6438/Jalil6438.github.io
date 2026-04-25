@@ -751,7 +751,10 @@ export default function QuranTab(props) {
                 const selVerse = (mushafVerses||[]).find(v=>v.verse_key===selectedAyah);
                 const transText = selVerse?._translation || translations[selectedAyah] || "";
                 if(!transText && selVerse) fetchTranslations([selVerse]);
-                const isPlaying = playingKey === selectedAyah;
+                // Single-ayah Play button should only show Stop when the
+                // user explicitly started single-ayah playback — not when the
+                // Play Range happens to be passing through this ayah.
+                const isPlaying = !mushafAudioPlaying && playingKey === selectedAyah;
                 const playAyahAudio = (vk) => {
                   if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
                   const [s,a]=vk.split(":");
