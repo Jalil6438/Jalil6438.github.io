@@ -308,14 +308,6 @@ export default function QuranTab(props) {
                     })}
                   </div>
                 </div>
-                {/* Show translation inline */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Show translation inline</div>
-                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Below each ayah in Study mode</div>
-                  </div>
-                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",fontStyle:"italic"}}>coming soon</div>
-                </div>
                 {/* Default tafsir source */}
                 <div style={{padding:"12px 6px"}}>
                   <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26",marginBottom:2}}>Default tafsir source</div>
