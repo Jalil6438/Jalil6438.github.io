@@ -334,14 +334,6 @@ export default function QuranTab(props) {
                   </div>
                   {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
                 </div>
-                <div style={{display:"flex",borderBottom:dark?"1px solid rgba(212,175,55,0.10)":"1px solid rgba(0,0,0,0.06)",padding:"0 20px",flexShrink:0,gap:4}}>
-                  {TAFSIR_SOURCES.map(src=>(
-                    <div key={src.id} className="sbtn" onClick={()=>{setTafsirTab(src.id);if(!tafsirData[`${src.id}-${selectedAyah}`])fetchTafsir(selectedAyah);}}
-                      style={{flex:1,textAlign:"center",padding:"10px 4px 8px",fontSize:11,fontWeight:tafsirTab===src.id?700:500,letterSpacing:".02em",color:tafsirTab===src.id?(dark?"#E8C76A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#9A9488"),borderBottom:`2.5px solid ${tafsirTab===src.id?(dark?"#E8C76A":"#D4AF37"):"transparent"}`,transition:"all .2s ease"}}>
-                      {src.name}
-                    </div>
-                  ))}
-                </div>
                 <div style={{flex:1,overflowY:"auto",padding:"20px 20px 120px"}}>
                   {(()=>{
                     const rawText=tafsirData[`${tafsirTab}-${selectedAyah}`];
@@ -660,10 +652,10 @@ export default function QuranTab(props) {
                           </div>
                           {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
                         </div>
-                        {/* Tab selector */}
-                        <div style={{display:"flex",borderBottom:dark?"1px solid rgba(212,175,55,0.10)":"1px solid rgba(0,0,0,0.06)",padding:"0 20px",flexShrink:0,gap:4}}>
+                        {/* Tab selector — removed; default is set in Settings */}
+                        <div style={{display:"none"}}>
                           {TAFSIR_SOURCES.map(src=>(
-                            <div key={src.id} className="sbtn" onClick={()=>{setTafsirTab(src.id);if(!tafsirData[`${src.id}-${selectedAyah}`])fetchTafsir(selectedAyah);}}
+                            <div key={src.id} onClick={()=>{setTafsirTab(src.id);if(!tafsirData[`${src.id}-${selectedAyah}`])fetchTafsir(selectedAyah);}}
                               style={{flex:1,textAlign:"center",padding:"10px 4px 8px",fontSize:11,fontWeight:tafsirTab===src.id?700:500,
                               letterSpacing:".02em",
                               color:tafsirTab===src.id?(dark?"#E8C76A":"#D4AF37"):(dark?"rgba(243,231,200,0.30)":"#9A9488"),
