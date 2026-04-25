@@ -174,6 +174,15 @@ export default function QuranTab(props) {
     });
   }, [drawerView, pageVerses, tafsirTab]);
 
+  // While a Play Range is running, follow the playing ayah in the drawer
+  // so the user sees Arabic + translation update in sync with the audio.
+  useEffect(() => {
+    if (!mushafAudioPlaying) return;
+    if (!playingKey) return;
+    if (playingKey === selectedAyah) return;
+    setSelectedAyah(playingKey);
+  }, [playingKey, mushafAudioPlaying]);
+
   // Fetch Fatihah verse 1:1 (the universal bismillah) once. We render
   // every surah-opener bismillah using THESE exact glyphs + the p1 font,
   // so the style is identical to what you see on page 1 of the mushaf.
