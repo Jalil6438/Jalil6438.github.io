@@ -797,6 +797,7 @@ export default function QuranTab(props) {
                         {/* Ayah action buttons */}
                         <div style={{flexShrink:0,display:"flex",justifyContent:"space-around",gap:4,marginBottom:14,padding:"0 4px"}}>
                           {[
+                            {icon:"📖", label:"Tafsir", action:()=>{setTafsirAyah(selectedAyah);fetchTafsir(selectedAyah);setDrawerView("tafsir");}},
                             {icon:"🔖", label:"Bookmark", action:()=>setDrawerView("save-options")},
                             {icon:isPlaying?"⏹":"▶", label:isPlaying?"Stop":"Play",
                               action:()=>{ if(isPlaying){audioRef.current?.pause();audioRef.current=null;setPlayingKey(null);}else{playAyahAudio(selectedAyah);} }},
