@@ -13,10 +13,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   function getEveryayahFolder(id){
     if(!id) return null; // no reciter picked — caller must handle (don't play)
     const r=RECITERS.find(x=>x.id===id);
-    if(r?.everyayah) return r.everyayah;
-    // Extra reciters only in QURAN_RECITERS
-    const extras={"alijaber":"Ali_Jaber_128kbps"};
-    return extras[id]||RECITERS[0].everyayah;
+    return r?.everyayah||null;
   }
 
   function getArchiveUrl(id, surahNum){ const r=RECITERS.find(x=>x.id===id); if(!r?.archive) return null; return `https://archive.org/download/${r.archive}/${String(surahNum).padStart(3,"0")}.mp3`; }
@@ -137,7 +134,10 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       audio.onended=()=>playIdx(idx+1);
       audio.onerror=()=>playIdx(idx+1);
       audio.ontimeupdate=()=>{
-        if(!nextTriggered&&audio.duration>0&&audio.currentTime>=audio.duration-0.25){
+        // Larger 0.6s overlap masks the per-clip leading/trailing silence
+        // on chopped everyayah recordings — used for reciters that don't
+        // have qurancdn verse_timings (e.g. Budair, Muaiqly, Dosari pre-fix).
+        if(!nextTriggered&&audio.duration>0&&audio.currentTime>=audio.duration-0.6){
           nextTriggered=true;
           if(idx+1<queue.length){
             const nextItem=queue[idx+1]; const nextAudio=preloaded[idx+1];
