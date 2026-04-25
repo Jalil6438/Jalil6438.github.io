@@ -1,6 +1,6 @@
 import { SURAH_EN, MADANI_SURAHS } from "../data/constants";
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
 
 export default function QuranTab(props) {
@@ -101,6 +101,15 @@ export default function QuranTab(props) {
   // different page boundaries, so we drive the Translation view from
   // pageContentMap and fetch the exact verses we need.
   const [pageVerses, setPageVerses] = useState([]);
+  // Flat array of verse_keys, one per glyph on the current page, in mushaf
+  // reading order. Built by concatenating each verse's code_v2 (which uses
+  // the same KFGQPC v2 PUA glyphs as our pages.json). Independent of the
+  // API's line_number / page boundaries, so per-word tap mapping is correct
+  // even when the API mushaf disagrees with ours (e.g. p592 shifts surah
+  // headers, p580 doesn't).
+  const [glyphVerseKeys, setGlyphVerseKeys] = useState([]);
+  // Cache per-surah code_v2 lookups so flipping pages within a surah is fast.
+  const codeV2CacheRef = useRef({});
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -165,6 +174,41 @@ export default function QuranTab(props) {
     })();
     return () => { cancelled = true; };
   }, [drawerView, mushafPage, pageContentMap]);
+
+  // Build the per-glyph verse_key array for the CURRENT page using
+  // code_v2 (KFGQPC v2). Uses our own pageContentMap so it always matches
+  // what's rendered, regardless of the API's mushaf-edition differences.
+  useEffect(() => {
+    const surahs = pageContentMap?.[mushafPage];
+    if (!surahs || !surahs.length) return;
+    let cancelled = false;
+    (async () => {
+      const flat = [];
+      for (const s of surahs) {
+        try {
+          let verses = codeV2CacheRef.current[s.sNum];
+          if (!verses) {
+            const r = await fetch(`https://api.quran.com/api/v4/quran/verses/code_v2?chapter_number=${s.sNum}`);
+            if (!r.ok) continue;
+            const d = await r.json();
+            verses = d.verses || [];
+            codeV2CacheRef.current[s.sNum] = verses;
+          }
+          if (cancelled) return;
+          verses
+            .filter(v => {
+              const a = parseInt(v.verse_key.split(":")[1], 10);
+              return a >= s.minA && a <= s.maxA;
+            })
+            .forEach(v => {
+              (v.code_v2 || "").split(" ").forEach(() => flat.push(v.verse_key));
+            });
+        } catch {}
+      }
+      if (!cancelled) setGlyphVerseKeys(flat);
+    })();
+    return () => { cancelled = true; };
+  }, [mushafPage, pageContentMap]);
 
   // Prefetch tafsir for every verse on the page when entering the page-tafsir view.
   useEffect(() => {
@@ -642,23 +686,12 @@ export default function QuranTab(props) {
                         if(!pageLines||!pageLayout){
                           return null;
                         }
-                        // Word-level verse-key map per physical line. Pages with
-                        // multiple ayahs on one line (e.g. p50 line 3 holds 3:1,
-                        // 3:2, and start of 3:3) need per-word selection — a
-                        // line-level click would always pick the first ayah.
-                        // Token count in pages.json aligns 1:1 with API word
-                        // count per line, so we pair tokens by index.
-                        const lineWordKeys={};
-                        (mushafVerses||[]).forEach(v=>{
-                          (v.words||[]).forEach(w=>{
-                            if(typeof w.line_number!=="number") return;
-                            if(!lineWordKeys[w.line_number]) lineWordKeys[w.line_number]=[];
-                            lineWordKeys[w.line_number].push(v.verse_key);
-                          });
-                        });
-                        // pageLines only contains AYAH rows (no surah_name
-                        // or basmallah rows). Track an ayah-row cursor to
-                        // pair each layout entry with the correct text.
+                        // Tap mapping uses glyphVerseKeys — a flat per-glyph
+                        // verse_key array we built from code_v2 against our
+                        // pageContentMap. Independent of the API's mushaf
+                        // edition (which differs from KFGQPC v2 on some
+                        // pages), so taps land on the right ayah everywhere.
+                        let glyphCursor=0;
                         let ayahIdx=-1;
                         const entries=pageLayout.map((layoutEntry,i)=>{
                           const type=layoutEntry.type;
@@ -698,23 +731,18 @@ export default function QuranTab(props) {
                               </div>
                             );
                           }
-                          // The API's word.line_number is the 1-based ordinal
-                          // of AYAH rows on the page (it skips surah_name and
-                          // basmallah lines), not the physical mushaf line.
-                          // Use ayahIdx+1 to look up, otherwise pages with
-                          // surah headers (e.g. 592 — Al-Ghashiyah opens mid-
-                          // page) drift and tap selects the wrong ayah.
-                          const apiLineNum=ayahIdx+1;
-                          const wordsOnLine=lineWordKeys[apiLineNum]||[];
                           const tokens=lineText.split(" ");
+                          // Slice the flat glyph→verse_key array for this row.
+                          const rowStart=glyphCursor;
+                          glyphCursor+=tokens.length;
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
                           <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
                             {tokens.map((w,wi)=>{
-                              // Token count can drift slightly from API word count when a line
-                              // includes a rub-el-hizb or other non-verse glyph. Fall back to the
-                              // nearest verse_key (last known) so every token stays tappable.
-                              const vk=wordsOnLine[wi]||wordsOnLine[wordsOnLine.length-1];
+                              // Off-by-one safety: if the per-glyph array is shorter
+                              // (e.g. a rub-el-hizb glyph in pages.json without a
+                              // matching verse word), fall back to the last known.
+                              const vk=glyphVerseKeys[rowStart+wi]||glyphVerseKeys[rowStart+tokens.length-1]||glyphVerseKeys[glyphVerseKeys.length-1];
                               return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
                             })}
                           </div>
