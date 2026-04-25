@@ -732,17 +732,21 @@ export default function QuranTab(props) {
                             );
                           }
                           const tokens=lineText.split(" ");
-                          // Slice the flat glyph→verse_key array for this row.
+                          // glyphVerseKeys is one entry per individual PUA glyph,
+                          // but a pages.json token can contain 2+ glyphs (e.g. an
+                          // end-of-ayah marker fused to the previous letter:
+                          // "ﱜﱝ"). Walk by glyph count, not token count, so the
+                          // cursor stays aligned with the flat array.
+                          const tokenStartGlyph=[];
+                          let rowGlyphs=0;
+                          tokens.forEach(t=>{ tokenStartGlyph.push(rowGlyphs); rowGlyphs+=t.length; });
                           const rowStart=glyphCursor;
-                          glyphCursor+=tokens.length;
+                          glyphCursor+=rowGlyphs;
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
                           <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(560px,94vw)",marginInline:"auto",fontFamily:`'p${mushafPage}',serif`,fontSize:"clamp(22px,5.4vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
                             {tokens.map((w,wi)=>{
-                              // Off-by-one safety: if the per-glyph array is shorter
-                              // (e.g. a rub-el-hizb glyph in pages.json without a
-                              // matching verse word), fall back to the last known.
-                              const vk=glyphVerseKeys[rowStart+wi]||glyphVerseKeys[rowStart+tokens.length-1]||glyphVerseKeys[glyphVerseKeys.length-1];
+                              const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
                               return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
                             })}
                           </div>
