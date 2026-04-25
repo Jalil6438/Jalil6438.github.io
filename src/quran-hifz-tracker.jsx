@@ -1941,32 +1941,6 @@ export default function RihlatAlHifz() {
             </div>
           </div>
 
-          {/* ── TODAY'S FLOW ── */}
-          <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
-            <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:14}}>Your Daily Plan</div>
-            <div style={{display:"flex",flexDirection:"column",gap:0}}>
-              {[
-                {icon:"\u{1F305}",name:"Fajr",label:"Begin your memorization",desc:userPlanMode==="custom"?`Memorize ${dailyNew} new ayahs \u2014 the foundation is repetition`:"Memorize 1 mushaf page \u2014 the foundation is repetition",glow:"rgba(240,192,64,0.35)"},
-                {icon:"\u2600\uFE0F",name:"Dhuhr",label:"Review what you learned",desc:"Go over what you memorized earlier",glow:"rgba(246,166,35,0.30)"},
-                {icon:"\u{1F324}\uFE0F",name:"Asr",label:"Strengthen your memorization",desc:"Revision scales as you progress",glow:"rgba(78,205,196,0.25)"},
-                {icon:"\u{1F306}",name:"Maghrib",label:"Sit with the Qur'an and listen",desc:"Listen and follow along (15\u201320 min)",glow:"rgba(183,148,244,0.25)"},
-                {icon:"\u{1F319}",name:"Isha",label:"Complete today's journey",desc:"Recite everything one final time",glow:"rgba(104,211,145,0.25)"},
-              ].map((s,i,arr)=>(
-                <div key={s.name}>
-                  <div style={{padding:"12px 0"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{width:30,height:30,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0,background:`radial-gradient(circle,${s.glow} 0%,transparent 70%)`,filter:`drop-shadow(0 0 6px ${s.glow})`}}>{s.icon}</div>
-                      <div>
-                        <div style={{fontSize:13,fontWeight:600}}><span style={{color:"#E6B84A",textShadow:"0 0 10px rgba(230,184,74,0.25)"}}>{s.name}</span> <span style={{fontWeight:400,color:"rgba(243,231,200,0.55)"}}>{"\u2014"} {s.label}</span></div>
-                        <div style={{fontSize:11,color:"rgba(243,231,200,0.30)",marginTop:2}}>{s.desc}</div>
-                      </div>
-                    </div>
-                  </div>
-                  {i<arr.length-1&&<div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>}
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* ── GUIDANCE ── */}
           <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.15)",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.20),0 0 8px rgba(217,177,95,0.05)"}}>
