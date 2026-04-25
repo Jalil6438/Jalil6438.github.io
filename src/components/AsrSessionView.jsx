@@ -410,11 +410,18 @@ function AsrSessionView({
               the page; only the last page reveals Complete Asr Session so
               the user reads the whole batch before finishing. */}
           {(()=>{
-            // Treat any page that has the final batch index as "last" — defends
-            // against off-by-one from rounding (e.g. batch.length not divisible
-            // by ASR_PAGE_SIZE). asrPageEnd is min(start+5, batch.length), so
-            // when it equals batch.length we've shown the last ayah.
-            const onLast=(asrSafePage>=asrPages-1) || (asrPageEnd>=asrBatch.length && asrBatch.length>0);
+            // The mushaf view paginates by mushaf-page (pageGroups.length), the
+            // study view paginates by 5-ayah chunks (asrPages). When batch.length
+            // doesn't divide cleanly the two diverge — the user can reach the
+            // last visible mushaf page while asrPages still has another chunk.
+            // Count mushaf-page groups too and treat either end as "last".
+            const mushafGroups=new Set();
+            (asrBatch||[]).forEach(v=>mushafGroups.add(v.page_number||0));
+            const totalPages=mushafGroups.size||1;
+            const onLast=
+              (asrSafePage>=asrPages-1) ||
+              (asrSafePage>=totalPages-1) ||
+              (asrPageEnd>=asrBatch.length && asrBatch.length>0);
             return (
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 20px"}}>
             {onLast?(
