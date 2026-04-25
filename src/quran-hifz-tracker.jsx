@@ -376,6 +376,10 @@ export default function RihlatAlHifz() {
     try{return localStorage.getItem("rihlat-translation-source")||"muhsin_khan";}catch{return "muhsin_khan";}
   });
   useEffect(()=>{try{localStorage.setItem("rihlat-translation-source",translationSource);}catch{}},[translationSource]);
+  const [tafsirView,setTafsirView]=useState(()=>{
+    try{return localStorage.getItem("rihlat-tafsir-view")||"single";}catch{return "single";}
+  }); // "single" | "full" — only applies in Study mode; mushaf is always full
+  useEffect(()=>{try{localStorage.setItem("rihlat-tafsir-view",tafsirView);}catch{}},[tafsirView]);
   const [translations,setTranslations]=useState({});
   useEffect(()=>{
     const slug=translationSource==="sahih_intl"?"sahih-international":"muhsin-khan";
@@ -1854,6 +1858,7 @@ export default function RihlatAlHifz() {
           drawerView={drawerView} setDrawerView={setDrawerView}
           translations={translations} fetchTranslations={fetchTranslations}
           translationSource={translationSource} setTranslationSource={setTranslationSource}
+          tafsirView={tafsirView} setTafsirView={setTafsirView}
           mushafBookmarks={mushafBookmarks} setMushafBookmarks={setMushafBookmarks}
           playingKey={playingKey} setPlayingKey={setPlayingKey}
           quranReciter={quranReciter}
