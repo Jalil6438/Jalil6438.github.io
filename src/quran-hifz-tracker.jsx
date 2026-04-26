@@ -858,13 +858,9 @@ export default function RihlatAlHifz() {
         // filter trim below can drop the oldest if the buffer wasn't needed.
         const pageOf=(v)=>(verseToPage&&verseToPage[v.verse_key])||v.page_number||0;
         pagesCollectedSet=new Set();
-        var pagesCollectedOrder=[];
-        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
+        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<6;i--){
           const p=pageOf(allJuzVerses[i]);
-          if(p&&!pagesCollectedSet.has(p)){
-            pagesCollectedSet.add(p);
-            pagesCollectedOrder.push(p);
-          }
+          if(p&&!pagesCollectedSet.has(p)) pagesCollectedSet.add(p);
         }
         const dayKeysCollected=new Set();
         // Include memorized ayahs on the collected pages, but filter out the
@@ -922,6 +918,19 @@ export default function RihlatAlHifz() {
       };
       (yesterdayBatch||[]).forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
       (recentBatches||[]).flat().forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
+      // We collected 6 pages above to give the walk room to find 579-style
+      // mid-stretch pages even when surah lengths push them past the 5-page
+      // boundary. Trim now to 5 by dropping the page furthest from today's
+      // page (mushaf-distance), so the review shows pages closest to where
+      // the user is working.
+      if(todayPageFb){
+        const effectivePages=[...new Set(combined.map(v=>v.page_number).filter(Boolean))];
+        if(effectivePages.length>5){
+          effectivePages.sort((a,b)=>Math.abs(a-todayPageFb)-Math.abs(b-todayPageFb));
+          const drop=new Set(effectivePages.slice(5));
+          combined=combined.filter(v=>!drop.has(v.page_number));
+        }
+      }
     }
     // Display in natural mushaf order (page ascending, then ayah) so the
     // review reads Al-Baqarah → An-Nas direction like a user holding the mushaf
