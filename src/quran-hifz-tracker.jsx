@@ -1165,12 +1165,20 @@ export default function RihlatAlHifz() {
   useEffect(()=>{if(batch.length)fetchTranslations(batch);},[batch]);
 
   function toggleCheck(id){
-    const wasChecked=dailyChecks[id];
-    // Session-complete flows always want to mark the session checked AND push
-    // an activity, even if dailyChecks[id] was somehow already true. So this
-    // function normalizes to "checked" (not toggle), and the activity logic
-    // below fires on every call instead of only on false→true.
-    const updated={...dailyChecks,[id]:true};
+    // Detect calendar rollover at action time, not just on app load. Without
+    // this, a user who keeps the tab open across midnight sees yesterday's
+    // dailyChecks bleed into today — wasChecked stays true, the streak-bump
+    // branch never fires, and the streak gets stuck at 1.
+    const today=TODAY();
+    const rolledOver=dailyChecks.date&&dailyChecks.date!==today;
+    if(rolledOver){
+      const prev=dailyChecks;
+      const wasCompleteYesterday=SESSIONS.every(s=>prev[s.id]);
+      setStreak(p=>wasCompleteYesterday?(p||0)+1:0);
+    }
+    const base=rolledOver?{date:today}:dailyChecks;
+    const wasChecked=rolledOver?false:dailyChecks[id];
+    const updated={...base,[id]:true};
     setDailyChecks(updated);
     const dk=DATEKEY();
     setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:true}}));
