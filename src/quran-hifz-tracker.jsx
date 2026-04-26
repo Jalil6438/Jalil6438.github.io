@@ -2131,7 +2131,7 @@ export default function RihlatAlHifz() {
         mushafVerses={mushafVerses}
         mushafRangeStart={mushafRangeStart} setMushafRangeStart={setMushafRangeStart}
         mushafRangeEnd={mushafRangeEnd} setMushafRangeEnd={setMushafRangeEnd}
-        playMushafRange={playMushafRange}
+        playMushafRange={(verses)=>playMushafRange(verses, quranReciter)}
         looping={looping} setLooping={setLooping}
       />
 

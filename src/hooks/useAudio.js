@@ -259,9 +259,10 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   }
 
   // Chopped-clip range player — used as fallback when a reciter has no
-  // qurancdn recitationId.
-  function playMushafRangeChopped(verses){
-    const folder=getEveryayahFolder(quranReciter)||getEveryayahFolder(reciter);
+  // qurancdn recitationId. reciterIdOverride lets the Quran tab pass its
+  // own reciter so the Hifz reciter doesn't leak into Quran playback.
+  function playMushafRangeChopped(verses, reciterIdOverride){
+    const folder=getEveryayahFolder(reciterIdOverride||reciter);
     if(!folder){ return; }
     setMushafAudioPlaying(true);
     function urlFor(vKey){
@@ -299,11 +300,14 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   // verse_timings so the reciter's natural wasl (continuous recitation
   // across ayah boundaries) is preserved without seam artifacts. Falls
   // back to the chopped-clip player when the reciter has no recitationId.
-  async function playMushafRange(verses){
+  async function playMushafRange(verses, reciterIdOverride){
     if(!verses||verses.length===0) return;
     if(mushafAudioPlaying){ stopMushafAudio(); return; }
 
-    const reciterId=quranReciter||reciter;
+    // Caller picks the reciter context: Quran tab passes quranReciter, Hifz/Asr
+    // omit and inherit `reciter`. The previous "quranReciter || reciter"
+    // default would leak the Quran tab's reciter into Hifz playback.
+    const reciterId=reciterIdOverride||reciter;
     const reciterObj=QURAN_RECITERS.find(r=>r.id===reciterId)||RECITERS.find(r=>r.id===reciterId);
     const recitationId=reciterObj?.recitationId;
     const qulSlug=reciterObj?.qulSlug;
@@ -312,8 +316,8 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     //   1. quran.com segments → precise continuous range (Sudais, Mishari…)
     //   2. QUL local segments → same shape, different host (Budair, Baleela…)
     //   3. Chopped per-ayah clips → sequential fallback for everyone else
-    if(!recitationId&&qulSlug){ return playMushafRangeQulSegments(verses, qulSlug); }
-    if(!recitationId){ return playMushafRangeChopped(verses); }
+    if(!recitationId&&qulSlug){ return playMushafRangeQulSegments(verses, qulSlug, reciterId); }
+    if(!recitationId){ return playMushafRangeChopped(verses, reciterId); }
 
     stopMushafAudio();
     setMushafAudioPlaying(true);
@@ -407,13 +411,13 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   // but pulls verse_timings from a local /segments/{slug}.json (extracted
   // from QUL) instead of qurancdn. Used for reciters who have a qulSlug
   // but no recitationId (Budair, Baleela, Ali Jaber).
-  async function playMushafRangeQulSegments(verses, slug){
+  async function playMushafRangeQulSegments(verses, slug, reciterIdOverride){
     stopMushafAudio();
     setMushafAudioPlaying(true);
 
     let data;
     try{ data=await loadQulSegments(slug); }
-    catch{ setMushafAudioPlaying(false); return playMushafRangeChopped(verses); }
+    catch{ setMushafAudioPlaying(false); return playMushafRangeChopped(verses, reciterIdOverride); }
 
     // Group consecutive verses by surah, same as the qurancdn path.
     const groups=[];
@@ -443,7 +447,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       return { audio_url, verse_timings, startMs, endMs, sNum:g.sNum };
     }).filter(Boolean);
 
-    if(!segments.length){ setMushafAudioPlaying(false); return playMushafRangeChopped(verses); }
+    if(!segments.length){ setMushafAudioPlaying(false); return playMushafRangeChopped(verses, reciterIdOverride); }
     playSegmentSequence(segments);
   }
 
