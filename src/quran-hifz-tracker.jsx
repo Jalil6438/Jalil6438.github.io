@@ -826,7 +826,7 @@ export default function RihlatAlHifz() {
     //   - Custom mode: dailyNew * 5 ayahs, since N ayahs = 1 day.
     const isShaykh=userPlanMode!=="custom";
     const seen=new Set();
-    const combined=[];
+    let combined=[];
     let pagesCollectedSet=null; // set for Shaykh mode, null for custom
     if(allJuzVerses.length>0){
       const currentKey=sessionVerses[sessionIdx]?.verse_key;
@@ -853,11 +853,17 @@ export default function RihlatAlHifz() {
         // by the todayKey check below for the boundary-page case.
         // Collect up to 6 pages going backward in hifz order. Buffer of 1
         // so that if a page is fully covered by today's surah (filtered
-        // out below), Dhuhr still shows 5 effective pages.
+        // out below), Dhuhr still shows 5 effective pages. We also remember
+        // the order pages were collected (most-recent first) so the post-
+        // filter trim below can drop the oldest if the buffer wasn't needed.
         pagesCollectedSet=new Set();
+        var pagesCollectedOrder=[];
         for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<6;i--){
           const p=allJuzVerses[i].page_number;
-          if(p) pagesCollectedSet.add(p);
+          if(p&&!pagesCollectedSet.has(p)){
+            pagesCollectedSet.add(p);
+            pagesCollectedOrder.push(p);
+          }
         }
         const dayKeysCollected=new Set();
         // Include memorized ayahs on the collected pages, but filter out the
@@ -899,6 +905,18 @@ export default function RihlatAlHifz() {
       };
       (yesterdayBatch||[]).forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
       (recentBatches||[]).flat().forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
+    }
+    // Post-filter trim: the 6-page buffer assumed the today-surah filter
+    // would drop one page. When today's Fajr starts on a brand-new page
+    // not in the collected set, nothing gets dropped and Dhuhr ends up
+    // with 6 pages instead of 5. Trim the oldest collected page if the
+    // effective set is still 6.
+    if(isShaykh&&pagesCollectedOrder&&pagesCollectedOrder.length){
+      const effectivePages=new Set(combined.map(v=>v.page_number).filter(Boolean));
+      if(effectivePages.size>5){
+        const oldest=pagesCollectedOrder[pagesCollectedOrder.length-1];
+        combined=combined.filter(v=>v.page_number!==oldest);
+      }
     }
     // Display in natural mushaf order (page ascending, then ayah) so the
     // review reads Al-Baqarah → An-Nas direction like a user holding the mushaf
