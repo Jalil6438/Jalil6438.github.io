@@ -179,7 +179,7 @@ export default function MyMemorizationView({
               {(leadSurahNum>0||reviewJuz)&&(
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:14}}>
                   <span>{leadSurahNum>0?(SURAH_EN[leadSurahNum]||""):""}</span>
-                  <span>{reviewJuz?`Part ${reviewJuz}`:""}</span>
+                  <span>{reviewJuz?`Juz ${reviewJuz}`:""}</span>
                 </div>
               )}
               {rendered}

@@ -971,7 +971,7 @@ export default function MyHifzTab(props) {
                       {(leadSurahNum>0||juzNum)&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:20}}>
                           <span>{leadSurahNum>0?(SURAH_EN[leadSurahNum]||""):""}</span>
-                          <span>{juzNum?`Part ${juzNum}`:""}</span>
+                          <span>{juzNum?`Juz ${juzNum}`:""}</span>
                         </div>
                       )}
                       {(()=>{
@@ -1138,7 +1138,7 @@ export default function MyHifzTab(props) {
                         )}
                         {reviewJuzNum&&(
                           <div style={{position:"absolute",top:0,right:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
-                            Part {reviewJuzNum}
+                            Juz {reviewJuzNum}
                           </div>
                         )}
                         {(()=>{
