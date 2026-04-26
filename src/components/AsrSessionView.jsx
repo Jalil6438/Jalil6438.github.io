@@ -321,7 +321,7 @@ function AsrSessionView({
                       );
                     }
                     return (
-                      <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"4px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+                      <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"1px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                         {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                       </div>
                     );
