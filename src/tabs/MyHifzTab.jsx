@@ -18,7 +18,7 @@ export default function MyHifzTab(props) {
     sessionJuz, setSessionJuz, sessionIdx, setSessionIdx, totalSV, dailyNew,
     setShowJuzModal,
     // sessions state
-    activeSessionIndex, setActiveSessionIndex, sessionsCompleted, setSessionsCompleted,
+    activeSessionIndex, setActiveSessionIndex, sessionsCompleted, setSessionsCompleted, setStreak,
     currentSessionId, isAsr, toggleCheck,
     // batch
     batch: rawBatch, bEnd, bDone, fajrBatch, sessionVerses,
@@ -1637,6 +1637,10 @@ export default function MyHifzTab(props) {
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
+                      // One full Fajr→Isha cycle = +1 to streak. Defines a
+                      // "day" by completion of the daily plan rather than a
+                      // calendar day so rapid testing reflects progress.
+                      if(setStreak) setStreak(p=>(p||0)+1);
                       // Start each new day on Fajr Mushaf (read with teacher first)
                       setHifzViewMode("mushaf");
                     } else {

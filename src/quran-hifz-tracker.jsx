@@ -1257,17 +1257,11 @@ export default function RihlatAlHifz() {
         pushActivity("review",label?`Final review of ${label} before sleep`:"Completed Isha review");
       }
     }
-    // Streak only bumps when this call is the transition that completes the
-    // last remaining session for the day — not on repeated Complete taps.
-    if(!wasChecked&&SESSIONS.every(s=>updated[s.id])){
-      setStreak(p=>{
-        const next=p+1;
-        if([7,14,21,30,40,60,100].includes(next)){
-          pushActivity("streak",`${next} day streak — Keep going!`);
-        }
-        return next;
-      });
-    }
+    // Streak bump moved to the end-of-cycle handler in MyHifzTab (after Isha).
+    // The previous "!wasChecked && all-5-checked" gate prevented per-cycle
+    // increments when the user ran multiple Fajr→Isha cycles in one session,
+    // because dailyChecks carried the prior cycle's true values. Streak now
+    // ticks once per completed cycle, regardless of calendar.
   }
   function markJuzAndSurahsComplete(prev,juzNum){
     const next={...prev};
@@ -1885,7 +1879,7 @@ export default function RihlatAlHifz() {
           reciter={reciter} currentReciter={currentReciter} setReciterMode={setReciterMode} setShowReciterModal={setShowReciterModal} hasPerAyah={hasPerAyah}
           sessionJuz={sessionJuz} setSessionJuz={setSessionJuz} sessionIdx={sessionIdx} setSessionIdx={setSessionIdx} totalSV={totalSV} dailyNew={dailyNew}
           setShowJuzModal={setShowJuzModal}
-          activeSessionIndex={activeSessionIndex} setActiveSessionIndex={setActiveSessionIndex} sessionsCompleted={sessionsCompleted} setSessionsCompleted={setSessionsCompleted}
+          activeSessionIndex={activeSessionIndex} setActiveSessionIndex={setActiveSessionIndex} sessionsCompleted={sessionsCompleted} setSessionsCompleted={setSessionsCompleted} setStreak={setStreak}
           currentSessionId={currentSessionId} isAsr={isAsr} toggleCheck={toggleCheck}
           batch={batch} bEnd={bEnd} bDone={bDone} fajrBatch={fajrBatch} sessionVerses={sessionVerses}
           sessLoading={sessLoading} sessError={sessError}
