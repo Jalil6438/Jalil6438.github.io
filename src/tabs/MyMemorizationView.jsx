@@ -162,7 +162,7 @@ export default function MyMemorizationView({
             }
             const lineText = pageLines[ayahIdx] || "";
             return (
-              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pn}-v2',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,94vw)",marginInline:"auto",fontFamily:`'p${pn}-v2',serif`,fontSize:"clamp(20px,5.5vw,31px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                 {lineText.split(" ").map((w, wi) => (<span key={wi}>{w}</span>))}
               </div>
             );
