@@ -626,7 +626,7 @@ export default function MyHifzTab(props) {
   }, [currentSessionId, batch, ayahPage, repCounts, connectionReps, pushActivity]);
 
   return (
-        <div style={{flex:1,overflowY:"auto",scrollbarGutter:"stable both-edges",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",position:"relative"}} className="fi gold-particles">
+        <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",position:"relative"}} className="fi gold-particles">
 
           {/* ── STICKY TOP BAR — Reciter + Dark/Light toggle ── */}
           <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,padding:"6px 14px",display:"flex",alignItems:"center",gap:8}}>
