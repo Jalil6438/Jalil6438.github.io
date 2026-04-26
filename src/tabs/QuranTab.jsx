@@ -74,10 +74,7 @@ export default function QuranTab(props) {
     // can coexist without collision and the renderer picks the active one.
     const ed = tajweedFont ? "v4" : "v2";
     const isTajweedEd = tajweedFont;
-    // V2 keeps the plain `p${pageN}` name to match MyHifz/Asr/Memorization
-    // (so all renderers share the same font registration when V2 is active).
-    // V4 gets a -v4 suffix so it can coexist without collision.
-    const family = isTajweedEd ? `p${pageN}-v4` : `p${pageN}`;
+    const family = `p${pageN}-${ed}`;
     // ID includes the family name to avoid collision with other consumers
     // (MyHifz, Asr, Memorization) which register `font-family: 'p${pageN}'`
     // under id `qcf-font-v2-${pageN}`. Same id would short-circuit our
@@ -768,7 +765,7 @@ export default function QuranTab(props) {
                             return (
                               <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
                                 {bismillahGlyphs&&loadedFonts.has(`${tajweedFont?"v4":"v2"}-1`)?(
-                                  <div style={{fontFamily:`'p1${tajweedFont?"-v4":""}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
+                                  <div style={{fontFamily:`'p1-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
                                 ):(
                                   <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                                 )}
@@ -788,7 +785,7 @@ export default function QuranTab(props) {
                           glyphCursor+=rowGlyphs;
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
-                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${mushafPage}${tajweedFont?"-v4":""}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&tajweedFont?`--dark-p${mushafPage}-v4`:undefined}}>
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
                             {tokens.map((w,wi)=>{
                               const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
                               return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
@@ -903,7 +900,7 @@ export default function QuranTab(props) {
                         {/* Arabic text — per-page mushaf font when words are
                             available; fall back to UthmanicHafs. */}
                         {selVerse&&(selVerse.words?.some(w=>w.code_v2)?(
-                          <div style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}${tajweedFont?"-v4":""}',serif`,fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
+                          <div style={{direction:"rtl",textAlign:"center",fontFamily:`'p${mushafPage}-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
                             {selVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map((w,wi)=>(<span key={wi}>{w.code_v2||""} </span>))}
                           </div>
                         ):selVerse.text_uthmani?(
