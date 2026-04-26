@@ -432,9 +432,12 @@ function AsrSessionView({
                 Next Page
               </div>
             )}
+            {/* Change Selection muted 2026-04-26 — duplicate of the Customize
+                button at the top of the session card. Restore by uncommenting:
             <div className="sbtn" onClick={onChangeSelection} style={{width:"100%",padding:"13px 16px",borderRadius:18,textAlign:"center",fontSize:13,fontWeight:600,color:"rgba(226,188,114,0.82)",border:"1px solid rgba(210,170,95,0.14)",background:"rgba(8,16,30,0.22)"}}>
               Change Selection
             </div>
+            */}
           </div>
             );
           })()}
