@@ -260,7 +260,7 @@ function AsrSessionView({
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Juz {asrJuzNum}</div>
                 ):<div/>}
               </div>
-              <div key={safePage} ref={asrMushafScrollRef} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{flex:1,overflow:"hidden",padding:"8px 2px"}}>
+              <div key={safePage} ref={asrMushafScrollRef} style={{flex:1,overflow:"hidden",padding:"8px 2px"}}>
                 {(()=>{
                   const pageNum=currentPage.page;
                   const pageFontReady=loadedFonts.has(pageNum);
@@ -359,7 +359,7 @@ function AsrSessionView({
             }}
           >
             {/* Ayah list — slides on page change */}
-            <div key={asrSafePage} className={asrSlideDir==="left"?"asr-slide-left":asrSlideDir==="right"?"asr-slide-right":""} style={{display:"flex",flexDirection:"column",gap:8,padding:"4px 0"}}>
+            <div key={asrSafePage} style={{display:"flex",flexDirection:"column",gap:8,padding:"4px 0"}}>
               {asrVisibleAyahs.map((v,idx)=>{
                 const vKey=v.verse_key;
                 const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0],10);
