@@ -1362,16 +1362,21 @@ export default function MyHifzTab(props) {
                             // Custom plan skips mushaf font — API/Madinah page
                             // mismatches cause glyphs to render as neighbor
                             // verses. UthmanicHafs always renders correctly.
+                            // Long ayahs (e.g. Muddaththir 31, Baqarah 282) make
+                            // the card balloon vertically. Clamp to 2 lines on
+                            // the card; tapping opens the full ayah view where
+                            // the complete text shows for repetition.
+                            const clampStyle={display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"};
                             if(isShaykhPlan&&pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (
-                                <div style={{direction:"rtl",textAlign:"right",lineHeight:2,fontFamily:`'p${pn}-v2',serif`,fontSize:"clamp(20px,5.2vw,30px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>
+                                <div style={{direction:"rtl",textAlign:"right",lineHeight:2,fontFamily:`'p${pn}-v2',serif`,fontSize:"clamp(20px,5.2vw,30px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26",...clampStyle}}>
                                   {words.map((w,wi)=>(<span key={wi}>{w} </span>))}
                                 </div>
                               );
                             }
                             return (
-                              <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
+                              <div style={{direction:"rtl",textAlign:"right",lineHeight:2,...clampStyle}}>
                                 <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
                                 <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                               </div>
