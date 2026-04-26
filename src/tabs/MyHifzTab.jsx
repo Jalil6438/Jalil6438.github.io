@@ -1363,11 +1363,11 @@ export default function MyHifzTab(props) {
                             // mismatches cause glyphs to render as neighbor
                             // verses. UthmanicHafs always renders correctly.
                             // Long ayahs (e.g. Muddaththir 31, Baqarah 282) make
-                            // the card balloon vertically. Clamp to ~2 lines
-                            // (lineHeight 2 → maxHeight 4em) and fade out the
+                            // the card balloon vertically. Clamp to ~1 line
+                            // (lineHeight 2 → maxHeight 2em) and fade out the
                             // tail with mask-image — no ellipsis. Tapping
                             // opens the full ayah view for repetition.
-                            const clampStyle={maxHeight:"4em",overflow:"hidden",WebkitMaskImage:"linear-gradient(to bottom,black 55%,transparent 100%)",maskImage:"linear-gradient(to bottom,black 55%,transparent 100%)"};
+                            const clampStyle={maxHeight:"2em",overflow:"hidden",whiteSpace:"nowrap",WebkitMaskImage:"linear-gradient(to left,black 55%,transparent 100%)",maskImage:"linear-gradient(to left,black 55%,transparent 100%)"};
                             if(isShaykhPlan&&pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (
