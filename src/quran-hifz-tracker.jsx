@@ -856,10 +856,17 @@ export default function RihlatAlHifz() {
         // out below), Dhuhr still shows 5 effective pages. We also remember
         // the order pages were collected (most-recent first) so the post-
         // filter trim below can drop the oldest if the buffer wasn't needed.
+        // Resolve each verse's page via our V2-authoritative verse-to-page map,
+        // not the quran.com API's page_number field — the API returns V4 page
+        // boundaries, which split a few pages differently than V2 (e.g. 579
+        // Insan 6-25 in V2 might land in a different page in V4). Using V2
+        // throughout keeps the collected pages consistent with what the app
+        // renders.
+        const pageOf=(v)=>(verseToPage&&verseToPage[v.verse_key])||v.page_number||0;
         pagesCollectedSet=new Set();
         var pagesCollectedOrder=[];
         for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<6;i--){
-          const p=allJuzVerses[i].page_number;
+          const p=pageOf(allJuzVerses[i]);
           if(p&&!pagesCollectedSet.has(p)){
             pagesCollectedSet.add(p);
             pagesCollectedOrder.push(p);
@@ -871,13 +878,17 @@ export default function RihlatAlHifz() {
         // on page 577) doesn't appear as part of Dhuhr — Qiyāmah 1-19 on the
         // same page stays visible.
         const todaySurahForFilter=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
-        const todayPageForFilter=fajrBatch[0]?.page_number||sessionVerses[sessionIdx]?.page_number||0;
+        const todayPageForFilter=fajrBatch[0]?(verseToPage&&verseToPage[fajrBatch[0].verse_key])||fajrBatch[0].page_number:(verseToPage&&sessionVerses[sessionIdx]?verseToPage[sessionVerses[sessionIdx].verse_key]:0)||sessionVerses[sessionIdx]?.page_number||0;
         const todayKeyForFilter=todaySurahForFilter&&todayPageForFilter?`${todaySurahForFilter}-${todayPageForFilter}`:null;
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
-          if(!v.page_number||!pagesCollectedSet.has(v.page_number)) return;
+          const vPage=pageOf(v);
+          if(!vPage||!pagesCollectedSet.has(vPage)) return;
+          // Stamp the V2 page on the verse object so downstream consumers
+          // (page grouping, header chrome) use the same value as the walk.
+          v.page_number=vPage;
           const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
-          const k=`${s}-${v.page_number}`;
+          const k=`${s}-${vPage}`;
           if(todayKeyForFilter&&k===todayKeyForFilter) return;
           if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
@@ -899,7 +910,10 @@ export default function RihlatAlHifz() {
       const passFallback=(v)=>{
         if(!v.verse_key||seen.has(v.verse_key)) return false;
         if(pagesCollectedSet){
-          return !!(v.page_number&&pagesCollectedSet.has(v.page_number));
+          // Same V2 lookup as the walk above so pages line up.
+          const p=(verseToPage&&verseToPage[v.verse_key])||v.page_number;
+          if(p) v.page_number=p;
+          return !!(p&&pagesCollectedSet.has(p));
         }
         return true;
       };
