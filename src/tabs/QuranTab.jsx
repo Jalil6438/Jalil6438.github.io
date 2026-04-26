@@ -115,8 +115,17 @@ export default function QuranTab(props) {
   // and alignment per page from public/mushaf-pages.json +
   // public/mushaf-layout.json. Using these instead of the API's
   // line_number guarantees each line matches the real KFGQPC mushaf.
-  const [mushafPagesData, setMushafPagesData] = useState(null);
-  const [mushafLayoutData, setMushafLayoutData] = useState(null);
+  // V2 and V4 layouts are loaded separately. The active layout is paired
+  // with the active font edition (V2 fonts ↔ V2 layout, V4 fonts ↔ V4 layout)
+  // — line-wrap calculations were done against each font's metrics, so a
+  // mismatch causes some lines to come up short and `space-between` spreads
+  // them unevenly.
+  const [pagesV2, setPagesV2] = useState(null);
+  const [pagesV4, setPagesV4] = useState(null);
+  const [layoutV2, setLayoutV2] = useState(null);
+  const [layoutV4, setLayoutV4] = useState(null);
+  const mushafPagesData = tajweedFont ? pagesV4 : pagesV2;
+  const mushafLayoutData = tajweedFont ? layoutV4 : layoutV2;
   const [pageContentMap, setPageContentMap] = useState(null); // { [page]: [{sNum, minA, maxA}, ...] }
   // Verses physically on the current mushaf page per OUR layout
   // (KFGQPC v2 verse-to-page.json). quran.com's default by_page uses
@@ -136,13 +145,17 @@ export default function QuranTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        const [p, l, v] = await Promise.all([
-          fetch("/mushaf-pages.json"),
+        const [pV2, lV2, pV4, lV4, v] = await Promise.all([
+          fetch("/v2/mushaf-pages.json"),
+          fetch("/v2/mushaf-layout.json"),
+          fetch("/mushaf-pages.json"),     // active default = V4
           fetch("/mushaf-layout.json"),
           fetch("/verse-to-page.json"),
         ]);
-        if (!cancelled && p.ok) setMushafPagesData(await p.json());
-        if (!cancelled && l.ok) setMushafLayoutData(await l.json());
+        if (!cancelled && pV2.ok) setPagesV2(await pV2.json());
+        if (!cancelled && lV2.ok) setLayoutV2(await lV2.json());
+        if (!cancelled && pV4.ok) setPagesV4(await pV4.json());
+        if (!cancelled && lV4.ok) setLayoutV4(await lV4.json());
         if (!cancelled && v.ok) {
           const map = await v.json();
           // Invert verse->page into page->[{sNum,minA,maxA}] so bookmark
