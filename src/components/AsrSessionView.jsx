@@ -86,15 +86,12 @@ function AsrSessionView({
       // Study mode is short (custom plan, ~5 ayahs/page) — no need to scroll
       // on page change. Mushaf mode shows a full page and needs the reset.
       if (asrViewMode==="study") return;
-      // Scroll the whole window AND any inner scrollable ancestor to the top
-      // so the page chrome (Surah / Juz) and top bar are visible again, not
-      // just the mushaf body. scrollIntoView alone left the chrome offscreen.
-      try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch {}
-      try {
-        document.querySelectorAll('[class*="fi"]').forEach(el => {
-          if (el.scrollTop > 0) el.scrollTo({ top: 0, behavior: "smooth" });
-        });
-      } catch {}
+      // Scroll the OUTER Asr container (page chrome + mushaf body) into view
+      // so the Surah / Juz header lands at the top — matches Dhuhr behavior.
+      const el = asrMushafScrollRef.current;
+      if (el && typeof el.scrollIntoView === "function") {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }, [asrSafePage, asrViewMode]);
     useEffect(() => {
       loadQcfFont(1);
@@ -245,7 +242,7 @@ function AsrSessionView({
               return null;
             })();
             return (
-            <div style={{flex:1,overflow:"hidden",position:"relative",display:"flex",flexDirection:"column"}}
+            <div ref={asrMushafScrollRef} style={{flex:1,overflow:"hidden",position:"relative",display:"flex",flexDirection:"column"}}
               onTouchStart={e=>{asrTouchStartRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY};}}
               onTouchEnd={e=>{
                 if(!asrTouchStartRef.current) return;
@@ -263,7 +260,7 @@ function AsrSessionView({
                   <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Juz {asrJuzNum}</div>
                 ):<div/>}
               </div>
-              <div key={safePage} ref={asrMushafScrollRef} style={{flex:1,overflow:"hidden",padding:"8px 2px"}}>
+              <div key={safePage} style={{flex:1,overflow:"hidden",padding:"8px 2px"}}>
                 {(()=>{
                   const pageNum=currentPage.page;
                   const pageFontReady=loadedFonts.has(pageNum);
