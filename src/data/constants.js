@@ -1,23 +1,26 @@
 // ── DATA CONSTANTS — extracted from quran-hifz-tracker.jsx ──
 
 // ── UNIFIED RECITERS — used across Hifz (per-ayah) and Quran (full surah) tabs ──
-// ── recitationId notes ──
-// quran.com's /audio/reciters has verse_timings (segments) for ~14 reciters.
-// For those, range playback can stream a single continuous surah file
-// (preserves wasl). Reciters without a recitationId fall back to chopped
-// per-ayah everyayah clips played sequentially.
+// ── recitationId / qulSlug notes ──
+// Range playback picks the smoothest available source per reciter:
+//   1. recitationId  — quran.com's /audio/reciters verse_timings (~14 reciters)
+//   2. qulSlug       — local /public/segments/{slug}.json from QUL extractions
+//   3. everyayah     — chopped per-ayah clips played sequentially (fallback)
+// recitationId and qulSlug both deliver gapless single-surah-file playback;
+// chopped has audible seams between clips.
 export const RECITERS = [
   // ── Masjid Al-Haram ── (current/historical imams of Masjid Al-Haram in Makkah)
-  { id:"dosari",  name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",     recitationId:97,   everyayah:"Yasser_Ad-Dussary_128kbps",            quranicaudio:"yasser_ad-dussary",             tag:"Masjid Al-Haram",  style:"Emotional · Slow",         dot:"#F0C040" },
+  { id:"dosari",  name:"Yasser Al-Dosari",       arabic:"ياسر الدوسري",     recitationId:97,   qulSlug:"dosari",   everyayah:"Yasser_Ad-Dussary_128kbps",            quranicaudio:"yasser_ad-dussary",             tag:"Masjid Al-Haram",  style:"Emotional · Slow",         dot:"#F0C040" },
   { id:"juhany",  name:"Abdullah Al-Juhany",     arabic:"عبدالله الجهني",   recitationId:null, everyayah:"Abdullaah_3awwaad_Al-Juhaynee_128kbps", quranicaudio:"abdullaah_3awwaad_al-juhaynee", tag:"Masjid Al-Haram",  style:"Clear · Balanced",         dot:"#4A9EFF" },
   { id:"sudais",  name:"Abdul Rahman As-Sudais", arabic:"عبدالرحمن السديس", recitationId:3,    everyayah:"Abdurrahmaan_As-Sudais_192kbps",        quranicaudio:"abdurrahmaan_as-sudays",        tag:"Masjid Al-Haram",  style:"Powerful · Authoritative", dot:"#E5534B" },
   { id:"shuraim", name:"Saud Ash-Shuraim",       arabic:"سعود الشريم",      recitationId:10,   everyayah:"Saood_ash-Shuraym_128kbps",             quranicaudio:"sa3ood_al-shuraym",             tag:"Masjid Al-Haram",  style:"Strong · Measured",        dot:"#8B9BAA" },
   { id:"muaiqly", name:"Maher Al-Muaiqly",       arabic:"ماهر المعيقلي",    recitationId:null, everyayah:"MaherAlMuaiqly128kbps",                 quranicaudio:"maher_almuaiqly",               tag:"Masjid Al-Haram",  style:"Warm · Melodic",           dot:"#F6A623" },
-  { id:"alijaber",name:"Ali Jaber",              arabic:"علي جابر",         recitationId:null, everyayah:"Ali_Jaber_64kbps",                      quranicaudio:"ali_jaber",                     tag:"Masjid Al-Haram",  style:"Pure · Devotional",        dot:"#5DADE2" },
+  { id:"baleela", name:"Bandar Baleela",         arabic:"بندر بليلة",       recitationId:null, qulSlug:"baleela",  everyayah:null,                                    quranicaudio:"bandar_baleela/complete",       tag:"Masjid Al-Haram",  style:"Smooth · Reflective",      dot:"#7DC8E0" },
+  { id:"alijaber",name:"Ali Jaber",              arabic:"علي جابر",         recitationId:null, qulSlug:"alijaber", everyayah:"Ali_Jaber_64kbps",                      quranicaudio:"ali_jaber",                     tag:"Masjid Al-Haram",  style:"Pure · Devotional",        dot:"#5DADE2" },
   // ── Masjid An-Nabawi ── (current/historical imams of the Prophet's Mosque in Madinah)
   { id:"hudhaify",name:"Ali Al-Hudhaify",        arabic:"علي الحذيفي",      recitationId:null, everyayah:"Hudhaify_128kbps",                      quranicaudio:"huthayfi",                      tag:"Masjid An-Nabawi", style:"Gentle · Precise",         dot:"#3ECC71" },
   { id:"ayyoub",  name:"Muhammad Ayyoub",        arabic:"محمد أيوب",        recitationId:null, everyayah:"Muhammad_Ayyoub_128kbps",               quranicaudio:"muhammad_ayyoub",               tag:"Masjid An-Nabawi", style:"Deep · Meditative",        dot:"#4A9EFF" },
-  { id:"budair",  name:"Salah Al-Budair",        arabic:"صلاح البدير",      recitationId:null, everyayah:"Salah_Al_Budair_128kbps",               quranicaudio:"salahbudair",                   tag:"Masjid An-Nabawi", style:"Smooth · Rhythmic",        dot:"#F0C040" },
+  { id:"budair",  name:"Salah Al-Budair",        arabic:"صلاح البدير",      recitationId:null, qulSlug:"budair",   everyayah:"Salah_Al_Budair_128kbps",               quranicaudio:"salahbudair",                   tag:"Masjid An-Nabawi", style:"Smooth · Rhythmic",        dot:"#F0C040" },
   { id:"qasim",   name:"Abdul Muhsin Al-Qasim",  arabic:"عبدالمحسن القاسم", recitationId:null, everyayah:"Muhsin_Al_Qasim_192kbps",               quranicaudio:"muhsin_al_qasim",               tag:"Masjid An-Nabawi", style:"Calm · Steady",            dot:"#2ECC71" },
   // ── Popular ──
   { id:"alafasy", name:"Mishary Rashid Alafasy",  arabic:"مشاري راشد العفاسي",recitationId:7,    everyayah:"Alafasy_128kbps",                       quranicaudio:"mishaari_raashid_al_3afaasy",   tag:"Popular",          style:"Clear · Melodic",          dot:"#9B59B6" },

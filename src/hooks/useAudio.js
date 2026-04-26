@@ -1,6 +1,18 @@
 import { useState, useRef } from "react";
 import { RECITERS, QURAN_RECITERS } from "../data/constants";
 
+// QUL extracted segment JSONs (built by scripts/extract-qul-segments.cjs).
+// Lazy-fetched on first use per slug; cached for the life of the page.
+const qulSegmentCache = {};
+async function loadQulSegments(slug) {
+  if (qulSegmentCache[slug]) return qulSegmentCache[slug];
+  const res = await fetch(`/segments/${slug}.json`);
+  if (!res.ok) throw new Error(`segments fetch failed: ${slug}`);
+  const data = await res.json();
+  qulSegmentCache[slug] = data;
+  return data;
+}
+
 export default function useAudio({ reciter, currentReciter, looping, quranReciter }) {
   const [playingKey,setPlayingKey]=useState(null);
   const [audioLoading,setAudioLoading]=useState(null);
@@ -255,10 +267,13 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     const reciterId=quranReciter||reciter;
     const reciterObj=QURAN_RECITERS.find(r=>r.id===reciterId)||RECITERS.find(r=>r.id===reciterId);
     const recitationId=reciterObj?.recitationId;
+    const qulSlug=reciterObj?.qulSlug;
 
     // Routing:
     //   1. quran.com segments → precise continuous range (Sudais, Mishari…)
-    //   2. Chopped per-ayah clips → sequential fallback for everyone else
+    //   2. QUL local segments → same shape, different host (Budair, Baleela…)
+    //   3. Chopped per-ayah clips → sequential fallback for everyone else
+    if(!recitationId&&qulSlug){ return playMushafRangeQulSegments(verses, qulSlug); }
     if(!recitationId){ return playMushafRangeChopped(verses); }
 
     stopMushafAudio();
@@ -298,7 +313,13 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     }catch{ segments=[]; }
 
     if(!segments.length){ setMushafAudioPlaying(false); return playMushafRangeChopped(verses); }
+    playSegmentSequence(segments);
+  }
 
+  // Shared playback loop for any source (qurancdn or QUL) that produces
+  // {audio_url, verse_timings, startMs, endMs} segments. Plays each segment
+  // by seeking to startMs and advancing on endMs (or onended as safety net).
+  function playSegmentSequence(segments){
     function playSegment(idx){
       if(idx>=segments.length){
         if(looping){ playSegment(0); return; }
@@ -340,8 +361,51 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       audio.onended=()=>advance();
       audio.onerror=()=>advance();
     }
-
     playSegment(0);
+  }
+
+  // QUL-segment range player — same playback shape as the qurancdn path,
+  // but pulls verse_timings from a local /segments/{slug}.json (extracted
+  // from QUL) instead of qurancdn. Used for reciters who have a qulSlug
+  // but no recitationId (Budair, Baleela, Ali Jaber).
+  async function playMushafRangeQulSegments(verses, slug){
+    stopMushafAudio();
+    setMushafAudioPlaying(true);
+
+    let data;
+    try{ data=await loadQulSegments(slug); }
+    catch{ setMushafAudioPlaying(false); return playMushafRangeChopped(verses); }
+
+    // Group consecutive verses by surah, same as the qurancdn path.
+    const groups=[];
+    verses.forEach(v=>{
+      const sNum=Number(v.verse_key.split(":")[0]);
+      const last=groups[groups.length-1];
+      if(!last||last.sNum!==sNum) groups.push({sNum,verses:[v]});
+      else last.verses.push(v);
+    });
+
+    const segments=groups.map(g=>{
+      const firstVk=g.verses[0].verse_key;
+      const lastVk=g.verses[g.verses.length-1].verse_key;
+      const firstT=data.verses[firstVk];
+      const lastT=data.verses[lastVk];
+      if(!firstT||!lastT) return null;
+      const audio_url=`${data.audio_base}${String(g.sNum).padStart(3,"0")}.mp3`;
+      // Build a verse_timings array spanning every ayah in this group so
+      // the playback loop can light up the active verse_key as it plays.
+      const verse_timings=g.verses.map(v=>{
+        const t=data.verses[v.verse_key];
+        return t ? { verse_key:v.verse_key, timestamp_from:t[0], timestamp_to:t[1] } : null;
+      }).filter(Boolean);
+      const isOpener=firstVk.endsWith(":1");
+      const startMs=isOpener?0:firstT[0];
+      const endMs=lastT[1];
+      return { audio_url, verse_timings, startMs, endMs, sNum:g.sNum };
+    }).filter(Boolean);
+
+    if(!segments.length){ setMushafAudioPlaying(false); return playMushafRangeChopped(verses); }
+    playSegmentSequence(segments);
   }
 
   function getQuranSurahUrl(reciterId,surahNum){
