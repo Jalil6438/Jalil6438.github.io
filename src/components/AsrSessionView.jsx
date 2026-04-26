@@ -11,6 +11,7 @@ function AsrSessionView({
     setAsrPage,asrSlideDir,setAsrSlideDir,translations,fetchTranslations,playAyah,playingKey,
     audioLoading,asrSurahProgress,onComplete,onChangeSelection,asrIsCustomized,dark,completedAyahs,
     playMushafRange,stopMushafAudio,mushafAudioPlaying,
+    reciter,
     fontSize = 19,
     isShaykhPlan = true,
   }) {
@@ -139,8 +140,7 @@ function AsrSessionView({
           <div className="asr-title">ASR SESSION</div>
           <div className="asr-title-line"/>
 
-          {/* Play Page pill — top of the Asr view, Mushaf mode only */}
-          {asrViewMode==="mushaf"&&playMushafRange&&asrBatch.length>0&&(()=>{
+          {asrViewMode==="mushaf"&&playMushafRange&&reciter&&asrBatch.length>0&&(()=>{
             const pageGroups=[];
             let cg=null;
             asrBatch.forEach(v=>{

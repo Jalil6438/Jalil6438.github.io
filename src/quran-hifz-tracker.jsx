@@ -1844,6 +1844,7 @@ export default function RihlatAlHifz() {
               playMushafRange={playMushafRange}
               stopMushafAudio={stopMushafAudio}
               mushafAudioPlaying={mushafAudioPlaying}
+              reciter={reciter}
               onComplete={()=>{
                 const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                 const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
