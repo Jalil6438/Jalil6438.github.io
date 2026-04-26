@@ -86,12 +86,15 @@ function AsrSessionView({
       // Study mode is short (custom plan, ~5 ayahs/page) — no need to scroll
       // on page change. Mushaf mode shows a full page and needs the reset.
       if (asrViewMode==="study") return;
-      const el = asrMushafScrollRef.current;
-      if (el && typeof el.scrollIntoView === "function") {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else if (typeof window !== "undefined") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      // Scroll the whole window AND any inner scrollable ancestor to the top
+      // so the page chrome (Surah / Juz) and top bar are visible again, not
+      // just the mushaf body. scrollIntoView alone left the chrome offscreen.
+      try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch {}
+      try {
+        document.querySelectorAll('[class*="fi"]').forEach(el => {
+          if (el.scrollTop > 0) el.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      } catch {}
     }, [asrSafePage, asrViewMode]);
     useEffect(() => {
       loadQcfFont(1);
