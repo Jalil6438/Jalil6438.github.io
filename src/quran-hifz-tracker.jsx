@@ -948,7 +948,7 @@ export default function RihlatAlHifz() {
     batch=combined.length>0?combined:[];
   }
   else if(isAsr){ batch=asrReviewBatch.length>0?asrReviewBatch:[]; }
-  else if(isMaghrib||isIsha){ batch=fajrBatch.length>0?fajrBatch:todayFajrBatch; }
+  else if(isMaghrib||isIsha){ batch=todayFajrBatch.length>0?todayFajrBatch:fajrBatch; }
 
   // Build pages — each page holds up to AYAHS_PER_PAGE ayahs AND stops at surah boundary
   const batchPageRanges=(()=>{
@@ -1200,9 +1200,13 @@ export default function RihlatAlHifz() {
         return `Surah ${fN} ${fA} – Surah ${lN} ${lA}`;
       };
       if(id==="fajr"){
-        // Describe the batch using whichever is authoritative — in Shaykh mode
-        // that's the page-based todayFajrBatch; in custom it's fajrBatch.
-        const src=todayFajrBatch.length>0?todayFajrBatch:fajrBatch;
+        // Snapshot fajrBatch into todayFajrBatch so Maghrib/Isha render the
+        // exact same batch the user just memorized today. Without this,
+        // sessionIdx advances later (Isha completion of a cycle) cause the
+        // live fajrBatch to point at the next batch, and Maghrib/Isha jump
+        // ahead even though they should mirror today's Fajr.
+        if(fajrBatch.length>0) setTodayFajrBatch(fajrBatch);
+        const src=fajrBatch.length>0?fajrBatch:todayFajrBatch;
         const batchLabel=describeBatch(src);
         const hasPending=src.some(v=>(repCounts[v.verse_key]||0)<20);
         if(hasPending){
