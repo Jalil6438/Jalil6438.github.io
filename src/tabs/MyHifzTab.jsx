@@ -1130,7 +1130,7 @@ export default function MyHifzTab(props) {
                   });
                   return (
                     <div ref={reviewMushafRef} style={{marginBottom:16}}>
-                      <div style={{position:"relative",padding:"32px 12px 70px"}}>
+                      <div style={{position:"relative",padding:"32px 2px 70px"}}>
                         {dominantSurah>0&&(
                           <div style={{position:"absolute",top:0,left:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>
                             {SURAH_EN[dominantSurah]||""}
