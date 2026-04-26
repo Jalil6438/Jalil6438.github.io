@@ -66,7 +66,11 @@ export default function QuranTab(props) {
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   // Tajweed coloring is just the third Reading mode — derived, not its own
   // state. quranMode persistence happens in the parent.
-  const tajweedFont = quranMode === "tajweed";
+  // TAJWEED DISABLED 2026-04-26 — uncomment line below + delete `false` line
+  // to restore. All V4 conditional branches stay live but unreachable while
+  // tajweedFont is hardcoded to false.
+  // const tajweedFont = quranMode === "tajweed";
+  const tajweedFont = false;
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
     // V2 fonts (quran.com CDN) for plain Study mode, V4-tajweed (self-hosted
@@ -146,17 +150,20 @@ export default function QuranTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        const [pV2, lV2, pV4, lV4, v] = await Promise.all([
+        // TAJWEED DISABLED 2026-04-26 — V4 layout/pages fetched but unused
+        // while tajweedFont is hardcoded false. Restore by uncommenting V4
+        // entries below + the setPagesV4/setLayoutV4 lines.
+        const [pV2, lV2, /*pV4, lV4,*/ v] = await Promise.all([
           fetch("/v2/mushaf-pages.json"),
           fetch("/v2/mushaf-layout.json"),
-          fetch("/mushaf-pages.json"),     // active default = V4
-          fetch("/mushaf-layout.json"),
+          /* fetch("/mushaf-pages.json"),     // active default = V4
+          fetch("/mushaf-layout.json"), */
           fetch("/verse-to-page.json"),
         ]);
         if (!cancelled && pV2.ok) setPagesV2(await pV2.json());
         if (!cancelled && lV2.ok) setLayoutV2(await lV2.json());
-        if (!cancelled && pV4.ok) setPagesV4(await pV4.json());
-        if (!cancelled && lV4.ok) setLayoutV4(await lV4.json());
+        /* if (!cancelled && pV4.ok) setPagesV4(await pV4.json());
+        if (!cancelled && lV4.ok) setLayoutV4(await lV4.json()); */
         if (!cancelled && v.ok) {
           const map = await v.json();
           // Invert verse->page into page->[{sNum,minA,maxA}] so bookmark
@@ -449,14 +456,18 @@ export default function QuranTab(props) {
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
                   <div>
                     <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Reading mode</div>
-                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Mushaf · Study · Tajweed colors</div>
+                    {/* TAJWEED DISABLED 2026-04-26 — original subtitle: "Mushaf · Study · Tajweed colors" */}
+                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Mushaf · Study</div>
                   </div>
                   {setQuranMode&&(()=>{
-                    const modes=[{id:"mushaf",label:"Mushaf"},{id:"interactive",label:"Study"},{id:"tajweed",label:"Tajweed"}];
+                    // TAJWEED DISABLED 2026-04-26 — original modes array included tajweed:
+                    //   const modes=[{id:"mushaf",label:"Mushaf"},{id:"interactive",label:"Study"},{id:"tajweed",label:"Tajweed"}];
+                    // and the slider divisor below was /3 (3 modes). Restore both together.
+                    const modes=[{id:"mushaf",label:"Mushaf"},{id:"interactive",label:"Study"}/*,{id:"tajweed",label:"Tajweed"}*/];
                     const idx=Math.max(0,modes.findIndex(m=>m.id===quranMode));
                     return (
                       <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:210,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
-                        <div style={{position:"absolute",top:2,left:`calc((100% - 4px) * ${idx} / 3 + 2px)`,width:"calc((100% - 4px) / 3)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
+                        <div style={{position:"absolute",top:2,left:`calc((100% - 4px) * ${idx} / 2 + 2px)`,width:"calc((100% - 4px) / 2)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
                         {modes.map(m=>(
                           <div key={m.id} className="sbtn" onClick={()=>setQuranMode(m.id)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:quranMode===m.id?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>{m.label}</div>
                         ))}
