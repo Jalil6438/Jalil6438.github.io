@@ -869,17 +869,18 @@ export default function RihlatAlHifz() {
         // same page stays visible.
         const todaySurahForFilter=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPageForFilter=fajrBatch[0]?(verseToPage&&verseToPage[fajrBatch[0].verse_key])||fajrBatch[0].page_number:(verseToPage&&sessionVerses[sessionIdx]?verseToPage[sessionVerses[sessionIdx].verse_key]:0)||sessionVerses[sessionIdx]?.page_number||0;
-        const todayKeyForFilter=todaySurahForFilter&&todayPageForFilter?`${todaySurahForFilter}-${todayPageForFilter}`:null;
+        // Today's filter is verse-key based, not (surah,page) based — when a
+        // single page holds multiple days' memorization (e.g. Haqqah p567 =
+        // 69:9-35 spread across many days) the page-level filter wiped out
+        // 14-35 along with today's 9-13. Now we only exclude the exact
+        // verse_keys in today's Fajr batch.
+        const todayVerseKeys=new Set((fajrBatch||[]).map(v=>v.verse_key).filter(Boolean));
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
           const vPage=pageOf(v);
           if(!vPage||!pagesCollectedSet.has(vPage)) return;
-          // Stamp the V2 page on the verse object so downstream consumers
-          // (page grouping, header chrome) use the same value as the walk.
           v.page_number=vPage;
-          const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
-          const k=`${s}-${vPage}`;
-          if(todayKeyForFilter&&k===todayKeyForFilter) return;
+          if(todayVerseKeys.has(v.verse_key)) return;
           if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
@@ -897,22 +898,17 @@ export default function RihlatAlHifz() {
     // pagesCollectedSet. In custom mode, skip fallback — the dailyNew*5 slice
     // is authoritative and shouldn't be inflated by yesterdayBatch/recentBatches.
     if(isShaykh){
-      // Compute today's filter key once for the fallback path. yesterdayBatch
-      // and recentBatches can carry stale data from before a progress reset
-      // — that data must still respect the (todaySurah, todayPage) exclusion
-      // so the current day's work doesn't sneak back in via the fallback.
-      const todaySurahFb=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
-      const todayPageFb=fajrBatch[0]?(verseToPage&&verseToPage[fajrBatch[0].verse_key])||fajrBatch[0].page_number:0;
-      const todayKeyFb=todaySurahFb&&todayPageFb?`${todaySurahFb}-${todayPageFb}`:null;
+      // Same verse-key-based filter as the walk above so a single page
+      // shared between today's batch and prior days' memorized verses
+      // doesn't get fully excluded.
+      const todayVerseKeysFb=new Set((fajrBatch||[]).map(v=>v.verse_key).filter(Boolean));
       const passFallback=(v)=>{
         if(!v.verse_key||seen.has(v.verse_key)) return false;
+        if(todayVerseKeysFb.has(v.verse_key)) return false;
         if(pagesCollectedSet){
           const p=(verseToPage&&verseToPage[v.verse_key])||v.page_number;
           if(p) v.page_number=p;
-          if(!p||!pagesCollectedSet.has(p)) return false;
-          const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
-          if(todayKeyFb&&`${s}-${p}`===todayKeyFb) return false;
-          return true;
+          return !!(p&&pagesCollectedSet.has(p));
         }
         return true;
       };
@@ -923,10 +919,11 @@ export default function RihlatAlHifz() {
       // boundary. Trim now to 5 by dropping the page furthest from today's
       // page (mushaf-distance), so the review shows pages closest to where
       // the user is working.
-      if(todayPageFb){
+      const todayPg=fajrBatch[0]?(verseToPage&&verseToPage[fajrBatch[0].verse_key])||fajrBatch[0].page_number:0;
+      if(todayPg){
         const effectivePages=[...new Set(combined.map(v=>v.page_number).filter(Boolean))];
         if(effectivePages.length>5){
-          effectivePages.sort((a,b)=>Math.abs(a-todayPageFb)-Math.abs(b-todayPageFb));
+          effectivePages.sort((a,b)=>Math.abs(a-todayPg)-Math.abs(b-todayPg));
           const drop=new Set(effectivePages.slice(5));
           combined=combined.filter(v=>!drop.has(v.page_number));
         }
