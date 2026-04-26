@@ -175,8 +175,8 @@ export default function MyHifzTab(props) {
     (async () => {
       try {
         const [p, l, v] = await Promise.all([
-          fetch("/mushaf-pages.json"),
-          fetch("/mushaf-layout.json"),
+          fetch("/v2/mushaf-pages.json"),
+          fetch("/v2/mushaf-layout.json"),
           fetch("/verse-to-page.json"),
         ]);
         if (!cancelled && p.ok) setMushafPagesData(await p.json());

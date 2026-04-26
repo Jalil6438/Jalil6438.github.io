@@ -46,7 +46,7 @@ export default function MyMemorizationView({
     let cancelled = false;
     (async () => {
       try {
-        const [p, l] = await Promise.all([fetch("/mushaf-pages.json"), fetch("/mushaf-layout.json")]);
+        const [p, l] = await Promise.all([fetch("/v2/mushaf-pages.json"), fetch("/v2/mushaf-layout.json")]);
         if (!cancelled && p.ok) setMushafPagesData(await p.json());
         if (!cancelled && l.ok) setMushafLayoutData(await l.json());
       } catch {}

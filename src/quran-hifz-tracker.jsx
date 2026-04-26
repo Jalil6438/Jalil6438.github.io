@@ -204,7 +204,7 @@ export default function RihlatAlHifz() {
   // Load QPC mushaf pages data
   useEffect(()=>{
     if(qpcPages) return;
-    fetch("/mushaf-pages.json").then(r=>r.json()).then(d=>setQpcPages(d)).catch(()=>{});
+    fetch("/v2/mushaf-pages.json").then(r=>r.json()).then(d=>setQpcPages(d)).catch(()=>{});
   },[]);
 
   useEffect(() => {
