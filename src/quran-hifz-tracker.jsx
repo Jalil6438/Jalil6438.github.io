@@ -697,9 +697,10 @@ export default function RihlatAlHifz() {
   const timeline=calcTimeline(goalYears,memorizedAyahs,goalMonths,nextJuzAyahs,completedCount);
   const targetDaily=Math.round(parseFloat(timeline.ayahsPerDay));
 
-  // Sheikh Al-Qasim's 2-page rule — allow up to 2 full pages worth of content.
-  // Uses distinct-page counting so it works in any traversal order (hifz is
-  // descending by surah, so page_number decreases as you go forward).
+  // Sheikh Al-Qasim's 1-page rule — Fajr is one mushaf page per day. Surahs
+  // that span multiple pages take multiple days. This matches MyHifzTab's
+  // page-filtered mushaf rendering (which only shows the active page) so
+  // sessionIdx never advances past verses the user actually saw.
   // Custom plan users have explicitly chosen to break the Shaykh's rule,
   // so the cap is lifted — they get exactly the targetDaily count.
   const twoPageLimit=(()=>{
@@ -707,19 +708,12 @@ export default function RihlatAlHifz() {
     if(!sessionVerses.length||sessionIdx>=sessionVerses.length) return {count:targetDaily,capped:false};
     const startPage=sessionVerses[sessionIdx]?.page_number;
     if(!startPage) return {count:targetDaily,capped:false};
-    const prevAyah=sessionIdx>0?sessionVerses[sessionIdx-1]:null;
-    const startsAtPageBeginning=!prevAyah||prevAyah.page_number!==startPage;
-    // Starting at page beginning → 2 distinct pages. Mid-page → 3 (current + 2 more).
-    const maxDistinctPages=startsAtPageBeginning?2:3;
-    const pagesSeen=new Set();
+    // Walk while we stay on the start page. Stop the moment we'd cross
+    // into a different page — those ayahs become tomorrow's batch.
     let maxCount=0;
     for(let i=sessionIdx;i<sessionVerses.length;i++){
       const p=sessionVerses[i]?.page_number;
-      if(!p){ maxCount++; continue; }
-      if(!pagesSeen.has(p)){
-        if(pagesSeen.size>=maxDistinctPages) break;
-        pagesSeen.add(p);
-      }
+      if(p&&p!==startPage) break;
       maxCount++;
     }
     return {count:Math.min(targetDaily,maxCount),capped:targetDaily>maxCount,maxAllowed:maxCount};
