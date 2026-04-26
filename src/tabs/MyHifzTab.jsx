@@ -252,22 +252,6 @@ export default function MyHifzTab(props) {
     return all.length > 0 ? all : rawBatch;
   })();
 
-  // Dynamically load the KFGQPC V2 per-page font for the current mushaf page.
-  // Source: jsdelivr mirror of quran.com's font bundle (CORS-friendly). Each
-  // page has its own font whose PUA range matches the glyph codes in
-  // /mushaf-pages.json. Loading once per page is cheap (~30-60KB).
-  useEffect(() => {
-    if (!fajrPageNum) return;
-    // Redundant registration with -v2 family to match the rest of the app.
-    const fontFamily = `p${fajrPageNum}-v2`;
-    const elId = `qcf-font-${fontFamily}-fallback`;
-    if (document.getElementById(elId)) return;
-    const style = document.createElement("style");
-    style.id = elId;
-    style.textContent = `@font-face{font-family:'${fontFamily}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${fajrPageNum}.woff') format('woff');font-display:swap;}`;
-    document.head.appendChild(style);
-  }, [fajrPageNum]);
-
   // Filter a mushaf page's verses to what belongs in today's batch.
   //
   // Rule: include every surah on this page that is BOTH
