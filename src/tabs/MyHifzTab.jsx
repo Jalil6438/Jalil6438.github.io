@@ -679,7 +679,17 @@ export default function MyHifzTab(props) {
                       <div style={{flex:1}}>
                         <div style={{fontSize:14,fontWeight:700,color:isDone?"#4ADE80":(dark?"#F0E6D0":"#2D2A26")}}>{sessionLabel}</div>
                       </div>
-                      <div style={{fontSize:12,color:dark?"rgba(230,184,74,0.60)":"#6B645A",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?"✓":batch.filter(v=>repCounts[v.verse_key]>=20).length} of {batch.length||dailyNew}</div>
+                      <div style={{fontSize:12,color:dark?"rgba(230,184,74,0.60)":"#6B645A",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?"✓":(()=>{
+                        // Fajr counts ayahs that hit the full 20 reps — that's
+                        // the memorization metric. Review sessions don't use
+                        // rep counters, so the rep-based count would always
+                        // read 0/N and feel broken. Show page progress instead
+                        // (Dhuhr/Asr have multiple pages; Maghrib/Isha are 1).
+                        if (sid === "fajr") return `${batch.filter(v=>repCounts[v.verse_key]>=20).length} of ${batch.length||dailyNew}`;
+                        const totalPages = new Set(batch.map(v => v.page_number).filter(Boolean)).size || 1;
+                        const currentPage = Math.min(ayahPage + 1, totalPages);
+                        return `Page ${currentPage} of ${totalPages}`;
+                      })()}</div>
                     </div>
                     {microGuide&&<div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:5}}>{microGuide}</div>}
                     {(()=>{
