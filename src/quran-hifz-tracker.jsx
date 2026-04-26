@@ -856,16 +856,10 @@ export default function RihlatAlHifz() {
         // out below), Dhuhr still shows 5 effective pages. We also remember
         // the order pages were collected (most-recent first) so the post-
         // filter trim below can drop the oldest if the buffer wasn't needed.
-        // Resolve each verse's page via our V2-authoritative verse-to-page map,
-        // not the quran.com API's page_number field — the API returns V4 page
-        // boundaries, which split a few pages differently than V2 (e.g. 579
-        // Insan 6-25 in V2 might land in a different page in V4). Using V2
-        // throughout keeps the collected pages consistent with what the app
-        // renders.
         const pageOf=(v)=>(verseToPage&&verseToPage[v.verse_key])||v.page_number||0;
         pagesCollectedSet=new Set();
         var pagesCollectedOrder=[];
-        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<6;i--){
+        for(let i=allIdx-1;i>=0&&pagesCollectedSet.size<5;i--){
           const p=pageOf(allJuzVerses[i]);
           if(p&&!pagesCollectedSet.has(p)){
             pagesCollectedSet.add(p);
@@ -919,18 +913,6 @@ export default function RihlatAlHifz() {
       };
       (yesterdayBatch||[]).forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
       (recentBatches||[]).flat().forEach(v=>{ if(passFallback(v)){ seen.add(v.verse_key); combined.push(v); }});
-    }
-    // Post-filter trim: the 6-page buffer assumed the today-surah filter
-    // would drop one page. When today's Fajr starts on a brand-new page
-    // not in the collected set, nothing gets dropped and Dhuhr ends up
-    // with 6 pages instead of 5. Trim the oldest collected page if the
-    // effective set is still 6.
-    if(isShaykh&&pagesCollectedOrder&&pagesCollectedOrder.length){
-      const effectivePages=new Set(combined.map(v=>v.page_number).filter(Boolean));
-      if(effectivePages.size>5){
-        const oldest=pagesCollectedOrder[pagesCollectedOrder.length-1];
-        combined=combined.filter(v=>v.page_number!==oldest);
-      }
     }
     // Display in natural mushaf order (page ascending, then ayah) so the
     // review reads Al-Baqarah → An-Nas direction like a user holding the mushaf
