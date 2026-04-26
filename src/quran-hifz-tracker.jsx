@@ -122,6 +122,7 @@ export default function RihlatAlHifz() {
   const [mushafWords,setMushafWords]=useState([]);
   const [mushafPageLines,setMushafPageLines]=useState([]);
   const [qpcPages,setQpcPages]=useState(null);
+  const [verseToPage,setVerseToPage]=useState(null);
   const [showMushafSheet,setShowMushafSheet]=useState(false);
   const [mushafBookmarks,setMushafBookmarks]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-mushaf-bookmarks")||"[]");}catch{return [];}});
   
@@ -207,6 +208,15 @@ export default function RihlatAlHifz() {
     fetch("/v2/mushaf-pages.json").then(r=>r.json()).then(d=>setQpcPages(d)).catch(()=>{});
   },[]);
 
+  // Authoritative verse→page map. quran.com's by_page API uses a different
+  // page boundary on a handful of pages (e.g. p575 returns 18 verses but the
+  // KFGQPC v2 page actually has 19 — Muddaththir 18 is missing). We use this
+  // to detect and patch the gap before populating mushafVerses.
+  useEffect(()=>{
+    if(verseToPage) return;
+    fetch("/verse-to-page.json").then(r=>r.json()).then(d=>setVerseToPage(d)).catch(()=>{});
+  },[]);
+
   useEffect(() => {
     if (activeTab !== "quran") return;
     let cancelled = false;
@@ -220,6 +230,35 @@ export default function RihlatAlHifz() {
         const textData = await textRes.json();
         if (cancelled) return;
         const vs = textData.verses || [];
+        // Backfill any verses that our authoritative map says belong on this
+        // page but that quran.com's by_page omitted (e.g. p575 missing 74:18).
+        if (verseToPage) {
+          const expected = Object.keys(verseToPage).filter(vk => verseToPage[vk] === mushafPage);
+          const have = new Set(vs.map(v => v.verse_key));
+          const missing = expected.filter(vk => !have.has(vk));
+          if (missing.length) {
+            const surahsNeeded = [...new Set(missing.map(vk => Number(vk.split(":")[0])))];
+            const fetched = {};
+            await Promise.all(surahsNeeded.map(async sNum => {
+              try {
+                const r = await fetch(`https://api.quran.com/api/v4/verses/by_chapter/${sNum}?words=false&fields=text_uthmani,verse_key,page_number,juz_number&per_page=300`);
+                if (!r.ok) return;
+                const d = await r.json();
+                (d.verses||[]).forEach(v => { fetched[v.verse_key] = v; });
+              } catch {}
+            }));
+            missing.forEach(vk => {
+              const v = fetched[vk];
+              if (!v) return;
+              const [s, a] = vk.split(":").map(Number);
+              const insertAt = vs.findIndex(x => {
+                const [xs, xa] = x.verse_key.split(":").map(Number);
+                return xs > s || (xs === s && xa > a);
+              });
+              if (insertAt === -1) vs.push(v); else vs.splice(insertAt, 0, v);
+            });
+          }
+        }
         // Fix U+06DF (small high rounded zero) → remove it for UthmanicHafs compatibility
         vs.forEach(v => { if(v.text_uthmani) v.text_uthmani = v.text_uthmani.replace(/\u06DF/g, "\u0652"); });
         setMushafVerses(vs);
@@ -241,7 +280,7 @@ export default function RihlatAlHifz() {
       }
     })();
     return () => { cancelled = true; };
-  }, [activeTab, mushafPage]);
+  }, [activeTab, mushafPage, verseToPage]);
 
   // Crop on page change (cache result so we don't re-crop)
   useEffect(() => {
