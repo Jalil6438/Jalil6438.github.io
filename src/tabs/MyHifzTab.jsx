@@ -1640,7 +1640,7 @@ export default function MyHifzTab(props) {
                     background:"linear-gradient(180deg,#E6B84A,#D4A62A)",
                     color:"#0B1220",
                     boxShadow:"0 6px 18px rgba(230,184,74,0.30),0 0 14px rgba(230,184,74,0.15)"}}>
-                    {isFinal?"Complete Session":"Next →"}
+                    {isFinal?"Complete Session":"Next ←"}
                   </div>
                   {!isFinal&&<div style={{textAlign:"center",fontSize:10,color:"rgba(243,231,200,0.28)",marginTop:6}}>{ayahPage+1} of {batchPages} · keep going</div>}
                   </div>);
