@@ -1057,7 +1057,7 @@ export default function MyHifzTab(props) {
                             );
                           }
                           return (
-                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"8px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.15em"}}>
                               {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                             </div>
                           );
@@ -1215,7 +1215,7 @@ export default function MyHifzTab(props) {
                               );
                             }
                             return (
-                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"6px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":0}}>
+                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"8px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.15em"}}>
                                 {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                               </div>
                             );
