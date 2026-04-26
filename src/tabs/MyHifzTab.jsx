@@ -144,18 +144,19 @@ export default function MyHifzTab(props) {
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
-    const elId = `qcf-font-v2-${pageN}`;
+    // Use the SAME font-family + id scheme as QuranTab Study mode so we
+    // share the FontFace registration across components.
+    const family = `p${pageN}-v2`;
+    const elId = `qcf-font-${family}`;
     if (!document.getElementById(elId)) {
-      const legacy = document.getElementById(`qcf-font-${pageN}`);
-      if (legacy) legacy.remove();
       const style = document.createElement("style");
       style.id = elId;
-      style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
+      style.textContent = `@font-face{font-family:'${family}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
       document.head.appendChild(style);
     }
     if (loadedFonts.has(pageN)) return;
     if (document.fonts && document.fonts.load) {
-      document.fonts.load(`16px 'p${pageN}'`).then(() => {
+      document.fonts.load(`16px '${family}'`).then(() => {
         setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
       }).catch(() => {});
     }
@@ -257,10 +258,12 @@ export default function MyHifzTab(props) {
   // /mushaf-pages.json. Loading once per page is cheap (~30-60KB).
   useEffect(() => {
     if (!fajrPageNum) return;
-    const fontFamily = `p${fajrPageNum}`;
-    if (document.getElementById(`qcf-font-${fajrPageNum}`)) return;
+    // Redundant registration with -v2 family to match the rest of the app.
+    const fontFamily = `p${fajrPageNum}-v2`;
+    const elId = `qcf-font-${fontFamily}-fallback`;
+    if (document.getElementById(elId)) return;
     const style = document.createElement("style");
-    style.id = `qcf-font-${fajrPageNum}`;
+    style.id = elId;
     style.textContent = `@font-face{font-family:'${fontFamily}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${fajrPageNum}.woff') format('woff');font-display:swap;}`;
     document.head.appendChild(style);
   }, [fajrPageNum]);
@@ -1049,7 +1052,7 @@ export default function MyHifzTab(props) {
                             return (
                               <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
                                 {bismillahGlyphs&&loadedFonts.has(1)?(
-                                  <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
+                                  <div style={{fontFamily:"'p1-v2',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
                                 ):(
                                   <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                                 )}
@@ -1057,7 +1060,7 @@ export default function MyHifzTab(props) {
                             );
                           }
                           return (
-                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}-v2',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                               {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                             </div>
                           );
@@ -1207,7 +1210,7 @@ export default function MyHifzTab(props) {
                               return (
                                 <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
                                   {bismillahGlyphs&&loadedFonts.has(1)?(
-                                    <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
+                                    <div style={{fontFamily:"'p1-v2',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
                                   ):(
                                     <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                                   )}
@@ -1215,7 +1218,7 @@ export default function MyHifzTab(props) {
                               );
                             }
                             return (
-                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}-v2',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                                 {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                               </div>
                             );
@@ -1368,7 +1371,7 @@ export default function MyHifzTab(props) {
                             if(isShaykhPlan&&pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (
-                                <div style={{direction:"rtl",textAlign:"right",lineHeight:2,fontFamily:`'p${pn}',serif`,fontSize:"clamp(20px,5.2vw,30px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>
+                                <div style={{direction:"rtl",textAlign:"right",lineHeight:2,fontFamily:`'p${pn}-v2',serif`,fontSize:"clamp(20px,5.2vw,30px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>
                                   {words.map((w,wi)=>(<span key={wi}>{w} </span>))}
                                 </div>
                               );

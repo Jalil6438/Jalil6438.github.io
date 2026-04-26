@@ -45,18 +45,17 @@ function AsrSessionView({
     }, []);
     const loadQcfFont = (pageN) => {
       if (!pageN || pageN < 1 || pageN > 604) return;
-      const elId = `qcf-font-v2-${pageN}`;
+      const family = `p${pageN}-v2`;
+      const elId = `qcf-font-${family}`;
       if (!document.getElementById(elId)) {
-        const legacy = document.getElementById(`qcf-font-${pageN}`);
-        if (legacy) legacy.remove();
         const style = document.createElement("style");
         style.id = elId;
-        style.textContent = `@font-face{font-family:'p${pageN}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
+        style.textContent = `@font-face{font-family:'${family}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
         document.head.appendChild(style);
       }
       if (loadedFonts.has(pageN)) return;
       if (document.fonts && document.fonts.load) {
-        document.fonts.load(`16px 'p${pageN}'`).then(() => {
+        document.fonts.load(`16px '${family}'`).then(() => {
           setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
         }).catch(() => {});
       }
@@ -313,7 +312,7 @@ function AsrSessionView({
                       return (
                         <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
                           {bismillahGlyphs&&loadedFonts.has(1)?(
-                            <div style={{fontFamily:"'p1',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
+                            <div style={{fontFamily:"'p1-v2',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
                           ):(
                             <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                           )}
@@ -321,7 +320,7 @@ function AsrSessionView({
                       );
                     }
                     return (
-                      <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+                      <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}-v2',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                         {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
                       </div>
                     );
