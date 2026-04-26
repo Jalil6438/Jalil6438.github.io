@@ -56,18 +56,57 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       audio.play().catch(()=>{setAudioLoading(null);setPlayingKey(null);});
     }
 
-    const everyayahUrl=`https://everyayah.com/data/${getEveryayahFolder(reciter)}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`;
-    if(!currentReciter.recitationId){ playDirect(everyayahUrl); return; }
+    const everyayahFolder=getEveryayahFolder(reciter);
+    const everyayahUrl=everyayahFolder?`https://everyayah.com/data/${everyayahFolder}/${String(surah).padStart(3,"0")}${String(ayah).padStart(3,"0")}.mp3`:null;
 
-    try {
-      const res=await fetch(`https://api.qurancdn.com/api/qdc/audio/reciters/${currentReciter.recitationId}/audio_files?chapter_number=${surah}&juz_number=0&page_number=0&hizb_number=0&rub_el_hizb_number=0&verse_key=${verseKey}`);
-      if(res.ok){
-        const data=await res.json();
-        const url=data.audio_files?.[0]?.url;
-        if(url){ playDirect(url.startsWith("http")?url:`https://audio.qurancdn.com/${url}`); return; }
-      }
-    } catch {}
-    playDirect(everyayahUrl);
+    // QUL surah-file path for reciters without a per-ayah source: play the
+    // full surah file but seek-and-clip to this ayah's [from,to] range.
+    async function playQulAyah(slug){
+      try {
+        const data=await loadQulSegments(slug);
+        const t=data.verses[verseKey];
+        if(!t) return false;
+        const url=`${data.audio_base}${String(surah).padStart(3,"0")}.mp3`;
+        const audio=new Audio(url);
+        audioRef.current=audio;
+        const startMs=t[0], endMs=t[1];
+        audio.onloadedmetadata=()=>{
+          try{ audio.currentTime=startMs/1000; }catch{}
+          audio.play().catch(()=>{setAudioLoading(null);setPlayingKey(null);});
+        };
+        audio.oncanplay=()=>{ setAudioLoading(null); setPlayingKey(key); };
+        audio.ontimeupdate=()=>{
+          if(audio.currentTime*1000>=endMs){
+            if(looping){ try{ audio.currentTime=startMs/1000; }catch{} return; }
+            try{ audio.pause(); }catch{}
+            setPlayingKey(null);
+          }
+        };
+        audio.onerror=()=>{ setAudioLoading(null); setPlayingKey(null); };
+        return true;
+      } catch { return false; }
+    }
+
+    // Routing:
+    //   1. recitationId → qurancdn per-ayah file
+    //   2. qulSlug      → surah file + seek to ayah range
+    //   3. everyayah    → per-ayah clip
+    if(currentReciter.recitationId){
+      try {
+        const res=await fetch(`https://api.qurancdn.com/api/qdc/audio/reciters/${currentReciter.recitationId}/audio_files?chapter_number=${surah}&juz_number=0&page_number=0&hizb_number=0&rub_el_hizb_number=0&verse_key=${verseKey}`);
+        if(res.ok){
+          const data=await res.json();
+          const url=data.audio_files?.[0]?.url;
+          if(url){ playDirect(url.startsWith("http")?url:`https://audio.qurancdn.com/${url}`); return; }
+        }
+      } catch {}
+    }
+    if(currentReciter.qulSlug){
+      const ok=await playQulAyah(currentReciter.qulSlug);
+      if(ok) return;
+    }
+    if(everyayahUrl){ playDirect(everyayahUrl); return; }
+    setAudioLoading(null);
   }
 
   function playSurahQueue(verses, surahNum, startIdx=0, reciterId=reciter) {
