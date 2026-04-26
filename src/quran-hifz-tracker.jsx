@@ -901,13 +901,22 @@ export default function RihlatAlHifz() {
     // pagesCollectedSet. In custom mode, skip fallback — the dailyNew*5 slice
     // is authoritative and shouldn't be inflated by yesterdayBatch/recentBatches.
     if(isShaykh){
+      // Compute today's filter key once for the fallback path. yesterdayBatch
+      // and recentBatches can carry stale data from before a progress reset
+      // — that data must still respect the (todaySurah, todayPage) exclusion
+      // so the current day's work doesn't sneak back in via the fallback.
+      const todaySurahFb=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
+      const todayPageFb=fajrBatch[0]?(verseToPage&&verseToPage[fajrBatch[0].verse_key])||fajrBatch[0].page_number:0;
+      const todayKeyFb=todaySurahFb&&todayPageFb?`${todaySurahFb}-${todayPageFb}`:null;
       const passFallback=(v)=>{
         if(!v.verse_key||seen.has(v.verse_key)) return false;
         if(pagesCollectedSet){
-          // Same V2 lookup as the walk above so pages line up.
           const p=(verseToPage&&verseToPage[v.verse_key])||v.page_number;
           if(p) v.page_number=p;
-          return !!(p&&pagesCollectedSet.has(p));
+          if(!p||!pagesCollectedSet.has(p)) return false;
+          const s=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]||"0",10);
+          if(todayKeyFb&&`${s}-${p}`===todayKeyFb) return false;
+          return true;
         }
         return true;
       };
