@@ -22,10 +22,14 @@ const OUT = path.join(REPO, "public", "segments");
 
 // Map QUL zip basename → reciter slug we use in constants.js.
 const RECITERS = [
-  { zip: "surah-recitation-salah-al-budair.zip",      slug: "budair"   },
-  { zip: "surah-recitation-bandar-baleela.zip",       slug: "baleela"  },
-  { zip: "surah-recitation-abdullah-ali-jabir.zip",   slug: "alijaber" },
-  { zip: "surah-recitation-yasser-al-dosari.zip",     slug: "dosari"   },
+  { zip: "surah-recitation-salah-al-budair.zip",        slug: "budair"   },
+  { zip: "surah-recitation-bandar-baleela.zip",         slug: "baleela"  },
+  { zip: "surah-recitation-abdullah-ali-jabir.zip",     slug: "alijaber" },
+  { zip: "surah-recitation-yasser-al-dosari.zip",       slug: "dosari"   },
+  { zip: "surah-recitation-abdullah-awad-al-juhani.zip",slug: "juhany"   },
+  { zip: "surah-recitation-maher-al-muaiqly.zip",       slug: "muaiqly"  },
+  { zip: "surah-recitation-nasser-al-qatami.zip",       slug: "qatami"   },
+  { zip: "surah-recitation-fares-abbad.zip",            slug: "abbad"    },
 ];
 
 if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
