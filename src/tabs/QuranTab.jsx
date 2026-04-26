@@ -1,7 +1,8 @@
-import { SURAH_EN, MADANI_SURAHS } from "../data/constants";
+import { SURAH_EN, MADANI_SURAHS, RECITERS } from "../data/constants";
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import React, { useState, useEffect, useRef } from "react";
 import { mushafImageUrl, toArabicDigits } from "../utils";
+import { loadQulSegments } from "../hooks/useAudio";
 
 export default function QuranTab(props) {
   const {
@@ -689,10 +690,28 @@ export default function QuranTab(props) {
               ):(
                 <div style={mushafPage<=2?{padding:0,flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:0}}>
                   {(()=>{
-                    const playAyahAudio = (vk) => {
+                    const playAyahAudio = async (vk) => {
                       if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
                       const [s,a]=vk.split(":");
+                      const rObj=RECITERS.find(r=>r.id===quranReciter);
+                      // qulSlug → play surah file with seek+clip to ayah's [from,to]
+                      if(rObj?.qulSlug){
+                        try{
+                          const data=await loadQulSegments(rObj.qulSlug);
+                          const t=data.verses[vk];
+                          if(t){
+                            const url=`${data.audio_base}${String(s).padStart(3,"0")}.mp3`;
+                            const au=new Audio(url); audioRef.current=au;
+                            const startMs=t[0], endMs=t[1];
+                            au.onloadedmetadata=()=>{ try{au.currentTime=startMs/1000;}catch{} au.play(); };
+                            au.ontimeupdate=()=>{ if(au.currentTime*1000>=endMs){ try{au.pause();}catch{} setPlayingKey(null); } };
+                            setPlayingKey(vk);
+                            return;
+                          }
+                        } catch {}
+                      }
                       const folder=getEveryayahFolder(quranReciter);
+                      if(!folder) return;
                       const url=`https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
                       const au=new Audio(url);
                       audioRef.current=au;
@@ -850,10 +869,27 @@ export default function QuranTab(props) {
                 // user explicitly started single-ayah playback — not when the
                 // Play Range happens to be passing through this ayah.
                 const isPlaying = !mushafAudioPlaying && playingKey === selectedAyah;
-                const playAyahAudio = (vk) => {
+                const playAyahAudio = async (vk) => {
                   if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
                   const [s,a]=vk.split(":");
+                  const rObj=RECITERS.find(r=>r.id===quranReciter);
+                  if(rObj?.qulSlug){
+                    try{
+                      const data=await loadQulSegments(rObj.qulSlug);
+                      const t=data.verses[vk];
+                      if(t){
+                        const url=`${data.audio_base}${String(s).padStart(3,"0")}.mp3`;
+                        const au=new Audio(url); audioRef.current=au;
+                        const startMs=t[0], endMs=t[1];
+                        au.onloadedmetadata=()=>{ try{au.currentTime=startMs/1000;}catch{} au.play(); };
+                        au.ontimeupdate=()=>{ if(au.currentTime*1000>=endMs){ try{au.pause();}catch{} setPlayingKey(null); } };
+                        setPlayingKey(vk);
+                        return;
+                      }
+                    } catch {}
+                  }
                   const folder=getEveryayahFolder(quranReciter);
+                  if(!folder) return;
                   const url=`https://everyayah.com/data/${folder}/${String(s).padStart(3,"0")}${String(a).padStart(3,"0")}.mp3`;
                   const au=new Audio(url); audioRef.current=au; setPlayingKey(vk);
                   au.play(); au.onended=()=>setPlayingKey(null);

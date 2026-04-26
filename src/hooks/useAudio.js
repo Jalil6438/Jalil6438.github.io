@@ -4,7 +4,7 @@ import { RECITERS, QURAN_RECITERS } from "../data/constants";
 // QUL extracted segment JSONs (built by scripts/extract-qul-segments.cjs).
 // Lazy-fetched on first use per slug; cached for the life of the page.
 const qulSegmentCache = {};
-async function loadQulSegments(slug) {
+export async function loadQulSegments(slug) {
   if (qulSegmentCache[slug]) return qulSegmentCache[slug];
   const res = await fetch(`/segments/${slug}.json`);
   if (!res.ok) throw new Error(`segments fetch failed: ${slug}`);
