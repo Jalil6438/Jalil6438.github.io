@@ -350,24 +350,30 @@ export default function RihlatAlHifz() {
     if(!loaded||showOnboarding) return;
     const hasStorage=localStorage.getItem("jalil-badge-milestones")!==null;
     const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
-    // Each milestone gets the actual badge image so the celebration modal
-    // shows what the user just earned (e.g. /badge-streak-14.png), not just
-    // a generic fire emoji. Headline counts keep tailored messaging; the
-    // rest get a generic "N juz memorized!" line.
+    // Per-milestone du'a in second-person voice — feels like the app is
+    // praying FOR the user as they earn the badge.
+    const DUA={
+      jaza:    {ar:"جَزَاكَ ٱللَّهُ خَيْرًا",         en:"May Allah reward you with goodness."},
+      taqabbal:{ar:"تَقَبَّلَ ٱللَّهُ مِنْكَ",          en:"May Allah accept from you."},
+      waffaq:  {ar:"وَفَّقَكَ ٱللَّهُ لِكُلِّ خَيْرٍ", en:"May Allah grant you success in every good."},
+      barak:   {ar:"بَارَكَ ٱللَّهُ فِيكَ",             en:"May Allah bless you."},
+      thabbat: {ar:"ثَبَّتَكَ ٱللَّهُ عَلَىٰ ٱلْحَقِّ", en:"May Allah make you firm upon the truth."},
+    };
     const juzMilestone=(n)=>{
       const img=n===30?"/badge-hafiz.png":n<=15?`/badge-juz-${n}.png`:"/badge-juz-15.png";
-      if(n===1) return {emoji:"🎉",img,msg:"You just completed your first juz!"};
-      if(n===5) return {emoji:"🌟",img,msg:"5 juz memorized — keep going!"};
-      if(n===10) return {emoji:"✨",img,msg:"10 juz memorized — a third of the Qur'an!"};
-      if(n===15) return {emoji:"🌙",img,msg:"Half the Qur'an memorized!"};
-      if(n===20) return {emoji:"📖",img,msg:"20 juz — you are close!"};
-      if(n===30) return {emoji:"🕋",img,msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"};
-      return {emoji:"🎉",img,msg:`${n} juz memorized — Al-Hamdulillah!`};
+      const dua=n===1?DUA.jaza:n===15?DUA.waffaq:n===30?DUA.barak:DUA.taqabbal;
+      if(n===1) return {emoji:"🎉",img,dua,msg:"You just completed your first juz!"};
+      if(n===5) return {emoji:"🌟",img,dua,msg:"5 juz memorized — keep going!"};
+      if(n===10) return {emoji:"✨",img,dua,msg:"10 juz memorized — a third of the Qur'an!"};
+      if(n===15) return {emoji:"🌙",img,dua,msg:"Half the Qur'an memorized!"};
+      if(n===20) return {emoji:"📖",img,dua,msg:"20 juz — you are close!"};
+      if(n===30) return {emoji:"🕋",img,dua,msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"};
+      return {emoji:"🎉",img,dua,msg:`${n} juz memorized — Al-Hamdulillah!`};
     };
     const milestones=[];
     for(let n=1;n<=30;n++){
       const m=juzMilestone(n);
-      milestones.push({key:`juz-${n}`,test:completedCount>=n,emoji:m.emoji,image:m.img,title:n===30?"You are now a Hafiz!":"Al-Hamdulillah!",msg:m.msg});
+      milestones.push({key:`juz-${n}`,test:completedCount>=n,emoji:m.emoji,image:m.img,dua:m.dua,title:n===30?"You are now a Hafiz!":"Al-Hamdulillah!",msg:m.msg});
     }
     const streakMilestone=(n)=>{
       if(n===7) return {title:"7 Day Streak!",msg:"A week of consistency — Al-Hamdulillah!",img:"/badge-streak-7.png"};
@@ -381,7 +387,7 @@ export default function RihlatAlHifz() {
     };
     [7,14,21,30,40,60,100].forEach(n=>{
       const m=streakMilestone(n);
-      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",image:m.img,title:m.title,msg:m.msg});
+      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",image:m.img,dua:DUA.thabbat,title:m.title,msg:m.msg});
     });
     if(!hasStorage){
       // First run: seed any already-met milestones as shown, don't pop.
@@ -398,7 +404,7 @@ export default function RihlatAlHifz() {
     const pending=[];
     for(const m of milestones){
       if(m.test&&!shown[m.key]){
-        pending.push({emoji:m.emoji,image:m.image,title:m.title,message:m.msg});
+        pending.push({emoji:m.emoji,image:m.image,dua:m.dua,title:m.title,message:m.msg});
         shown[m.key]=true;
       }
     }
@@ -2301,8 +2307,12 @@ export default function RihlatAlHifz() {
             ? <img src={badgeCelebration.image} alt="" style={{width:96,height:96,objectFit:"contain",marginBottom:12,display:"block",marginInline:"auto",filter:"drop-shadow(0 0 20px rgba(212,175,55,0.30))"}}/>
             : <div style={{fontSize:48,marginBottom:12}}>{badgeCelebration.emoji}</div>}
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:dark?"#F3E7C8":"#2D2A26",marginBottom:8}}>{badgeCelebration.title}</div>
-          <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.65)":"#6B645A",lineHeight:1.6,marginBottom:20}}>{badgeCelebration.message}</div>
-          <div className="sbtn" onClick={advance} style={{padding:"12px 28px",borderRadius:14,fontSize:13,fontWeight:700,color:"#0A0E1A",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25)",display:"inline-block"}}>Al-Hamdulillah</div>
+          <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.65)":"#6B645A",lineHeight:1.6,marginBottom:14}}>{badgeCelebration.message}</div>
+          {badgeCelebration.dua&&(<>
+            <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"#F6E27A":"#B45309",direction:"rtl",lineHeight:1.6,marginBottom:6}}>{badgeCelebration.dua.ar}</div>
+            <div style={{fontSize:11,fontStyle:"italic",color:dark?"rgba(243,231,200,0.55)":"#8B7355",marginBottom:18}}>"{badgeCelebration.dua.en}"</div>
+          </>)}
+          <div className="sbtn" onClick={advance} style={{padding:"12px 28px",borderRadius:14,fontSize:13,fontWeight:700,color:"#0A0E1A",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25)",display:"inline-block"}}>Āmīn</div>
         </div>
       </div>
       );
