@@ -358,6 +358,8 @@ export default function RihlatAlHifz() {
       waffaq:  {ar:"وَفَّقَكَ ٱللَّهُ لِكُلِّ خَيْرٍ", en:"May Allah grant you success in every good."},
       barak:   {ar:"بَارَكَ ٱللَّهُ فِيكَ",             en:"May Allah bless you."},
       thabbat: {ar:"ثَبَّتَكَ ٱللَّهُ عَلَىٰ ٱلْحَقِّ", en:"May Allah make you firm upon the truth."},
+      zada:    {ar:"زَادَكَ ٱللَّهُ مِنْ فَضْلِهِ",     en:"May Allah increase you from His bounty."},
+      hafiz:   {ar:"حَفِظَكَ ٱللَّهُ بِكِتَابِهِ",       en:"May Allah preserve you by His Book."},
     };
     const juzMilestone=(n)=>{
       const img=n===30?"/badge-hafiz.png":n<=15?`/badge-juz-${n}.png`:"/badge-juz-15.png";
@@ -385,9 +387,20 @@ export default function RihlatAlHifz() {
       if(n===100) return {title:"100 Day Streak!",msg:"100 days — extraordinary discipline.",img:"/badge-mastery-90.png"};
       return null;
     };
+    // Per-streak du'a so each milestone modal feels distinct.
+    const streakDuaFor=(n)=>{
+      if(n===7) return DUA.barak;       // first week — blessing
+      if(n===14) return DUA.thabbat;    // two weeks — firmness
+      if(n===21) return DUA.waffaq;     // three weeks — success
+      if(n===30) return DUA.jaza;       // a month — reward
+      if(n===40) return DUA.taqabbal;   // habit-forming — acceptance
+      if(n===60) return DUA.zada;       // increase
+      if(n===100) return DUA.hafiz;     // preservation
+      return DUA.thabbat;
+    };
     [7,14,21,30,40,60,100].forEach(n=>{
       const m=streakMilestone(n);
-      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",image:m.img,dua:DUA.thabbat,title:m.title,msg:m.msg});
+      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",image:m.img,dua:streakDuaFor(n),title:m.title,msg:m.msg});
     });
     if(!hasStorage){
       // First run: seed any already-met milestones as shown, don't pop.
@@ -584,6 +597,15 @@ export default function RihlatAlHifz() {
         // Fix U+06DF dots for UthmanicHafs font
         all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
 
+        // V2 page-number stamp — universal fix. quran.com's API has different
+        // page boundaries than V2 on a handful of pages (Abasa 41-42, Naziat
+        // 16, etc.). Rewriting v.page_number to the V2 lookup once at fetch
+        // time means every downstream page-cap, advance, grouping, and
+        // rendering check sees one value (V2) without per-call lookups.
+        if(verseToPage){
+          all.forEach(v=>{ const p=verseToPage[v.verse_key]; if(p) v.page_number=p; });
+        }
+
         // 1) Get this juz's surahs in descending memorization order
         const descendingSurahOrder=[...(JUZ_SURAHS[sessionJuz]||[])].map(item=>item.s).reverse();
 
@@ -613,6 +635,9 @@ export default function RihlatAlHifz() {
               prevAll=[...prevAll,...(data.verses||[])];
             }
             prevAll.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
+            if(verseToPage){
+              prevAll.forEach(v=>{ const p=verseToPage[v.verse_key]; if(p) v.page_number=p; });
+            }
             const prevDescOrder=[...prevSurahs].reverse();
             prevJuzVerses=hifzSort(prevAll, prevDescOrder);
           }catch{}
