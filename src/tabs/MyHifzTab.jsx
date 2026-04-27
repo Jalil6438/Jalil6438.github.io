@@ -1607,13 +1607,18 @@ export default function MyHifzTab(props) {
                     setOpenAyah(null);
                     setAyahPage(0);
                     if(activeSessionIndex>=SESSIONS.length-1){
-                      // How much did we actually memorize today? In the page-based model,
-                      // it's the filtered page batch (new surahs only), not the old
-                      // dailyNew-driven fajrBatch. Fall back to fajrBatch.length if the
-                      // page fetch never completed.
+                      // Advance by what was ACTUALLY memorized today: fajrBatch.
+                      // Sheikh-mushaf path used to advance by all the surah's
+                      // verses on the page even when the user's batch was
+                      // smaller (custom plan with dailyNew<page-size), which
+                      // skipped 6..end of page. Use the page-fill only when
+                      // fajrBatch IS the full page batch (Sheikh mode), else
+                      // honor what the user did.
                       const fajrPageForAdvance = fajrBatch[0]?.page_number;
                       const fajrPageVs = fajrPageForAdvance ? fajrPageVerses[fajrPageForAdvance] : null;
-                      const fajrMemorized = fajrPageVs && fajrPageVs.length ? filterActivePlusFresh(fajrPageVs) : fajrBatch;
+                      const fullPageActive = fajrPageVs && fajrPageVs.length ? filterActivePlusFresh(fajrPageVs) : null;
+                      const isPageBatch = fullPageActive && fajrBatch.length>=fullPageActive.length;
+                      const fajrMemorized = isPageBatch ? fullPageActive : fajrBatch;
                       const fajrAdvance = fajrMemorized.length || fajrBatch.length;
                       setYesterdayBatch(fajrMemorized);
                       setRecentBatches(prev=>[...prev.slice(-4),fajrMemorized.map(v=>({verse_key:v.verse_key,text_uthmani:v.text_uthmani,surah_number:v.surah_number,page_number:v.page_number}))].slice(-5));
