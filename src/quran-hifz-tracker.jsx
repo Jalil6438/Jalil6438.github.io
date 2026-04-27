@@ -571,9 +571,14 @@ export default function RihlatAlHifz() {
     setSessionDone([]);
   },[sessionJuz]);
 
-  // Fetch session verses (wait for loaded so backfill completes first)
+  // Fetch session verses (wait for loaded so backfill completes first).
+  // Also wait for verseToPage — without it the V2 page-number stamp at line
+  // ~605 is skipped, leaving sessionVerses with API page_numbers. That breaks
+  // surahs where API and V2 disagree (Naziat 1-16 sits on V2 p583 with Naba's
+  // tail; API splits differently). Race-only fix: same code, just deferred
+  // until the lookup table is in.
   useEffect(()=>{
-    if(!sessionJuz||!loaded) return;
+    if(!sessionJuz||!loaded||!verseToPage) return;
     console.log('[FETCH START]', {sessionJuz, 'juzProgress[sessionJuz]': juzProgress[sessionJuz]});
     let cancelled=false;
     (async()=>{
@@ -712,7 +717,7 @@ export default function RihlatAlHifz() {
       if(!cancelled) setSessLoading(false);
     })();
     return()=>{cancelled=true;};
-  },[sessionJuz,loaded,juzStatus]);
+  },[sessionJuz,loaded,juzStatus,verseToPage]);
 
   // Auto-mark Juz complete when sessionVerses goes to 0 after having verses
   // This catches the case where all surahs are marked done via individual surah completion

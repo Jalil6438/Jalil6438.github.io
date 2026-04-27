@@ -122,6 +122,7 @@ export default function MyHifzTab(props) {
   })();
   useEffect(() => {
     if (!sessionPageNums.length) return;
+    if (!verseToPageMap) return; // wait for V2 lookup so page_number stamp can run
     let cancelled = false;
     (async () => {
       for (const pn of sessionPageNums) {
@@ -140,7 +141,7 @@ export default function MyHifzTab(props) {
       }
     })();
     return () => { cancelled = true; };
-  }, [sessionPageNums.join(",")]);
+  }, [sessionPageNums.join(","), verseToPageMap]);
 
   // KFGQPC V2 per-page fonts — used to render mushaf pages with authentic
   // word widths & layout. Mirrors QuranTab's font-loading logic.
@@ -211,6 +212,7 @@ export default function MyHifzTab(props) {
   useEffect(() => {
     if (!isPageBasedSession) return;
     if (!fajrPageNum || fajrPageVerses[fajrPageNum]) return;
+    if (!verseToPageMap) return; // wait for V2 lookup so page_number stamp can run
     let cancelled = false;
     (async () => {
       try {
@@ -235,7 +237,7 @@ export default function MyHifzTab(props) {
       } catch {}
     })();
     return () => { cancelled = true; };
-  }, [isPageBasedSession, fajrPageNum]);
+  }, [isPageBasedSession, fajrPageNum, verseToPageMap]);
 
   // Full mushaf page — UNION of fajrPageNum and neighbors ±1, since the API
   // might place a verse on one page while Madinah places it on another. We
