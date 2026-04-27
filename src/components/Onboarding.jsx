@@ -19,11 +19,11 @@ export default function Onboarding({
   JUZ_PAGES, SURAH_PAGES,
 }) {
   return (
-    <div style={{position:"fixed",inset:0,background:"#060A07",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+    <div style={{position:"fixed",inset:0,background:"linear-gradient(180deg,#0B1220,#0E1628)",zIndex:1000,display:"flex",flexDirection:"column",overflow:"hidden"}}>
 
       {/* ── STEP 1 — BISMILLAH ── */}
                 {onboardStep===1&&(
-        <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)"}}>
+        <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 28px",textAlign:"center",position:"relative",overflow:"hidden",background:"linear-gradient(180deg,#0B1220 0%,#0E1628 100%)"}}>
           {/* Top ambient glow */}
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
           {/* Star field */}
@@ -50,7 +50,7 @@ export default function Onboarding({
 
       {/* ── STEP 3 — NAME INPUT ── */}
       {onboardStep===3&&(
-        <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",minHeight:0,position:"relative"}}>
+        <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"24px 24px 32px",overflow:"auto",background:"linear-gradient(180deg,#0B1220 0%,#0E1628 100%)",minHeight:0,position:"relative"}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 55%)",zIndex:0}}/>
           <div style={{position:"relative",zIndex:1,display:"flex",flexDirection:"column",flex:1,justifyContent:"space-between"}}>
             {/* TOP — progress + welcome + question + input */}
@@ -97,7 +97,7 @@ export default function Onboarding({
 
       {/* ── STEP 4 — GOAL + JUZ TRACKER ── */}
       {onboardStep===4&&!loaded&&(
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)"}}>
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(180deg,#0B1220 0%,#0E1628 100%)"}}>
           <div className="spin" style={{width:24,height:24,border:"2px solid rgba(212,175,55,0.15)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>
         </div>
       )}
@@ -149,7 +149,7 @@ export default function Onboarding({
         const monthsRemaining=Math.max(1,Math.ceil(pagesRemaining/30));
         const displayedJuz=JUZ_META.slice().reverse().slice(0,visibleOnboardJuzCount);
         return (
-          <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)",position:"relative"}}>
+          <div className="fi" style={{flex:1,display:"flex",flexDirection:"column",padding:"20px 20px 24px",overflow:"auto",background:"linear-gradient(180deg,#0B1220 0%,#0E1628 100%)",position:"relative"}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)",zIndex:0}}/>
             <div style={{position:"relative",zIndex:1,display:"flex",gap:5,marginBottom:20}}>
               {[1,2,3].map(i=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:"linear-gradient(90deg,#C8961E,#F6E27A,#D4AF37)",boxShadow:"0 0 12px rgba(212,175,55,0.40)"}}/>))}
@@ -259,7 +259,7 @@ export default function Onboarding({
             )}
             <div style={{flex:1}}/>
             <div style={{display:"flex",gap:8}}>
-              <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"#0D1008",border:"1px solid #1E2A18",borderRadius:12,fontSize:14,color:"#A8B89A"}}>←</div>
+              <div className="sbtn" onClick={()=>setOnboardStep(3)} style={{padding:"14px 18px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,fontSize:14,color:"rgba(243,231,191,0.50)"}}>←</div>
               <div className="sbtn" onClick={()=>{if(userName) localStorage.setItem("rihlat-username",userName);localStorage.setItem("rihlat-onboarded","1");setShowOnboarding(false);}} style={{flex:1,padding:"14px",background:"linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)",borderRadius:12,fontSize:14,fontWeight:700,color:"#060A07",textAlign:"center",boxShadow:"0 12px 24px rgba(212,175,55,0.22)"}}>
                 Select your starting point
               </div>
@@ -267,7 +267,7 @@ export default function Onboarding({
           </div>
         );
         } catch(e) {
-          return <div style={{flex:1,padding:"24px",background:"#060A07",color:"#E5534B",fontSize:11,fontFamily:"monospace",whiteSpace:"pre-wrap",overflowY:"auto"}}>
+          return <div style={{flex:1,padding:"24px",background:"#0B1220",color:"#E5534B",fontSize:11,fontFamily:"monospace",whiteSpace:"pre-wrap",overflowY:"auto"}}>
             ERROR IN STEP 4:{"\n"}{e?.message}{"\n\n"}{e?.stack}
           </div>;
         }
