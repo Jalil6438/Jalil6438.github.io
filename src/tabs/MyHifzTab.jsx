@@ -686,14 +686,18 @@ export default function MyHifzTab(props) {
                         // read 0/N and feel broken. Show page progress instead
                         // (Dhuhr/Asr have multiple pages; Maghrib/Isha are 1).
                         if (sid === "fajr") {
-                          // Show the actual ayah range of today's batch (e.g. "17-35")
-                          // so the user sees exactly what's in front of them.
+                          // Header shows both: the ayah range of today's batch
+                          // (what's in front of you) and the rep-completion count
+                          // (how far). e.g. "Ayat 17-35 · 0 of 30".
+                          const done = batch.filter(v=>repCounts[v.verse_key]>=20).length;
+                          const total = batch.length || dailyNew;
                           if (batch.length) {
                             const firstA = parseInt(batch[0].verse_key?.split(":")?.[1] || "0", 10);
                             const lastA = parseInt(batch[batch.length-1].verse_key?.split(":")?.[1] || "0", 10);
-                            return firstA === lastA ? `Ayah ${firstA}` : `Ayat ${firstA}-${lastA}`;
+                            const range = firstA === lastA ? `Ayah ${firstA}` : `Ayat ${firstA}-${lastA}`;
+                            return `${range} · ${done} of ${total}`;
                           }
-                          return `0 of ${dailyNew}`;
+                          return `0 of ${total}`;
                         }
                         const totalPages = new Set(batch.map(v => v.page_number).filter(Boolean)).size || 1;
                         const currentPage = Math.min(ayahPage + 1, totalPages);
