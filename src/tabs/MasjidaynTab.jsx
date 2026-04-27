@@ -139,8 +139,8 @@ export default function MasjidaynTab({
                 {mosques.map(m=>(
                   <div key={m.id} className="sbtn" onClick={()=>setExpandedMosque(m.id)} style={{display:"flex",flexDirection:"column",gap:6}}>
                     <div style={{border:`1px solid ${m.color}30`,borderRadius:10,overflow:"hidden",position:"relative",minHeight:120}}>
-                      <div style={{position:"absolute",inset:0,background:`url(${m.img}) ${m.bgPos||"center"}/cover no-repeat`,filter:!dark&&m.id==="madinah"?"brightness(1.5)":"none"}}/>
-                      {dark&&<div style={{position:"absolute",inset:0,background:"linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.25) 100%)"}}/>}
+                      <div style={{position:"absolute",inset:0,background:`url(${m.img}) ${m.bgPos||"center"}/cover no-repeat`,filter:dark?"brightness(1.25)":m.id==="madinah"?"brightness(1.5)":"none"}}/>
+                      {dark&&<div style={{position:"absolute",inset:0,background:"linear-gradient(to top, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.08) 100%)"}}/>}
                       <div style={{position:"absolute",bottom:8,left:8,display:"flex",alignItems:"center",gap:4,zIndex:2}}>
                         <div className="pulse" style={{width:7,height:7,borderRadius:"50%",background:"#FF3B30"}}/>
                         <span style={{fontSize:10,color:"#fff",background:"#E5534B",padding:"1px 6px",borderRadius:4,fontFamily:"'IBM Plex Mono',monospace",fontWeight:700,letterSpacing:".12em"}}>LIVE</span>
