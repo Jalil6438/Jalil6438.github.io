@@ -2309,9 +2309,9 @@ export default function RihlatAlHifz() {
             ? <img src={badgeCelebration.image} alt="" style={{width:96,height:96,objectFit:"contain",marginBottom:12,display:"block",marginInline:"auto",filter:"drop-shadow(0 0 20px rgba(212,175,55,0.30))"}}/>
             : <div style={{fontSize:48,marginBottom:12}}>{badgeCelebration.emoji}</div>}
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:dark?"#F3E7C8":"#2D2A26",marginBottom:8}}>{badgeCelebration.title}</div>
-          <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.65)":"#6B645A",lineHeight:1.6,marginBottom:14}}>{badgeCelebration.message}</div>
+          <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.65)":"#6B645A",lineHeight:1.6,marginBottom:6}}>{badgeCelebration.message}</div>
           {badgeCelebration.dua&&(<>
-            <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:24,color:dark?"#F6E27A":"#B45309",direction:"rtl",lineHeight:2.2,marginBottom:8,wordSpacing:"0.25em",padding:"0 6px"}}>{badgeCelebration.dua.ar}</div>
+            <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:24,color:dark?"#F6E27A":"#B45309",direction:"rtl",lineHeight:1.8,marginTop:4,marginBottom:8,wordSpacing:"0.25em",padding:"0 6px"}}>{badgeCelebration.dua.ar}</div>
             <div style={{fontSize:11,fontStyle:"italic",color:dark?"rgba(243,231,200,0.55)":"#8B7355",marginBottom:18}}>"{badgeCelebration.dua.en}"</div>
           </>)}
           <div className="sbtn" onClick={advance} style={{padding:"12px 28px",borderRadius:14,fontSize:13,fontWeight:700,color:"#0A0E1A",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25)",display:"inline-block"}}>Āmīn</div>
