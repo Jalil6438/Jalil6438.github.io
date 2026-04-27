@@ -366,11 +366,20 @@ export default function RihlatAlHifz() {
       const m=juzMilestone(n);
       milestones.push({key:`juz-${n}`,test:completedCount>=n,emoji:m.emoji,title:n===30?"You are now a Hafiz!":"Al-Hamdulillah!",msg:m.msg});
     }
-    milestones.push(
-      {key:"streak-7",test:streak>=7,emoji:"🔥",title:"7 Day Streak!",msg:"A week of consistency — Al-Hamdulillah!"},
-      {key:"streak-21",test:streak>=21,emoji:"🔥",title:"21 Day Streak!",msg:"Three weeks — it's becoming a habit!"},
-      {key:"streak-40",test:streak>=40,emoji:"🔥",title:"Habituated!",msg:"40 days — the Salaf said this is when habits form."},
-    );
+    const streakMilestone=(n)=>{
+      if(n===7) return {title:"7 Day Streak!",msg:"A week of consistency — Al-Hamdulillah!"};
+      if(n===14) return {title:"14 Day Streak!",msg:"Two weeks strong — keep going!"};
+      if(n===21) return {title:"21 Day Streak!",msg:"Three weeks — it's becoming a habit!"};
+      if(n===30) return {title:"30 Day Streak!",msg:"A whole month — masha'Allah!"};
+      if(n===40) return {title:"Habituated!",msg:"40 days — the Salaf said this is when habits form."};
+      if(n===60) return {title:"60 Day Streak!",msg:"Two months — barakAllahu feek!"};
+      if(n===100) return {title:"100 Day Streak!",msg:"100 days — extraordinary discipline."};
+      return null;
+    };
+    [7,14,21,30,40,60,100].forEach(n=>{
+      const m=streakMilestone(n);
+      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",title:m.title,msg:m.msg});
+    });
     if(!hasStorage){
       // First run: seed any already-met milestones as shown, don't pop.
       let seeded=false;
