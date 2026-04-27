@@ -793,7 +793,10 @@ export default function RihlatAlHifz() {
       if(p&&p!==startPage) break;
       maxCount++;
     }
-    return {count:Math.min(targetDaily,maxCount),capped:targetDaily>maxCount,maxAllowed:maxCount};
+    // Sheikh's method: 1 page per day. The whole page is today's batch
+    // — don't cap at targetDaily (that was breaking long pages into
+    // 5-ayah chunks across many days). targetDaily is custom-mode only.
+    return {count:maxCount,capped:false,maxAllowed:maxCount};
   })();
   const dailyNew=twoPageLimit.count;
   const currentSessionId=SESSIONS[activeSessionIndex]?.id;
