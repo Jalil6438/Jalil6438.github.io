@@ -131,6 +131,9 @@ export default function MyHifzTab(props) {
           if (!res.ok || cancelled) continue;
           const data = await res.json();
           const vs = (data.verses || []).map(v => ({ ...v, text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652") }));
+          if (verseToPageMap) {
+            vs.forEach(v => { const p = verseToPageMap[v.verse_key]; if (p) v.page_number = p; });
+          }
           if (!cancelled) setFajrPageVerses(prev => prev[pn] ? prev : { ...prev, [pn]: vs });
           loadQcfFont(pn);
         } catch {}
@@ -225,6 +228,9 @@ export default function MyHifzTab(props) {
             _lastLine: lines[lines.length - 1] || null,
           };
         });
+        if (verseToPageMap) {
+          vs.forEach(v => { const p = verseToPageMap[v.verse_key]; if (p) v.page_number = p; });
+        }
         if (!cancelled) setFajrPageVerses(prev => ({ ...prev, [fajrPageNum]: vs }));
       } catch {}
     })();
