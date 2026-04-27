@@ -49,6 +49,8 @@ export default function RihlatAlHifz() {
   const [hifzViewMode,setHifzViewMode]=useState("mushaf"); // "interactive" or "mushaf"
   const [badgeCelebration,setBadgeCelebration]=useState(null); // {emoji, title, message}
   const [badgeQueue,setBadgeQueue]=useState([]); // pending badges; advance on dismiss
+  const [pendingBadges,setPendingBadges]=useState([]); // milestones earned mid-cycle, popped at end-of-Isha
+  const lastStreakRef=useRef(null);
   const [todayFajrBatch,setTodayFajrBatch]=useState([]); // saved when Fajr has ayahs, used by Maghrib/Isha
   const [simVerseCache,setSimVerseCache]=useState({});
   const fetchSimVerse=async(vk)=>{
@@ -423,8 +425,26 @@ export default function RihlatAlHifz() {
     }
     if(pending.length){
       localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
-      setBadgeCelebration(prev=>prev||pending[0]);
-      setBadgeQueue(prev=>[...prev,...pending.slice(badgeCelebration?0:1)]);
+    }
+    // Defer modal popping to end-of-cycle. Streak bumps once per
+    // Fajr→Isha cycle (in MyHifzTab end-of-Isha handler), so a streak
+    // increase since the last effect run = cycle just ended. Until that
+    // happens, accumulate eligible badges in pendingBadges so the user
+    // doesn't get a juz/streak modal mid-day (e.g. right after Fajr's
+    // last page of a juz). localStorage.shown is still updated above
+    // so the same milestone isn't recomputed each render.
+    if(lastStreakRef.current===null) lastStreakRef.current=streak;
+    const cycleJustEnded=streak>lastStreakRef.current;
+    lastStreakRef.current=streak;
+    if(cycleJustEnded){
+      const allReady=[...pendingBadges,...pending];
+      if(allReady.length){
+        setBadgeCelebration(prev=>prev||allReady[0]);
+        setBadgeQueue(prev=>[...prev,...allReady.slice(badgeCelebration?0:1)]);
+      }
+      if(pendingBadges.length) setPendingBadges([]);
+    } else if(pending.length){
+      setPendingBadges(prev=>[...prev,...pending]);
     }
   },[completedCount,streak,loaded]);
   const [checkHistory,setCheckHistory]=useState({});
