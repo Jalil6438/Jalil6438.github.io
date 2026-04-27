@@ -1367,7 +1367,10 @@ export default function MyHifzTab(props) {
                             // (lineHeight 2 → maxHeight 2em) and fade out the
                             // tail with mask-image — no ellipsis. Tapping
                             // opens the full ayah view for repetition.
-                            const clampStyle={maxHeight:"2em",overflow:"hidden",whiteSpace:"nowrap",WebkitMaskImage:"linear-gradient(to left,black 55%,transparent 100%)",maskImage:"linear-gradient(to left,black 55%,transparent 100%)"};
+                            // padding-inline-start (RTL = right) gives the
+                            // first Arabic glyph a few px so its box doesn't
+                            // clip against overflow:hidden's right edge.
+                            const clampStyle={maxHeight:"2em",overflow:"hidden",whiteSpace:"nowrap",paddingInlineStart:"4px",WebkitMaskImage:"linear-gradient(to left,black 55%,transparent 100%)",maskImage:"linear-gradient(to left,black 55%,transparent 100%)"};
                             if(isShaykhPlan&&pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (

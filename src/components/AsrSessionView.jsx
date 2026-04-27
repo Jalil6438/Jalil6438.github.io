@@ -17,8 +17,12 @@ function AsrSessionView({
   }) {
     // Custom plan users have ayah-based batches that don't fill full pages —
     // force Study view and hide the toggle.
-    const [asrViewMode,setAsrViewMode]=useState(isShaykhPlan?"mushaf":"study");
-    useEffect(() => { if (!isShaykhPlan) setAsrViewMode("study"); }, [isShaykhPlan]);
+    // Asr Study mode muted 2026-04-27 — Mushaf is the only intended view.
+    // Restore by reverting these two lines to:
+    //   const [asrViewMode,setAsrViewMode]=useState(isShaykhPlan?"mushaf":"study");
+    //   useEffect(() => { if (!isShaykhPlan) setAsrViewMode("study"); }, [isShaykhPlan]);
+    // Setter still exposed because a few helpers reference it; harmless.
+    const [asrViewMode,setAsrViewMode]=useState("mushaf");
     const asrMushafScrollRef=useRef(null);
     // KFGQPC V2 per-page fonts + bismillah glyphs — same authentic mushaf
     // rendering used in QuranTab / MyHifzTab Fajr/Dhuhr views.
@@ -177,6 +181,7 @@ function AsrSessionView({
           </div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
             <div style={{color:dark?T2.ivory:"#2D2A26",fontSize:14,fontWeight:600,lineHeight:1.25,maxWidth:"70%"}}>{asrSelectionSummary||"Asr Review"}</div>
+            {/* Mushaf/Study toggle muted 2026-04-27 — Mushaf is the only mode now. Restore by uncommenting:
             {isShaykhPlan&&(
               <div style={{display:"flex",gap:4}}>
                 {["mushaf","study"].map(m=>(
@@ -186,6 +191,7 @@ function AsrSessionView({
                 ))}
               </div>
             )}
+            */}
           </div>
 
           {/* ── MUSHAF MODE — paged by surah ── */}
