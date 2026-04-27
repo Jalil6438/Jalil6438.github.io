@@ -29,7 +29,7 @@ import QuranTab from "./tabs/QuranTab";
 import Onboarding from "./components/Onboarding";
 
 export default function RihlatAlHifz() {
-  const [dark,setDark]=useState(false);
+  const [dark,setDark]=useState(true);
   const [showSettings,setShowSettings]=useState(false);
   const [tabBeforeAdjust,setTabBeforeAdjust]=useState(null); // {activeTab, rihlahTab}
   const [editName,setEditName]=useState("");
