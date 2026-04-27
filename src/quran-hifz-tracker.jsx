@@ -349,17 +349,28 @@ export default function RihlatAlHifz() {
     if(!loaded||showOnboarding) return;
     const hasStorage=localStorage.getItem("jalil-badge-milestones")!==null;
     const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
-    const milestones=[
-      {key:"juz-1",test:completedCount>=1,emoji:"🎉",title:"Al-Hamdulillah!",msg:"You just completed your first juz!"},
-      {key:"juz-5",test:completedCount>=5,emoji:"🌟",title:"Al-Hamdulillah!",msg:"5 juz memorized — keep going!"},
-      {key:"juz-10",test:completedCount>=10,emoji:"✨",title:"Al-Hamdulillah!",msg:"10 juz memorized — a third of the Qur'an!"},
-      {key:"juz-15",test:completedCount>=15,emoji:"🌙",title:"Al-Hamdulillah!",msg:"Half the Qur'an memorized!"},
-      {key:"juz-20",test:completedCount>=20,emoji:"📖",title:"Al-Hamdulillah!",msg:"20 juz — you are close!"},
-      {key:"juz-30",test:completedCount>=30,emoji:"🕋",title:"You are now a Hafiz!",msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"},
+    // Special milestone messaging for major counts; every other juz gets a
+    // generic "N juz memorized!" celebration so the user is acknowledged on
+    // each completion, not only the headline ones.
+    const juzMilestone=(n)=>{
+      if(n===1) return {emoji:"🎉",msg:"You just completed your first juz!"};
+      if(n===5) return {emoji:"🌟",msg:"5 juz memorized — keep going!"};
+      if(n===10) return {emoji:"✨",msg:"10 juz memorized — a third of the Qur'an!"};
+      if(n===15) return {emoji:"🌙",msg:"Half the Qur'an memorized!"};
+      if(n===20) return {emoji:"📖",msg:"20 juz — you are close!"};
+      if(n===30) return {emoji:"🕋",msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"};
+      return {emoji:"🎉",msg:`${n} juz memorized — Al-Hamdulillah!`};
+    };
+    const milestones=[];
+    for(let n=1;n<=30;n++){
+      const m=juzMilestone(n);
+      milestones.push({key:`juz-${n}`,test:completedCount>=n,emoji:m.emoji,title:n===30?"You are now a Hafiz!":"Al-Hamdulillah!",msg:m.msg});
+    }
+    milestones.push(
       {key:"streak-7",test:streak>=7,emoji:"🔥",title:"7 Day Streak!",msg:"A week of consistency — Al-Hamdulillah!"},
       {key:"streak-21",test:streak>=21,emoji:"🔥",title:"21 Day Streak!",msg:"Three weeks — it's becoming a habit!"},
       {key:"streak-40",test:streak>=40,emoji:"🔥",title:"Habituated!",msg:"40 days — the Salaf said this is when habits form."},
-    ];
+    );
     if(!hasStorage){
       // First run: seed any already-met milestones as shown, don't pop.
       let seeded=false;
