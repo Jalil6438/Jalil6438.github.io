@@ -48,6 +48,7 @@ export default function RihlatAlHifz() {
   const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
   const [hifzViewMode,setHifzViewMode]=useState("mushaf"); // "interactive" or "mushaf"
   const [badgeCelebration,setBadgeCelebration]=useState(null); // {emoji, title, message}
+  const [badgeQueue,setBadgeQueue]=useState([]); // pending badges; advance on dismiss
   const [todayFajrBatch,setTodayFajrBatch]=useState([]); // saved when Fajr has ayahs, used by Maghrib/Isha
   const [simVerseCache,setSimVerseCache]=useState({});
   const fetchSimVerse=async(vk)=>{
@@ -349,36 +350,38 @@ export default function RihlatAlHifz() {
     if(!loaded||showOnboarding) return;
     const hasStorage=localStorage.getItem("jalil-badge-milestones")!==null;
     const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
-    // Special milestone messaging for major counts; every other juz gets a
-    // generic "N juz memorized!" celebration so the user is acknowledged on
-    // each completion, not only the headline ones.
+    // Each milestone gets the actual badge image so the celebration modal
+    // shows what the user just earned (e.g. /badge-streak-14.png), not just
+    // a generic fire emoji. Headline counts keep tailored messaging; the
+    // rest get a generic "N juz memorized!" line.
     const juzMilestone=(n)=>{
-      if(n===1) return {emoji:"🎉",msg:"You just completed your first juz!"};
-      if(n===5) return {emoji:"🌟",msg:"5 juz memorized — keep going!"};
-      if(n===10) return {emoji:"✨",msg:"10 juz memorized — a third of the Qur'an!"};
-      if(n===15) return {emoji:"🌙",msg:"Half the Qur'an memorized!"};
-      if(n===20) return {emoji:"📖",msg:"20 juz — you are close!"};
-      if(n===30) return {emoji:"🕋",msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"};
-      return {emoji:"🎉",msg:`${n} juz memorized — Al-Hamdulillah!`};
+      const img=n===30?"/badge-hafiz.png":n<=15?`/badge-juz-${n}.png`:"/badge-juz-15.png";
+      if(n===1) return {emoji:"🎉",img,msg:"You just completed your first juz!"};
+      if(n===5) return {emoji:"🌟",img,msg:"5 juz memorized — keep going!"};
+      if(n===10) return {emoji:"✨",img,msg:"10 juz memorized — a third of the Qur'an!"};
+      if(n===15) return {emoji:"🌙",img,msg:"Half the Qur'an memorized!"};
+      if(n===20) return {emoji:"📖",img,msg:"20 juz — you are close!"};
+      if(n===30) return {emoji:"🕋",img,msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"};
+      return {emoji:"🎉",img,msg:`${n} juz memorized — Al-Hamdulillah!`};
     };
     const milestones=[];
     for(let n=1;n<=30;n++){
       const m=juzMilestone(n);
-      milestones.push({key:`juz-${n}`,test:completedCount>=n,emoji:m.emoji,title:n===30?"You are now a Hafiz!":"Al-Hamdulillah!",msg:m.msg});
+      milestones.push({key:`juz-${n}`,test:completedCount>=n,emoji:m.emoji,image:m.img,title:n===30?"You are now a Hafiz!":"Al-Hamdulillah!",msg:m.msg});
     }
     const streakMilestone=(n)=>{
-      if(n===7) return {title:"7 Day Streak!",msg:"A week of consistency — Al-Hamdulillah!"};
-      if(n===14) return {title:"14 Day Streak!",msg:"Two weeks strong — keep going!"};
-      if(n===21) return {title:"21 Day Streak!",msg:"Three weeks — it's becoming a habit!"};
-      if(n===30) return {title:"30 Day Streak!",msg:"A whole month — masha'Allah!"};
-      if(n===40) return {title:"Habituated!",msg:"40 days — the Salaf said this is when habits form."};
-      if(n===60) return {title:"60 Day Streak!",msg:"Two months — barakAllahu feek!"};
-      if(n===100) return {title:"100 Day Streak!",msg:"100 days — extraordinary discipline."};
+      if(n===7) return {title:"7 Day Streak!",msg:"A week of consistency — Al-Hamdulillah!",img:"/badge-streak-7.png"};
+      if(n===14) return {title:"14 Day Streak!",msg:"Two weeks strong — keep going!",img:"/badge-streak-14.png"};
+      if(n===21) return {title:"21 Day Streak!",msg:"Three weeks — it's becoming a habit!",img:"/badge-streak-21.png"};
+      if(n===30) return {title:"30 Day Streak!",msg:"A whole month — masha'Allah!",img:"/badge-streak-30.png"};
+      if(n===40) return {title:"Habituated!",msg:"40 days — the Salaf said this is when habits form.",img:"/badge-habituated.png"};
+      if(n===60) return {title:"60 Day Streak!",msg:"Two months — barakAllahu feek!",img:"/badge-devotion-60.png"};
+      if(n===100) return {title:"100 Day Streak!",msg:"100 days — extraordinary discipline.",img:"/badge-mastery-90.png"};
       return null;
     };
     [7,14,21,30,40,60,100].forEach(n=>{
       const m=streakMilestone(n);
-      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",title:m.title,msg:m.msg});
+      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",image:m.img,title:m.title,msg:m.msg});
     });
     if(!hasStorage){
       // First run: seed any already-met milestones as shown, don't pop.
@@ -387,13 +390,22 @@ export default function RihlatAlHifz() {
       localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
       if(seeded) return; // skip popping on the seed pass
     }
+    // Collect every eligible-but-unshown milestone, mark them all shown in
+    // localStorage now, then queue the badges so they pop one after another
+    // as the user dismisses each. Without this, hitting two thresholds in
+    // the same render (e.g. juz-2 + streak-14) only popped the first and
+    // suppressed the rest forever.
+    const pending=[];
     for(const m of milestones){
       if(m.test&&!shown[m.key]){
-        setBadgeCelebration({emoji:m.emoji,title:m.title,message:m.msg});
+        pending.push({emoji:m.emoji,image:m.image,title:m.title,message:m.msg});
         shown[m.key]=true;
-        localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
-        break;
       }
+    }
+    if(pending.length){
+      localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
+      setBadgeCelebration(prev=>prev||pending[0]);
+      setBadgeQueue(prev=>[...prev,...pending.slice(badgeCelebration?0:1)]);
     }
   },[completedCount,streak,loaded]);
   const [checkHistory,setCheckHistory]=useState({});
@@ -2279,17 +2291,22 @@ export default function RihlatAlHifz() {
 
     </>)}
 
-    {/* Badge celebration toast */}
-    {badgeCelebration&&(
-      <div onClick={()=>setBadgeCelebration(null)} style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.60)",backdropFilter:"blur(4px)"}}>
+    {/* Badge celebration toast — advances through queued badges on dismiss */}
+    {badgeCelebration&&(()=>{
+      const advance=()=>{ setBadgeQueue(q=>{ const [next,...rest]=q; setBadgeCelebration(next||null); return rest; }); };
+      return (
+      <div onClick={advance} style={{position:"fixed",inset:0,zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.60)",backdropFilter:"blur(4px)"}}>
         <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:24,padding:"32px 28px",maxWidth:320,width:"90%",textAlign:"center",border:"1px solid rgba(217,177,95,0.25)",boxShadow:"0 20px 60px rgba(0,0,0,0.50),0 0 40px rgba(212,175,55,0.15)"}} onClick={e=>e.stopPropagation()}>
-          <div style={{fontSize:48,marginBottom:12}}>{badgeCelebration.emoji}</div>
+          {badgeCelebration.image
+            ? <img src={badgeCelebration.image} alt="" style={{width:96,height:96,objectFit:"contain",marginBottom:12,display:"block",marginInline:"auto",filter:"drop-shadow(0 0 20px rgba(212,175,55,0.30))"}}/>
+            : <div style={{fontSize:48,marginBottom:12}}>{badgeCelebration.emoji}</div>}
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:dark?"#F3E7C8":"#2D2A26",marginBottom:8}}>{badgeCelebration.title}</div>
           <div style={{fontSize:13,color:dark?"rgba(243,231,200,0.65)":"#6B645A",lineHeight:1.6,marginBottom:20}}>{badgeCelebration.message}</div>
-          <div className="sbtn" onClick={()=>setBadgeCelebration(null)} style={{padding:"12px 28px",borderRadius:14,fontSize:13,fontWeight:700,color:"#0A0E1A",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25)",display:"inline-block"}}>Al-Hamdulillah</div>
+          <div className="sbtn" onClick={advance} style={{padding:"12px 28px",borderRadius:14,fontSize:13,fontWeight:700,color:"#0A0E1A",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",boxShadow:"0 6px 18px rgba(230,184,74,0.25)",display:"inline-block"}}>Al-Hamdulillah</div>
         </div>
       </div>
-    )}
+      );
+    })()}
 
     </div>
   );
