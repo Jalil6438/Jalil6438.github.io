@@ -4,6 +4,7 @@ import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
 import { getSessionWisdom } from "../data/sessions";
 import { saveCompletedAyahs, toArabicDigits } from "../utils";
+import V1MushafPreview from "../components/V1MushafPreview";
 
 export default function MyHifzTab(props) {
   const {
@@ -201,6 +202,7 @@ export default function MyHifzTab(props) {
   // Universal bismillah glyphs (Fatihah 1:1) — rendered in p1 font so every
   // surah opener shows the authentic mushaf bismillah.
   const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
+  const [showV1Preview, setShowV1Preview] = useState(false);
   useEffect(() => {
     loadQcfFont(1);
     let cancelled = false;
@@ -1011,6 +1013,12 @@ export default function MyHifzTab(props) {
                           <span>{juzNum?`Juz ${juzNum}`:""}</span>
                         </div>
                       )}
+                      {/* V1 PROOF — small toggle to compare V1 typography on this page */}
+                      {fajrPageNum&&(
+                        <div className="sbtn" onClick={()=>setShowV1Preview(true)} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 10px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.06)":"rgba(180,140,40,0.06)",border:`1px solid ${dark?"rgba(217,177,95,0.18)":"rgba(140,100,20,0.18)"}`,marginBottom:12}}>
+                          Try V1 typography
+                        </div>
+                      )}
                       {(()=>{
                         const pageFontReady=loadedFonts.has(fajrPageNum);
                         if(!pageFontReady){
@@ -1717,6 +1725,9 @@ export default function MyHifzTab(props) {
             )}
 
           </div>
+          {showV1Preview&&fajrPageNum&&(
+            <V1MushafPreview pageNum={fajrPageNum} dark={dark} onClose={()=>setShowV1Preview(false)}/>
+          )}
         </div>
   );
 }
