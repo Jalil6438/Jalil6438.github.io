@@ -943,17 +943,18 @@ export default function RihlatAlHifz() {
         // same page stays visible.
         const todaySurahForFilter=fajrBatch[0]?.surah_number||parseInt(fajrBatch[0]?.verse_key?.split(":")?.[0]||"0",10);
         const todayPageForFilter=fajrBatch[0]?(verseToPage&&verseToPage[fajrBatch[0].verse_key])||fajrBatch[0].page_number:(verseToPage&&sessionVerses[sessionIdx]?verseToPage[sessionVerses[sessionIdx].verse_key]:0)||sessionVerses[sessionIdx]?.page_number||0;
-        // Today's filter excludes all V2 pages spanned by today's batch —
-        // any verse whose V2 page matches today's pages is dropped. This
-        // keeps the page the user is actively memorizing out of Dhuhr,
-        // regardless of where on the page their batch slice falls.
-        const todayPages=new Set((fajrBatch||[]).map(v=>(verseToPage&&verseToPage[v.verse_key])||v.page_number).filter(Boolean));
+        // Today's filter excludes only today's specific verse_keys, not
+        // the whole V2 page. A page like 586 holds today's Abasa 41-42
+        // AND prior-day Takwir 1-X — page-based exclusion would drop the
+        // prior memorization too. Verse-key exclusion is precise: today's
+        // verses get filtered, prior verses on the same page stay in.
+        const todayVerseKeys=new Set((fajrBatch||[]).map(v=>v.verse_key).filter(Boolean));
         allJuzVerses.forEach((v,i)=>{
           if(i>=allIdx) return;
           const vPage=pageOf(v);
           if(!vPage||!pagesCollectedSet.has(vPage)) return;
           v.page_number=vPage;
-          if(todayPages.has(vPage)) return;
+          if(v.verse_key&&todayVerseKeys.has(v.verse_key)) return;
           if(v.verse_key&&!seen.has(v.verse_key)){
             seen.add(v.verse_key);
             combined.push(v);
