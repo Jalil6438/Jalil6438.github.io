@@ -783,13 +783,16 @@ export default function RihlatAlHifz() {
   const twoPageLimit=(()=>{
     if(userPlanMode==="custom") return {count:targetDaily,capped:false};
     if(!sessionVerses.length||sessionIdx>=sessionVerses.length) return {count:targetDaily,capped:false};
-    const startPage=sessionVerses[sessionIdx]?.page_number;
+    // Use V2 verseToPage (the actual mushaf the app renders) instead of the
+    // API page_number — quran.com sometimes lumps a small surah onto one
+    // API page even though V2 splits it across two (e.g. Abasa: API page
+    // 585 has 1-42, V2 page 585 has 1-40 with 41-42 on 586).
+    const pageOf=(v)=>(verseToPage&&verseToPage[v?.verse_key])||v?.page_number;
+    const startPage=pageOf(sessionVerses[sessionIdx]);
     if(!startPage) return {count:targetDaily,capped:false};
-    // Walk while we stay on the start page. Stop the moment we'd cross
-    // into a different page — those ayahs become tomorrow's batch.
     let maxCount=0;
     for(let i=sessionIdx;i<sessionVerses.length;i++){
-      const p=sessionVerses[i]?.page_number;
+      const p=pageOf(sessionVerses[i]);
       if(p&&p!==startPage) break;
       maxCount++;
     }
