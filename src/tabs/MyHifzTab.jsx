@@ -101,6 +101,11 @@ export default function MyHifzTab(props) {
   const isMushafFajr = isFajr && isShaykhPlan && hifzViewMode === "mushaf";
 
   const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
+  // Declared early so the fajrPageVerses fetch effects below can gate on it
+  // (V2 page-number stamp depends on this lookup being loaded). The useState
+  // initialization stays here; the fetch that populates it is in a later
+  // useEffect that doesn't depend on declaration order.
+  const [verseToPageMap, setVerseToPageMap] = useState(null);
   const fajrPageNum = rawBatch[0]?.page_number;
   // Pages used by the Dhuhr/Asr/Maghrib/Isha batch — we fetch each with
   // code_v2 + line_number so every session renders in the authentic
@@ -174,7 +179,8 @@ export default function MyHifzTab(props) {
   // strings + alignment). Matches QuranTab's render path.
   const [mushafPagesData, setMushafPagesData] = useState(null);
   const [mushafLayoutData, setMushafLayoutData] = useState(null);
-  const [verseToPageMap, setVerseToPageMap] = useState(null);
+  // verseToPageMap is declared earlier (~line 107) so the fajrPageVerses
+  // fetch effects can gate on it without hitting the temporal dead zone.
   useEffect(() => {
     let cancelled = false;
     (async () => {
