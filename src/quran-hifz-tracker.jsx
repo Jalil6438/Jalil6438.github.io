@@ -1805,7 +1805,7 @@ export default function RihlatAlHifz() {
         ];
         const d=DUAS[duaIdx%DUAS.length];
         return (
-          <div style={{position:"fixed",inset:0,background:dark?"linear-gradient(180deg,#04070A 0%,#0A1120 50%,#0C1526 100%)":"linear-gradient(180deg,#F7F0DC 0%,#EDE4CC 50%,#E8DCBE 100%)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{position:"fixed",inset:0,background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.10),transparent 60%)":"radial-gradient(circle at 50% 0%,rgba(139,106,16,0.06),transparent 60%)"}}/>
             {/* Bismillah pinned above the card */}
             <div style={{position:"absolute",top:"8vh",left:0,right:0,textAlign:"center",zIndex:2}}>

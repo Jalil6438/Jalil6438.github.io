@@ -83,7 +83,7 @@ export const JUZ_RANGES = {
 };
 
 // ── THEME ──
-export const DARK  = {bg:"#04070A",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
+export const DARK  = {bg:"linear-gradient(180deg,#0B1220,#0E1628)",surface:"linear-gradient(180deg,rgba(15,20,32,0.97),rgba(9,13,22,0.99))",surface2:"rgba(255,255,255,0.04)",border:"rgba(212,175,55,0.18)",border2:"rgba(212,175,55,0.10)",text:"#F3E7BF",sub:"rgba(243,231,191,0.70)",dim:"rgba(243,231,191,0.45)",vdim:"rgba(243,231,191,0.25)",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"rgba(15,20,32,0.97)",inputBorder:"rgba(212,175,55,0.25)",inputText:"#F3E7BF"};
 export const LIGHT = {bg:"#F3E9D2",surface:"#EADFC8",surface2:"#E0D5BC",border:"rgba(0,0,0,0.08)",border2:"rgba(0,0,0,0.06)",text:"#2D2A26",sub:"#6B645A",dim:"#6B645A",vdim:"#9A9488",accent:"#D4AF37",accentDim:"rgba(212,175,55,0.10)",input:"#EADFC8",inputBorder:"rgba(0,0,0,0.08)",inputText:"#2D2A26"};
 
 export const STATUS_CFG = {

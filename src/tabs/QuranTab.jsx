@@ -343,7 +343,7 @@ export default function QuranTab(props) {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment}}>
 
           {/* Header — sticky so it's always visible regardless of scroll. */}
-          <div style={{flexShrink:0,background:dark?"#060C18":"#EADFC8",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
+          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
             {/* Title row — hamburger left, surah/juz right */}
             <div style={{display:"flex",alignItems:"center",padding:"6px 12px",gap:10}}>
               <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}} aria-label="Open menu">
@@ -519,7 +519,7 @@ export default function QuranTab(props) {
             const selVerse=(mushafVerses||[]).find(v=>v.verse_key===selectedAyah);
             const transText=selVerse?._translation||translations[selectedAyah]||"";
             return (
-              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)"}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
                 <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 16px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)"}}>
                   <div className="sbtn" onClick={()=>{setSelectedAyah(null);setDrawerView("default");setShowPickers(false);}} style={{fontSize:11,fontWeight:700,color:dark?"#E6B84A":"#8B6A10",padding:"6px 10px",borderRadius:8,background:dark?"rgba(230,184,74,0.08)":"rgba(180,140,40,0.06)",border:dark?"1px solid rgba(230,184,74,0.25)":"1px solid rgba(160,120,20,0.25)"}}>← Back to Qur'an</div>
                   <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase"}}>{SURAH_EN[parseInt(selectedAyah.split(":")[0],10)]||""} · {selectedAyah}</div>
@@ -551,7 +551,7 @@ export default function QuranTab(props) {
           {drawerView==="translation"&&(()=>{
             const sourceLabel=translationSource==="sahih_intl"?"Sahih International":"Muhsin Khan";
             return (
-              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)"}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
                 <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 16px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)"}}>
                   <div className="sbtn" onClick={()=>{setDrawerView("default");setShowPickers(false);}} style={{fontSize:11,fontWeight:700,color:dark?"#E6B84A":"#8B6A10",padding:"6px 10px",borderRadius:8,background:dark?"rgba(230,184,74,0.08)":"rgba(180,140,40,0.06)",border:dark?"1px solid rgba(230,184,74,0.25)":"1px solid rgba(160,120,20,0.25)"}}>← Back to Qur'an</div>
                   <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase"}}>Page {mushafPage}</div>
@@ -604,7 +604,7 @@ export default function QuranTab(props) {
             const sourceLabel=TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.name||"";
             const isFullArabic=TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.lang==="ar";
             return (
-              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)"}}>
+              <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}}>
                 <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 16px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)"}}>
                   <div className="sbtn" onClick={()=>{setDrawerView("default");setShowPickers(false);}} style={{fontSize:11,fontWeight:700,color:dark?"#E6B84A":"#8B6A10",padding:"6px 10px",borderRadius:8,background:dark?"rgba(230,184,74,0.08)":"rgba(180,140,40,0.06)",border:dark?"1px solid rgba(230,184,74,0.25)":"1px solid rgba(160,120,20,0.25)"}}>← Back to Qur'an</div>
                   <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase"}}>Page {mushafPage}</div>
@@ -916,7 +916,7 @@ export default function QuranTab(props) {
                         ? {top:0,bottom:0,boxShadow:dark?"0 12px 40px rgba(0,0,0,0.70)":"0 12px 40px rgba(0,0,0,0.12)",animation:"slideDownDrawer .22s ease-out"}
                         : {bottom:0,maxHeight:`calc(100vh - ${showPickers?180:130}px)`,height:"auto",borderTop:dark?"1px solid rgba(212,175,55,0.22)":"1px solid rgba(139,106,16,0.18)",borderRadius:"20px 20px 0 0",boxShadow:dark?"0 -12px 40px rgba(0,0,0,0.70)":"0 -12px 40px rgba(0,0,0,0.12)",animation:"slideUpDrawer .22s ease-out"}),
                       transition:"max-height .25s ease, bottom .25s ease, top .25s ease",
-                      background:dark?"linear-gradient(180deg,#0C1422 0%,#060E1A 100%)":"linear-gradient(180deg,#E0D5BC 0%,#D8CCB0 100%)",
+                      background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",
                       display:"flex",flexDirection:"column",
                     }}
                   >
