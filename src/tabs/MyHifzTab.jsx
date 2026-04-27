@@ -1626,19 +1626,15 @@ export default function MyHifzTab(props) {
                     setOpenAyah(null);
                     setAyahPage(0);
                     if(activeSessionIndex>=SESSIONS.length-1){
-                      // Advance by what was ACTUALLY memorized today: fajrBatch.
-                      // Sheikh-mushaf path used to advance by all the surah's
-                      // verses on the page even when the user's batch was
-                      // smaller (custom plan with dailyNew<page-size), which
-                      // skipped 6..end of page. Use the page-fill only when
-                      // fajrBatch IS the full page batch (Sheikh mode), else
-                      // honor what the user did.
-                      const fajrPageForAdvance = fajrBatch[0]?.page_number;
-                      const fajrPageVs = fajrPageForAdvance ? fajrPageVerses[fajrPageForAdvance] : null;
-                      const fullPageActive = fajrPageVs && fajrPageVs.length ? filterActivePlusFresh(fajrPageVs) : null;
-                      const isPageBatch = fullPageActive && fajrBatch.length>=fullPageActive.length;
-                      const fajrMemorized = isPageBatch ? fullPageActive : fajrBatch;
-                      const fajrAdvance = fajrMemorized.length || fajrBatch.length;
+                      // Advance by exactly what's in fajrBatch. With the V2
+                      // page-cap in twoPageLimit, fajrBatch is the precise
+                      // slice of sessionVerses for today (V2 page in Sheikh,
+                      // dailyNew in custom). The previous fullPageActive
+                      // path was reading fajrPageVerses (API-page-bounded)
+                      // which would miss verses V2 places on this page but
+                      // API places on the next (Naziat 16, Abasa 41-42).
+                      const fajrMemorized = fajrBatch;
+                      const fajrAdvance = fajrBatch.length;
                       setYesterdayBatch(fajrMemorized);
                       setRecentBatches(prev=>[...prev.slice(-4),fajrMemorized.map(v=>({verse_key:v.verse_key,text_uthmani:v.text_uthmani,surah_number:v.surah_number,page_number:v.page_number}))].slice(-5));
                       const pageBasedEnd = sessionIdx + fajrAdvance;
