@@ -1,7 +1,7 @@
 import { SURAH_EN, MADANI_SURAHS, RECITERS } from "../data/constants";
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import React, { useState, useEffect, useRef } from "react";
-import { mushafImageUrl, toArabicDigits } from "../utils";
+import { toArabicDigits } from "../utils";
 import { loadQulSegments } from "../hooks/useAudio";
 
 export default function QuranTab(props) {
@@ -37,7 +37,6 @@ export default function QuranTab(props) {
     fontSize,
     tafsirData, tafsirTab, setTafsirTab, setTafsirAyah, fetchTafsir,
     reflections, setReflections,
-    croppedPages,
     // setters for modals
     setShowQuranSurahModal,
     setShowMushafSheet,
@@ -660,7 +659,7 @@ export default function QuranTab(props) {
 
           {/* Viewer */}
           {drawerView!=="tafsir"&&drawerView!=="translation"&&drawerView!=="tafsir-page"&&(quranMode==="mushaf"?(
-            <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0b1a2b":"#F3E9D2",display:"flex",justifyContent:"center",alignItems:"center",position:"relative"}}
+            <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0B1220":"#F3E9D2",display:"flex",flexDirection:"column",position:"relative"}}
               onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
               onTouchEnd={e=>{
                 const dx=e.changedTouches[0].clientX-quranTouchRef.current;
@@ -668,16 +667,68 @@ export default function QuranTab(props) {
                 if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
+              onClick={()=>setShowMushafSheet(true)}
             >
-              <img
-                key={mushafPage}
-                src={croppedPages[mushafPage] || mushafImageUrl(mushafPage)}
-                alt={`Mushaf page ${mushafPage}`}
-                draggable={false}
-                onClick={()=>setShowMushafSheet(true)}
-                className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""}
-                style={{width:"100%",height:"100%",objectFit:"contain",display:"block",userSelect:"none",cursor:"pointer"}}
-              />
+              {(()=>{
+                // Font-based mushaf rendering — same V2 layout JSON path Study
+                // mode uses, no per-ayah click handlers (the whole container's
+                // onClick opens the mushaf control sheet). Page swap is instant
+                // because fonts are cached and pagesV2/layoutV2 is bundled —
+                // replaces the previous <img> path that fetched a new PNG from
+                // raw.githubusercontent.com on every swipe.
+                const fontEd=tajweedFont?"v4":"v2";
+                const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
+                if(!pageFontReady){
+                  return (
+                    <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
+                      <span>loading mushaf…</span>
+                    </div>
+                  );
+                }
+                const pageLines=mushafPagesData&&mushafPagesData[mushafPage];
+                const pageLayout=mushafLayoutData&&mushafLayoutData[mushafPage];
+                if(!pageLines||!pageLayout) return null;
+                let ayahIdx=-1;
+                const entries=pageLayout.map((layoutEntry,i)=>{
+                  const type=layoutEntry.type;
+                  let lineText="";
+                  if(type!=="surah_name"&&type!=="basmallah"){
+                    ayahIdx++;
+                    lineText=pageLines[ayahIdx]||"";
+                  }
+                  const isCenter=layoutEntry.center===1;
+                  if(type==="surah_name"){
+                    const sn=layoutEntry.sn;
+                    return (
+                      <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
+                        <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                          <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                            <span>surah</span>
+                            <span>{String(sn).padStart(3,"0")}</span>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  if(type==="basmallah"){
+                    return (
+                      <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
+                        {bismillahGlyphs&&loadedFonts.has(`${fontEd}-1`)?(
+                          <div style={{fontFamily:`'p1-${fontEd}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
+                        ):(
+                          <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={i} className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
+                      {lineText.split(" ").map((w,wi)=><span key={wi}>{w}</span>)}
+                    </div>
+                  );
+                });
+                return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"12px 8px"}}>{entries}</div>);
+              })()}
             </div>
           ):(
             <div
