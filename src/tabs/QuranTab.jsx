@@ -344,12 +344,12 @@ export default function QuranTab(props) {
           {/* Header — sticky so it's always visible regardless of scroll.
               Compact since the surah/juz title moved into the framed page
               below; only the hamburger menu lives here now. */}
-          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:"max(env(safe-area-inset-top,8px),8px)",position:"sticky",top:0,zIndex:201}}>
-            <div style={{display:"flex",alignItems:"center",padding:"2px 10px"}}>
-              <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:26,height:26,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,padding:"4px",borderRadius:6}} aria-label="Open menu">
-                <div style={{width:14,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
-                <div style={{width:14,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
-                <div style={{width:14,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:"max(env(safe-area-inset-top,12px),12px)",position:"sticky",top:0,zIndex:201}}>
+            <div style={{display:"flex",alignItems:"center",padding:"6px 14px"}}>
+              <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:30,height:30,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,padding:"4px",borderRadius:6}} aria-label="Open menu">
+                <div style={{width:16,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:16,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:16,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
               </div>
               <div style={{flex:1}}/>
             </div>
@@ -451,29 +451,13 @@ export default function QuranTab(props) {
                     </div>
                   )}
                 </div>
-                {/* Default reading mode */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26"}}>Reading mode</div>
-                    {/* TAJWEED DISABLED 2026-04-26 — original subtitle: "Mushaf · Study · Tajweed colors" */}
-                    <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:2}}>Mushaf · Study</div>
-                  </div>
-                  {setQuranMode&&(()=>{
-                    // TAJWEED DISABLED 2026-04-26 — original modes array included tajweed:
-                    //   const modes=[{id:"mushaf",label:"Mushaf"},{id:"interactive",label:"Study"},{id:"tajweed",label:"Tajweed"}];
-                    // and the slider divisor below was /3 (3 modes). Restore both together.
-                    const modes=[{id:"mushaf",label:"Mushaf"},{id:"interactive",label:"Study"}/*,{id:"tajweed",label:"Tajweed"}*/];
-                    const idx=Math.max(0,modes.findIndex(m=>m.id===quranMode));
-                    return (
-                      <div onClick={e=>e.stopPropagation()} style={{position:"relative",display:"flex",borderRadius:999,width:210,background:dark?"rgba(12,20,34,0.80)":"rgba(0,0,0,0.08)",border:dark?"1px solid rgba(212,175,55,0.15)":"1px solid rgba(139,106,16,0.20)",padding:2,height:28}}>
-                        <div style={{position:"absolute",top:2,left:`calc((100% - 4px) * ${idx} / 2 + 2px)`,width:"calc((100% - 4px) / 2)",height:24,borderRadius:999,background:"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",boxShadow:"0 0 10px rgba(212,175,55,0.40)",transition:"left .25s ease"}}/>
-                        {modes.map(m=>(
-                          <div key={m.id} className="sbtn" onClick={()=>setQuranMode(m.id)} style={{position:"relative",zIndex:1,flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,letterSpacing:".05em",color:quranMode===m.id?"#0A0E1A":dark?"rgba(212,175,55,0.45)":"rgba(0,0,0,0.50)",fontWeight:700}}>{m.label}</div>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                </div>
+                {/* Reading-mode toggle (Mushaf · Study · Tajweed) was removed
+                    2026-04-28 once Study mode adopted the framed-page look —
+                    the two modes rendered identically. quranMode state is
+                    pinned to "interactive" (Study) below. To restore: revert
+                    this block + the static `quranMode = "interactive"` and
+                    re-introduce the if/else viewer branch.
+                */}
                 {/* Translation source */}
                 <div style={{padding:"12px 6px",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(139,106,16,0.10)"}}>
                   <div style={{fontSize:13,fontWeight:600,color:dark?"rgba(243,231,200,0.90)":"#2D2A26",marginBottom:2}}>Translation</div>
@@ -657,80 +641,10 @@ export default function QuranTab(props) {
             );
           })()}
 
-          {/* Viewer */}
-          {drawerView!=="tafsir"&&drawerView!=="translation"&&drawerView!=="tafsir-page"&&(quranMode==="mushaf"?(
-            <div style={{flex:1,overflow:"hidden",backgroundColor:dark?"#0B1220":"#F3E9D2",display:"flex",flexDirection:"column",position:"relative"}}
-              onTouchStart={e=>{ quranTouchRef.current=e.touches[0].clientX; }}
-              onTouchEnd={e=>{
-                const dx=e.changedTouches[0].clientX-quranTouchRef.current;
-                if(Math.abs(dx)<40) return;
-                if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
-                else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
-              }}
-              onClick={()=>setShowMushafSheet(true)}
-            >
-              {(()=>{
-                // Font-based mushaf rendering — same V2 layout JSON path Study
-                // mode uses, no per-ayah click handlers (the whole container's
-                // onClick opens the mushaf control sheet). Page swap is instant
-                // because fonts are cached and pagesV2/layoutV2 is bundled —
-                // replaces the previous <img> path that fetched a new PNG from
-                // raw.githubusercontent.com on every swipe.
-                const fontEd=tajweedFont?"v4":"v2";
-                const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
-                if(!pageFontReady){
-                  return (
-                    <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
-                      <span>loading mushaf…</span>
-                    </div>
-                  );
-                }
-                const pageLines=mushafPagesData&&mushafPagesData[mushafPage];
-                const pageLayout=mushafLayoutData&&mushafLayoutData[mushafPage];
-                if(!pageLines||!pageLayout) return null;
-                let ayahIdx=-1;
-                const entries=pageLayout.map((layoutEntry,i)=>{
-                  const type=layoutEntry.type;
-                  let lineText="";
-                  if(type!=="surah_name"&&type!=="basmallah"){
-                    ayahIdx++;
-                    lineText=pageLines[ayahIdx]||"";
-                  }
-                  const isCenter=layoutEntry.center===1;
-                  if(type==="surah_name"){
-                    const sn=layoutEntry.sn;
-                    return (
-                      <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
-                        <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
-                            <span>surah</span>
-                            <span>{String(sn).padStart(3,"0")}</span>
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  }
-                  if(type==="basmallah"){
-                    return (
-                      <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
-                        {bismillahGlyphs&&loadedFonts.has(`${fontEd}-1`)?(
-                          <div style={{fontFamily:`'p1-${fontEd}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
-                        ):(
-                          <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                        )}
-                      </div>
-                    );
-                  }
-                  return (
-                    <div key={i} className={mushafSwipeAnim==="left"?"asr-slide-left":mushafSwipeAnim==="right"?"asr-slide-right":""} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
-                      {lineText.split(" ").map((w,wi)=><span key={wi}>{w}</span>)}
-                    </div>
-                  );
-                });
-                return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"12px 8px"}}>{entries}</div>);
-              })()}
-            </div>
-          ):(
+          {/* Viewer — single mode (formerly Study). The standalone "Mushaf"
+              mode and its mode toggle were removed 2026-04-28; once Study
+              adopted the framed-page layout the two were visually identical. */}
+          {drawerView!=="tafsir"&&drawerView!=="translation"&&drawerView!=="tafsir-page"&&(
             <div
               onTouchStart={(e)=>{ quranTouchRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY}; }}
               onTouchEnd={(e)=>{
@@ -1233,7 +1147,7 @@ export default function QuranTab(props) {
                 );
               })()}
             </div>
-          ))}
+          )}
 
 
 
