@@ -341,19 +341,18 @@ export default function QuranTab(props) {
   return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment}}>
 
-          {/* Header — sticky so it's always visible regardless of scroll.
-              Compact since the surah/juz title moved into the framed page
-              below; only the hamburger menu lives here now. */}
-          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:"max(env(safe-area-inset-top,12px),12px)",position:"sticky",top:0,zIndex:201}}>
-            <div style={{display:"flex",alignItems:"center",padding:"6px 14px"}}>
-              <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:30,height:30,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,padding:"4px",borderRadius:6}} aria-label="Open menu">
-                <div style={{width:16,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
-                <div style={{width:16,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
-                <div style={{width:16,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+          {/* Header — sticky so it's always visible regardless of scroll. */}
+          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
+            <div style={{display:"flex",alignItems:"center",padding:"6px 12px",gap:10}}>
+              <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}} aria-label="Open menu">
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
               </div>
-              <div style={{flex:1}}/>
+              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0,whiteSpace:"nowrap"}}>Juz {mushafJuzNum}</div>
             </div>
-            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.20),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.12),transparent)"}}/>
+            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
 
           {/* ── SIDE MENU ── slides in from the left, partial width */}
@@ -706,50 +705,7 @@ export default function QuranTab(props) {
                     // Render ONCE per page directly from the authoritative
                     // mushaf layout. Each page gives us its 15 line strings
                     // plus per-line alignment (center vs space-between).
-                    // Frame styles — cream "paper" inside a gold ornamental
-                    // border, mimicking the printed Madinah mushaf margin.
-                    const frameStyle={
-                      borderRadius:6,
-                      background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"#FAF3E0",
-                      border:dark?"1px solid #C8A24A":"2px solid #5C8A4A",
-                      boxShadow:dark
-                        ?"0 0 0 3px #050A14, 0 0 0 4px rgba(212,175,55,0.40), 0 8px 28px rgba(0,0,0,0.5)"
-                        :"0 0 0 3px #FAF3E0, 0 0 0 5px #C8A24A, 0 8px 22px rgba(0,0,0,0.30)",
-                      margin:"4px 6px",
-                    };
-                    // Page footer text (page number + hizb marker) — moved
-                    // inside the frame so the frame visually wraps surah +
-                    // juz header at top, ayat in middle, page number at
-                    // bottom, like a real printed mushaf page.
-                    const rubsForFooter=[];
-                    (mushafVerses||[]).forEach((v,i)=>{
-                      const r=v.rub_el_hizb_number;
-                      if(typeof r!=="number") return;
-                      const prevRub=i===0?prevPageLastRub[mushafPage]:mushafVerses[i-1]?.rub_el_hizb_number;
-                      if(prevRub===undefined||prevRub===r) return;
-                      rubsForFooter.push(r);
-                    });
-                    if(mushafPage===1&&rubsForFooter.length===0&&mushafVerses?.[0]?.rub_el_hizb_number===1){
-                      rubsForFooter.push(1);
-                    }
-                    const _r=rubsForFooter[0];
-                    let _hizbLabel=null;
-                    if(_r!=null){
-                      const _pos=((_r-1)%4)+1;
-                      const _hizb=Math.ceil(_r/4);
-                      _hizbLabel=_pos===1?`Hizb ${_hizb}`:_pos===2?`1/4 Hizb ${_hizb}`:_pos===3?`1/2 Hizb ${_hizb}`:`3/4 Hizb ${_hizb}`;
-                    }
-                    const _isOdd=mushafPage%2===1;
-                    const _pageFooterText=_isOdd
-                      ? (_hizbLabel?`${_hizbLabel} | Page ${mushafPage}`:`Page ${mushafPage}`)
-                      : (_hizbLabel?`Page ${mushafPage} | ${_hizbLabel}`:`Page ${mushafPage}`);
-                    return (<div style={mushafPage<=2?{padding:"12px 14px",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0,...frameStyle}:{padding:"12px 14px",position:"relative",...frameStyle}}>
-                      {(curSurahNum||mushafJuzNum)&&(
-                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:12,paddingBottom:8,borderBottom:`1px solid ${dark?"rgba(212,175,55,0.20)":"rgba(140,100,20,0.20)"}`}}>
-                          <span>{curSurahNum?(SURAH_EN[curSurahNum]||""):""}</span>
-                          <span>{mushafJuzNum?`Juz ${mushafJuzNum}`:""}</span>
-                        </div>
-                      )}
+                    return (<div style={mushafPage<=2?{padding:"8px 2px 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 2px 0",position:"relative"}}>
                       {(()=>{
                         const fontEd=tajweedFont?"v4":"v2";
                         const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
@@ -837,10 +793,39 @@ export default function QuranTab(props) {
                         }
                         return entries;
                       })()}
-                      <div style={{textAlign:_isOdd?"right":"left",fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em",marginTop:12,paddingTop:8,borderTop:`1px solid ${dark?"rgba(212,175,55,0.15)":"rgba(140,100,20,0.15)"}`}}>
-                        {_pageFooterText}
-                      </div>
                     </div>);
+                  })()}
+                  {/* Bottom corner marker — page number + Hizb label, paired.
+                      Alternates right (odd page) / left (even page) like a real
+                      mushaf spread. */}
+                  {(()=>{
+                    const rubs=[];
+                    (mushafVerses||[]).forEach((v,i)=>{
+                      const r=v.rub_el_hizb_number;
+                      if(typeof r!=="number") return;
+                      const prevRub=i===0?prevPageLastRub[mushafPage]:mushafVerses[i-1]?.rub_el_hizb_number;
+                      if(prevRub===undefined||prevRub===r) return;
+                      rubs.push(r);
+                    });
+                    if(mushafPage===1&&rubs.length===0&&mushafVerses?.[0]?.rub_el_hizb_number===1){
+                      rubs.push(1);
+                    }
+                    const r=rubs[0];
+                    let hizbLabel=null;
+                    if(r!=null){
+                      const pos=((r-1)%4)+1;
+                      const hizb=Math.ceil(r/4);
+                      hizbLabel=pos===1?`Hizb ${hizb}`:pos===2?`1/4 Hizb ${hizb}`:pos===3?`1/2 Hizb ${hizb}`:`3/4 Hizb ${hizb}`;
+                    }
+                    const isOdd=mushafPage%2===1;
+                    const text=isOdd
+                      ? (hizbLabel?`${hizbLabel} | Page ${mushafPage}`:`Page ${mushafPage}`)
+                      : (hizbLabel?`Page ${mushafPage} | ${hizbLabel}`:`Page ${mushafPage}`);
+                    return (
+                      <div style={{position:"absolute",bottom:16,[isOdd?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
+                        {text}
+                      </div>
+                    );
                   })()}
                 </div>
               )}
