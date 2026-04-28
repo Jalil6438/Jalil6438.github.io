@@ -136,7 +136,7 @@ export default function MyHifzTab(props) {
           const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${pn}?words=true&word_fields=line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
           if (!res.ok || cancelled) continue;
           const data = await res.json();
-          const vs = (data.verses || []).map(v => ({ ...v, text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652") }));
+          const vs = (data.verses || []).map(v => ({ ...v, text_uthmani: (v.text_uthmani || "") }));
           if (verseToPageMap) {
             vs.forEach(v => { const p = verseToPageMap[v.verse_key]; if (p) v.page_number = p; });
           }
@@ -230,7 +230,7 @@ export default function MyHifzTab(props) {
           const lines = [...new Set((v.words || []).map(w => w.line_number).filter(n => typeof n === "number"))].sort((a, b) => a - b);
           return {
             ...v,
-            text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652"),
+            text_uthmani: (v.text_uthmani || ""),
             _lines: lines,
             _firstLine: lines[0] || null,
             _lastLine: lines[lines.length - 1] || null,
@@ -1304,7 +1304,7 @@ export default function MyHifzTab(props) {
                               <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
                             </div>
                             <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").trim()+"\u2060"}</span>
                               <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                             </div>
                           </div>
@@ -1408,7 +1408,7 @@ export default function MyHifzTab(props) {
                             }
                             return (
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2,...clampStyle}}>
-                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").trim()+"\u2060"}</span>
                                 <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                               </div>
                             );
@@ -1454,7 +1454,7 @@ export default function MyHifzTab(props) {
                               </div>
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                                 {step.ayahs.map((a,ai)=>(
-                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.35)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
+                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{(a.text_uthmani||"")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.35)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
                                 ))}
                               </div>
                               <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",overflow:"hidden"}}>
@@ -1488,7 +1488,7 @@ export default function MyHifzTab(props) {
                         <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"center",lineHeight:2,marginBottom:12}}>
                           {activeCloser.ayahs.map(a=>(
                             <span key={a.verse_key}>
-                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"")}</span>
                               <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.40)":"rgba(140,100,20,0.40)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>
                             </span>
                           ))}
@@ -1522,7 +1522,7 @@ export default function MyHifzTab(props) {
                         <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
                         {/* Arabic */}
                         <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
-                          {(mv.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
+                          {(mv.text_uthmani||"")}
                         </div>
                         {/* Reference */}
                         <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:20}}>
@@ -1570,8 +1570,8 @@ export default function MyHifzTab(props) {
                               const nextKey=`${ss}:${Number(sa)+1}`;
                               const simVerse=batch.find(v=>v.verse_key===simKey)||sessionVerses.find(v=>v.verse_key===simKey);
                               const nextVerse=batch.find(v=>v.verse_key===nextKey)||sessionVerses.find(v=>v.verse_key===nextKey);
-                              const simText=simVerse?(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[simKey];
-                              const nextText=nextVerse?(nextVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[nextKey+"_next"];
+                              const simText=simVerse?(simVerse.text_uthmani||""):simVerseCache[simKey];
+                              const nextText=nextVerse?(nextVerse.text_uthmani||""):simVerseCache[nextKey+"_next"];
                               if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
                               return (
                                 <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
