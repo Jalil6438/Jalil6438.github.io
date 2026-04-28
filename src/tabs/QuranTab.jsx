@@ -341,18 +341,19 @@ export default function QuranTab(props) {
   return (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment}}>
 
-          {/* Header — sticky so it's always visible regardless of scroll. */}
-          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
-            {/* Title row — hamburger left, surah/juz right */}
-            <div style={{display:"flex",alignItems:"center",padding:"6px 12px",gap:10}}>
-              <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}} aria-label="Open menu">
-                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
-                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
-                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+          {/* Header — sticky so it's always visible regardless of scroll.
+              Compact since the surah/juz title moved into the framed page
+              below; only the hamburger menu lives here now. */}
+          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:"max(env(safe-area-inset-top,8px),8px)",position:"sticky",top:0,zIndex:201}}>
+            <div style={{display:"flex",alignItems:"center",padding:"2px 10px"}}>
+              <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:26,height:26,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,padding:"4px",borderRadius:6}} aria-label="Open menu">
+                <div style={{width:14,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:14,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:14,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
               </div>
               <div style={{flex:1}}/>
             </div>
-            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
+            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.20),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.12),transparent)"}}/>
           </div>
 
           {/* ── SIDE MENU ── slides in from the left, partial width */}
