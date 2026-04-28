@@ -803,7 +803,39 @@ export default function QuranTab(props) {
                         :"0 0 0 3px #FAF3E0, 0 0 0 5px #C8A24A, 0 8px 22px rgba(0,0,0,0.30)",
                       margin:"4px 6px",
                     };
-                    return (<div style={mushafPage<=2?{padding:"12px 8px",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0,...frameStyle}:{padding:"12px 8px",position:"relative",...frameStyle}}>
+                    // Page footer text (page number + hizb marker) — moved
+                    // inside the frame so the frame visually wraps surah +
+                    // juz header at top, ayat in middle, page number at
+                    // bottom, like a real printed mushaf page.
+                    const rubsForFooter=[];
+                    (mushafVerses||[]).forEach((v,i)=>{
+                      const r=v.rub_el_hizb_number;
+                      if(typeof r!=="number") return;
+                      const prevRub=i===0?prevPageLastRub[mushafPage]:mushafVerses[i-1]?.rub_el_hizb_number;
+                      if(prevRub===undefined||prevRub===r) return;
+                      rubsForFooter.push(r);
+                    });
+                    if(mushafPage===1&&rubsForFooter.length===0&&mushafVerses?.[0]?.rub_el_hizb_number===1){
+                      rubsForFooter.push(1);
+                    }
+                    const _r=rubsForFooter[0];
+                    let _hizbLabel=null;
+                    if(_r!=null){
+                      const _pos=((_r-1)%4)+1;
+                      const _hizb=Math.ceil(_r/4);
+                      _hizbLabel=_pos===1?`Hizb ${_hizb}`:_pos===2?`1/4 Hizb ${_hizb}`:_pos===3?`1/2 Hizb ${_hizb}`:`3/4 Hizb ${_hizb}`;
+                    }
+                    const _isOdd=mushafPage%2===1;
+                    const _pageFooterText=_isOdd
+                      ? (_hizbLabel?`${_hizbLabel} | Page ${mushafPage}`:`Page ${mushafPage}`)
+                      : (_hizbLabel?`Page ${mushafPage} | ${_hizbLabel}`:`Page ${mushafPage}`);
+                    return (<div style={mushafPage<=2?{padding:"12px 14px",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0,...frameStyle}:{padding:"12px 14px",position:"relative",...frameStyle}}>
+                      {(curSurahNum||mushafJuzNum)&&(
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00",marginBottom:12,paddingBottom:8,borderBottom:`1px solid ${dark?"rgba(212,175,55,0.20)":"rgba(140,100,20,0.20)"}`}}>
+                          <span>{curSurahNum?(SURAH_EN[curSurahNum]||""):""}</span>
+                          <span>{mushafJuzNum?`Juz ${mushafJuzNum}`:""}</span>
+                        </div>
+                      )}
                       {(()=>{
                         const fontEd=tajweedFont?"v4":"v2";
                         const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
@@ -891,42 +923,10 @@ export default function QuranTab(props) {
                         }
                         return entries;
                       })()}
-                    </div>);
-                  })()}
-                  {/* Bottom corner marker — page number + Hizb label, paired.
-                      Alternates right (odd page) / left (even page) like a real
-                      mushaf spread. */}
-                  {(()=>{
-                    const rubs=[];
-                    (mushafVerses||[]).forEach((v,i)=>{
-                      const r=v.rub_el_hizb_number;
-                      if(typeof r!=="number") return;
-                      // First verse: compare to prev page's last rub (if known).
-                      // Later verses: compare to the verse right before on the page.
-                      const prevRub=i===0?prevPageLastRub[mushafPage]:mushafVerses[i-1]?.rub_el_hizb_number;
-                      if(prevRub===undefined||prevRub===r) return;
-                      rubs.push(r);
-                    });
-                    // Page 1 is the start of the mushaf — Hizb 1 starts here.
-                    if(mushafPage===1&&rubs.length===0&&mushafVerses?.[0]?.rub_el_hizb_number===1){
-                      rubs.push(1);
-                    }
-                    const r=rubs[0];
-                    let hizbLabel=null;
-                    if(r!=null){
-                      const pos=((r-1)%4)+1;
-                      const hizb=Math.ceil(r/4);
-                      hizbLabel=pos===1?`Hizb ${hizb}`:pos===2?`1/4 Hizb ${hizb}`:pos===3?`1/2 Hizb ${hizb}`:`3/4 Hizb ${hizb}`;
-                    }
-                    const isOdd=mushafPage%2===1;
-                    const text=isOdd
-                      ? (hizbLabel?`${hizbLabel} | Page ${mushafPage}`:`Page ${mushafPage}`)
-                      : (hizbLabel?`Page ${mushafPage} | ${hizbLabel}`:`Page ${mushafPage}`);
-                    return (
-                      <div style={{position:"absolute",bottom:16,[isOdd?"right":"left"]:20,fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
-                        {text}
+                      <div style={{textAlign:_isOdd?"right":"left",fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:dark?"rgba(217,177,95,0.55)":"#6B645A",letterSpacing:".06em",marginTop:12,paddingTop:8,borderTop:`1px solid ${dark?"rgba(212,175,55,0.15)":"rgba(140,100,20,0.15)"}`}}>
+                        {_pageFooterText}
                       </div>
-                    );
+                    </div>);
                   })()}
                 </div>
               )}
