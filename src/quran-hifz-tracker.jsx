@@ -64,8 +64,8 @@ export default function RihlatAlHifz() {
       ]);
       const d1=res1.ok?await res1.json():null;
       const d2=res2.ok?await res2.json():null;
-      const text=(d1?.verse?.text_uthmani||"");
-      const nextText=(d2?.verse?.text_uthmani||"");
+      const text=(d1?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
+      const nextText=(d2?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
       if(text) setSimVerseCache(prev=>({...prev,[vk]:text,[nextKey+"_next"]:nextText}));
     }catch{}
   };
@@ -262,6 +262,8 @@ export default function RihlatAlHifz() {
             });
           }
         }
+        // Fix U+06DF (small high rounded zero) → remove it for UthmanicHafs compatibility
+        vs.forEach(v => { if(v.text_uthmani) v.text_uthmani = v.text_uthmani.replace(/\u06DF/g, "\u0652"); });
         setMushafVerses(vs);
         setMushafPageLines([]);
         if (vs.length > 0) {
@@ -507,27 +509,7 @@ export default function RihlatAlHifz() {
     l.href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap";
     // Load UthmanicHafs for Interactive Quran mode — served locally to avoid CORS
     const ufs=document.createElement("style");
-    // UthmanicHafs is declared with unicode-range that EXCLUDES the small
-    // recitation marks the v18 build can't render (U+06DF small high
-    // rounded zero, and the small high/low letter range U+06E0–U+06ED
-    // covering small high meem, small low meem, etc.). For any codepoint
-    // in that gap, the browser falls through to the next font in the chain.
-    //
-    // Amiri Quran (bundled locally — Google Fonts OFL) is registered
-    // with the COMPLEMENTARY unicode-range so it serves *only* those
-    // gap codepoints. The visible letters still come from UthmanicHafs;
-    // only the small marks are quietly filled in by Amiri Quran.
-    //
-    // Net effect: no JS rendering changes, no aesthetic shift on the
-    // main letters, and the U+06DF strip workaround at lines 265 / 622 /
-    // 1473 can be retired since the proper mark now renders.
-    ufs.textContent=`
-      @font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;unicode-range:U+0000-06DE,U+06EE-FFFF;}
-      @font-face{font-family:'UthmanicHafs';src:url('/AmiriQuran-Regular.ttf') format('truetype');font-display:swap;unicode-range:U+06DF-06ED;}
-      @font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}
-      @font-face{font-family:'KFGQPC Uthmanic Script HAFS';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}
-      @font-face{font-family:'surah-names';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/surah-names/v1/sura_names.woff2') format('woff2');font-display:block;}
-    `;
+    ufs.textContent="@font-face{font-family:'UthmanicHafs';src:url('/UthmanicHafs1Ver18.woff2') format('woff2');font-display:swap;}@font-face{font-family:'KFGQPC';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}@font-face{font-family:'KFGQPC Uthmanic Script HAFS';src:url('/fonts/KFGQPC.otf') format('opentype');font-display:swap;}@font-face{font-family:'surah-names';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/surah-names/v1/sura_names.woff2') format('woff2');font-display:block;}";
     document.head.appendChild(ufs);
     document.head.appendChild(l);
   },[]);
@@ -637,6 +619,9 @@ export default function RihlatAlHifz() {
           } while(page<=tp);
         }
 
+        // Fix U+06DF dots for UthmanicHafs font
+        all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
+
         // V2 page-number stamp — universal fix. quran.com's API has different
         // page boundaries than V2 on a handful of pages (Abasa 41-42, Naziat
         // 16, etc.). Rewriting v.page_number to the V2 lookup once at fetch
@@ -674,6 +659,7 @@ export default function RihlatAlHifz() {
               const data=await res.json();
               prevAll=[...prevAll,...(data.verses||[])];
             }
+            prevAll.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
             if(verseToPage){
               prevAll.forEach(v=>{ const p=verseToPage[v.verse_key]; if(p) v.page_number=p; });
             }
@@ -819,6 +805,7 @@ export default function RihlatAlHifz() {
           if(cancelled) return;
           all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
         } while(page<=tp);
+        all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
         if(!cancelled){setAllVerses(all);const f=all[0]?.surah_number||parseInt(all[0]?.verse_key?.split(":")?.[0]);if(f)setOpenSurah(f);}
       } catch{if(!cancelled)setFetchError(true);}
       if(!cancelled){setLoading(false);setLoadMsg("");}
@@ -1483,6 +1470,9 @@ export default function RihlatAlHifz() {
         });
       }
 
+      // Fix U+06DF dots for UthmanicHafs font
+      allVerses.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
+
       // Compute the Dhuhr page window so Asr can exclude it — mirrors the
       // Dhuhr review = the 5 most recently memorized pages in HIFZ ORDER
       // (not mushaf-page order). Walking backward in allJuzVerses finds
@@ -1666,6 +1656,7 @@ export default function RihlatAlHifz() {
       if(!res.ok) throw new Error();
       const data=await res.json();
       const verses=data.verses||[];
+      verses.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
       setAsrSelectedSurahs(prev=>[...prev,surahNum]);
       setAsrReviewBatch(prev=>{
         const merged=[...prev,...verses];
@@ -1696,6 +1687,7 @@ export default function RihlatAlHifz() {
         const data=await res.json();
         all=[...all,...(data.verses||[])]; tp=data.pagination?.total_pages||1; page++;
       } while(page<=tp);
+      all.forEach(v=>{ if(v.text_uthmani) v.text_uthmani=v.text_uthmani.replace(/\u06DF/g,"\u0652"); });
       const juzSurahNums=(JUZ_SURAHS[juzNum]||[]).map(s=>s.s);
       // Remove individually selected surahs from this Juz before adding whole Juz
       setAsrSelectedSurahs(prev=>prev.filter(n=>!juzSurahNums.includes(n)));

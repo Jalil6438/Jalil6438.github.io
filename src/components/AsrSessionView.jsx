@@ -124,8 +124,8 @@ function AsrSessionView({
         ]);
         const d1=res1.ok?await res1.json():null;
         const d2=res2.ok?await res2.json():null;
-        const text=(d1?.verse?.text_uthmani||"");
-        const nextText=(d2?.verse?.text_uthmani||"");
+        const text=(d1?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
+        const nextText=(d2?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
         if(text) setSimVerseCache(prev=>({...prev,[vk]:text,[nextKey+"_next"]:nextText}));
       }catch{}
     };
@@ -389,7 +389,7 @@ function AsrSessionView({
                         <span style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>{SURAH_EN[sNum]||`Surah ${sNum}`} · {vKey}</span>
                       </div>
                       <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"")}</span>
+                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
                         <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
                       </div>
                     </div>
@@ -485,8 +485,8 @@ function AsrSessionView({
                       const nextKey=`${ss}:${Number(sa)+1}`;
                       const simVerse=asrBatch.find(v=>v.verse_key===simKey);
                       const nextVerse=asrBatch.find(v=>v.verse_key===nextKey);
-                      const simText=simVerse?(simVerse.text_uthmani||""):simVerseCache[simKey];
-                      const nextText=nextVerse?(nextVerse.text_uthmani||""):simVerseCache[nextKey+"_next"];
+                      const simText=simVerse?(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[simKey];
+                      const nextText=nextVerse?(nextVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[nextKey+"_next"];
                       if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
                       return (
                         <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
