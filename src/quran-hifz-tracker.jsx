@@ -1717,7 +1717,7 @@ export default function RihlatAlHifz() {
 
 
   return (
-    <div className={dark?"":"lm"} style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,minHeight:"100vh",color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s",position:"relative"}}>
+    <div className={dark?"":"lm"} style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,height:"100dvh",minHeight:"100vh",color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s",position:"relative",overflow:"hidden"}}>
       {/* Journey-tab full-viewport mountain backdrop — single continuous
           image behind both the universal header and the scrolling tab
           content, so they read as one connected piece (not two stacked
