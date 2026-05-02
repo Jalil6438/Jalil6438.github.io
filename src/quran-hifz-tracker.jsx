@@ -1725,7 +1725,7 @@ export default function RihlatAlHifz() {
           render with transparent / tinted-only backgrounds when on the
           Rihlah tab so this image shows through both. */}
       {activeTab==="rihlah"&&(
-        <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:dark?"linear-gradient(rgba(10,22,40,0.30),rgba(10,22,40,0.60)),url('/rihlah-path-night-stars.png') center top / cover no-repeat":"linear-gradient(rgba(243,233,210,0.15),rgba(243,233,210,0.40)),url('/mountain-background.png') center top / cover no-repeat"}}/>
+        <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:dark?"linear-gradient(rgba(10,22,40,0.30),rgba(10,22,40,0.60)),url('/rihlah-path-night-stars.png') center bottom / auto 118% no-repeat":"linear-gradient(rgba(243,233,210,0.15),rgba(243,233,210,0.40)),url('/mountain-background.png') center bottom / auto 118% no-repeat"}}/>
       )}
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
