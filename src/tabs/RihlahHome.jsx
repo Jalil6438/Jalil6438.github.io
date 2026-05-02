@@ -183,7 +183,7 @@ export default function RihlahHome({
   };
 
   return (
-    <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(rgba(10,22,40,0.55),rgba(10,22,40,0.85)),url('/rihlah-path-night-stars.png') center top / cover no-repeat fixed,#0B1220":"linear-gradient(rgba(243,233,210,0.30),rgba(243,233,210,0.65)),url('/mountain-background.png') center top / cover no-repeat fixed,#F3E9D2"}} className="fi">
+    <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"transparent",position:"relative",zIndex:1}} className="fi">
 
       {/* ── AMBIENT GLOW ── */}
       <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>

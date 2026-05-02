@@ -1717,7 +1717,16 @@ export default function RihlatAlHifz() {
 
 
   return (
-    <div className={dark?"":"lm"} style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,minHeight:"100vh",color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s"}}>
+    <div className={dark?"":"lm"} style={{fontFamily:"'DM Sans',sans-serif",background:T.bg,minHeight:"100vh",color:T.text,display:"flex",flexDirection:"column",transition:"background .25s,color .25s",position:"relative"}}>
+      {/* Journey-tab full-viewport mountain backdrop — single continuous
+          image behind both the universal header and the scrolling tab
+          content, so they read as one connected piece (not two stacked
+          mountains that don't align). The header and RihlahHome below it
+          render with transparent / tinted-only backgrounds when on the
+          Rihlah tab so this image shows through both. */}
+      {activeTab==="rihlah"&&(
+        <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:dark?"linear-gradient(rgba(10,22,40,0.50),rgba(10,22,40,0.78)),url('/rihlah-path-night-stars.png') center top / cover no-repeat":"linear-gradient(rgba(243,233,210,0.25),rgba(243,233,210,0.55)),url('/mountain-background.png') center top / cover no-repeat"}}/>
+      )}
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         .lm div,.lm span,.lm p,.lm label,.lm textarea,.lm input{color:#2D2A26 !important;}
@@ -1835,7 +1844,7 @@ export default function RihlatAlHifz() {
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
         return (
-        <div style={{background:dark?"linear-gradient(rgba(10,22,40,0.45),rgba(10,22,40,0.65)),url('/rihlah-path-night-stars.png') center 35% / cover no-repeat,#0A1628":"linear-gradient(rgba(243,233,210,0.20),rgba(243,233,210,0.55)),url('/mountain-background.png') center 35% / cover no-repeat,#EADFC8",padding:"18px 16px 16px",flexShrink:0,borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
+        <div style={{background:activeTab==="rihlah"?"transparent":(dark?"linear-gradient(rgba(10,22,40,0.45),rgba(10,22,40,0.65)),url('/rihlah-path-night-stars.png') center 35% / cover no-repeat,#0A1628":"linear-gradient(rgba(243,233,210,0.20),rgba(243,233,210,0.55)),url('/mountain-background.png') center 35% / cover no-repeat,#EADFC8"),padding:"18px 16px 16px",flexShrink:0,borderBottom:activeTab==="rihlah"?"none":`1px solid ${T.border}`,position:"relative",overflow:"hidden",zIndex:1}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
           <div style={{position:"relative",zIndex:1}}>
             {/* Title */}
