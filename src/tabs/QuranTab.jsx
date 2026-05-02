@@ -657,7 +657,7 @@ export default function QuranTab(props) {
                 if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",scrollbarGutter:"stable both-edges",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 6px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
+              style={{position:"relative",flex:1,overflowY:"auto",scrollbarGutter:"stable both-edges",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 2px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
@@ -705,7 +705,7 @@ export default function QuranTab(props) {
                     // Render ONCE per page directly from the authoritative
                     // mushaf layout. Each page gives us its 15 line strings
                     // plus per-line alignment (center vs space-between).
-                    return (<div style={mushafPage<=2?{padding:"8px 2px 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 2px 0",position:"relative"}}>
+                    return (<div style={mushafPage<=2?{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 0 0",position:"relative"}}>
                       {(()=>{
                         const fontEd=tajweedFont?"v4":"v2";
                         const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
@@ -779,7 +779,7 @@ export default function QuranTab(props) {
                           glyphCursor+=rowGlyphs;
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
-                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,98vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(22px,5.4vw,32px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
                             {tokens.map((w,wi)=>{
                               const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
                               return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
