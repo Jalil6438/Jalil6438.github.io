@@ -43,12 +43,14 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
   const currentWpIdx=waypoints.findIndex(w=>completed<w.juz);
   const currentWp=currentWpIdx>=0?waypoints[currentWpIdx]:waypoints[5];
   return (
-    <div style={{borderRadius:20,overflow:"visible",marginBottom:10,position:"relative",padding:"10px 16px 0"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:0}}>
+    <div style={{borderRadius:20,overflow:"hidden",marginBottom:10,position:"relative",padding:"10px 16px 0",backgroundImage:"url('/mountain-background.png')",backgroundSize:"cover",backgroundPosition:"center bottom",backgroundRepeat:"no-repeat",minHeight:280}}>
+      {/* Tint overlay — dark mode darkens, light mode warms */}
+      <div style={{position:"absolute",inset:0,pointerEvents:"none",background:dark?"linear-gradient(180deg,rgba(11,18,32,0.55) 0%,rgba(11,18,32,0.30) 60%,rgba(11,18,32,0.65) 100%)":"linear-gradient(180deg,rgba(243,233,210,0.35) 0%,rgba(243,233,210,0.10) 60%,rgba(243,233,210,0.45) 100%)"}}/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:0,position:"relative",zIndex:1}}>
         <div>
-          <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.6)":"#6B645A",fontWeight:700}}>Your Memorization Journey</div>
-          <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"#8B7355",marginTop:2}}>You are currently on Juz {sessionJuz||"—"}</div>
-          <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.35)":"#6B645A",marginTop:3}}>{completedCount} of 30 Juz · Goal: {goalLabel || `${goalYears} year${goalYears!==1?"s":""}${goalMonths>0?` ${goalMonths}mo`:""}`}</div>
+          <div style={{fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.85)":"#3D2E0A",fontWeight:700,textShadow:dark?"0 1px 4px rgba(0,0,0,0.6)":"none"}}>Your Memorization Journey</div>
+          <div style={{fontSize:10,color:dark?"rgba(246,226,122,0.85)":"#5A4A1A",marginTop:2,textShadow:dark?"0 1px 3px rgba(0,0,0,0.5)":"none"}}>You are currently on Juz {sessionJuz||"—"}</div>
+          <div style={{fontSize:9,color:dark?"rgba(255,255,255,0.65)":"#5A4A1A",marginTop:3,textShadow:dark?"0 1px 3px rgba(0,0,0,0.5)":"none"}}>{completedCount} of 30 Juz · Goal: {goalLabel || `${goalYears} year${goalYears!==1?"s":""}${goalMonths>0?` ${goalMonths}mo`:""}`}</div>
         </div>
       </div>
       <svg viewBox="-140 -50 540 280" style={{width:"80%",height:"auto",margin:"0 auto",display:"block",overflow:"visible"}}>
