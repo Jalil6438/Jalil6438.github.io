@@ -183,7 +183,7 @@ export default function RihlahHome({
   };
 
   return (
-    <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"transparent",position:"relative",zIndex:1}} className="fi">
+    <div style={{flex:1,display:"flex",flexDirection:"column",background:"transparent",position:"relative",zIndex:1,minHeight:0}} className="fi">
 
       {/* ── AMBIENT GLOW ── */}
       <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -193,13 +193,18 @@ export default function RihlahHome({
 
       {/* Profile header removed — now in universal header */}
 
-      <div style={{padding:`12px 14px ${haramainMeta?"240px":"120px"}`,position:"relative",zIndex:1}}>
+      {/* ── FIXED TOP — mountain + journey progress always visible.
+            Sits above the scrolling content below; doesn't move when
+            the user scrolls Daily Plan / sessions / activity. ── */}
+      <div style={{flexShrink:0,padding:"12px 14px 0",position:"relative",zIndex:1}}>
+        <RihlahProgressPath dark={dark} T={T} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} pct={pct} goalYears={goalYears} goalMonths={goalMonths} goalLabel={goalLabel}/>
+      </div>
 
-      {/* ── YOUR MEMORIZATION JOURNEY — Progress Path ── */}
-      <RihlahProgressPath dark={dark} T={T} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} pct={pct} goalYears={goalYears} goalMonths={goalMonths} goalLabel={goalLabel}/>
+      {/* ── SCROLLING CONTENT — Daily Plan card + everything below ── */}
+      <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",padding:`8px 14px ${haramainMeta?"240px":"120px"}`,position:"relative",zIndex:1,minHeight:0}}>
 
       {/* ── DAILY GOALS + NAV — single card ── */}
-      <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.55) 0%,rgba(20,25,40,0.40) 100%)":"rgba(234,223,200,0.55)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginTop:24,marginBottom:8}}>
+      <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginTop:24,marginBottom:8}}>
 
         {/* ── Nav buttons ── */}
         <div style={{display:"flex",gap:8,marginBottom:14}}>
@@ -278,7 +283,7 @@ export default function RihlahHome({
 
 
       {/* ── 5. ACTIVE SESSION CHECKLIST ── */}
-      <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.55) 0%,rgba(20,25,40,0.40) 100%)":"rgba(234,223,200,0.55)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
+      <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <div style={{width:36,height:36,borderRadius:12,background:`linear-gradient(135deg,${activeSess.color}88,${activeSess.color}44)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 4px 12px ${activeSess.color}40`}}>
@@ -356,7 +361,7 @@ export default function RihlahHome({
         const lastFajrTs=lastFajr.getTime();
         const todayActivity=(recentActivity||[]).filter(ev=>ev.ts&&ev.ts>=lastFajrTs);
         return (
-        <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.55) 0%,rgba(20,25,40,0.40) 100%)":"rgba(234,223,200,0.55)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px 18px",marginBottom:10}}>
+        <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"16px 18px",marginBottom:10}}>
           <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:dark?"rgba(255,255,255,0.7)":"#6B645A",fontWeight:700,marginBottom:14}}>Today's Activity</div>
           {todayActivity.length>0?(
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -374,7 +379,7 @@ export default function RihlahHome({
       })()}
 
       {/* ── 7. BADGES ── */}
-      <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.55) 0%,rgba(20,25,40,0.40) 100%)":"rgba(234,223,200,0.55)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>
+      <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px 14px",marginBottom:10,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(240,192,64,0.08) 0, transparent 20%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 16%)"}}/>
         <div style={{fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"rgba(255,255,255,0.7)",fontWeight:700,marginBottom:10,position:"relative",zIndex:1}}>Badges Earned</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12,position:"relative",zIndex:1,padding:"2px 4px"}}>
