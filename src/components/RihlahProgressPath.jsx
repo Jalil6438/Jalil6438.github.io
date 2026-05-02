@@ -128,45 +128,7 @@ export default function RihlahProgressPath({dark,T,completedCount,sessionJuz,tim
           const done=completed>=w.juz;
           const isCurrent=currentWpIdx===i;
           const isLast=i===5;
-          if(isLast) return (
-            <g key={i} transform={`translate(${w.x},${w.y}) scale(1.8)`}>
-              {/* Radiant glow */}
-              <circle cx="0" cy="0" r="22" fill="rgba(240,192,64,0.06)" filter="url(#fireGlow)"/>
-              <circle cx="0" cy="0" r="16" fill="rgba(240,192,64,0.1)" filter="url(#pathGlow)"/>
-              <circle cx="0" cy="0" r="28" fill="none" stroke="rgba(240,192,64,0.15)" strokeWidth="1">
-                <animate attributeName="r" values="24;30;24" dur="3s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.4;0.1;0.4" dur="3s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="0" cy="0" r="20" fill="none" stroke="rgba(240,192,64,0.25)" strokeWidth="0.8">
-                <animate attributeName="r" values="18;24;18" dur="2.5s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.5;0.15;0.5" dur="2.5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="0" cy="0" r="12" fill="rgba(240,192,64,0.12)"/>
-              <circle cx="0" cy="0" r="8" fill="rgba(212,175,55,0.2)"/>
-              {/* Open Quran book */}
-              <defs>
-                <linearGradient id="quranPage" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#FEF3C7"/>
-                  <stop offset="100%" stopColor="#F59E0B"/>
-                </linearGradient>
-              </defs>
-              <path d="M -1 -10 Q -9 -12 -16 -9 L -16 8 Q -9 5 -1 7 Z" fill="url(#quranPage)" stroke="#B45309" strokeWidth="0.8"/>
-              <path d="M 1 -10 Q 9 -12 16 -9 L 16 8 Q 9 5 1 7 Z" fill="url(#quranPage)" stroke="#B45309" strokeWidth="0.8"/>
-              <line x1="0" y1="-10" x2="0" y2="7" stroke="#92400E" strokeWidth="1"/>
-              <line x1="-13" y1="-5" x2="-3" y2="-5" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-              <line x1="-13" y1="-2" x2="-3" y2="-2" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-              <line x1="-12" y1="1" x2="-3" y2="1" stroke="#92400E" strokeWidth="0.5" opacity="0.4"/>
-              <line x1="3" y1="-5" x2="13" y2="-5" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-              <line x1="3" y1="-2" x2="13" y2="-2" stroke="#92400E" strokeWidth="0.5" opacity="0.5"/>
-              <line x1="3" y1="1" x2="12" y2="1" stroke="#92400E" strokeWidth="0.5" opacity="0.4"/>
-              {isCurrent&&!done&&(
-                <circle cx="0" cy="0" r="16" fill="none" stroke="rgba(240,192,64,0.4)" strokeWidth="1.5">
-                  <animate attributeName="r" values="14;20;14" dur="2s" repeatCount="indefinite"/>
-                  <animate attributeName="opacity" values="0.6;0.1;0.6" dur="2s" repeatCount="indefinite"/>
-                </circle>
-              )}
-            </g>
-          );
+          if(isLast) return null; // SVG Quran book at peak removed — the mountain photo's baked-in book glow already marks the peak as the goal (Juz 30).
           return (
             <g key={i}>
               {done&&<><circle cx={w.x} cy={w.y} r="16" fill="rgba(212,175,55,0.1)" filter="url(#fireGlow)"/><circle cx={w.x} cy={w.y} r="12" fill="rgba(212,175,55,0.15)" filter="url(#pathGlow)"/></>}
