@@ -1,5 +1,53 @@
 import { useState, useEffect, useRef } from "react";
 import RihlahProgressPath from "../components/RihlahProgressPath";
+import DailyProgressChart from "../components/DailyProgressChart";
+import TreeProgress from "../components/TreeProgress";
+import HeatmapProgress from "../components/HeatmapProgress";
+import RingsProgress from "../components/RingsProgress";
+
+// Toggle between the four mockup progression widgets. Lets us flip
+// designs without taking up all the screen real estate at once.
+function ProgressGallery({ dark, completedCount, streak, sessionJuz, goalLabel, dailyChecks, recentBatches, checkHistory }) {
+  const [view, setView] = useState(() => {
+    try { return localStorage.getItem("rihlat-gallery-view") || "rings"; } catch { return "rings"; }
+  });
+  const pickView = (id) => {
+    setView(id);
+    try { localStorage.setItem("rihlat-gallery-view", id); } catch {}
+  };
+  const accent = dark ? "#E6B84A" : "#B45309";
+  const muted = dark ? "rgba(243,231,200,0.30)" : "#8B7355";
+  const opts = [
+    { id: "rings",   label: "Rings"   },
+    { id: "heatmap", label: "Heatmap" },
+    { id: "tree",    label: "Tree"    },
+    { id: "bars",    label: "Bars"    },
+  ];
+  return (
+    <>
+      <div style={{ display: "flex", gap: 4, marginBottom: 6, justifyContent: "center" }}>
+        {opts.map(o => (
+          <div
+            key={o.id}
+            onClick={() => pickView(o.id)}
+            style={{
+              padding: "4px 10px", fontSize: 9, fontWeight: 700, letterSpacing: ".06em",
+              textTransform: "uppercase", borderRadius: 6, cursor: "pointer",
+              background: view === o.id ? (dark ? "rgba(212,175,55,0.15)" : "rgba(180,140,40,0.10)") : "transparent",
+              color: view === o.id ? accent : muted,
+              border: `1px solid ${view === o.id ? (dark ? "rgba(212,175,55,0.30)" : "rgba(140,100,20,0.20)") : "transparent"}`,
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >{o.label}</div>
+        ))}
+      </div>
+      {view === "rings"   && <RingsProgress      dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} dailyChecks={dailyChecks}/>}
+      {view === "heatmap" && <HeatmapProgress    dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} dailyChecks={dailyChecks} checkHistory={checkHistory}/>}
+      {view === "tree"    && <TreeProgress       dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel}/>}
+      {view === "bars"    && <DailyProgressChart dark={dark} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} recentBatches={recentBatches} dailyChecks={dailyChecks}/>}
+    </>
+  );
+}
 
 // Single activity row. Measures text width on mount — if the text overflows
 // its container, it scrolls horizontally in a gentle marquee. Short entries
@@ -83,6 +131,8 @@ export default function RihlahHome({
   recentActivity,
   userPlanMode,
   goalLabel: goalLabelProp,
+  recentBatches,
+  checkHistory,
 }) {
   const isShaykhPlan = userPlanMode !== "custom";
   // Relative time formatter: "just now" / "8 mins ago" / "Yesterday" / "3 days ago"
@@ -183,7 +233,7 @@ export default function RihlahHome({
   };
 
   return (
-    <div style={{flex:1,display:"flex",flexDirection:"column",background:"transparent",position:"relative",zIndex:1,minHeight:0}} className="fi">
+    <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"transparent",position:"relative",zIndex:1,minHeight:0}} className="fi">
 
       {/* ── AMBIENT GLOW ── */}
       <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
@@ -197,11 +247,22 @@ export default function RihlahHome({
             Sits above the scrolling content below; doesn't move when
             the user scrolls Daily Plan / sessions / activity. ── */}
       <div style={{flexShrink:0,padding:"12px 14px 0",position:"relative",zIndex:1}}>
-        <RihlahProgressPath dark={dark} T={T} completedCount={completedCount} sessionJuz={sessionJuz} timeline={timeline} pct={pct} goalYears={goalYears} goalMonths={goalMonths} goalLabel={goalLabel}/>
+        {/* Mockup gallery — toggle between progression variants. Pick the
+            one you want and the others can be removed later. */}
+        <ProgressGallery
+          dark={dark}
+          completedCount={completedCount}
+          streak={streak}
+          sessionJuz={sessionJuz}
+          goalLabel={goalLabel}
+          dailyChecks={dailyChecks}
+          recentBatches={recentBatches}
+          checkHistory={checkHistory}
+        />
       </div>
 
-      {/* ── SCROLLING CONTENT — Daily Plan card + everything below ── */}
-      <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",padding:`8px 14px ${haramainMeta?"240px":"120px"}`,position:"relative",zIndex:1,minHeight:0}}>
+      {/* Daily Plan + everything below — flows in the page-level scroll above. */}
+      <div style={{padding:`8px 14px ${haramainMeta?"240px":"120px"}`,position:"relative",zIndex:1}}>
 
       {/* ── DAILY GOALS + NAV — single card ── */}
       <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginTop:24,marginBottom:8}}>

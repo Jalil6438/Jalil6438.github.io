@@ -87,6 +87,26 @@ export default function RihlatAlHifz() {
   const [juzStatus,setJuzStatus]=useState({});
   // V9 — ayah-based source of truth
   const [completedAyahs,setCompletedAyahs]=useState(()=>loadCompletedAyahs());
+  // Daily progress logger — every time completedAyahs grows, append the delta
+  // to today's bucket in `rihlat-daily-progress` so DailyProgressChart can
+  // render bars over time.
+  const prevCompletedSizeRef = useRef(null);
+  useEffect(() => {
+    const curr = completedAyahs.size;
+    if (prevCompletedSizeRef.current === null) { prevCompletedSizeRef.current = curr; return; }
+    const prev = prevCompletedSizeRef.current;
+    if (curr > prev) {
+      const delta = curr - prev;
+      const today = new Date().toISOString().slice(0, 10);
+      try {
+        const snaps = JSON.parse(localStorage.getItem("rihlat-daily-progress") || "{}");
+        const existing = snaps[today] || { newAyahs: 0, totalAyahs: 0 };
+        snaps[today] = { newAyahs: existing.newAyahs + delta, totalAyahs: curr };
+        localStorage.setItem("rihlat-daily-progress", JSON.stringify(snaps));
+      } catch {}
+    }
+    prevCompletedSizeRef.current = curr;
+  }, [completedAyahs.size]);
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
   const [fontSize,setFontSize]=useState(()=>{try{return parseInt(localStorage.getItem("rihlat-fontsize"))||19;}catch{return 19;}});
@@ -354,14 +374,16 @@ export default function RihlatAlHifz() {
     const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
     // Per-milestone du'a in second-person voice — feels like the app is
     // praying FOR the user as they earn the badge.
+    // Plural forms (كُمْ suffix) — gender-neutral, addresses both male and
+    // female reciters until a gender preference setting is added.
     const DUA={
-      jaza:    {ar:"جَزَاكَ ٱللَّهُ خَيْرًا",         en:"May Allah reward you with goodness."},
-      taqabbal:{ar:"تَقَبَّلَ ٱللَّهُ مِنْكَ",          en:"May Allah accept from you."},
-      waffaq:  {ar:"وَفَّقَكَ ٱللَّهُ لِكُلِّ خَيْرٍ", en:"May Allah grant you success in every good."},
-      barak:   {ar:"بَارَكَ ٱللَّهُ فِيكَ",             en:"May Allah bless you."},
-      thabbat: {ar:"ثَبَّتَكَ ٱللَّهُ عَلَىٰ ٱلْحَقِّ", en:"May Allah make you firm upon the truth."},
-      zada:    {ar:"زَادَكَ ٱللَّهُ مِنْ فَضْلِهِ",     en:"May Allah increase you from His bounty."},
-      hafiz:   {ar:"حَفِظَكَ ٱللَّهُ بِكِتَابِهِ",       en:"May Allah preserve you by His Book."},
+      jaza:    {ar:"جَزَاكُمُ ٱللَّهُ خَيْرًا",         en:"May Allah reward you with goodness."},
+      taqabbal:{ar:"تَقَبَّلَ ٱللَّهُ مِنْكُمْ",          en:"May Allah accept from you."},
+      waffaq:  {ar:"وَفَّقَكُمُ ٱللَّهُ لِكُلِّ خَيْرٍ", en:"May Allah grant you success in every good."},
+      barak:   {ar:"بَارَكَ ٱللَّهُ فِيكُمْ",             en:"May Allah bless you."},
+      thabbat: {ar:"ثَبَّتَكُمُ ٱللَّهُ عَلَىٰ ٱلْحَقِّ", en:"May Allah make you firm upon the truth."},
+      zada:    {ar:"زَادَكُمُ ٱللَّهُ مِنْ فَضْلِهِ",     en:"May Allah increase you from His bounty."},
+      hafiz:   {ar:"حَفِظَكُمُ ٱللَّهُ بِكِتَابِهِ",       en:"May Allah preserve you by His Book."},
     };
     const juzMilestone=(n)=>{
       const img=n===30?"/badge-hafiz.png":n<=15?`/badge-juz-${n}.png`:"/badge-juz-15.png";
@@ -1273,6 +1295,35 @@ export default function RihlatAlHifz() {
     setDailyChecks(updated);
     const dk=DATEKEY();
     setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:true}}));
+    // Per-session completion log (timestamp + simple in-window score) so the
+    // DailyProgressChart can compute a 0-1 daily discipline score.
+    try {
+      // Default prayer windows (24h decimal). Score = 1.0 if completed inside
+      // the prime window; ramps linearly to 0 across the decay tail.
+      const WINDOWS = {
+        fajr:    { prime: [5, 8],   tail: 12 },
+        dhuhr:   { prime: [12, 15], tail: 18 },
+        asr:     { prime: [15, 18], tail: 20 },
+        maghrib: { prime: [18, 19.5], tail: 23 },
+        isha:    { prime: [19.5, 23], tail: 26 }, // 26 = 2am next day
+      };
+      // Until prayer-time data is wired up (Haramain API or location-based),
+      // simply credit any same-day completion as full score. The timing
+      // model is too punishing for users who can't time-travel into prayer
+      // windows mid-day.
+      const score = WINDOWS[id] ? 1 : 0;
+      const log = JSON.parse(localStorage.getItem("rihlat-session-log") || "{}");
+      // Local-date ISO key (YYYY-MM-DD). Avoid toISOString — it converts to
+      // UTC and shifts the date for users east of UTC at local midnight.
+      const isoKey = (() => {
+        const x = new Date();
+        return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;
+      })();
+      const dayLog = log[isoKey] || {};
+      dayLog[id] = { ts: Date.now(), score: Math.max(0, Math.min(1, score)) };
+      log[isoKey] = dayLog;
+      localStorage.setItem("rihlat-session-log", JSON.stringify(log));
+    } catch {}
     // Push activity + streak bump on every session completion (this function
     // is only called from the Complete Session button, which unconditionally
     // wants the activity regardless of prior state).
@@ -1724,9 +1775,7 @@ export default function RihlatAlHifz() {
           mountains that don't align). The header and RihlahHome below it
           render with transparent / tinted-only backgrounds when on the
           Rihlah tab so this image shows through both. */}
-      {activeTab==="rihlah"&&(
-        <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:dark?"linear-gradient(rgba(10,22,40,0.30),rgba(10,22,40,0.60)),url('/rihlah-path-night-stars.png') center bottom / auto 110% no-repeat":"linear-gradient(rgba(243,233,210,0.15),rgba(243,233,210,0.40)),url('/mountain-background.png') center bottom / auto 110% no-repeat"}}/>
-      )}
+      {/* Mountain backdrop removed — path can't reliably overlay it. */}
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0;}
         .lm div,.lm span,.lm p,.lm label,.lm textarea,.lm input{color:#2D2A26 !important;}
@@ -2008,7 +2057,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {activeTab==="rihlah"&&rihlahTab==="home"&&!showTerms&&(
-        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel}/>
+        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel} recentBatches={recentBatches} checkHistory={checkHistory}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
