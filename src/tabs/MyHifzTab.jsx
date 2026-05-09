@@ -1441,7 +1441,7 @@ export default function MyHifzTab(props) {
                         </div>
                       </div>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                        {[...connVisiblePairs].reverse().map((step,idx)=>{
+                        {connVisiblePairs.map((step,idx)=>{
                           const cr=connectionReps[step.key]||0;
                           const crDone=cr>=10;
                           const pct=Math.min((cr/10)*100,100);
@@ -1454,7 +1454,7 @@ export default function MyHifzTab(props) {
                               </div>
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                                 {step.ayahs.map((a,ai)=>(
-                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.35)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>}</span>
+                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(212,175,55,0.55)":"rgba(140,100,20,0.55)",margin:"0 4px"}}>{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}</span>}</span>
                                 ))}
                               </div>
                               <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",overflow:"hidden"}}>
