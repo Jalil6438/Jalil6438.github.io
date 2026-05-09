@@ -100,8 +100,9 @@ export default function TreeProgress({ dark, completedCount = 0, sessionJuz, goa
   return (
     <div
       style={{
+        position: "relative",
         borderRadius: 16,
-        padding: "14px 16px 12px",
+        padding: "8px 16px 12px",
         background: dark
           ? "linear-gradient(180deg, rgba(15,26,43,0.85) 0%, rgba(10,17,32,0.92) 100%)"
           : "linear-gradient(180deg, rgba(232,221,200,0.95) 0%, rgba(218,205,180,0.95) 100%)",
@@ -110,21 +111,20 @@ export default function TreeProgress({ dark, completedCount = 0, sessionJuz, goa
         marginBottom: 10,
       }}
     >
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
-        <div>
-          <div style={{ fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: sub, fontWeight: 700 }}>
-            Memorization Tree
-          </div>
-          <div style={{ fontSize: 11, color: accent, marginTop: 2 }}>
-            {sessionJuz ? `Currently on Juz ${sessionJuz}` : "Plant your tree"}
-          </div>
-          <div style={{ fontSize: 9, color: muted, marginTop: 2 }}>
-            {completed} of 30 Juz · Goal: {goalLabel || "—"}
-          </div>
+      {/* Header overlays the top of the tree area so it doesn't push everything down */}
+      <div style={{ position: "absolute", top: 8, left: 16, right: 16, pointerEvents: "none" }}>
+        <div style={{ fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: sub, fontWeight: 700 }}>
+          Memorization Tree
+        </div>
+        <div style={{ fontSize: 11, color: accent, marginTop: 2 }}>
+          {sessionJuz ? `Currently on Juz ${sessionJuz}` : "Plant your tree"}
+        </div>
+        <div style={{ fontSize: 9, color: muted, marginTop: 2 }}>
+          {completed} of 30 Juz · Goal: {goalLabel || "—"}
         </div>
       </div>
 
-      <div style={{ position: "relative", width: "100%", aspectRatio: "100 / 150", maxHeight: "55vh" }}>
+      <div style={{ position: "relative", width: "65%", margin: "0 auto", aspectRatio: "100 / 130", maxHeight: "38vh" }}>
         <svg viewBox="0 0 100 150" preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "100%", display: "block" }}>
           <defs>
             <radialGradient id="leafGlow" cx="50%" cy="50%" r="50%">
