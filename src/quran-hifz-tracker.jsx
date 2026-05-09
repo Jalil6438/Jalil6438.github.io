@@ -948,7 +948,10 @@ export default function RihlatAlHifz() {
       const currentKey=sessionVerses[sessionIdx]?.verse_key;
       let allIdx=currentKey?allJuzVerses.findIndex(v=>v.verse_key===currentKey):allJuzVerses.length;
       if(allIdx<0) allIdx=allJuzVerses.length;
-      if(isShaykh){
+      if(true){
+        // Dhuhr always uses the 5-page walker, regardless of plan mode.
+        // Custom users with tiny daily Fajr counts still get a meaningful
+        // page-based review (their last 5 memorized mushaf pages).
         // Shaykh mode: review = the 5 most recent memorized (surah, page) day-units,
         // EXCLUDING today's Fajr work. Phase 1 walks back through allJuzVerses
         // counting distinct (surah, page) day-units until 5 are collected (and
@@ -1002,18 +1005,13 @@ export default function RihlatAlHifz() {
             combined.push(v);
           }
         });
-      } else {
-        // Custom mode: walk back (dailyNew * 5) ayahs from the current position.
-        const reviewCount=Math.max(dailyNew*5,5);
-        allJuzVerses.slice(Math.max(0,allIdx-reviewCount),allIdx).forEach(v=>{
-          if(v.verse_key&&!seen.has(v.verse_key)){ seen.add(v.verse_key); combined.push(v); }
-        });
       }
     }
-    // Fallback merges. In Shaykh mode, only include ayahs whose page is in
-    // pagesCollectedSet. In custom mode, skip fallback — the dailyNew*5 slice
-    // is authoritative and shouldn't be inflated by yesterdayBatch/recentBatches.
-    if(isShaykh){
+    // Fallback merges — pull in yesterdayBatch + recentBatches but only for
+    // verses whose page belongs to the 5-page window we just collected. This
+    // applies in both Shaykh and custom modes now that Dhuhr is always
+    // 5-page-based.
+    if(true){
       // Same verse-key-based filter as the walk above so a single page
       // shared between today's batch and prior days' memorized verses
       // doesn't get fully excluded.

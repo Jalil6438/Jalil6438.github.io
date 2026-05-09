@@ -34,7 +34,7 @@ export const SESSION_WISDOM = {
     {type:"quran", text:"And We have indeed made the Qur'an easy to understand and remember; then is there any one who will remember?", arabic:"وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ فَهَلْ مِن مُّدَّكِرٍ", ref:"Al-Qamar 54:17"},
     {type:"quran", text:"And recite the Qur'an (aloud) in a slow, (pleasant tone and) style.", arabic:"وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا", ref:"Al-Muzzammil 73:4"},
     {type:"hadith", text:"The one who is proficient with the Qur'an will be with the noble, righteous scribes (the angels).", src:"Bukhari 4937"},
-    {type:"quran", text:"Move not your tongue with it to hasten with recitation of it. Indeed, upon Us is its collection and its recitation.", arabic:"لَا تُحَرِّكْ بِهِ لِسَانَكَ لِتَعْجَلَ بِهِ ۝ إِنَّ عَلَيْنَا جَمْعَهُ وَقُرْآنَهُ", ref:"Al-Qiyamah 75:16-17"},
+    {type:"quran", text:"Move not your tongue with it to hasten with recitation of it. Indeed, upon Us is its collection and its recitation.", arabic:"لَا تُحَرِّكْ بِهِ لِسَانَكَ لِتَعْجَلَ بِهِ ١٦ إِنَّ عَلَيْنَا جَمْعَهُ وَقُرْآنَهُ", ref:"Al-Qiyamah 75:16-17"},
     {type:"hadith", text:"The most beloved deed to Allah is the most regular and constant, even if it were little.", src:"Bukhari 6464"},
     {type:"hadith", text:"O Allah, make the Qur'an the spring of my heart, the light of my chest, the banisher of my sadness, and the reliever of my distress.", src:"Musnad Ahmad (Sahih)"},
     {type:"book", text:"I complained to Waki' about my poor memory. He said: Leave sins — knowledge is a light, and the light of Allah is not given to a sinner.", attr:"Imam al-Shafi'i"},

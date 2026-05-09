@@ -1114,7 +1114,7 @@ export default function MyHifzTab(props) {
                 {/* ── REVIEW MUSHAF — Dhuhr / Maghrib / Isha render their batches as
                     authentic mushaf pages, one page per swipe. Much lighter than
                     walking 20+ cards of Study view when the batch is 100+ ayahs. ── */}
-                {isShaykhPlan&&["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
+                {(currentSessionId==="dhuhr"||(isShaykhPlan&&["maghrib","isha"].includes(currentSessionId)))&&batch.length>0&&(()=>{
                   // Group by physical mushaf page — preserve the true page layout.
                   // Boundary pages (two surahs' memorized slices on one page) render
                   // as ONE slide showing both slices in mushaf order.
@@ -1270,7 +1270,7 @@ export default function MyHifzTab(props) {
                     Uses the same per-page KFGQPC V2 font + surah ornament as
                     Mushaf, just laid out as cards since the ayah batch doesn't
                     fill full pages. ── */}
-                {!isShaykhPlan&&["dhuhr","maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
+                {!isShaykhPlan&&["maghrib","isha"].includes(currentSessionId)&&batch.length>0&&(()=>{
                   const APS=5;
                   const rPages=Math.max(1,Math.ceil(batch.length/APS));
                   const rSafe=Math.min(ayahPage,rPages-1);
@@ -1596,11 +1596,12 @@ export default function MyHifzTab(props) {
                   // Review sessions (Dhuhr/Maghrib/Isha) paginate by mushaf-page, not by
                   // 7-ayah chunks, so count distinct page_numbers for the Next/Complete button.
                   const isReviewMushaf=["dhuhr","maghrib","isha"].includes(currentSessionId);
-                  // Custom plan review sessions use 5-ayah Study cards (not
-                  // page-based Mushaf), so count by ceil(batch/5). Shaykh plan
-                  // review sessions page by distinct mushaf page_number.
+                  // Dhuhr always renders as Mushaf pages (both modes) → count
+                  // distinct page_numbers. Custom Maghrib/Isha use 5-ayah Study
+                  // cards. Fajr Study uses 7-ayah pagination.
+                  const dhuhrCustomMushaf=currentSessionId==="dhuhr"; // always page-based now
                   const batchPages=isMushafFajr?1
-                    :isReviewMushaf?(isShaykhPlan
+                    :isReviewMushaf?(isShaykhPlan||dhuhrCustomMushaf
                         ?Math.max(1,new Set(batch.map(v=>v.page_number||0).filter(Boolean)).size)
                         :Math.max(1,Math.ceil(batch.length/5)))
                     :Math.max(1,Math.ceil(batch.length/7));
