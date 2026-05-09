@@ -390,7 +390,7 @@ function AsrSessionView({
                       </div>
                       <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                         <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(243,231,200,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                        <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                        <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(212,175,55,0.55)":"#A08848",marginRight:4}}>{toArabicDigits(parseInt(vKey.split(":")[1],10))}</span>
                       </div>
                     </div>
                   </Fragment>

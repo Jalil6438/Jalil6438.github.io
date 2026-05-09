@@ -1305,7 +1305,7 @@ export default function MyHifzTab(props) {
                             </div>
                             <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                               <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
-                              <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.38)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(212,175,55,0.55)":"#A08848",marginRight:4}}>{toArabicDigits(parseInt(vKey.split(":")[1],10))}</span>
                             </div>
                           </div>
                         </Fragment>
@@ -1389,15 +1389,9 @@ export default function MyHifzTab(props) {
                             // Custom plan skips mushaf font — API/Madinah page
                             // mismatches cause glyphs to render as neighbor
                             // verses. UthmanicHafs always renders correctly.
-                            // Long ayahs (e.g. Muddaththir 31, Baqarah 282) make
-                            // the card balloon vertically. Clamp to ~1 line
-                            // (lineHeight 2 → maxHeight 2em) and fade out the
-                            // tail with mask-image — no ellipsis. Tapping
-                            // opens the full ayah view for repetition.
-                            // padding-inline-start (RTL = right) gives the
-                            // first Arabic glyph a few px so its box doesn't
-                            // clip against overflow:hidden's right edge.
-                            const clampStyle={maxHeight:"2em",overflow:"hidden",whiteSpace:"nowrap",paddingInlineStart:"4px",WebkitMaskImage:"linear-gradient(to left,black 55%,transparent 100%)",maskImage:"linear-gradient(to left,black 55%,transparent 100%)"};
+                            // Long ayahs wrap to multiple lines so the user
+                            // can read the whole verse without tapping in.
+                            const clampStyle={paddingInlineStart:"4px"};
                             if(isShaykhPlan&&pageFontReady&&fullVerse&&fullVerse.words){
                               const words=fullVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map(w=>w.code_v2||"").filter(Boolean);
                               return (
@@ -1408,8 +1402,8 @@ export default function MyHifzTab(props) {
                             }
                             return (
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2,...clampStyle}}>
-                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
-                                <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.38)":"#A08848"),marginRight:4}}>﴿{toArabicDigits(parseInt(vKey.split(":")[1],10))}﴾</span>
+                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.55)":"#A08848"),marginRight:4}}>{toArabicDigits(parseInt(vKey.split(":")[1],10))}</span>
                               </div>
                             );
                           })()}
@@ -1489,7 +1483,7 @@ export default function MyHifzTab(props) {
                           {activeCloser.ayahs.map(a=>(
                             <span key={a.verse_key}>
                               <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
-                              <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.40)":"rgba(140,100,20,0.40)",margin:"0 4px"}}>﴿{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}﴾</span>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(212,175,55,0.55)":"rgba(140,100,20,0.55)",margin:"0 4px"}}>{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}</span>
                             </span>
                           ))}
                         </div>
