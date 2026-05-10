@@ -1947,8 +1947,8 @@ export default function RihlatAlHifz() {
         );
       })()}
 
-      {/* ── UNIVERSAL HEADER — hidden on Quran tab ── */}
-      {activeTab!=="quran"&&(()=>{
+      {/* ── UNIVERSAL HEADER — hidden on Quran tab unless an appPage is open ── */}
+      {(activeTab!=="quran"||appPage)&&(()=>{
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
         return (
@@ -2013,8 +2013,8 @@ export default function RihlatAlHifz() {
         );
       })()}
 
-      {/* TABS — fixed bottom bar with icons (hidden on Quran tab for immersive reading) */}
-      {activeTab!=="quran"&&(
+      {/* TABS — fixed bottom bar with icons (hidden on Quran tab for immersive reading, unless appPage is open) */}
+      {(activeTab!=="quran"||appPage)&&(
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
         {[
           {id:"myhifz",  img:"/tab-hifz.png",   label:"My Hifz"},
@@ -2035,7 +2035,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ TODAY SESSION ═══ */}
-      {activeTab==="myhifz"&&(
+      {!appPage&&activeTab==="myhifz"&&(
         <MyHifzTab
           pushActivity={pushActivity}
           repTarget={repTarget}
@@ -2121,12 +2121,12 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
-      {activeTab==="rihlah"&&rihlahTab==="home"&&(
+      {!appPage&&activeTab==="rihlah"&&rihlahTab==="home"&&(
         <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel} recentBatches={recentBatches} checkHistory={checkHistory}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
-      {activeTab==="rihlah"&&rihlahTab==="juz"&&(
+      {!appPage&&activeTab==="rihlah"&&rihlahTab==="juz"&&(
         <MyMemorizationView
           dark={dark}
           rihlahScrollRef={rihlahScrollRef}
@@ -2141,7 +2141,7 @@ export default function RihlatAlHifz() {
         />
       )}
       {/* ═══ QURAN TEXT ═══ */}
-      {activeTab==="quran"&&(
+      {!appPage&&activeTab==="quran"&&(
         <QuranTab
           haramainMeta={haramainMeta}
           dark={dark}
@@ -2191,7 +2191,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ TIMELINE ═══ */}
-      {activeTab==="rihlah"&&rihlahTab==="timeline"&&(
+      {!appPage&&activeTab==="rihlah"&&rihlahTab==="timeline"&&(
         <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 120px"}} className="fi gold-particles">
 
           {/* Header */}
@@ -2290,7 +2290,7 @@ export default function RihlatAlHifz() {
 
       {/* Terms now lives at appPage === "terms" via TermsPage. */}
 
-      {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
+      {!appPage&&activeTab==="rihlah"&&rihlahTab==="adjust"&&(
         <AdjustPlan
           dark={dark}
           T={T}
@@ -2317,7 +2317,7 @@ export default function RihlatAlHifz() {
         />
       )}
 
-      {activeTab==="rihlah"&&rihlahTab==="achievements"&&(
+      {!appPage&&activeTab==="rihlah"&&rihlahTab==="achievements"&&(
         <AchievementsView
           dark={dark}
           completedCount={completedCount}
@@ -2399,9 +2399,10 @@ export default function RihlatAlHifz() {
   }}
 />
 
-{/* ── Full-screen drawer pages — overlay current tab ── */}
+{/* ── Full-screen drawer pages — render below universal header so the
+    profile row stays consistent across all drawer-reachable screens. ── */}
 {appPage&&(
-  <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",flexDirection:"column",background:dark?"#0B1220":"#F3E9D2",paddingTop:"env(safe-area-inset-top,0px)"}}>
+  <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0,background:dark?"#0B1220":"#F3E9D2"}}>
     {appPage==="stats"&&<StatsPage dark={dark} onBack={()=>setAppPage(null)} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} pct={pct}/>}
     {appPage==="reminders"&&<RemindersPage dark={dark} onBack={()=>setAppPage(null)}/>}
     {appPage==="method"&&<MethodPage dark={dark} onBack={()=>setAppPage(null)}/>}
@@ -2444,7 +2445,7 @@ export default function RihlatAlHifz() {
   audioRef={audioRef}
 />
 
-      {activeTab==="masjidayn"&&(
+      {!appPage&&activeTab==="masjidayn"&&(
         <MasjidaynTab
           dark={dark} T={T}
           masjidaynTab={masjidaynTab} setMasjidaynTab={setMasjidaynTab}
