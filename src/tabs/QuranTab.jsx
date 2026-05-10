@@ -721,11 +721,86 @@ export default function QuranTab(props) {
                         if(!pageLines||!pageLayout){
                           return null;
                         }
-                        // Tap mapping uses glyphVerseKeys — a flat per-glyph
-                        // verse_key array we built from code_v2 against our
-                        // pageContentMap. Independent of the API's mushaf
-                        // edition (which differs from KFGQPC v2 on some
-                        // pages), so taps land on the right ayah everywhere.
+                        // ── TEST: flowing-text render (no rigid per-line layout) ──
+                        // Words from consecutive normal lines collapse into a
+                        // single flowing block that wraps naturally. Page-level
+                        // word and ayah counts are preserved (same pageLines
+                        // data); only the printed line breaks are abandoned, in
+                        // exchange for a bigger, more readable font. Surah-name
+                        // and basmallah blocks still break the flow so each
+                        // surah opener stays visually anchored.
+                        //
+                        // To revert to the rigid mushaf line layout, swap this
+                        // block back for the per-line render preserved below in
+                        // the /* RIGID-LINE FALLBACK */ comment.
+                        let glyphCursor=0;
+                        let ayahIdx=-1;
+                        const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
+                        const sections=[];
+                        let flow=null;
+                        pageLayout.forEach((layoutEntry,i)=>{
+                          const type=layoutEntry.type;
+                          if(type==="surah_name"){
+                            if(flow){ sections.push({kind:"flow",words:flow,key:`f${i}`}); flow=null; }
+                            const sn=layoutEntry.sn;
+                            sections.push({kind:"block",key:`s${i}`,element:(
+                              <div key={`s${i}`} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
+                                <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
+                                    <span>surah</span>
+                                    <span>{String(sn).padStart(3,"0")}</span>
+                                  </span>
+                                </div>
+                              </div>
+                            )});
+                            return;
+                          }
+                          if(type==="basmallah"){
+                            if(flow){ sections.push({kind:"flow",words:flow,key:`f${i}`}); flow=null; }
+                            sections.push({kind:"block",key:`b${i}`,element:(
+                              <div key={`b${i}`} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
+                                {bismillahGlyphs&&loadedFonts.has(`${tajweedFont?"v4":"v2"}-1`)?(
+                                  <div style={{fontFamily:`'p1-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
+                                ):(
+                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                )}
+                              </div>
+                            )});
+                            return;
+                          }
+                          ayahIdx++;
+                          const lineText=pageLines[ayahIdx]||"";
+                          const tokens=lineText.split(" ");
+                          const tokenStartGlyph=[];
+                          let rowGlyphs=0;
+                          tokens.forEach(t=>{ tokenStartGlyph.push(rowGlyphs); rowGlyphs+=t.length; });
+                          const rowStart=glyphCursor;
+                          glyphCursor+=rowGlyphs;
+                          if(!flow) flow=[];
+                          tokens.forEach((w,wi)=>{
+                            const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
+                            flow.push({w,vk,key:`${i}-${wi}`});
+                          });
+                        });
+                        if(flow) sections.push({kind:"flow",words:flow,key:"f-tail"});
+                        const entries=sections.map(section=>{
+                          if(section.kind==="block") return section.element;
+                          return (
+                            <div key={section.key} style={{direction:"rtl",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(26px,6vw,36px)",color:dark?"#E8DFC0":"#2D2A26",lineHeight:1.85,textAlign:"justify",padding:"8px 0",wordSpacing:"0.05em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
+                              {section.words.map(({w,vk,key})=>(
+                                <span key={key} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w+" "}</span>
+                              ))}
+                            </div>
+                          );
+                        });
+                        /* RIGID-LINE FALLBACK — restore by replacing the flowing
+                           block above with this version. Tap mapping uses
+                           glyphVerseKeys — a flat per-glyph verse_key array we
+                           built from code_v2 against our pageContentMap.
+                           Independent of the API's mushaf edition (which
+                           differs from KFGQPC v2 on some pages), so taps land
+                           on the right ayah everywhere.
+
                         let glyphCursor=0;
                         let ayahIdx=-1;
                         const entries=pageLayout.map((layoutEntry,i)=>{
@@ -736,57 +811,25 @@ export default function QuranTab(props) {
                             lineText=pageLines[ayahIdx]||"";
                           }
                           const isCenter=layoutEntry.center===1;
-                          // Surah name line: render our custom ornament
-                          // instead of the font's surah_name glyph so it
-                          // matches our app's ornament aesthetic.
-                          if(type==="surah_name"){
-                            const sn=layoutEntry.sn;
-                            return (
-                              <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
-                                <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
-                                    <span>surah</span>
-                                    <span>{String(sn).padStart(3,"0")}</span>
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          }
-                          // Basmallah: use p1 font + Fatihah 1:1 glyphs so
-                          // every surah opener reads the same universal
-                          // bismillah.
-                          if(type==="basmallah"){
-                            return (
-                              <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
-                                {bismillahGlyphs&&loadedFonts.has(`${tajweedFont?"v4":"v2"}-1`)?(
-                                  <div style={{fontFamily:`'p1-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
-                                ):(
-                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                                )}
-                              </div>
-                            );
-                          }
+                          if(type==="surah_name"){ ... }
+                          if(type==="basmallah"){ ... }
                           const tokens=lineText.split(" ");
-                          // glyphVerseKeys is one entry per individual PUA glyph,
-                          // but a pages.json token can contain 2+ glyphs (e.g. an
-                          // end-of-ayah marker fused to the previous letter:
-                          // "ﱜﱝ"). Walk by glyph count, not token count, so the
-                          // cursor stays aligned with the flat array.
                           const tokenStartGlyph=[];
                           let rowGlyphs=0;
                           tokens.forEach(t=>{ tokenStartGlyph.push(rowGlyphs); rowGlyphs+=t.length; });
                           const rowStart=glyphCursor;
                           glyphCursor+=rowGlyphs;
-                          const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
+                          const pickAyah=(vk)=>{...};
                           return (
-                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
-                            {tokens.map((w,wi)=>{
-                              const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
-                              return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
-                            })}
-                          </div>
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(22px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
+                              {tokens.map((w,wi)=>{
+                                const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
+                                return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
+                              })}
+                            </div>
                           );
                         });
+                        */
                         // Short pages (1-2): center the whole block vertically.
                         if(mushafPage<=2){
                           return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>{entries}</div>);
