@@ -80,9 +80,6 @@ export default function AppSideDrawer({ open, onClose, dark, username, initials,
               <div style={{ fontSize: 15, fontWeight: 700, color: dark ? "#EDE8DC" : "#2D2A26", fontFamily: "'Playfair Display',serif" }}>
                 {username || "Hafiz"}
               </div>
-              <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.50)" : "#6B645A", marginTop: 2 }}>
-                {completedCount} of 30 juz · {streak}d streak
-              </div>
             </div>
             <div className="sbtn" onClick={onClose} style={{ fontSize: 22, color: dark ? "rgba(243,231,200,0.45)" : "rgba(0,0,0,0.45)", lineHeight: 1, padding: "0 6px", fontWeight: 300 }}>×</div>
           </div>
