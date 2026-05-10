@@ -8,11 +8,20 @@ import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimelin
 import HlsPlayer from "./components/HlsPlayer";
 import AsrSessionView from "./components/AsrSessionView";
 import QuranPageView from "./components/QuranPageView";
-import SettingsModal from "./components/SettingsModal";
 import JuzSelectorModal from "./components/JuzSelectorModal";
 import SurahPickerModal from "./components/SurahPickerModal";
 import AdjustPlan from "./components/AdjustPlan";
 import RihlahProgressPath from "./components/RihlahProgressPath";
+import AppSideDrawer from "./components/AppSideDrawer";
+import AchievementsView from "./components/AchievementsView";
+import StatsPage from "./components/pages/StatsPage";
+import RemindersPage from "./components/pages/RemindersPage";
+import MethodPage from "./components/pages/MethodPage";
+import HelpPage from "./components/pages/HelpPage";
+import AboutPage from "./components/pages/AboutPage";
+import ExportPage from "./components/pages/ExportPage";
+import SettingsPage from "./components/pages/SettingsPage";
+import TermsPage from "./components/pages/TermsPage";
 import RihlahHome from "./tabs/RihlahHome";
 import TwoPageWarningModal from "./components/TwoPageWarningModal";
 import MushafRangePickerModal from "./components/MushafRangePickerModal";
@@ -30,12 +39,7 @@ import Onboarding from "./components/Onboarding";
 
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
-  const [showSettings,setShowSettings]=useState(false);
   const [tabBeforeAdjust,setTabBeforeAdjust]=useState(null); // {activeTab, rihlahTab}
-  const [editName,setEditName]=useState("");
-  const [showNameModal,setShowNameModal]=useState(false);
-  const [showResetConfirm,setShowResetConfirm]=useState(false);
-  const [showTerms,setShowTerms]=useState(false);
   const [twoPageWarning,setTwoPageWarning]=useState(null); // {target, actual} | null
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
@@ -109,6 +113,23 @@ export default function RihlatAlHifz() {
   }, [completedAyahs.size]);
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
+  const [showAppDrawer,setShowAppDrawer]=useState(false);
+  const [appPage,setAppPage_]=useState(null); // which full-screen drawer page is open
+  // Wrap so opening a page also remembers where the user came from, enabling
+  // the page's Back button to restore the prior tab via tabBeforeAdjust.
+  const setAppPage=(id)=>{
+    if(id&&!appPage){ setTabBeforeAdjust({activeTab,rihlahTab}); }
+    if(!id&&tabBeforeAdjust){
+      setActiveTab(tabBeforeAdjust.activeTab);
+      setRihlahTab(tabBeforeAdjust.rihlahTab);
+      setTabBeforeAdjust(null);
+    }
+    setAppPage_(id);
+  };
+  // Tap target per ayah. Locked at 20 for Shaykh plan; AdjustPlan exposes a
+  // slider in custom mode so users on a customized pace can choose 10-30.
+  const [repTarget,setRepTarget_]=useState(()=>{ try { return parseInt(localStorage.getItem("rihlat-rep-target"))||20; } catch { return 20; } });
+  const setRepTarget=(n)=>{ const v=Math.max(5,Math.min(30,Math.round(n)||20)); setRepTarget_(v); try { localStorage.setItem("rihlat-rep-target",String(v)); } catch {} };
   const [fontSize,setFontSize]=useState(()=>{try{return parseInt(localStorage.getItem("rihlat-fontsize"))||19;}catch{return 19;}});
   useEffect(()=>{try{localStorage.setItem("rihlat-fontsize",String(fontSize));}catch{}},[fontSize]);
   const [quranShowCount,setQuranShowCount]=useState(5);
@@ -224,6 +245,46 @@ export default function RihlatAlHifz() {
 
   // Bookmark last mushaf page
   useEffect(()=>{try{localStorage.setItem("jalil-quran-lastpage",String(mushafPage));}catch{}},[mushafPage]);
+
+  // In-tab reminder scheduler. Reads rihlat-reminders prefs every 30s and
+  // fires a Notification when the configured time is within the polling
+  // window AND hasn't already fired today. "Fired today" is tracked in
+  // localStorage so toggling sessions or refreshing doesn't re-fire.
+  // Background firing requires PWA install — this only works while the tab
+  // is open, which the Reminders sheet copy makes clear.
+  useEffect(()=>{
+    if(typeof Notification==="undefined") return;
+    const SESSION_LABELS={fajr:"Fajr — memorize today's page",dhuhr:"Dhuhr — review last 5 days",asr:"Asr — revise older juz",maghrib:"Maghrib — listen to today's page",isha:"Isha — final review before sleep"};
+    const tick=()=>{
+      if(Notification.permission!=="granted") return;
+      let prefs;
+      try { prefs=JSON.parse(localStorage.getItem("rihlat-reminders")||"null"); } catch { return; }
+      if(!prefs||!prefs.sessions) return;
+      const now=new Date();
+      const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+      let fired;
+      try { fired=JSON.parse(localStorage.getItem("rihlat-reminders-fired")||"{}"); } catch { fired={}; }
+      // Reset fired log if it's a new day
+      if(fired._date!==today){ fired={_date:today}; }
+      const nowMin=now.getHours()*60+now.getMinutes();
+      let changed=false;
+      for(const [id,s] of Object.entries(prefs.sessions)){
+        if(!s.enabled||!s.time||fired[id]) continue;
+        const [h,m]=s.time.split(":").map(Number);
+        const targetMin=h*60+m;
+        // Fire if within the past 60s window (don't fire for old times missed earlier)
+        if(nowMin>=targetMin&&nowMin<targetMin+1){
+          try { new Notification("Rihlat al-Hifz",{body:SESSION_LABELS[id]||id,tag:`rihlat-${id}-${today}`}); } catch {}
+          fired[id]=true;
+          changed=true;
+        }
+      }
+      if(changed){ try { localStorage.setItem("rihlat-reminders-fired",JSON.stringify(fired)); } catch {} }
+    };
+    tick();
+    const iv=setInterval(tick,30000);
+    return ()=>clearInterval(iv);
+  },[]);
 
   // Load QPC mushaf pages data
   useEffect(()=>{
@@ -1894,9 +1955,17 @@ export default function RihlatAlHifz() {
         <div style={{background:activeTab==="rihlah"?"transparent":(dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8"),padding:"18px 16px 16px",flexShrink:0,borderBottom:activeTab==="rihlah"?"none":`1px solid ${T.border}`,position:"relative",overflow:"hidden",zIndex:1}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
           <div style={{position:"relative",zIndex:1}}>
-            {/* Title */}
-            <div style={{textAlign:"center",marginBottom:12}}>
-              <div style={{fontSize:13,color:T.accent,letterSpacing:".12em",textTransform:"uppercase",fontWeight:800,fontFamily:"'Playfair Display',serif",textShadow:"0 0 12px rgba(212,175,55,0.40)"}}>Al-Hifz <span style={{fontWeight:400,fontSize:9,fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em",textShadow:"none"}}>· Your journey to memorizing the Qur'an</span></div>
+            {/* Title row — hamburger left, app title centered */}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8}}>
+              <div className="sbtn" onClick={()=>setShowAppDrawer(true)} aria-label="Open menu" style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}}>
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+                <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
+              </div>
+              <div style={{flex:1,textAlign:"center"}}>
+                <div style={{fontSize:13,color:T.accent,letterSpacing:".12em",textTransform:"uppercase",fontWeight:800,fontFamily:"'Playfair Display',serif",textShadow:"0 0 12px rgba(212,175,55,0.40)"}}>Al-Hifz <span style={{fontWeight:400,fontSize:9,fontFamily:"'DM Sans',sans-serif",letterSpacing:".08em",textShadow:"none"}}>· Your journey to memorizing the Qur'an</span></div>
+              </div>
+              <div style={{width:32,flexShrink:0}}/>
             </div>
             {/* Profile row */}
             <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -1921,10 +1990,7 @@ export default function RihlatAlHifz() {
                   return null;
                 })()}
               </div>
-              {/* Settings gear */}
-              <div className="sbtn" onClick={()=>{setEditName(localStorage.getItem("rihlat-username")||"Abdul Jalil");setShowSettings(true);}} style={{flexShrink:0,width:32,height:32,borderRadius:"50%",background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.05)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <span style={{fontSize:16,color:T.dim}}>⚙️</span>
-              </div>
+              {/* Settings gear removed — Settings now lives in the side drawer (hamburger). */}
             </div>
             {/* Badges row — full width */}
             <div style={{display:"flex",gap:6,marginTop:8,justifyContent:"flex-start"}}>
@@ -1969,9 +2035,10 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ TODAY SESSION ═══ */}
-      {activeTab==="myhifz"&&!showTerms&&(
+      {activeTab==="myhifz"&&(
         <MyHifzTab
           pushActivity={pushActivity}
+          repTarget={repTarget}
           asrSessionView={(!sessLoading&&currentSessionId==="asr"&&asrStarted&&batch.length>0)?(
             <AsrSessionView
               dark={dark}
@@ -2054,7 +2121,7 @@ export default function RihlatAlHifz() {
       )}
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
-      {activeTab==="rihlah"&&rihlahTab==="home"&&!showTerms&&(
+      {activeTab==="rihlah"&&rihlahTab==="home"&&(
         <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel} recentBatches={recentBatches} checkHistory={checkHistory}/>
       )}
 
@@ -2074,7 +2141,7 @@ export default function RihlatAlHifz() {
         />
       )}
       {/* ═══ QURAN TEXT ═══ */}
-      {activeTab==="quran"&&!showTerms&&(
+      {activeTab==="quran"&&(
         <QuranTab
           haramainMeta={haramainMeta}
           dark={dark}
@@ -2221,50 +2288,9 @@ export default function RihlatAlHifz() {
         </div>
       )}
 
-      {/* ═══ ADJUST PLAN (opened from settings gear) ═══ */}
-      {showTerms&&(
-        <div style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"20px 16px 120px"}} className="fi">
-          <div style={{marginBottom:14}}>
-            <div className="sbtn" onClick={()=>{setShowTerms(false);setShowSettings(true);}} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>← Back</div>
-          </div>
-          <div style={{maxWidth:500,margin:"0 auto"}}>
-            <div style={{textAlign:"center",marginBottom:18}}>
-              <div style={{fontSize:18,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A"}}>Terms & Privacy</div>
-              <div style={{fontSize:10,color:T.dim,marginTop:4}}>Last updated: April 2026</div>
-            </div>
-            <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Privacy</div>
-            <div style={{fontSize:13,color:T.sub,lineHeight:1.7,marginBottom:18}}>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>All your progress, goals, and preferences are stored <strong>only on your device</strong> using localStorage.</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>There is no account, no sign-up, and no sign-in required.</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>We do not collect, track, or transmit any personal data.</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>No analytics, no ads, no tracking cookies.</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Quran text, audio, and tafsir are fetched from Quran Foundation APIs only when you use those features.</span></div>
-              <div style={{display:"flex",gap:8}}><span>•</span><span>Your memorization data never leaves your device unless you explicitly export it.</span></div>
-            </div>
-            <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Terms of Use</div>
-            <div style={{fontSize:13,color:T.sub,lineHeight:1.7,marginBottom:18}}>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Rihlat Al-Hifz is free to use for personal hifz journey and reflection.</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>This app is a supplementary tool — it is not a substitute for guidance from a qualified Quran teacher.</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span>Rihlat Al-Hifz is an independent project and is <strong>not affiliated with, endorsed by, or sponsored by Quran Foundation, Quran.com, or any other organization</strong>. We gratefully use their public APIs to bring the Quran to you.</span></div>
-              <div style={{display:"flex",gap:8}}><span>•</span><span>May Allah accept your efforts and grant you success in memorizing His Book.</span></div>
-            </div>
-            <div style={{fontSize:11,color:"#D4AF37",letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:8}}>Attribution</div>
-            <div style={{fontSize:13,color:T.sub,lineHeight:1.7,marginBottom:18}}>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Quranic text & metadata:</strong> Quran Foundation (quran.com / quran.foundation)</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Ayah-by-ayah audio:</strong> everyayah.com</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Full surah recitations:</strong> quranicaudio.com</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Tafsir:</strong> As-Sa'di, Al-Muyassar, Ibn Kathir (via Quran.com API)</span></div>
-              <div style={{display:"flex",gap:8,marginBottom:8}}><span>•</span><span><strong>Methodology:</strong> "The Easiest Way to Memorize the Noble Qur'an" by Sheikh Abdul Muhsin Al-Qasim</span></div>
-              <div style={{display:"flex",gap:8}}><span>•</span><span><strong>Haramain imam recordings:</strong> haramain.info, Internet Archive</span></div>
-            </div>
-            <div style={{textAlign:"center",marginTop:14,fontSize:11,color:T.dim,fontStyle:"italic"}}>
-              بَارَكَ اللَّهُ فِيكُمْ
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Terms now lives at appPage === "terms" via TermsPage. */}
 
-      {activeTab==="rihlah"&&rihlahTab==="adjust"&&!showTerms&&(
+      {activeTab==="rihlah"&&rihlahTab==="adjust"&&(
         <AdjustPlan
           dark={dark}
           T={T}
@@ -2278,6 +2304,7 @@ export default function RihlatAlHifz() {
           dailyNew={dailyNew}
           rihlahScrollRef={rihlahScrollRef}
           userPlanMode={userPlanMode} setUserPlanMode={setUserPlanMode}
+          repTarget={repTarget} setRepTarget={setRepTarget}
           onBack={()=>{
             if(tabBeforeAdjust){
               setActiveTab(tabBeforeAdjust.activeTab);
@@ -2286,7 +2313,24 @@ export default function RihlatAlHifz() {
             } else {
               setRihlahTab("home");
             }
-            setShowSettings(true);
+          }}
+        />
+      )}
+
+      {activeTab==="rihlah"&&rihlahTab==="achievements"&&(
+        <AchievementsView
+          dark={dark}
+          completedCount={completedCount}
+          streak={streak}
+          longestStreak={streak}
+          onBack={()=>{
+            if(tabBeforeAdjust){
+              setActiveTab(tabBeforeAdjust.activeTab);
+              setRihlahTab(tabBeforeAdjust.rihlahTab);
+              setTabBeforeAdjust(null);
+            } else {
+              setRihlahTab("home");
+            }
           }}
         />
       )}
@@ -2333,22 +2377,58 @@ export default function RihlatAlHifz() {
       />
 
       {/* Quran Reciter Modal */}
-{/* ── SETTINGS + SUB-MODALS (extracted) ── */}
-<SettingsModal
-  show={showSettings}
-  onClose={()=>setShowSettings(false)}
-  dark={dark} T={T}
-  fontSize={fontSize} setFontSize={setFontSize}
-  editName={editName} setEditName={setEditName}
-  showNameModal={showNameModal} setShowNameModal={setShowNameModal}
-  showResetConfirm={showResetConfirm} setShowResetConfirm={setShowResetConfirm}
-  showTerms={showTerms} setShowTerms={setShowTerms}
-  setDark={setDark}
-  onAdjustPlan={()=>{setTabBeforeAdjust({activeTab,rihlahTab});setShowSettings(false);setActiveTab("rihlah");setRihlahTab("adjust");}}
-  onAbout={()=>{setTabBeforeAdjust({activeTab,rihlahTab});setShowSettings(false);setActiveTab("masjidayn");setMasjidaynTab("about");}}
+<TwoPageWarningModal warning={twoPageWarning} onClose={()=>setTwoPageWarning(null)} dark={dark} />
+
+<AppSideDrawer
+  open={showAppDrawer}
+  onClose={()=>setShowAppDrawer(false)}
+  dark={dark}
+  username={localStorage.getItem("rihlat-username")||"Abdul Jalil"}
+  initials={(localStorage.getItem("rihlat-username")||"Abdul Jalil").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+  streak={streak}
+  completedCount={completedCount}
+  onPick={(id)=>{
+    if(id==="plan"){ setTabBeforeAdjust({activeTab,rihlahTab}); setActiveTab("rihlah"); setRihlahTab("adjust"); }
+    else if(id==="achievements"){ setTabBeforeAdjust({activeTab,rihlahTab}); setActiveTab("rihlah"); setRihlahTab("achievements"); }
+    else if(id==="theme"){ setDark(d=>!d); return; /* keep drawer open */ }
+    else if(id==="hifzReciter"){ setReciterMode("hifz"); setShowReciterModal(true); }
+    else if(id==="settings"||id==="terms"||id==="stats"||id==="reminders"||id==="method"||id==="help"||id==="about"||id==="export"){
+      setAppPage(id);
+    }
+    setShowAppDrawer(false);
+  }}
 />
 
-<TwoPageWarningModal warning={twoPageWarning} onClose={()=>setTwoPageWarning(null)} dark={dark} />
+{/* ── Full-screen drawer pages — overlay current tab ── */}
+{appPage&&(
+  <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",flexDirection:"column",background:dark?"#0B1220":"#F3E9D2",paddingTop:"env(safe-area-inset-top,0px)"}}>
+    {appPage==="stats"&&<StatsPage dark={dark} onBack={()=>setAppPage(null)} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} pct={pct}/>}
+    {appPage==="reminders"&&<RemindersPage dark={dark} onBack={()=>setAppPage(null)}/>}
+    {appPage==="method"&&<MethodPage dark={dark} onBack={()=>setAppPage(null)}/>}
+    {appPage==="help"&&<HelpPage dark={dark} onBack={()=>setAppPage(null)}/>}
+    {appPage==="about"&&<AboutPage dark={dark} onBack={()=>setAppPage(null)}/>}
+    {appPage==="settings"&&<SettingsPage dark={dark} T={T} onBack={()=>setAppPage(null)}/>}
+    {appPage==="terms"&&<TermsPage dark={dark} T={T} onBack={()=>setAppPage(null)}/>}
+    {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage(null)} onExport={()=>{
+      try{
+        const KEYS=["jalil-quran-v8","rihlat-username","rihlat-onboarded","rihlat-rep-target","rihlat-fontsize","rihlat-default-reading-mode","rihlat-translation-source","rihlat-tafsir-view","rihlat-plan-mode","rihlat-mushaf-bookmarks","rihlat-reflections","rihlat-daily-progress","rihlat-session-log","rihlat-gallery-view","rihlat-tajweed","jalil-recent-activity","jalil-badge-milestones","jalil-asr-cycle","jalil-quran-lastpage","jalil-wisdom-offset","jalil-hifz-reminder"];
+        const data={};
+        for(const k of KEYS){ const v=localStorage.getItem(k); if(v!==null) data[k]=v; }
+        const payload={app:"rihlat-al-hifz",version:1,exportedAt:new Date().toISOString(),data};
+        const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=url;
+        const today=new Date().toISOString().slice(0,10);
+        a.download=`rihlat-backup-${today}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }catch(e){ alert("Export failed: "+e.message); }
+    }}/>}
+  </div>
+)}
 
 <ReciterModal
   show={showReciterModal}
@@ -2364,7 +2444,7 @@ export default function RihlatAlHifz() {
   audioRef={audioRef}
 />
 
-      {activeTab==="masjidayn"&&!showTerms&&(
+      {activeTab==="masjidayn"&&(
         <MasjidaynTab
           dark={dark} T={T}
           masjidaynTab={masjidaynTab} setMasjidaynTab={setMasjidaynTab}
@@ -2381,7 +2461,7 @@ export default function RihlatAlHifz() {
               setRihlahTab(tabBeforeAdjust.rihlahTab);
               setTabBeforeAdjust(null);
             }
-            setShowSettings(true);
+            setAppPage("settings");
           }:null}
         />
       )}

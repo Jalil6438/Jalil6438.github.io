@@ -64,28 +64,11 @@ export default function SettingsModal({
               <div style={{fontSize:10,color:T.dim,marginTop:4}}>📅 Joined 2026</div>
             </div>
             <div style={{overflowY:"auto",padding:"14px 18px 28px"}}>
-              {/* Dark mode toggle */}
-              <div className="sbtn" onClick={()=>setDark(!dark)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
-                <div style={{fontSize:13,color:T.text}}>{dark?"🌙 Dark Mode":"☀️ Light Mode"}</div>
-                <div style={{width:36,height:20,borderRadius:10,background:dark?"#D4AF37":"rgba(0,0,0,0.15)",padding:2,display:"flex",alignItems:`center`,justifyContent:dark?"flex-end":"flex-start"}}>
-                  <div style={{width:16,height:16,borderRadius:"50%",background:"#fff",transition:"all .2s"}}/>
-                </div>
-              </div>
+              {/* Settings is now profile/account focused — Theme, Plan, About,
+                  Terms & Privacy live in the side drawer as global app entries. */}
               {/* Name Change */}
               <div className="sbtn" onClick={()=>{setEditName(localStorage.getItem("rihlat-username")||"");setShowNameModal(true);}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
                 <div style={{fontSize:13,color:T.text}}>👤 Name Change</div>
-              </div>
-              {/* Adjust Plan */}
-              <div className="sbtn" onClick={onAdjustPlan} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
-                <div style={{fontSize:13,color:T.text}}>⚙️ Adjust Plan</div>
-              </div>
-              {/* About */}
-              <div className="sbtn" onClick={onAbout} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
-                <div style={{fontSize:13,color:T.text}}>ℹ️ About</div>
-              </div>
-              {/* Terms & Privacy */}
-              <div className="sbtn" onClick={()=>{setShowTerms(true);onClose();}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
-                <div style={{fontSize:13,color:T.text}}>📄 Terms & Privacy</div>
               </div>
               {/* Reset Progress */}
               <div className="sbtn" onClick={()=>setShowResetConfirm(true)} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:"rgba(229,83,75,0.08)",border:"1px solid rgba(229,83,75,0.30)",borderRadius:12,marginBottom:6,marginTop:10}}>

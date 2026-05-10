@@ -52,6 +52,8 @@ export default function MyHifzTab(props) {
     simVerseCache, fetchSimVerse,
     // plan mode — "shaykh" (page-based) or "custom" (ayah-count via calcTimeline)
     userPlanMode = "shaykh",
+    // Reps per ayah — Shaykh's default is 20; custom users can adjust.
+    repTarget = 20,
     // listen-along (full-page recitation helper for Mushaf mode)
     playMushafRange, stopMushafAudio, mushafAudioPlaying,
     // KFGQPC per-page PUA-encoded line data (loaded from /mushaf-pages.json)
@@ -389,7 +391,7 @@ export default function MyHifzTab(props) {
         const v1 = verses[i], v2 = verses[i + 1];
         const a1 = v1.verse_key.split(":")[1];
         const a2 = v2.verse_key.split(":")[1];
-        const bothDone = (repCounts[v1.verse_key] || 0) >= 20 && (repCounts[v2.verse_key] || 0) >= 20;
+        const bothDone = (repCounts[v1.verse_key] || 0) >= repTarget && (repCounts[v2.verse_key] || 0) >= repTarget;
         arr.push({
           key: `pair-${v1.verse_key}-${v2.verse_key}`,
           label: `Ayah ${a1} + ${a2}`,
@@ -418,7 +420,7 @@ export default function MyHifzTab(props) {
       const verses = g.verses;
       const n = verses.length;
       const surahName = SURAH_EN[g.surahNum] || `Surah ${g.surahNum}`;
-      const allAyahsDone = verses.every(v => (repCounts[v.verse_key] || 0) >= 20);
+      const allAyahsDone = verses.every(v => (repCounts[v.verse_key] || 0) >= repTarget);
       const surahPairs = connAllPairs.filter(p => p.surahNum === g.surahNum);
       const surahPairsDone = surahPairs.length > 0 && surahPairs.every(p => (connectionReps[p.key] || 0) >= 10);
 
@@ -459,8 +461,8 @@ export default function MyHifzTab(props) {
       const bridgePair = surahPairs.find(p => sec1Keys.has(p.ayahs[0].verse_key) && !sec1Keys.has(p.ayahs[1].verse_key));
       const sec1Pairs = surahPairs.filter(p => sec1Keys.has(p.ayahs[0].verse_key) && sec1Keys.has(p.ayahs[1].verse_key));
       const sec2Pairs = surahPairs.filter(p => !sec1Keys.has(p.ayahs[0].verse_key));
-      const sec1AyahsDone = sec1.every(v => (repCounts[v.verse_key] || 0) >= 20);
-      const sec2AyahsDone = sec2.every(v => (repCounts[v.verse_key] || 0) >= 20);
+      const sec1AyahsDone = sec1.every(v => (repCounts[v.verse_key] || 0) >= repTarget);
+      const sec2AyahsDone = sec2.every(v => (repCounts[v.verse_key] || 0) >= repTarget);
       const sec1PairsDone = sec1Pairs.length === 0 || sec1Pairs.every(p => (connectionReps[p.key] || 0) >= 10);
       const sec2PairsDone = sec2Pairs.length === 0 || sec2Pairs.every(p => (connectionReps[p.key] || 0) >= 10);
       const bridgeDone = !bridgePair || (connectionReps[bridgePair.key] || 0) >= 10;
@@ -572,7 +574,7 @@ export default function MyHifzTab(props) {
       const curSurah = openAyah ? parseInt(openAyah.split(":")[0], 10) : activeSurahNum;
       const nextAyah = batch.find(v => {
         const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
-        return s === curSurah && (repCounts[v.verse_key] || 0) < 20;
+        return s === curSurah && (repCounts[v.verse_key] || 0) < repTarget;
       });
       if (nextAyah) {
         setOpenAyah(nextAyah.verse_key);
@@ -610,7 +612,7 @@ export default function MyHifzTab(props) {
     const pageKey = `${aStart}-${aEnd}`;
 
     // Check 20× phase complete
-    const allRepsDone = pageAyahs.every(v => (repCounts[v.verse_key] || 0) >= 20);
+    const allRepsDone = pageAyahs.every(v => (repCounts[v.verse_key] || 0) >= repTarget);
     if (allRepsDone && repsLoggedRef.current !== pageKey) {
       repsLoggedRef.current = pageKey;
       const first = pageAyahs[0], last = pageAyahs[pageAyahs.length - 1];
@@ -618,7 +620,7 @@ export default function MyHifzTab(props) {
       const fA = parseInt(first.verse_key?.split(":")[1], 10);
       const lA = parseInt(last.verse_key?.split(":")[1], 10);
       const name = SURAH_EN[fS] || "";
-      pushActivity("milestone", `Completed 20× repetition of ${name} ayat ${fA}-${lA}`);
+      pushActivity("milestone", `Completed ${repTarget}× repetition of ${name} ayat ${fA}-${lA}`);
     }
 
     // Check connection phase complete
@@ -642,16 +644,7 @@ export default function MyHifzTab(props) {
   return (
         <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",position:"relative"}} className="fi gold-particles">
 
-          {/* ── STICKY TOP BAR — Reciter + Dark/Light toggle ── */}
-          <div style={{position:"sticky",top:0,zIndex:10,background:T.bg,padding:"6px 14px",display:"flex",alignItems:"center",gap:8}}>
-            <div className="sbtn" onClick={()=>{setReciterMode("hifz");setShowReciterModal(true);}} style={{flex:1,display:"flex",alignItems:"center",gap:8,padding:"6px 10px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:8}}>
-              <div style={{fontSize:12}}>🎙️</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:11,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{currentReciter.name}</div>
-              </div>
-              <div style={{fontSize:10,color:T.dim}}>▾</div>
-            </div>
-          </div>
+          {/* Reciter selector moved to the app side drawer (Settings). */}
 
           <div style={{flex:1,padding:`10px 16px ${haramainMeta?"240px":"120px"}`}}>
 
@@ -703,7 +696,7 @@ export default function MyHifzTab(props) {
                           // Header shows both: the ayah range of today's batch
                           // (what's in front of you) and the rep-completion count
                           // (how far). e.g. "Ayat 17-35 · 0 of 30".
-                          const done = batch.filter(v=>repCounts[v.verse_key]>=20).length;
+                          const done = batch.filter(v=>repCounts[v.verse_key]>=repTarget).length;
                           const total = batch.length || dailyNew;
                           if (batch.length) {
                             const firstA = parseInt(batch[0].verse_key?.split(":")?.[1] || "0", 10);
@@ -1089,7 +1082,7 @@ export default function MyHifzTab(props) {
                       })()}
                       {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
-                          <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=20).length} of {batch.length} complete</div>
+                          <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#9A8A6A"}}>{batch.filter(v=>(repCounts[v.verse_key]||0)>=repTarget).length} of {batch.length} complete</div>
                           <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Tap any ayah to begin</div>
                         </div>
                       )}
@@ -1346,7 +1339,7 @@ export default function MyHifzTab(props) {
                     const sNum=v.surah_number||parseInt(v.verse_key?.split(":")?.[0]);
                     const vKey=v.verse_key;
                     const reps=repCounts[vKey]||0;
-                    const repsDone=reps>=20;
+                    const repsDone=reps>=repTarget;
                     // Surah separator — rendered before the first ayah of a new surah
                     // within the page window, so Mumtahanah 12-13 and Aṣ-Ṣaff 1-5 aren't
                     // treated as one continuous unit during the connection phase.
@@ -1371,7 +1364,7 @@ export default function MyHifzTab(props) {
                           style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
                           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
                             <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
-                            {currentSessionId==="fajr"&&<span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of 20 Repetitions</span>}
+                            {currentSessionId==="fajr"&&<span style={{fontSize:11,color:repsDone?"#2ECC71":reps>0?"#E6B84A":dark?"rgba(255,255,255,0.25)":"rgba(0,0,0,0.25)",fontFamily:"'IBM Plex Mono',monospace"}}>{reps} of {repTarget} Repetitions</span>}
                           </div>
                           {(()=>{
                             // Use Madinah page (from verseToPageMap) so the
@@ -1508,8 +1501,8 @@ export default function MyHifzTab(props) {
                   const mvPlaying=playingKey===mvKey;
                   const mvLoading=audioLoading===mvKey;
                   const mvReps=repCounts[mvKey]||0;
-                  const mvRepsDone=mvReps>=20;
-                  const mvPct=Math.min((mvReps/20)*100,100);
+                  const mvRepsDone=mvReps>=repTarget;
+                  const mvPct=Math.min((mvReps/repTarget)*100,100);
                   return (
                     <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setOpenAyah(null)}>
                       <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
@@ -1537,16 +1530,16 @@ export default function MyHifzTab(props) {
                             show translation + audio only; no rep taps to avoid confusing
                             users into thinking reviews involve 20× repetition. */}
                         {currentSessionId==="fajr"&&(
-                          <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(20,(prev[mvKey]||0)+1);if(newCount>=20&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}if(newCount>=20){setTimeout(()=>setOpenAyah(null),450);}return{...prev,[mvKey]:newCount};});}}
+                          <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(repTarget,(prev[mvKey]||0)+1);if(newCount>=repTarget&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}if(newCount>=repTarget){setTimeout(()=>setOpenAyah(null),450);}return{...prev,[mvKey]:newCount};});}}
                             style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .3s ease",
                               background:dark?(mvRepsDone?"rgba(212,175,55,0.10)":"rgba(212,175,55,0.04)"):(mvRepsDone?"rgba(0,0,0,0.08)":"rgba(0,0,0,0.03)"),
                               border:`1.5px solid ${mvRepsDone?"rgba(212,175,55,0.45)":"rgba(212,175,55,0.25)"}`,
                               boxShadow:mvRepsDone?"0 0 16px rgba(212,175,55,0.20), 0 4px 14px rgba(0,0,0,0.15)":"0 0 12px rgba(212,175,55,0.12), 0 4px 14px rgba(0,0,0,0.10)"}}>
                             {mvRepsDone?(
-                              <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ 20/20 Complete — MashaAllah!</div>
+                              <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ {repTarget}/{repTarget} Complete — MashaAllah!</div>
                             ):(
                               <div>
-                                <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Recited <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/20</span> · Tap after each recitation</div>
+                                <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Recited <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/{repTarget}</span> · Tap after each recitation</div>
                                 <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
                                   <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:mvPct>=100?"linear-gradient(90deg,#D4AF37,#F6E27A)":"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.4s cubic-bezier(.4,0,.2,1)"}}/>
                                 </div>

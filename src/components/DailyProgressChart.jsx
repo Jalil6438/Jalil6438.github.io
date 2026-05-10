@@ -175,14 +175,19 @@ export default function DailyProgressChart({
             />
           ))}
           {series.map((d, i) => {
-            // Bar height = discipline score (0..1), so an 8-ayah page reads
-            // the same as a 25-ayah page — what matters is that the day was
-            // completed on time, not the verse count.
+            // Bar height = discipline score (0..1). Color tiers reflect how
+            // complete the day was: full 5/5 = green, partial = amber, today
+            // gets a bright gold highlight, no activity = dim baseline tick.
             const h = d.score * 90;
             const x = i * 10 + 1;
             const w = 8;
             const isToday = i === series.length - 1;
             const active = d.score > 0;
+            // 6-tier color gradient by 0..5 sessions completed:
+            // 0=empty, 1=red, 2=orange, 3=amber, 4=gold, 5=green
+            const sc = d.sessionsCompleted ?? 0;
+            const tierColor = ["transparent","#DC2626","#EA580C","#F59E0B","#FACC15","#16A34A"][sc] || "#16A34A";
+            const fill = isToday ? "#F6E27A" : tierColor;
             return (
               <g key={d.key} onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)} style={{ cursor: "pointer" }}>
                 <rect x={i * 10} y={0} width="10" height="100" fill="transparent" />
@@ -195,7 +200,7 @@ export default function DailyProgressChart({
                     y={100 - h}
                     width={w}
                     height={h}
-                    fill={isToday ? "#F6E27A" : accent}
+                    fill={fill}
                     rx="1"
                     opacity={hoverIdx === null || hoverIdx === i ? 1 : 0.55}
                   />

@@ -1,7 +1,8 @@
 import React from "react";
 import { calcTimeline } from "../utils";
 
-export default function AdjustPlan({ dark, T, goalYears, setGoalYears, goalMonths, setGoalMonths, memorizedAyahs, completedCount, timeline, dailyNew, onBack, rihlahScrollRef, userPlanMode, setUserPlanMode }){
+export default function AdjustPlan({ dark, T, goalYears, setGoalYears, goalMonths, setGoalMonths, memorizedAyahs, completedCount, timeline, dailyNew, onBack, rihlahScrollRef, userPlanMode, setUserPlanMode, repTarget = 20, setRepTarget }){
+  const isCustom = userPlanMode === "custom";
   // Any slider/preset change in this screen means the user has deviated from
   // the Shaykh's default plan — flip to custom mode so the rest of the app
   // drives the batch from calcTimeline instead of the page-based default.
@@ -88,6 +89,24 @@ export default function AdjustPlan({ dark, T, goalYears, setGoalYears, goalMonth
               })}
             </div>
           </div>
+          {/* Reps per ayah — only available off the Shaykh's path. Default
+              stays 20 (Shaykh Al-Qasim's number); custom users can step
+              down for review-style passes or up for deeper retention. */}
+          {isCustom && setRepTarget && (
+            <div style={{padding:"16px 18px",borderRadius:16,background:dark?"rgba(255,255,255,0.02)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.18)":"1px solid rgba(0,0,0,0.08)",marginBottom:16,boxShadow:dark?"0 4px 16px rgba(0,0,0,0.22)":"0 2px 8px rgba(0,0,0,0.04)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>Reps per ayah</span>
+                <span style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:16,color:dark?"#E6B84A":"#D4AF37",fontWeight:600}}>{repTarget}×</span>
+              </div>
+              <input type="range" min={5} max={30} step={5} value={repTarget} onChange={e=>setRepTarget(Number(e.target.value))} style={{width:"100%"}}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:dark?"rgba(243,231,200,0.30)":"#6B645A",fontFamily:"'IBM Plex Mono',monospace",marginTop:4}}>
+                <span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
+              </div>
+              <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.40)":"#6B645A",marginTop:8,lineHeight:1.5}}>
+                Shaykh Al-Qasim's method calls for 20× — fewer reps weakens retention but may suit review passes.
+              </div>
+            </div>
+          )}
           <div style={{textAlign:"center",padding:"14px 10px",marginBottom:20}}>
             <div style={{fontSize:12,color:"rgba(243,231,200,0.35)",lineHeight:1.7}}>This plan requires consistency, not perfection.<br/>Small daily effort leads to completion — <span style={{fontFamily:"'Amiri',serif",fontSize:14,color:"rgba(230,184,74,0.50)"}}>بِإذْنِ اللَّهِ</span></div>
           </div>
