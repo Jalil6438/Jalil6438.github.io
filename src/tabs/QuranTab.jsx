@@ -512,8 +512,16 @@ export default function QuranTab(props) {
                   </div>
                   {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
                 </div>
-                <div style={{flexShrink:0,padding:"10px 20px 0",textAlign:"center"}}>
-                  <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700}}>Tafsir · {TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.name||""}</div>
+                <div style={{flexShrink:0,padding:"10px 16px 6px",display:"flex",alignItems:"center",gap:8}}>
+                  <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700,flexShrink:0}}>Tafsir</div>
+                  <div style={{display:"flex",gap:4,flex:1,justifyContent:"flex-end"}}>
+                    {TAFSIR_SOURCES.map(src=>{
+                      const sel=tafsirTab===src.id;
+                      return (
+                        <div key={src.id} className="sbtn" onClick={()=>{setTafsirTab(src.id);fetchTafsir(selectedAyah);}} style={{padding:"4px 10px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:".02em",background:sel?"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${sel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.08)"}`,color:sel?"#0A0E1A":dark?"rgba(243,231,200,0.65)":"#5A4A2A",whiteSpace:"nowrap"}}>{src.name}</div>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div style={{flex:1,overflowY:"auto",padding:"14px 20px 120px"}}>
                   {(()=>{
@@ -969,9 +977,18 @@ export default function QuranTab(props) {
                           </div>
                           {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
                         </div>
-                        {/* Source name — set in Settings */}
-                        <div style={{flexShrink:0,padding:"10px 20px 0",textAlign:"center"}}>
-                          <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700}}>Tafsir · {TAFSIR_SOURCES.find(s=>s.id===tafsirTab)?.name||""}</div>
+                        {/* Inline source picker — switch sources without
+                            leaving the tafsir view */}
+                        <div style={{flexShrink:0,padding:"10px 16px 6px",display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.65)",letterSpacing:".22em",textTransform:"uppercase",fontWeight:700,flexShrink:0}}>Tafsir</div>
+                          <div style={{display:"flex",gap:4,flex:1,justifyContent:"flex-end"}}>
+                            {TAFSIR_SOURCES.map(src=>{
+                              const sel=tafsirTab===src.id;
+                              return (
+                                <div key={src.id} className="sbtn" onClick={()=>{setTafsirTab(src.id);fetchTafsir(selectedAyah);}} style={{padding:"4px 10px",borderRadius:999,fontSize:10,fontWeight:700,letterSpacing:".02em",background:sel?"linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)":dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${sel?"rgba(232,200,120,0.65)":dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.08)"}`,color:sel?"#0A0E1A":dark?"rgba(243,231,200,0.65)":"#5A4A2A",whiteSpace:"nowrap"}}>{src.name}</div>
+                              );
+                            })}
+                          </div>
                         </div>
                         {/* Tafsir content — parsed into blocks */}
                         <div style={{flex:1,overflowY:"auto",padding:"14px 20px 120px"}}>
