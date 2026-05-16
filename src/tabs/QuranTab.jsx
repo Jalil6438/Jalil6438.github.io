@@ -754,7 +754,7 @@ export default function QuranTab(props) {
                             return (
                               <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
                                 {bismillahGlyphs&&loadedFonts.has(`${tajweedFont?"v4":"v2"}-1`)?(
-                                  <div style={{fontFamily:`'p1-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
+                                  <div style={{fontFamily:`'p1-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
                                 ):(
                                   <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                                 )}
