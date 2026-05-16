@@ -765,7 +765,7 @@ export default function QuranTab(props) {
                                 if(w.char_type_name==="end"){
                                   return (
                                     <span key={wi} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(212,175,55,0.80)":"rgba(140,100,20,0.80)",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:"0.95em",margin:"0 2px"}}>
-                                      ۝{toArabicDigits(w._vn)}
+                                      ﴿{toArabicDigits(w._vn)}﴾
                                     </span>
                                   );
                                 }
