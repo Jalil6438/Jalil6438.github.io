@@ -817,9 +817,12 @@ export default function QuranTab(props) {
                     const text=isOdd
                       ? (hizbLabel?`${hizbLabel} | Page ${mushafPage}`:`Page ${mushafPage}`)
                       : (hizbLabel?`Page ${mushafPage} | ${hizbLabel}`:`Page ${mushafPage}`);
+                    const arrowStyle={display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:18,fontSize:18,fontWeight:600,cursor:"pointer",background:dark?"rgba(217,177,95,0.08)":"rgba(139,106,16,0.06)",border:dark?"1px solid rgba(217,177,95,0.20)":"1px solid rgba(139,106,16,0.18)",color:dark?"rgba(217,177,95,0.85)":"#6B4F00",userSelect:"none"};
                     return (
-                      <div style={{display:"flex",justifyContent:isOdd?"flex-end":"flex-start",padding:"12px 20px 16px",fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
-                        {text}
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px 16px",fontFamily:"'IBM Plex Mono',monospace",fontSize:12,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".06em"}}>
+                        <div className={mushafPage>1?"sbtn":""} onClick={()=>{if(mushafPage>1)setMushafPage(p=>p-1);}} style={{...arrowStyle,opacity:mushafPage>1?1:0.25,pointerEvents:mushafPage>1?"auto":"none"}}>‹</div>
+                        <div style={{flex:1,textAlign:"center"}}>{text}</div>
+                        <div className={mushafPage<604?"sbtn":""} onClick={()=>{if(mushafPage<604)setMushafPage(p=>p+1);}} style={{...arrowStyle,opacity:mushafPage<604?1:0.25,pointerEvents:mushafPage<604?"auto":"none"}}>›</div>
                       </div>
                     );
                   })()}
