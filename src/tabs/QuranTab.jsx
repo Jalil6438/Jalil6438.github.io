@@ -763,9 +763,15 @@ export default function QuranTab(props) {
                             <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,29px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                               {lineWords.map((w,wi)=>{
                                 if(w.char_type_name==="end"){
+                                  // Render the per-page font's decorative ayah-end
+                                  // glyph (PUA code_v2) — matches what the Hifz tab
+                                  // shows. Falls back to bare Arabic digit if the
+                                  // per-page font isn't loaded yet.
+                                  const fontEd=tajweedFont?"v4":"v2";
+                                  const fontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
                                   return (
-                                    <span key={wi} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(212,175,55,0.80)":"rgba(140,100,20,0.80)",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:"0.95em",margin:"0 2px"}}>
-                                      ﴿{toArabicDigits(w._vn)}﴾
+                                    <span key={wi} style={{color:dark?"rgba(212,175,55,0.85)":"rgba(140,100,20,0.85)",margin:"0 2px",fontSize:"0.95em",fontFamily:fontReady?`'p${mushafPage}-${fontEd}',serif`:"inherit"}}>
+                                      {fontReady?w.code_v2:toArabicDigits(w._vn)}
                                     </span>
                                   );
                                 }
