@@ -62,6 +62,17 @@ export default function QuranTab(props) {
   // page's render from the fallback (text_uthmani + UthmanicHafs) to the
   // authentic (code_v2 + p{N}) once the per-page font has downloaded.
   const [loadedFonts, setLoadedFonts] = useState(() => new Set());
+  // Keyboard arrow nav — desktop equivalent of mobile swipe. Ignores
+  // input fields so it doesn't hijack typing in the surah picker etc.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); setMushafPage(p => Math.max(1, p - 1)); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); setMushafPage(p => Math.min(604, p + 1)); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [setMushafPage]);
   // Tajweed coloring is just the third Reading mode — derived, not its own
   // state. quranMode persistence happens in the parent.
   // TAJWEED DISABLED 2026-04-26 — uncomment line below + delete `false` line
