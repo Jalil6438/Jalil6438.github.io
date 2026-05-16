@@ -763,15 +763,13 @@ export default function QuranTab(props) {
                             <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,29px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                               {lineWords.map((w,wi)=>{
                                 if(w.char_type_name==="end"){
-                                  // Render the per-page font's decorative ayah-end
-                                  // glyph (PUA code_v2) — matches what the Hifz tab
-                                  // shows. Falls back to bare Arabic digit if the
-                                  // per-page font isn't loaded yet.
-                                  const fontEd=tajweedFont?"v4":"v2";
-                                  const fontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
+                                  // Bare Arabic digit — mixing per-page font for
+                                  // the ornament with Uthmanic Hafs for words made
+                                  // the PUA glyphs render as black dots in the
+                                  // fallback font. Bare digit renders cleanly.
                                   return (
-                                    <span key={wi} style={{color:dark?"rgba(212,175,55,0.85)":"rgba(140,100,20,0.85)",margin:"0 2px",fontSize:"0.95em",fontFamily:fontReady?`'p${mushafPage}-${fontEd}',serif`:"inherit"}}>
-                                      {fontReady?w.code_v2:toArabicDigits(w._vn)}
+                                    <span key={wi} style={{color:dark?"rgba(212,175,55,0.85)":"rgba(140,100,20,0.85)",margin:"0 4px"}}>
+                                      {toArabicDigits(w._vn)}
                                     </span>
                                   );
                                 }
