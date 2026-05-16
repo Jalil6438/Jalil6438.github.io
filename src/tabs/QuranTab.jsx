@@ -721,6 +721,17 @@ export default function QuranTab(props) {
                         // pageContentMap. Independent of the API's mushaf
                         // edition (which differs from KFGQPC v2 on some
                         // pages), so taps land on the right ayah everywhere.
+                        // Build a set of end-of-ayah ornament glyph chars from
+                        // the words data so the render loop can scale just the
+                        // ornament glyph (not the letter glyphs).
+                        const endGlyphSet=new Set();
+                        (mushafVerses||[]).forEach(v=>{
+                          (v.words||[]).forEach(w=>{
+                            if(w.char_type_name==="end"&&w.code_v2){
+                              for(const ch of w.code_v2) endGlyphSet.add(ch);
+                            }
+                          });
+                        });
                         let glyphCursor=0;
                         let ayahIdx=-1;
                         const entries=pageLayout.map((layoutEntry,i)=>{
@@ -777,7 +788,14 @@ export default function QuranTab(props) {
                           <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
                             {tokens.map((w,wi)=>{
                               const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
-                              return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
+                              // Render glyph-by-glyph so end-of-ayah ornaments
+                              // (detected via endGlyphSet built from the words
+                              // data) can be scaled larger than letter glyphs.
+                              return (
+                                <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>
+                                  {[...w].map((ch,ci)=>endGlyphSet.has(ch)?(<span key={ci} style={{fontSize:"1.15em"}}>{ch}</span>):ch)}
+                                </span>
+                              );
                             })}
                           </div>
                           );
