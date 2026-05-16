@@ -703,16 +703,15 @@ export default function QuranTab(props) {
                     // plus per-line alignment (center vs space-between).
                     return (<div style={mushafPage<=2?{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 0 0",position:"relative"}}>
                       {(()=>{
-                        // ── Uthmanic Hafs flowing render (Quran tab only) ──
-                        // Replaces 604 per-page glyph fonts with a single universal
-                        // font for consistent metrics across all pages. Page-per-ayah
-                        // structure preserved via mushafVerses (already scoped per
-                        // page by the parent). MyHifz and Asr still use per-page
-                        // glyph fonts for hifz line-position memorization.
+                        // ── Uthmanic Hafs per-line render (Quran tab only) ──
+                        // Uses a single universal font (consistent metrics across
+                        // all pages) but PRESERVES the printed Madinah line breaks
+                        // by grouping words by line_number from quran.com's word
+                        // data. Surah-name ornament and basmallah blocks render at
+                        // the layout positions defined by mushafLayout.
                         //
-                        // To revert to per-page glyph rendering, swap this block back
-                        // for the contents of the /* PER-PAGE GLYPH FALLBACK */
-                        // comment below.
+                        // To revert to per-page KFGQPC glyph rendering, restore the
+                        // block in the /* PER-PAGE GLYPH FALLBACK */ comment below.
                         const pageLayout=mushafLayoutData&&mushafLayoutData[mushafPage];
                         if(!mushafVerses||!mushafVerses.length||!pageLayout){
                           return (
@@ -722,77 +721,73 @@ export default function QuranTab(props) {
                           );
                         }
                         const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
-                        // Walk verses, emit surah_name + basmallah at surah transitions
-                        const sections=[];
-                        let group=[];
-                        const flushGroup=()=>{ if(group.length){ sections.push({kind:"verses",verses:group,key:`v${group[0].verse_key}`}); group=[]; } };
-                        let prevSurah=null;
+                        // Flatten all words from all verses, tag each with its
+                        // verse_key. quran.com's word objects already carry
+                        // line_number (which printed line) and char_type_name
+                        // ("word" | "end" | "pause"). Skip pause/sajdah markers
+                        // so the line text matches the printed glyphs.
+                        const wordsByLine={};
                         mushafVerses.forEach(v=>{
-                          const sn=v.surah_number||parseInt(v.verse_key.split(":")[0],10);
-                          if(prevSurah!==null&&sn!==prevSurah){
-                            flushGroup();
-                            sections.push({kind:"surah_name",sn,key:`s${sn}`});
-                            if(sn!==1&&sn!==9) sections.push({kind:"basmallah",key:`b${sn}`});
-                          }
-                          group.push(v);
-                          prevSurah=sn;
+                          (v.words||[]).forEach(w=>{
+                            if(w.char_type_name!=="word"&&w.char_type_name!=="end") return;
+                            const ln=w.line_number;
+                            if(!wordsByLine[ln]) wordsByLine[ln]=[];
+                            wordsByLine[ln].push({...w,_vk:v.verse_key,_vn:v.verse_number||parseInt(v.verse_key.split(":")[1],10)});
+                          });
                         });
-                        flushGroup();
-                        // If page LAYOUT starts with surah_name/basmallah, prepend
-                        // them (covers pages where a surah begins at the top — the
-                        // verse loop alone won't detect "first verse of a surah")
-                        if(pageLayout[0]?.type==="surah_name"){
-                          const topSn=pageLayout[0].sn||(mushafVerses[0]?.surah_number||parseInt(mushafVerses[0]?.verse_key.split(":")[0]||"0",10));
-                          sections.unshift({kind:"basmallah",key:"b-top"});
-                          sections.unshift({kind:"surah_name",sn:topSn,key:"s-top"});
-                        } else if(pageLayout[0]?.type==="basmallah"){
-                          sections.unshift({kind:"basmallah",key:"b-top"});
-                        }
-                        const blocks=sections.map(section=>{
-                          if(section.kind==="surah_name"){
+                        const entries=pageLayout.map((layoutEntry,i)=>{
+                          const type=layoutEntry.type;
+                          const isCenter=layoutEntry.center===1;
+                          if(type==="surah_name"){
                             return (
-                              <div key={section.key} style={{textAlign:"center",padding:"6px 0",flexShrink:0}}>
+                              <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
                                 <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
                                   <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
                                     <span>surah</span>
-                                    <span>{String(section.sn).padStart(3,"0")}</span>
+                                    <span>{String(layoutEntry.sn).padStart(3,"0")}</span>
                                   </span>
                                 </div>
                               </div>
                             );
                           }
-                          if(section.kind==="basmallah"){
+                          if(type==="basmallah"){
                             return (
-                              <div key={section.key} style={{textAlign:"center",padding:"4px 0",flexShrink:0}}>
-                                <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,28px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.6}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                              <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
+                                <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(18px,4.5vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.6}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                               </div>
                             );
                           }
-                          // Verses block — flowing Uthmanic Hafs text
+                          // Ayah line: render words on this printed line
+                          const lineWords=wordsByLine[layoutEntry.ln]||[];
                           return (
-                            <div key={section.key} style={{direction:"rtl",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.5vw,32px)",lineHeight:2.0,color:dark?"#E8DFC0":"#2D2A26",textAlign:"justify",padding:"8px 0",wordSpacing:"0.05em"}}>
-                              {section.verses.map(v=>{
-                                const text=(v.text_uthmani||"").replace(/۟/g,"ْ");
-                                const ayahNum=v.verse_number||parseInt(v.verse_key.split(":")[1],10);
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,29px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+                              {lineWords.map((w,wi)=>{
+                                if(w.char_type_name==="end"){
+                                  return (
+                                    <span key={wi} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(212,175,55,0.80)":"rgba(140,100,20,0.80)",fontFamily:"'Amiri Quran','Amiri',serif",fontSize:"0.95em",margin:"0 2px"}}>
+                                      ۝{toArabicDigits(w._vn)}
+                                    </span>
+                                  );
+                                }
+                                const text=(w.text_uthmani||"").replace(/۟/g,"ْ");
                                 return (
-                                  <span key={v.verse_key} className="sbtn" onClick={()=>pickAyah(v.verse_key)} style={{cursor:"pointer"}}>
-                                    {text}{" "}
-                                    <span style={{fontSize:"0.7em",fontFamily:"'Amiri Quran','Amiri',serif",color:dark?"rgba(212,175,55,0.75)":"rgba(140,100,20,0.75)",margin:"0 4px"}}>﴿{toArabicDigits(ayahNum)}﴾</span>{" "}
+                                  <span key={wi} className="sbtn" onClick={()=>pickAyah(w._vk)} style={{cursor:"pointer"}}>
+                                    {text}
                                   </span>
                                 );
                               })}
                             </div>
                           );
                         });
-                        // Short pages (1-2): center the whole block vertically.
                         if(mushafPage<=2){
-                          return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>{blocks}</div>);
+                          return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>{entries}</div>);
                         }
-                        return blocks;
+                        return entries;
                         /* PER-PAGE GLYPH FALLBACK — restore by replacing the block
                            above with this version. Uses 604 per-page KFGQPC fonts
                            with PUA glyph code points from pages.json. Renders each
-                           printed-mushaf line as one nowrap flex row.
+                           printed-mushaf line as one nowrap flex row with the
+                           page-specific font (p${N}-v2.woff2).
 
                         const fontEd=tajweedFont?"v4":"v2";
                         const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
@@ -804,8 +799,6 @@ export default function QuranTab(props) {
                         const entries=pageLayout.map((layoutEntry,i)=>{
                           ... (see git history for full body — was here pre-2026-05)
                         });
-                        if(mushafPage<=2) return <centered>{entries}</centered>;
-                        return entries;
                         */
                       })()}
                     </div>);

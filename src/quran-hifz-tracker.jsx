@@ -309,7 +309,7 @@ export default function RihlatAlHifz() {
       try {
         // qurancdn returns clean text_uthmani, no stray tokens. Translations come
         // from the local JSON loaded via translationSource.
-        const textRes = await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,page_number,juz_number&per_page=50`);
+        const textRes = await fetch(`https://api.quran.com/api/v4/verses/by_page/${mushafPage}?words=true&word_fields=text_uthmani,line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,page_number,juz_number&per_page=50`);
         if (!textRes.ok) throw new Error();
         const textData = await textRes.json();
         if (cancelled) return;
