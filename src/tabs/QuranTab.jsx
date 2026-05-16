@@ -690,7 +690,7 @@ export default function QuranTab(props) {
                     // Render ONCE per page directly from the authoritative
                     // mushaf layout. Each page gives us its 15 line strings
                     // plus per-line alignment (center vs space-between).
-                    return (<div style={mushafPage<=2?{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",justifyContent:"space-between",minHeight:0}}>
+                    return (<div style={mushafPage<=2?{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 0 0",position:"relative"}}>
                       {(()=>{
                         const fontEd=tajweedFont?"v4":"v2";
                         const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
