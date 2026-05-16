@@ -352,7 +352,7 @@ export default function QuranTab(props) {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment}}>
 
           {/* Header — sticky so it's always visible regardless of scroll. */}
-          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:8,position:"sticky",top:0,zIndex:201}}>
+          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
             <div style={{display:"flex",alignItems:"center",padding:"6px 12px",gap:10}}>
               <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}} aria-label="Open menu">
                 <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
@@ -362,6 +362,7 @@ export default function QuranTab(props) {
               <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0,whiteSpace:"nowrap"}}>Juz {mushafJuzNum}</div>
             </div>
+            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
 
           {/* ── SIDE MENU ── slides in from the left, partial width */}
@@ -702,107 +703,91 @@ export default function QuranTab(props) {
                     // plus per-line alignment (center vs space-between).
                     return (<div style={mushafPage<=2?{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 0 0",position:"relative"}}>
                       {(()=>{
-                        // ── Uthmanic Hafs per-line render (Quran tab only) ──
-                        // Uses a single universal font (consistent metrics across
-                        // all pages) but PRESERVES the printed Madinah line breaks
-                        // by grouping words by line_number from quran.com's word
-                        // data. Surah-name ornament and basmallah blocks render at
-                        // the layout positions defined by mushafLayout.
-                        //
-                        // To revert to per-page KFGQPC glyph rendering, restore the
-                        // block in the /* PER-PAGE GLYPH FALLBACK */ comment below.
-                        const pageLayout=mushafLayoutData&&mushafLayoutData[mushafPage];
-                        if(!mushafVerses||!mushafVerses.length||!pageLayout){
+                        const fontEd=tajweedFont?"v4":"v2";
+                        const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
+                        if(!pageFontReady){
                           return (
                             <div style={{minHeight:400,display:"flex",alignItems:"center",justifyContent:"center",color:dark?"rgba(217,177,95,0.35)":"rgba(107,100,90,0.55)",fontSize:12,letterSpacing:".08em"}}>
                               <span>loading mushaf…</span>
                             </div>
                           );
                         }
-                        const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
-                        // Flatten all words from all verses, tag each with its
-                        // verse_key. quran.com's word objects already carry
-                        // line_number (which printed line) and char_type_name
-                        // ("word" | "end" | "pause"). Skip pause/sajdah markers
-                        // so the line text matches the printed glyphs.
-                        const wordsByLine={};
-                        mushafVerses.forEach(v=>{
-                          (v.words||[]).forEach(w=>{
-                            if(w.char_type_name!=="word"&&w.char_type_name!=="end") return;
-                            const ln=w.line_number;
-                            if(!wordsByLine[ln]) wordsByLine[ln]=[];
-                            wordsByLine[ln].push({...w,_vk:v.verse_key,_vn:v.verse_number||parseInt(v.verse_key.split(":")[1],10)});
-                          });
-                        });
+                        const pageLines=mushafPagesData&&mushafPagesData[mushafPage];
+                        const pageLayout=mushafLayoutData&&mushafLayoutData[mushafPage];
+                        if(!pageLines||!pageLayout){
+                          return null;
+                        }
+                        // Tap mapping uses glyphVerseKeys — a flat per-glyph
+                        // verse_key array we built from code_v2 against our
+                        // pageContentMap. Independent of the API's mushaf
+                        // edition (which differs from KFGQPC v2 on some
+                        // pages), so taps land on the right ayah everywhere.
+                        let glyphCursor=0;
+                        let ayahIdx=-1;
                         const entries=pageLayout.map((layoutEntry,i)=>{
                           const type=layoutEntry.type;
+                          let lineText="";
+                          if(type!=="surah_name"&&type!=="basmallah"){
+                            ayahIdx++;
+                            lineText=pageLines[ayahIdx]||"";
+                          }
                           const isCenter=layoutEntry.center===1;
+                          // Surah name line: render our custom ornament
+                          // instead of the font's surah_name glyph so it
+                          // matches our app's ornament aesthetic.
                           if(type==="surah_name"){
+                            const sn=layoutEntry.sn;
                             return (
                               <div key={i} style={{textAlign:"center",padding:"2px 0",flexShrink:0}}>
                                 <div style={{position:"relative",width:"100%",height:68,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"contain",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
                                   <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(24px,6.5vw,38px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
                                     <span>surah</span>
-                                    <span>{String(layoutEntry.sn).padStart(3,"0")}</span>
+                                    <span>{String(sn).padStart(3,"0")}</span>
                                   </span>
                                 </div>
                               </div>
                             );
                           }
+                          // Basmallah: use p1 font + Fatihah 1:1 glyphs so
+                          // every surah opener reads the same universal
+                          // bismillah.
                           if(type==="basmallah"){
                             return (
                               <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
-                                <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(18px,4.5vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.6}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                {bismillahGlyphs&&loadedFonts.has(`${tajweedFont?"v4":"v2"}-1`)?(
+                                  <div style={{fontFamily:`'p1-${tajweedFont?"v4":"v2"}',serif`,fontSize:"clamp(16px,4.8vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.4}}>{bismillahGlyphs}</div>
+                                ):(
+                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:1.4}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                )}
                               </div>
                             );
                           }
-                          // Ayah line: render words on this printed line
-                          const lineWords=wordsByLine[layoutEntry.ln]||[];
+                          const tokens=lineText.split(" ");
+                          // glyphVerseKeys is one entry per individual PUA glyph,
+                          // but a pages.json token can contain 2+ glyphs (e.g. an
+                          // end-of-ayah marker fused to the previous letter:
+                          // "ﱜﱝ"). Walk by glyph count, not token count, so the
+                          // cursor stays aligned with the flat array.
+                          const tokenStartGlyph=[];
+                          let rowGlyphs=0;
+                          tokens.forEach(t=>{ tokenStartGlyph.push(rowGlyphs); rowGlyphs+=t.length; });
+                          const rowStart=glyphCursor;
+                          glyphCursor+=rowGlyphs;
+                          const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
-                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"flex-start",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,29px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.30em"}}>
-                              {lineWords.map((w,wi)=>{
-                                if(w.char_type_name==="end"){
-                                  // Bare Arabic digit — mixing per-page font for
-                                  // the ornament with Uthmanic Hafs for words made
-                                  // the PUA glyphs render as black dots in the
-                                  // fallback font. Bare digit renders cleanly.
-                                  return (
-                                    <span key={wi} style={{color:dark?"rgba(212,175,55,0.85)":"rgba(140,100,20,0.85)",margin:"0 4px"}}>
-                                      {toArabicDigits(w._vn)}
-                                    </span>
-                                  );
-                                }
-                                const text=(w.text_uthmani||"").replace(/۟/g,"ْ");
-                                return (
-                                  <span key={wi} className="sbtn" onClick={()=>pickAyah(w._vk)} style={{cursor:"pointer"}}>
-                                    {text}
-                                  </span>
-                                );
-                              })}
-                            </div>
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
+                            {tokens.map((w,wi)=>{
+                              const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
+                              return <span key={wi} className={vk?"sbtn":undefined} onClick={vk?()=>pickAyah(vk):undefined} style={{cursor:vk?"pointer":"default"}}>{w}</span>;
+                            })}
+                          </div>
                           );
                         });
+                        // Short pages (1-2): center the whole block vertically.
                         if(mushafPage<=2){
                           return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>{entries}</div>);
                         }
                         return entries;
-                        /* PER-PAGE GLYPH FALLBACK — restore by replacing the block
-                           above with this version. Uses 604 per-page KFGQPC fonts
-                           with PUA glyph code points from pages.json. Renders each
-                           printed-mushaf line as one nowrap flex row with the
-                           page-specific font (p${N}-v2.woff2).
-
-                        const fontEd=tajweedFont?"v4":"v2";
-                        const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
-                        if(!pageFontReady) return <loading/>;
-                        const pageLines=mushafPagesData&&mushafPagesData[mushafPage];
-                        if(!pageLines||!pageLayout) return null;
-                        let glyphCursor=0;
-                        let ayahIdx=-1;
-                        const entries=pageLayout.map((layoutEntry,i)=>{
-                          ... (see git history for full body — was here pre-2026-05)
-                        });
-                        */
                       })()}
                     </div>);
                   })()}
