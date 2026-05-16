@@ -1,4 +1,12 @@
 import { SURAH_EN, MADANI_SURAHS, RECITERS } from "../data/constants";
+
+// Per-page glyph fonts (p1-v2.woff2 ... p604-v2.woff2) have inconsistent
+// hhea metrics. The 16 pages below ship with ascent/descent 2809/-1301
+// (vertical span 4110) instead of the standard 3000/-1500 (span 4500),
+// rendering ~9% shorter per line — visible as a bottom gap when stacked
+// 15 lines high. Force lineHeight: 1.095 on these pages to compensate
+// (4500/4110 = 1.0949). Identified by fontTools scan of all 604 fonts.
+const SHORT_METRIC_PAGES = new Set([1, 3, 46, 55, 57, 76, 83, 100, 101, 161, 175, 242, 245, 246, 379, 590]);
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import React, { useState, useEffect, useRef } from "react";
 import { toArabicDigits } from "../utils";
@@ -785,7 +793,7 @@ export default function QuranTab(props) {
                           glyphCursor+=rowGlyphs;
                           const pickAyah=(vk)=>{setSelectedAyah(vk);setDrawerView("default");setTimeout(()=>{try{window.scrollTo({top:0,behavior:"smooth"});document.querySelectorAll('[class*="fi"]').forEach(el=>{if(el.scrollTop>0)el.scrollTo({top:0,behavior:"smooth"});});}catch{}},10);};
                           return (
-                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
+                          <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:`'p${mushafPage}-${fontEd}',serif`,fontSize:"clamp(20px,5vw,29px)",lineHeight:SHORT_METRIC_PAGES.has(mushafPage)?1.095:undefined,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em",fontPalette:dark&&fontEd==="v4"?`--dark-p${mushafPage}-v4`:undefined}}>
                             {tokens.map((w,wi)=>{
                               const vk=glyphVerseKeys[rowStart+tokenStartGlyph[wi]]||glyphVerseKeys[rowStart+rowGlyphs-1];
                               // Render glyph-by-glyph so end-of-ayah ornaments
