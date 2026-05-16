@@ -352,7 +352,7 @@ export default function QuranTab(props) {
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:parchment}}>
 
           {/* Header — sticky so it's always visible regardless of scroll. */}
-          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:28,position:"sticky",top:0,zIndex:201}}>
+          <div style={{flexShrink:0,background:dark?"#0B1220":"#F3E9D2",paddingTop:8,position:"sticky",top:0,zIndex:201}}>
             <div style={{display:"flex",alignItems:"center",padding:"6px 12px",gap:10}}>
               <div className="sbtn" onClick={()=>setShowPickers(true)} style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}} aria-label="Open menu">
                 <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
@@ -362,7 +362,6 @@ export default function QuranTab(props) {
               <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0,whiteSpace:"nowrap"}}>Juz {mushafJuzNum}</div>
             </div>
-            <div style={{height:1,background:dark?"linear-gradient(to right,transparent,rgba(217,177,95,0.35),transparent)":"linear-gradient(to right,transparent,rgba(139,106,16,0.20),transparent)"}}/>
           </div>
 
           {/* ── SIDE MENU ── slides in from the left, partial width */}
