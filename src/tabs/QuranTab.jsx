@@ -359,7 +359,7 @@ export default function QuranTab(props) {
                 <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
                 <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
               </div>
-              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:21,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
+              <div style={{flex:1,minWidth:0,fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:dark?"#E8C878":"#6B4F00",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"left"}}>{SURAH_EN[curSurahNum]||""}</div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C878":"#6B4F00",flexShrink:0,whiteSpace:"nowrap"}}>Juz {mushafJuzNum}</div>
             </div>
           </div>
@@ -759,7 +759,7 @@ export default function QuranTab(props) {
                           // Ayah line: render words on this printed line
                           const lineWords=wordsByLine[layoutEntry.ln]||[];
                           return (
-                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,29px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(21px,5.2vw,30px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                               {lineWords.map((w,wi)=>{
                                 if(w.char_type_name==="end"){
                                   // Bare Arabic digit — mixing per-page font for
