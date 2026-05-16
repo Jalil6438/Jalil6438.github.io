@@ -495,7 +495,7 @@ export default function QuranTab(props) {
                   <div style={{fontSize:10,color:dark?"rgba(217,177,95,0.60)":"#6B645A",letterSpacing:".14em",fontWeight:700,textTransform:"uppercase"}}>{SURAH_EN[parseInt(selectedAyah.split(":")[0],10)]||""} · {selectedAyah}</div>
                 </div>
                 <div style={{flexShrink:0,padding:"12px 20px 10px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)",background:dark?"rgba(0,0,0,0.15)":"rgba(0,0,0,0.03)"}}>
-                  <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
+                  <div style={{fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
                     {(selVerse?.text_uthmani||"").replace(/۟/g,"ْ")}
                   </div>
                   {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
@@ -561,7 +561,7 @@ export default function QuranTab(props) {
                           )}
                           <div style={{marginBottom:22,paddingBottom:18,borderBottom:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.05)"}}>
                             <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,marginBottom:8,fontFamily:"'IBM Plex Mono',monospace"}}>{v.verse_key}</div>
-                            <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"right",marginBottom:10}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
+                            <div style={{fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"right",marginBottom:10}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
                             {t?(
                               <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,lineHeight:1.75,color:dark?"rgba(243,231,200,0.80)":"#2D2A26"}}>{t}</div>
                             ):(
@@ -614,7 +614,7 @@ export default function QuranTab(props) {
                           )}
                           <div style={{marginBottom:26,paddingBottom:20,borderBottom:dark?"1px solid rgba(212,175,55,0.08)":"1px solid rgba(0,0,0,0.05)"}}>
                             <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.55)":"rgba(140,100,20,0.60)",letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,marginBottom:8,fontFamily:"'IBM Plex Mono',monospace"}}>{v.verse_key}</div>
-                            <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"right",marginBottom:14}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
+                            <div style={{fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"right",marginBottom:14}}>{(v.text_uthmani||"").replace(/۟/g,"ْ")}</div>
                             {!rawText?(
                               <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.30)":"#9A9488",fontStyle:"italic"}}>Loading tafsir…</div>
                             ):isFullArabic?(
@@ -753,14 +753,14 @@ export default function QuranTab(props) {
                           if(type==="basmallah"){
                             return (
                               <div key={i} style={{textAlign:"center",padding:"1px 0",flexShrink:0}}>
-                                <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(18px,4.5vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.6}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
+                                <div style={{fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(18px,4.5vw,24px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:1.6}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
                               </div>
                             );
                           }
                           // Ayah line: render words on this printed line
                           const lineWords=wordsByLine[layoutEntry.ln]||[];
                           return (
-                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,29px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
+                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(640px,92vw)",marginInline:"auto",fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,29px)",lineHeight:1.8,color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
                               {lineWords.map((w,wi)=>{
                                 if(w.char_type_name==="end"){
                                   // Render the per-page font's decorative ayah-end
@@ -926,7 +926,7 @@ export default function QuranTab(props) {
                             {selVerse.words.filter(w=>!w.char_type_name||w.char_type_name==="word"||w.char_type_name==="end").map((w,wi)=>(<span key={wi}>{w.code_v2||""} </span>))}
                           </div>
                         ):selVerse.text_uthmani?(
-                          <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
+                          <div style={{direction:"rtl",textAlign:"center",fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(20px,5vw,28px)",lineHeight:1.9,color:dark?"#E8DFC0":"#2D2A26",padding:"6px 4px 10px",flexShrink:0}}>
                             {(selVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                             <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.45)":"#A08848",marginRight:4}}>﴿{toArabicDigits(parseInt(aNum,10))}﴾</span>
                           </div>
@@ -978,7 +978,7 @@ export default function QuranTab(props) {
                       <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",padding:"8px 0 0"}}>
                         {/* Pinned ayah */}
                         <div style={{flexShrink:0,padding:"12px 20px 10px",borderBottom:dark?"1px solid rgba(212,175,55,0.12)":"1px solid rgba(0,0,0,0.08)",background:dark?"rgba(0,0,0,0.15)":"rgba(0,0,0,0.03)"}}>
-                          <div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
+                          <div style={{fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:fontSize,lineHeight:2,color:dark?"#E8DFC0":"#2D2A26",direction:"rtl",textAlign:"center"}}>
                             {(selVerse?.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
                           </div>
                           {transText&&<div style={{fontSize:12,color:dark?"rgba(243,231,200,0.78)":"#6B645A",textAlign:"center",marginTop:4,lineHeight:1.6,fontFamily:"'DM Sans',sans-serif"}}>{transText}</div>}
@@ -1038,7 +1038,7 @@ export default function QuranTab(props) {
                         <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.45)":"rgba(140,100,20,0.55)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,fontFamily:"'DM Sans',sans-serif"}}>
                           Your Reflection · {SURAH_EN[surahN]||""} {sNum}:{aNum}
                         </div>
-                        {selVerse&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",direction:"rtl",textAlign:"center",lineHeight:1.8,marginBottom:8,padding:"6px 0",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)"}}>{(selVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</div>}
+                        {selVerse&&<div style={{fontFamily:"'KFGQPC Uthmanic Script HAFS','UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",direction:"rtl",textAlign:"center",lineHeight:1.8,marginBottom:8,padding:"6px 0",borderBottom:dark?"1px solid rgba(217,177,95,0.10)":"1px solid rgba(0,0,0,0.06)"}}>{(selVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</div>}
                         <textarea
                           value={reflections[selectedAyah]||""}
                           onChange={e=>{
