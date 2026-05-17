@@ -2009,9 +2009,13 @@ export default function RihlatAlHifz() {
         );
       })()}
 
-      {/* TABS — fixed bottom bar with icons (hidden on Quran tab for immersive reading, unless appPage is open) */}
+      {/* TABS — in-flow bottom bar (was position:fixed). Using order:99 so
+          it always renders at the bottom of the app-shell flex column
+          regardless of JSX position. Scroll containers now bound naturally
+          above it instead of extending behind, fixing the iOS "need to
+          scroll twice to see the bottom buttons" issue across every tab. */}
       {(activeTab!=="quran"||appPage)&&(
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)",backdropFilter:"blur(10px)"}}>
+      <div style={{order:99,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
         {[
           {id:"myhifz",  img:"/tab-hifz.png",   label:"My Hifz"},
           {id:"quran",   img:"/tab-quran.png",   label:"Al-Qur'an"},
