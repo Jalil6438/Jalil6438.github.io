@@ -390,8 +390,6 @@ function AsrSessionView({
           </div>
           )}
 
-          <div className="asr-progress-rule" style={{margin:"18px 20px 16px"}}/>
-
           {/* Buttons — when not on the last page, primary button advances
               the page; only the last page reveals Complete Asr Session so
               the user reads the whole batch before finishing. */}

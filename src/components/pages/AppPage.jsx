@@ -13,7 +13,7 @@ export default function AppPage({ dark, title, subtitle, onBack, children, maxWi
       flex: 1,
       overflowY: "auto",
       background: dark ? "linear-gradient(180deg,#0B1220,#0E1628)" : "#F3E9D2",
-      padding: "16px 16px 120px",
+      padding: "16px 16px 24px",
     }} className="fi">
       {/* Top bar with back */}
       <div style={{ display: "flex", alignItems: "center", marginBottom: 14 }}>

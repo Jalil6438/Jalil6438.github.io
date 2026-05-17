@@ -263,7 +263,7 @@ export default function RihlahHome({
       </div>
 
       {/* Daily Plan + everything below — flows in the page-level scroll above. */}
-      <div style={{padding:`8px 14px ${haramainMeta?"240px":"120px"}`,position:"relative",zIndex:1}}>
+      <div style={{padding:`8px 14px ${haramainMeta?"140px":"24px"}`,position:"relative",zIndex:1}}>
 
       {/* ── DAILY GOALS + NAV — single card ── */}
       <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginTop:24,marginBottom:8}}>

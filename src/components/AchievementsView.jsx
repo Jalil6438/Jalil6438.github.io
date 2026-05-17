@@ -78,7 +78,7 @@ export default function AchievementsView({ dark, completedCount = 0, streak = 0,
     <div style={{
       flex: 1, overflowY: "auto",
       background: dark ? "linear-gradient(180deg,#0B1220,#0E1628)" : "#F3E9D2",
-      padding: "16px 16px 120px",
+      padding: "16px 16px 24px",
     }} className="fi">
       {/* Top bar */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>

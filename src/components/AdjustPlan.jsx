@@ -16,7 +16,7 @@ export default function AdjustPlan({ dark, T, goalYears, setGoalYears, goalMonth
   };
   const onDefaults=(typeof userPlanMode==="string")?userPlanMode!=="custom":true;
   return (
-        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 120px"}} className="fi gold-particles">
+        <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 24px"}} className="fi gold-particles">
           <div style={{marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
             <div className="sbtn" onClick={onBack} style={{padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A"}}>← Back</div>
             <div className="sbtn" onClick={restoreDefaults} style={{padding:"6px 12px",background:onDefaults?"linear-gradient(90deg,#D4AF37,#F6E27A)":"rgba(212,175,55,0.10)",border:"1px solid rgba(212,175,55,0.35)",borderRadius:8,fontSize:11,fontWeight:700,color:onDefaults?"#060A07":(dark?"#E6B84A":"#6B4F00")}}>
