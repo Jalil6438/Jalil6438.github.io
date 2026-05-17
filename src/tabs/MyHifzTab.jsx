@@ -31,7 +31,7 @@ export default function MyHifzTab(props) {
     hifzViewMode, setHifzViewMode,
     // translations + audio
     translations, fetchTranslations,
-    playingKey, audioLoading, playAyah, looping, setLooping, audioRef,
+    playingKey, setPlayingKey, audioLoading, playAyah, looping, setLooping, audioRef,
     // completed ayahs
     completedAyahs, setCompletedAyahs,
     // asr customize state
@@ -1625,6 +1625,11 @@ export default function MyHifzTab(props) {
                     setRepCounts({});setConnectionReps({});
                     setOpenAyah(null);
                     setAyahPage(0);
+                    // Stop any in-progress ayah audio so it doesn't keep
+                    // playing into the next session.
+                    try { audioRef?.current?.pause(); } catch {}
+                    if(audioRef) audioRef.current=null;
+                    if(setPlayingKey) setPlayingKey(null);
                     if(activeSessionIndex>=SESSIONS.length-1){
                       // Advance by exactly what's in fajrBatch. With the V2
                       // page-cap in twoPageLimit, fajrBatch is the precise

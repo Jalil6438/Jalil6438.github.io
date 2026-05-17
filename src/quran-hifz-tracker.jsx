@@ -2101,7 +2101,7 @@ export default function RihlatAlHifz() {
           openAyah={openAyah} setOpenAyah={setOpenAyah} ayahPage={ayahPage} setAyahPage={setAyahPage} touchStartRef={touchStartRef}
           hifzViewMode={hifzViewMode} setHifzViewMode={setHifzViewMode}
           translations={translations} fetchTranslations={fetchTranslations}
-          playingKey={playingKey} audioLoading={audioLoading} playAyah={playAyah} looping={looping} setLooping={setLooping} audioRef={audioRef}
+          playingKey={playingKey} setPlayingKey={setPlayingKey} audioLoading={audioLoading} playAyah={playAyah} looping={looping} setLooping={setLooping} audioRef={audioRef}
           playMushafRange={playMushafRange} stopMushafAudio={stopMushafAudio} mushafAudioPlaying={mushafAudioPlaying}
           completedAyahs={completedAyahs} setCompletedAyahs={setCompletedAyahs}
           asrStarted={asrStarted} setAsrStarted={setAsrStarted} asrIsCustomized={asrIsCustomized} setAsrIsCustomized={setAsrIsCustomized}
