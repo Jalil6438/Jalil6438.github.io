@@ -666,16 +666,6 @@ export default function MyHifzTab(props) {
                 return `${sess.time} — ${sess.title}`;
               })();
 
-              const microGuide=(()=>{
-                if(isDone) return null;
-                if(sid==="fajr") return "Take your time — say each ayah until it feels natural";
-                if(sid==="dhuhr") return dhuhrLocked?null:"Run through the last 5 days — see how much stuck";
-                if(sid==="asr") return "Revisit what you've completed — consistency is the key";
-                if(sid==="maghrib") return "Close your eyes, listen, and let the words settle in";
-                if(sid==="isha") return "Recite it all one more time — you've got this";
-                return null;
-              })();
-
               return (
                 <div style={{marginBottom:10}}>
                   <div style={{padding:"11px 14px",
@@ -711,7 +701,6 @@ export default function MyHifzTab(props) {
                         return `Page ${currentPage} of ${totalPages}`;
                       })()}</div>
                     </div>
-                    {microGuide&&<div style={{fontSize:11,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:5}}>{microGuide}</div>}
                     {(()=>{
                       const w=getSessionWisdom(sid,(sid==="fajr"||sid==="dhuhr"||sid==="asr")?wisdomOffset:0); if(!w||isDone) return null;
                       return (
