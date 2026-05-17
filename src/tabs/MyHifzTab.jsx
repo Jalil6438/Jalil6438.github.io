@@ -88,6 +88,18 @@ export default function MyHifzTab(props) {
     }, 10 * 60 * 1000);
     return () => clearTimeout(t);
   }, [rotatingSession, wisdomOffset]);
+  // Bump wisdom when entering Fajr (activeSessionIndex === 0) so each new
+  // cycle rotates the wisdom pool. Without this, multiple Fajr sessions
+  // within the same calendar day all show the same verse since
+  // getSessionWisdom keys on Date.now()/86400000 (real day).
+  useEffect(() => {
+    if (activeSessionIndex !== 0) return;
+    setWisdomOffset(o => {
+      const next = o + 1 + Math.floor(Math.random() * 100);
+      try { localStorage.setItem("jalil-wisdom-offset", String(next)); } catch {}
+      return next;
+    });
+  }, [activeSessionIndex]);
 
   // Fajr = one full mushaf page as the day's memorization effort (Sheikh Al-Qasim's method).
   // Maghrib and Isha inherit the same page (listening + final review of today's batch).
