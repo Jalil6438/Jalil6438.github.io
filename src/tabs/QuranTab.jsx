@@ -1993,7 +1993,7 @@ export default function QuranTab(props) {
               background: dark
                 ? "linear-gradient(180deg,#0B1220,#0E1628)"
                 : "#F3E9D2",
-              padding: `10px 12px ${haramainMeta ? "120px" : "60px"}`,
+              padding: `4px 0git  ${haramainMeta ? "120px" : "60px"}`,
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
@@ -2294,7 +2294,7 @@ export default function QuranTab(props) {
                                   ? "center"
                                   : "space-between",
                                 alignItems: "center",
-                                maxWidth: "min(720px,97vw)",
+                                maxWidth: "min(720px,99vw)",
                                 marginInline: "auto",
                                 fontFamily: `'p${mushafPage}-${fontEd}',serif`,
                                 fontSize: "clamp(20px,5vw,29px)",
