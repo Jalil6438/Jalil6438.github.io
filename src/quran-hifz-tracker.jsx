@@ -1948,11 +1948,11 @@ export default function RihlatAlHifz() {
         const username=localStorage.getItem("rihlat-username")||"Abdul Jalil";
         const initials=username.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
         return (
-        <div style={{background:activeTab==="rihlah"?"transparent":(dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8"),padding:"18px 16px 16px",flexShrink:0,borderBottom:activeTab==="rihlah"?"none":`1px solid ${T.border}`,position:"relative",overflow:"hidden",zIndex:1}}>
+        <div style={{background:activeTab==="rihlah"?"transparent":(dark?"linear-gradient(160deg,#0A1628 0%,#0E1E3A 50%,#081220 100%)":"#EADFC8"),padding:"10px 16px 10px",flexShrink:0,borderBottom:activeTab==="rihlah"?"none":`1px solid ${T.border}`,position:"relative",overflow:"hidden",zIndex:1}}>
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(circle at 12% 18%, rgba(212,175,55,0.08) 0, transparent 18%), radial-gradient(circle at 78% 22%, rgba(255,255,255,0.04) 0, transparent 14%)"}}/>
           <div style={{position:"relative",zIndex:1}}>
             {/* Title row — hamburger left, app title centered */}
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,gap:8}}>
               <div className="sbtn" onClick={()=>setShowAppDrawer(true)} aria-label="Open menu" style={{flexShrink:0,width:32,height:32,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:4,padding:"4px",borderRadius:8}}>
                 <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
                 <div style={{width:18,height:2,borderRadius:1,background:dark?"rgba(232,200,120,0.85)":"#6B4F00"}}/>
@@ -1967,8 +1967,8 @@ export default function RihlatAlHifz() {
             <div style={{display:"flex",alignItems:"center",gap:12}}>
               {/* Avatar */}
               <div style={{position:"relative",flexShrink:0}}>
-                <div style={{width:48,height:48,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
-                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
+                <div style={{width:40,height:40,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
+                  <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
                 </div>
               </div>
               {/* Name + next target */}
@@ -1989,7 +1989,7 @@ export default function RihlatAlHifz() {
               {/* Settings gear removed — Settings now lives in the side drawer (hamburger). */}
             </div>
             {/* Badges row — full width */}
-            <div style={{display:"flex",gap:6,marginTop:8,justifyContent:"flex-start"}}>
+            <div style={{display:"flex",gap:6,marginTop:6,justifyContent:"flex-start"}}>
               {[
                 {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
                 {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
@@ -1999,7 +1999,7 @@ export default function RihlatAlHifz() {
             </div>
             {/* Progress row */}
             {(
-            <div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginTop:6}}>
               <div style={{flex:1,height:8,background:T.surface2,borderRadius:999,overflow:"hidden"}}><div className="pbfill" style={{height:"100%",width:`${pct}%`,background:"linear-gradient(90deg,#156A30,#F0C040)",borderRadius:999}}/></div>
               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:"#F0C040",flexShrink:0}}>{pct}%</div>
             </div>
@@ -2018,11 +2018,11 @@ export default function RihlatAlHifz() {
           {id:"rihlah",  img:"/tab-rihlah.png",  label:"Journey"},
           {id:"masjidayn",icon:"\uD83D\uDD4B",  label:"Haramain"},
         ].map(t=>(
-          <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"10px 4px 8px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+          <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"6px 4px 4px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
             {t.img?(
-              <img src={t.img} alt={t.label} style={{width:64,height:64,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
+              <img src={t.img} alt={t.label} style={{width:48,height:48,objectFit:"contain",opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
             ):(
-              <span style={{fontSize:40,width:64,height:64,display:"flex",alignItems:"center",justifyContent:"center",opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
+              <span style={{fontSize:32,width:48,height:48,display:"flex",alignItems:"center",justifyContent:"center",opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
             )}
             <span style={{fontSize:11,fontWeight:activeTab===t.id?700:400,color:activeTab===t.id?"#E6B84A":"#8A9098"}}>{t.label}</span>
           </div>
