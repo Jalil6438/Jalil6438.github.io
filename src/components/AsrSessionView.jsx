@@ -137,10 +137,6 @@ function AsrSessionView({
     return (
       <div className="fi" style={{fontFamily:"'DM Sans',sans-serif",display:"flex",flexDirection:"column",padding:"4px 0 16px"}}>
         <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-          {/* Exit button */}
-          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
-            <div className="sbtn" onClick={onChangeSelection} style={{padding:"6px 10px",fontSize:18,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
-          </div>
 
           {asrViewMode==="mushaf"&&playMushafRange&&reciter&&asrBatch.length>0&&(()=>{
             const pageGroups=[];
