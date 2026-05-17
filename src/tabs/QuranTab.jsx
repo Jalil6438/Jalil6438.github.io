@@ -1993,7 +1993,7 @@ export default function QuranTab(props) {
               background: dark
                 ? "linear-gradient(180deg,#0B1220,#0E1628)"
                 : "#F3E9D2",
-              padding: `4px 0git  ${haramainMeta ? "120px" : "60px"}`,
+              padding: `4px 0 ${haramainMeta ? "120px" : "60px"}`,
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
