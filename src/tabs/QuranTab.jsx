@@ -660,13 +660,13 @@ export default function QuranTab(props) {
                 if(dx<0){ setMushafSwipeAnim("left"); setMushafPage(p=>Math.max(1,p-1)); }
                 else { setMushafSwipeAnim("right"); setMushafPage(p=>Math.min(604,p+1)); }
               }}
-              style={{position:"relative",flex:1,overflowY:"auto",scrollbarGutter:"stable both-edges",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 12px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"flex-start"}}
+              style={{position:"relative",flex:1,overflowY:"auto",scrollbarGutter:"stable both-edges",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:`10px 12px ${haramainMeta?"120px":"60px"}`,display:"flex",flexDirection:"column",justifyContent:"space-between"}}
             >
               {/* ── CONTINUOUS READING SURFACE ── */}
               {mushafLoading?(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:60,color:"rgba(232,213,163,0.25)",fontSize:11,letterSpacing:".12em"}}>Loading...</div>
               ):(
-                <div style={mushafPage<=2?{padding:0,flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:0}}>
+                <div style={{padding:0,flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
                   {(()=>{
                     const playAyahAudio = async (vk) => {
                       if(audioRef.current){ audioRef.current.pause(); audioRef.current=null; setPlayingKey(null); }
@@ -708,7 +708,7 @@ export default function QuranTab(props) {
                     // Render ONCE per page directly from the authoritative
                     // mushaf layout. Each page gives us its 15 line strings
                     // plus per-line alignment (center vs space-between).
-                    return (<div style={mushafPage<=2?{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}:{padding:"8px 0 0",position:"relative"}}>
+                    return (<div style={{padding:"8px 0 0",position:"relative",flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
                       {(()=>{
                         const fontEd=tajweedFont?"v4":"v2";
                         const pageFontReady=loadedFonts.has(`${fontEd}-${mushafPage}`);
@@ -812,7 +812,11 @@ export default function QuranTab(props) {
                         if(mushafPage<=2){
                           return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>{entries}</div>);
                         }
-                        return entries;
+                        // All other pages: distribute the 15 entries evenly
+                        // across the available height so the page always fills
+                        // its container regardless of per-page font metrics.
+                        // Replaces the SHORT_METRIC_PAGES lineHeight hack.
+                        return (<div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"space-between"}}>{entries}</div>);
                       })()}
                     </div>);
                   })()}
