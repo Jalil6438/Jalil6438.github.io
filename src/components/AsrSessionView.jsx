@@ -160,12 +160,8 @@ function AsrSessionView({
             );
           })()}
 
-          {/* Reviewing + selection + customize */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{width:10,height:10,borderRadius:"50%",background:T2.green,boxShadow:"0 0 10px rgba(89,217,138,0.26)",flexShrink:0}}/>
-              <div style={{color:"rgba(243,231,200,0.52)",fontSize:11,letterSpacing:".12em",textTransform:"uppercase",fontWeight:500}}>{asrIsCustomized?"Customized":"Auto"}</div>
-            </div>
+          {/* Customize button */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",marginBottom:4}}>
             <div className="sbtn" onClick={onChangeSelection}
               style={{fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",
               padding:"3px 9px",borderRadius:20,border:"1px solid rgba(217,177,95,0.22)",
