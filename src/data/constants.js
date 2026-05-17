@@ -22,13 +22,6 @@ export const RECITERS = [
   { id:"ayyoub",  name:"Muhammad Ayyoub",        arabic:"محمد أيوب",        recitationId:null, everyayah:"Muhammad_Ayyoub_128kbps",               quranicaudio:"muhammad_ayyoub",               tag:"Masjid An-Nabawi", style:"Deep · Meditative",        dot:"#4A9EFF" },
   { id:"budair",  name:"Salah Al-Budair",        arabic:"صلاح البدير",      recitationId:null, qulSlug:"budair",   everyayah:"Salah_Al_Budair_128kbps",               quranicaudio:"salahbudair",                   tag:"Masjid An-Nabawi", style:"Smooth · Rhythmic",        dot:"#F0C040" },
   { id:"qasim",   name:"Abdul Muhsin Al-Qasim",  arabic:"عبدالمحسن القاسم", recitationId:null, everyayah:"Muhsin_Al_Qasim_192kbps",               quranicaudio:"muhsin_al_qasim",               tag:"Masjid An-Nabawi", style:"Calm · Steady",            dot:"#2ECC71" },
-  // ── Popular ──
-  { id:"alafasy", name:"Mishary Rashid Alafasy",  arabic:"مشاري راشد العفاسي",recitationId:7,    everyayah:"Alafasy_128kbps",                       quranicaudio:"mishaari_raashid_al_3afaasy",   tag:"Popular",          style:"Clear · Melodic",          dot:"#9B59B6" },
-  { id:"qatami",  name:"Nasser Al-Qatami",      arabic:"ناصر القطامي",     recitationId:null, qulSlug:"qatami",   everyayah:"Nasser_Alqatami_128kbps",               quranicaudio:"nasser_alqatami",               tag:"Popular",          style:"Emotional · Powerful",      dot:"#E74C3C" },
-  { id:"husari",  name:"Mahmoud Al-Husari",     arabic:"محمود الحصري",     recitationId:6,    everyayah:"Husary_128kbps",                        quranicaudio:"mahmood_khaleel_al-husaree",    tag:"Popular",          style:"Classical · Tarteel",      dot:"#A07050" },
-  { id:"shatri",  name:"Abu Bakr Ash-Shatri",    arabic:"أبو بكر الشاطري",  recitationId:4,    everyayah:"Abu_Bakr_Ash-Shaatree_128kbps",         quranicaudio:"abu_bakr_ash-shaatree",         tag:"Popular",          style:"Expressive · Rich",        dot:"#E67E22" },
-  { id:"rifai",   name:"Hani Ar-Rifai",          arabic:"هاني الرفاعي",     recitationId:5,    everyayah:"Hani_Rifai_192kbps",                    quranicaudio:"hani_ar-rifai",                 tag:"Popular",          style:"Soft · Heartfelt",         dot:"#1ABC9C" },
-  { id:"abbad",   name:"Fares Abbad",            arabic:"فارس عباد",        recitationId:null, qulSlug:"abbad",    everyayah:"Fares_Abbad_64kbps",                    quranicaudio:"fares_abbad",                   tag:"Popular",          style:"Gentle · Flowing",         dot:"#3498DB" },
 ];
 // Legacy alias — consumers that still import QURAN_RECITERS get the same unified list
 export const QURAN_RECITERS = RECITERS;
