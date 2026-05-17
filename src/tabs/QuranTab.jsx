@@ -7,7 +7,7 @@ import { SURAH_EN, MADANI_SURAHS, RECITERS } from "../data/constants";
 // 15 lines high. Force lineHeight: 1.095 on these pages to compensate
 // (4500/4110 = 1.0949). Identified by fontTools scan of all 604 fonts.
 const SHORT_METRIC_PAGES = new Set([
-  1, 3, 46, 55, 57, 76, 83, 100, 101, 161, 175, 242, 245, 246, 379, 590,
+  46, 55, 57, 76, 83, 100, 101, 161, 175, 242, 245, 246, 379, 590,
 ]);
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import React, { useState, useEffect, useRef } from "react";
