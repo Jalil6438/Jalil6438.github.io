@@ -646,7 +646,7 @@ export default function MyHifzTab(props) {
 
           {/* Reciter selector moved to the app side drawer (Settings). */}
 
-          <div style={{flex:1,padding:`10px 16px ${haramainMeta?"140px":"20px"}`}}>
+          <div style={{flex:1,padding:`10px 16px ${haramainMeta?"140px":"4px"}`}}>
 
 {/* ── CURRENT SESSION ── */}
             {(()=>{
