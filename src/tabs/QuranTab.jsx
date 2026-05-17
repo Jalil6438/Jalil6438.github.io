@@ -2297,7 +2297,7 @@ export default function QuranTab(props) {
                                 maxWidth: "min(720px,99vw)",
                                 marginInline: "auto",
                                 fontFamily: `'p${mushafPage}-${fontEd}',serif`,
-                                fontSize: "clamp(20px,5vw,29px)",
+                                fontSize: "clamp(22px,5.5vw,32px)",
                                 lineHeight: SHORT_METRIC_PAGES.has(mushafPage)
                                   ? 1.095
                                   : undefined,
