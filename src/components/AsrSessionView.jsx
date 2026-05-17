@@ -141,8 +141,6 @@ function AsrSessionView({
           <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
             <div className="sbtn" onClick={onChangeSelection} style={{padding:"6px 10px",fontSize:18,color:"rgba(232,200,120,0.40)",lineHeight:1}}>×</div>
           </div>
-          <div className="asr-title">ASR SESSION</div>
-          <div className="asr-title-line"/>
 
           {asrViewMode==="mushaf"&&playMushafRange&&reciter&&asrBatch.length>0&&(()=>{
             const pageGroups=[];
