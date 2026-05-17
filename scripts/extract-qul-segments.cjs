@@ -30,6 +30,7 @@ const RECITERS = [
   { zip: "surah-recitation-maher-al-muaiqly.zip",       slug: "muaiqly"  },
   { zip: "surah-recitation-nasser-al-qatami.zip",       slug: "qatami"   },
   { zip: "surah-recitation-fares-abbad.zip",            slug: "abbad"    },
+  { zip: "surah-recitation-saud-al-shuraim.zip",        slug: "shuraim"  },
 ];
 
 if (!fs.existsSync(OUT)) fs.mkdirSync(OUT, { recursive: true });
