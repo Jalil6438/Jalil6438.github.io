@@ -160,15 +160,6 @@ function AsrSessionView({
             );
           })()}
 
-          {/* Customize button */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",marginBottom:4}}>
-            <div className="sbtn" onClick={onChangeSelection}
-              style={{fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",
-              padding:"3px 9px",borderRadius:20,border:"1px solid rgba(217,177,95,0.22)",
-              color:"rgba(217,177,95,0.55)"}}>
-              Customize
-            </div>
-          </div>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
             <div style={{color:dark?T2.ivory:"#2D2A26",fontSize:14,fontWeight:600,lineHeight:1.25,maxWidth:"70%"}}>{asrSelectionSummary||"Asr Review"}</div>
             {/* Mushaf/Study toggle muted 2026-04-27 — Mushaf is the only mode now. Restore by uncommenting:
