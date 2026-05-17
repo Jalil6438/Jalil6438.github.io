@@ -1159,7 +1159,9 @@ export default function MyHifzTab(props) {
                     sg.ayahs.push(v);
                   });
                   return (
-                    <div ref={reviewMushafRef} style={{marginBottom:16}}>
+                    <div ref={reviewMushafRef} style={{marginBottom:16}}
+                      onTouchStart={e=>{touchStartRef.current=e.touches[0].clientX;}}
+                      onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touchStartRef.current;if(dx>40&&safePage<totalPages-1)setAyahPage(p=>p+1);else if(dx<-40&&safePage>0)setAyahPage(p=>p-1);}}>
                       <div style={{position:"relative",padding:"32px 2px 70px"}}>
                         {dominantSurah>0&&(
                           <div style={{position:"absolute",top:0,left:8,fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>

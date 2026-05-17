@@ -429,13 +429,9 @@ function AsrSessionView({
               (asrPageEnd>=asrBatch.length && asrBatch.length>0);
             return (
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:22,padding:"0 20px"}}>
-            {onLast?(
+            {onLast&&(
               <div className="sbtn" onClick={onComplete} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 18px rgba(230,184,74,0.30),0 0 14px rgba(230,184,74,0.15)"}}>
                 Complete Asr Session
-              </div>
-            ):(
-              <div className="sbtn" onClick={()=>{setAsrSlideDir("left");setAsrPage(p=>Math.min(asrPages-1,p+1));}} style={{width:"100%",padding:"15px 16px",borderRadius:18,textAlign:"center",fontSize:14,fontWeight:800,letterSpacing:".08em",textTransform:"uppercase",background:"linear-gradient(180deg,#E6B84A,#D4A62A)",color:"#0B1220",boxShadow:"0 6px 18px rgba(230,184,74,0.30),0 0 14px rgba(230,184,74,0.15)"}}>
-                Next Page
               </div>
             )}
             {/* Change Selection muted 2026-04-26 — duplicate of the Customize
