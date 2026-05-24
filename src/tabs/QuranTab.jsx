@@ -2133,17 +2133,6 @@ export default function QuranTab(props) {
                         // pageContentMap. Independent of the API's mushaf
                         // edition (which differs from KFGQPC v2 on some
                         // pages), so taps land on the right ayah everywhere.
-                        // Build a set of end-of-ayah ornament glyph chars from
-                        // the words data so the render loop can scale just the
-                        // ornament glyph (not the letter glyphs).
-                        const endGlyphSet = new Set();
-                        (mushafVerses || []).forEach((v) => {
-                          (v.words || []).forEach((w) => {
-                            if (w.char_type_name === "end" && w.code_v2) {
-                              for (const ch of w.code_v2) endGlyphSet.add(ch);
-                            }
-                          });
-                        });
                         let glyphCursor = 0;
                         let ayahIdx = -1;
                         const entries = pageLayout.map((layoutEntry, i) => {
@@ -2316,9 +2305,6 @@ export default function QuranTab(props) {
                                   glyphVerseKeys[
                                     rowStart + tokenStartGlyph[wi]
                                   ] || glyphVerseKeys[rowStart + rowGlyphs - 1];
-                                // Render glyph-by-glyph so end-of-ayah ornaments
-                                // (detected via endGlyphSet built from the words
-                                // data) can be scaled larger than letter glyphs.
                                 return (
                                   <span
                                     key={wi}
@@ -2330,18 +2316,7 @@ export default function QuranTab(props) {
                                       cursor: vk ? "pointer" : "default",
                                     }}
                                   >
-                                    {[...w].map((ch, ci) =>
-                                      endGlyphSet.has(ch) ? (
-                                        <span
-                                          key={ci}
-                                          style={{ fontSize: "1.15em" }}
-                                        >
-                                          {ch}
-                                        </span>
-                                      ) : (
-                                        ch
-                                      ),
-                                    )}
+                                    {w}
                                   </span>
                                 );
                               })}
