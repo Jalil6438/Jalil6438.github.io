@@ -2278,11 +2278,7 @@ export default function QuranTab(props) {
                               key={i}
                               style={{
                                 direction: "rtl",
-                                display: "flex",
-                                justifyContent: isCenter
-                                  ? "center"
-                                  : "flex-start",
-                                alignItems: "baseline",
+                                textAlign: isCenter ? "center" : "start",
                                 maxWidth: "min(720px,99vw)",
                                 marginInline: "auto",
                                 fontFamily: `'p${mushafPage}-${fontEd}',serif`,
@@ -2293,7 +2289,6 @@ export default function QuranTab(props) {
                                 color: dark ? "#E8DFC0" : "#2D2A26",
                                 padding: "2px 0",
                                 whiteSpace: "nowrap",
-                                gap: isCenter ? "0.25em" : "0.10em",
                                 fontPalette:
                                   dark && fontEd === "v4"
                                     ? `--dark-p${mushafPage}-v4`
@@ -2306,18 +2301,20 @@ export default function QuranTab(props) {
                                     rowStart + tokenStartGlyph[wi]
                                   ] || glyphVerseKeys[rowStart + rowGlyphs - 1];
                                 return (
-                                  <span
-                                    key={wi}
-                                    className={vk ? "sbtn" : undefined}
-                                    onClick={
-                                      vk ? () => pickAyah(vk) : undefined
-                                    }
-                                    style={{
-                                      cursor: vk ? "pointer" : "default",
-                                    }}
-                                  >
-                                    {w}
-                                  </span>
+                                  <React.Fragment key={wi}>
+                                    {wi > 0 ? " " : null}
+                                    <span
+                                      className={vk ? "sbtn" : undefined}
+                                      onClick={
+                                        vk ? () => pickAyah(vk) : undefined
+                                      }
+                                      style={{
+                                        cursor: vk ? "pointer" : "default",
+                                      }}
+                                    >
+                                      {w}
+                                    </span>
+                                  </React.Fragment>
                                 );
                               })}
                             </div>
