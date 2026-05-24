@@ -2091,10 +2091,10 @@ export default function QuranTab(props) {
                       style={{
                         padding: "8px 0 0",
                         position: "relative",
-                        flex: 1,
                         display: "flex",
                         flexDirection: "column",
-                        minHeight: 0,
+                        marginTop: "auto",
+                        marginBottom: "auto",
                       }}
                     >
                       {(() => {
@@ -2348,37 +2348,7 @@ export default function QuranTab(props) {
                             </div>
                           );
                         });
-                        // Short pages (1-2): center the whole block vertically.
-                        if (mushafPage <= 2) {
-                          return (
-                            <div
-                              style={{
-                                flex: 1,
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "center",
-                              }}
-                            >
-                              {entries}
-                            </div>
-                          );
-                        }
-                        // All other pages: distribute the 15 entries evenly
-                        // across the available height so the page always fills
-                        // its container regardless of per-page font metrics.
-                        // Replaces the SHORT_METRIC_PAGES lineHeight hack.
-                        return (
-                          <div
-                            style={{
-                              flex: 1,
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            {entries}
-                          </div>
-                        );
+                        return entries;
                       })()}
                     </div>
                   );
