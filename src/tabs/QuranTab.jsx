@@ -2089,7 +2089,7 @@ export default function QuranTab(props) {
                   return (
                     <div
                       style={{
-                        padding: "8px 0 0",
+                        padding: "24px 0 8px",
                         position: "relative",
                         display: "flex",
                         flexDirection: "column",
@@ -2293,7 +2293,7 @@ export default function QuranTab(props) {
                                 justifyContent: isCenter
                                   ? "center"
                                   : "space-between",
-                                alignItems: "center",
+                                alignItems: "baseline",
                                 maxWidth: "min(720px,99vw)",
                                 marginInline: "auto",
                                 fontFamily: `'p${mushafPage}-${fontEd}',serif`,
