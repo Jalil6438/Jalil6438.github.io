@@ -2292,7 +2292,7 @@ export default function QuranTab(props) {
                                 display: "flex",
                                 justifyContent: isCenter
                                   ? "center"
-                                  : "space-between",
+                                  : "flex-start",
                                 alignItems: "baseline",
                                 maxWidth: "min(720px,99vw)",
                                 marginInline: "auto",
