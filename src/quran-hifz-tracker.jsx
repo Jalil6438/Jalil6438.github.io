@@ -47,9 +47,11 @@ export default function RihlatAlHifz() {
   const [visibleOnboardJuzCount,setVisibleOnboardJuzCount]=useState(5);
   const [userName,setUserName]=useState("");
   const [openJuzPanel,setOpenJuzPanel]=useState(null);
-  const [repCounts,setRepCounts]=useState({});
+  const [repCounts,setRepCounts]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-rep-counts")||"{}");}catch{return {};}});
+  useEffect(()=>{try{localStorage.setItem("rihlat-rep-counts",JSON.stringify(repCounts));}catch{}},[repCounts]);
   const [connectionPhase,setConnectionPhase]=useState(false); // true = linking ayahs together
-  const [connectionReps,setConnectionReps]=useState({}); // "pair-0-1":count, "all":count
+  const [connectionReps,setConnectionReps]=useState(()=>{try{return JSON.parse(localStorage.getItem("rihlat-connection-reps")||"{}");}catch{return {};}}); // "pair-0-1":count, "all":count
+  useEffect(()=>{try{localStorage.setItem("rihlat-connection-reps",JSON.stringify(connectionReps));}catch{}},[connectionReps]);
   const [hifzViewMode,setHifzViewMode]=useState("mushaf"); // "interactive" or "mushaf"
   const [badgeCelebration,setBadgeCelebration]=useState(null); // {emoji, title, message}
   const [badgeQueue,setBadgeQueue]=useState([]); // pending badges; advance on dismiss
