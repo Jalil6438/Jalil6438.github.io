@@ -1,0 +1,36 @@
+// Sheikh Badr Al-Turki — Ramadan 1447 (2026) nightly recordings.
+// Per-night YouTube video IDs: `taraweeh` for all 30 nights; `tahajjud` is
+// populated only for the last 10 nights (currently null pending upload).
+// Source channel: https://www.youtube.com/@sheikh_badr_al_turki
+export const RAMADAN_NIGHTS = [
+  { n: 1,  taraweeh: "lRwXLCF8Udk", tahajjud: null },
+  { n: 2,  taraweeh: "aBzvj0UHXsQ", tahajjud: null },
+  { n: 3,  taraweeh: "Vkd3P7PlsLQ", tahajjud: null },
+  { n: 4,  taraweeh: "_q0DAbkKDEY", tahajjud: null },
+  { n: 5,  taraweeh: "KzRlzHbsuUc", tahajjud: null },
+  { n: 6,  taraweeh: "9f8tyJ7ZyIw", tahajjud: null },
+  { n: 7,  taraweeh: "N1JHCv05Rhw", tahajjud: null },
+  { n: 8,  taraweeh: "6BEn6PD2vjU", tahajjud: null },
+  { n: 9,  taraweeh: "1nnvyGOjpx8", tahajjud: null },
+  { n: 10, taraweeh: "wSnomeZ983I", tahajjud: null },
+  { n: 11, taraweeh: "I-urbxpNqHU", tahajjud: null },
+  { n: 12, taraweeh: "ODIE3PM6kSU", tahajjud: null },
+  { n: 13, taraweeh: "PcDI7mbbC88", tahajjud: null },
+  { n: 14, taraweeh: "-dAdc6dvafc", tahajjud: null },
+  { n: 15, taraweeh: "vPJDsDCV4t8", tahajjud: null },
+  { n: 16, taraweeh: "HsBdxGMgLs8", tahajjud: null },
+  { n: 17, taraweeh: "b_MqX9kAcqE", tahajjud: null },
+  { n: 18, taraweeh: "0NdZR0MdsSg", tahajjud: null },
+  { n: 19, taraweeh: "rg5u3pyKXfM", tahajjud: null },
+  { n: 20, taraweeh: "MbzjYKYjF1Q", tahajjud: null },
+  { n: 21, taraweeh: "659qlvcZD4Y", tahajjud: null },
+  { n: 22, taraweeh: "V5nYjrTWT5g", tahajjud: null },
+  { n: 23, taraweeh: "gRtjM_cwAZc", tahajjud: null },
+  { n: 24, taraweeh: "C2BOVH9FAus", tahajjud: null },
+  { n: 25, taraweeh: "zwJvs3A6EjA", tahajjud: null },
+  { n: 26, taraweeh: "BDlvfPriqu4", tahajjud: null },
+  { n: 27, taraweeh: "WimoXE57I4g", tahajjud: null },
+  { n: 28, taraweeh: "Ls7hQl40M-E", tahajjud: null },
+  { n: 29, taraweeh: "15Mxmi_hmWY", tahajjud: null },
+  { n: 30, taraweeh: "RSevando-yI", tahajjud: null },
+];

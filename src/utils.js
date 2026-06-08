@@ -74,6 +74,14 @@ export function toArabicDigits(num) {
   return String(num).replace(/[0-9]/g, d => "\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]);
 }
 
+// Normalize KFGQPC `text_uthmani` for display: the payload encodes the small
+// high rounded zero (U+06DF / \u06df) where the app's serif Quran fonts expect a
+// regular sukun (U+0652 / \u0652). Swapping it keeps rendering consistent. Returns ""
+// for nullish input, matching the inline `(text||"").replace(...)` it replaces.
+export function normalizeUthmani(text) {
+  return (text || "").replace(/\u06df/g, "\u0652");
+}
+
 export function calcTimeline(years, memorizedAyahs, months, nextJuzAyahs, completedJuzCount) {
   const totalAyahs = 6236;
   const remainingAyahs = Math.max(0, totalAyahs - memorizedAyahs);

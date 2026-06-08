@@ -128,3 +128,10 @@ export const HARAMAIN_SURAHS = [
   "Al-Qari'a","At-Takathur","Al-Asr","Al-Humaza","Al-Fil","Quraysh","Al-Ma'un","Al-Kawthar","Al-Kafirun","An-Nasr",
   "Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"
 ];
+
+// ── HARAMAIN MOSQUE CARDS ── display metadata + imam rosters for the Masjidayn
+// tab (Masjid Al-Haram + Masjid An-Nabawi). References the imam lists above.
+export const HARAMAIN_MOSQUES = [
+  { id:"makkah",  icon:"🕋", title:"Masjid Al-Haram",  arabic:"المسجد الحرام",  color:"#E5534B", handle:"@saudiqurantv",  imams:MAKKAH_IMAMS, img:"/Makkah.png", bgPos:"center 70%" },
+  { id:"madinah", icon:"🌙", title:"Masjid An-Nabawi", arabic:"المسجد النبوي", color:"#F0C040", handle:"@saudisunnahtv", imams:MADINAH_IMAMS, img:"/Madinah.png", bgPos:"center bottom" },
+];

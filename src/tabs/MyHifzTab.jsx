@@ -3,7 +3,19 @@ import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
 import { getSessionWisdom } from "../data/sessions";
-import { saveCompletedAyahs, toArabicDigits } from "../utils";
+import { saveCompletedAyahs, toArabicDigits, normalizeUthmani } from "../utils";
+import { useQcfFont } from "../hooks/useQcfFont";
+import { useMushafData } from "../hooks/useMushafData";
+import { useBismillah } from "../hooks/useBismillah";
+import MushafPage from "../components/MushafPage";
+import {
+  buildConnSurahGroups,
+  buildConnectionPairs,
+  buildClosers,
+  buildPageBatch,
+  capToMadinahPage,
+  filterActivePlusFresh,
+} from "../hifz";
 
 export default function MyHifzTab(props) {
   const {
@@ -115,11 +127,14 @@ export default function MyHifzTab(props) {
   const isMushafFajr = isFajr && isShaykhPlan && hifzViewMode === "mushaf";
 
   const [fajrPageVerses, setFajrPageVerses] = useState({}); // { [pageNum]: verses[] }
-  // Declared early so the fajrPageVerses fetch effects below can gate on it
-  // (V2 page-number stamp depends on this lookup being loaded). The useState
-  // initialization stays here; the fetch that populates it is in a later
-  // useEffect that doesn't depend on declaration order.
-  const [verseToPageMap, setVerseToPageMap] = useState(null);
+  // Mushaf fonts, layout data (incl. the Madinah verse→page map), and the
+  // universal bismillah glyphs — shared hooks (see src/hooks). Declared up here
+  // because the fajrPageVerses fetch effects below gate on verseToPageMap.
+  const { loadedFonts, loadQcfFont } = useQcfFont();
+  const { mushafPagesData, mushafLayoutData, verseToPageMap } = useMushafData({
+    withVerseToPage: true,
+  });
+  const bismillahGlyphs = useBismillah(loadQcfFont);
   const fajrPageNum = rawBatch[0]?.page_number;
   // Pages used by the Dhuhr/Asr/Maghrib/Isha batch — we fetch each with
   // code_v2 + line_number so every session renders in the authentic
@@ -150,7 +165,7 @@ export default function MyHifzTab(props) {
           const res = await fetch(`https://api.quran.com/api/v4/verses/by_page/${pn}?words=true&word_fields=line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,surah_number,page_number,juz_number,hizb_number,rub_el_hizb_number&per_page=50`);
           if (!res.ok || cancelled) continue;
           const data = await res.json();
-          const vs = (data.verses || []).map(v => ({ ...v, text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652") }));
+          const vs = (data.verses || []).map(v => ({ ...v, text_uthmani: normalizeUthmani(v.text_uthmani) }));
           if (verseToPageMap) {
             vs.forEach(v => { const p = verseToPageMap[v.verse_key]; if (p) v.page_number = p; });
           }
@@ -162,73 +177,12 @@ export default function MyHifzTab(props) {
     return () => { cancelled = true; };
   }, [sessionPageNums.join(","), verseToPageMap]);
 
-  // KFGQPC V2 per-page fonts — used to render mushaf pages with authentic
-  // word widths & layout. Mirrors QuranTab's font-loading logic.
-  const [loadedFonts, setLoadedFonts] = useState(() => new Set());
-  const loadQcfFont = (pageN) => {
-    if (!pageN || pageN < 1 || pageN > 604) return;
-    // Use the SAME font-family + id scheme as QuranTab Study mode so we
-    // share the FontFace registration across components.
-    const family = `p${pageN}-v2`;
-    const elId = `qcf-font-${family}`;
-    if (!document.getElementById(elId)) {
-      const style = document.createElement("style");
-      style.id = elId;
-      style.textContent = `@font-face{font-family:'${family}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
-      document.head.appendChild(style);
-    }
-    if (loadedFonts.has(pageN)) return;
-    if (document.fonts && document.fonts.load) {
-      document.fonts.load(`16px '${family}'`).then(() => {
-        setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
-      }).catch(() => {});
-    }
-  };
+  // Preload the current Fajr page font + immediate neighbors. Font loading,
+  // layout data, and bismillah glyphs are provided by the shared hooks above.
   useEffect(() => {
     if (!fajrPageNum) return;
     for (let i = -1; i <= 1; i++) loadQcfFont(fajrPageNum + i);
   }, [fajrPageNum]);
-
-  // Authoritative mushaf page layout JSON (pre-computed per-page line
-  // strings + alignment). Matches QuranTab's render path.
-  const [mushafPagesData, setMushafPagesData] = useState(null);
-  const [mushafLayoutData, setMushafLayoutData] = useState(null);
-  // verseToPageMap is declared earlier (~line 107) so the fajrPageVerses
-  // fetch effects can gate on it without hitting the temporal dead zone.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [p, l, v] = await Promise.all([
-          fetch("/v2/mushaf-pages.json"),
-          fetch("/v2/mushaf-layout.json"),
-          fetch("/verse-to-page.json"),
-        ]);
-        if (!cancelled && p.ok) setMushafPagesData(await p.json());
-        if (!cancelled && l.ok) setMushafLayoutData(await l.json());
-        if (!cancelled && v.ok) setVerseToPageMap(await v.json());
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  // Universal bismillah glyphs (Fatihah 1:1) — rendered in p1 font so every
-  // surah opener shows the authentic mushaf bismillah.
-  const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
-  useEffect(() => {
-    loadQcfFont(1);
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("https://api.quran.com/api/v4/verses/by_key/1:1?words=true&word_fields=code_v2,char_type_name");
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        const words = (data.verse?.words || []).filter(w => w.char_type_name === "word").map(w => w.code_v2 || "");
-        if (!cancelled && words.length) setBismillahGlyphs(words.join(""));
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, []);
   useEffect(() => {
     if (!isPageBasedSession) return;
     if (!fajrPageNum || fajrPageVerses[fajrPageNum]) return;
@@ -244,7 +198,7 @@ export default function MyHifzTab(props) {
           const lines = [...new Set((v.words || []).map(w => w.line_number).filter(n => typeof n === "number"))].sort((a, b) => a - b);
           return {
             ...v,
-            text_uthmani: (v.text_uthmani || "").replace(/\u06DF/g, "\u0652"),
+            text_uthmani: normalizeUthmani(v.text_uthmani),
             _lines: lines,
             _firstLine: lines[0] || null,
             _lastLine: lines[lines.length - 1] || null,
@@ -262,23 +216,7 @@ export default function MyHifzTab(props) {
   // Full mushaf page — UNION of fajrPageNum and neighbors ±1, since the API
   // might place a verse on one page while Madinah places it on another. We
   // filter down via verseToPageMap later to get today's Madinah page set.
-  const pageBatch = (() => {
-    if (!isPageBasedSession || !fajrPageNum) return rawBatch;
-    const all = [];
-    const seen = new Set();
-    for (const p of [fajrPageNum - 1, fajrPageNum, fajrPageNum + 1]) {
-      (fajrPageVerses[p] || []).forEach(v => {
-        if (!seen.has(v.verse_key)) { seen.add(v.verse_key); all.push(v); }
-      });
-    }
-    all.sort((a, b) => {
-      const sa = parseInt(a.verse_key.split(":")[0], 10);
-      const sb = parseInt(b.verse_key.split(":")[0], 10);
-      if (sa !== sb) return sa - sb;
-      return parseInt(a.verse_key.split(":")[1], 10) - parseInt(b.verse_key.split(":")[1], 10);
-    });
-    return all.length > 0 ? all : rawBatch;
-  })();
+  const pageBatch = buildPageBatch({ rawBatch, fajrPageVerses, fajrPageNum, isPageBasedSession });
 
   // Filter a mushaf page's verses to what belongs in today's batch.
   //
@@ -305,62 +243,14 @@ export default function MyHifzTab(props) {
     });
     return set;
   })();
-  // Exact queued verse_keys (not just surahs) — so when a surah's ayahs that appear
-  // on today's mushaf page are already memorized (e.g. Al-Qiyāmah 1-19 on the Al-
-  // Muddaththir-tail page 577 for a hifz-descending user who did Qiyāmah before
-  // Muddaththir), they're filtered out even though Qiyāmah's surah number is still
-  // in queuedSurahs via later-juz ayahs or sessionVerses ordering.
-  const queuedKeys = (() => {
-    const set = new Set();
-    (sessionVerses || []).forEach(v => { if (v.verse_key) set.add(v.verse_key); });
-    return set;
-  })();
-  const filterActivePlusFresh = (pageVs) => {
-    if (!pageVs || !pageVs.length) return pageVs || [];
-    const startsHere = new Set();
-    pageVs.forEach(v => {
-      const [s, a] = (v.verse_key || "").split(":");
-      if (a === "1") startsHere.add(Number(s) || v.surah_number);
-    });
-    // Active-surah only: drop tails of earlier/later surahs and fresh starts
-    // of the next surah. Only the ayahs belonging to the surah currently being
-    // memorized appear in both Study and Mushaf views.
-    const kept = pageVs.filter(v => {
-      const s = v.surah_number || parseInt(v.verse_key?.split(":")?.[0] || "0", 10);
-      const isActive = activeSurahNum && s === activeSurahNum;
-      const isFresh = false; // strict mode: only active surah
-      const isQueued = queuedSurahs.size === 0 || queuedSurahs.has(s);
-      const alreadyDone = completedAyahs && completedAyahs.has && completedAyahs.has(v.verse_key);
-      if (alreadyDone && !isActive) return false;
-      return (isActive || isFresh) && isQueued;
-    });
-    // Sort: active surah first (so Al-Mumtaḥanah 12-13 renders above Aṣ-Ṣaff 1-5
-    // on a boundary page — continuation ayahs come before the fresh next surah),
-    // then remaining fresh surahs in hifz-descending order (114 → 1). Ayah
-    // ascending within each surah. Page 604 still reads An-Nās → Al-Falaq →
-    // Al-Ikhlāṣ because An-Nās is the active surah at that point.
-    return kept.slice().sort((a, b) => {
-      const sa = a.surah_number || parseInt(a.verse_key?.split(":")?.[0] || "0", 10);
-      const sb = b.surah_number || parseInt(b.verse_key?.split(":")?.[0] || "0", 10);
-      if (sa !== sb) {
-        if (sa === activeSurahNum) return -1;
-        if (sb === activeSurahNum) return 1;
-        return sb - sa;
-      }
-      const aa = parseInt(a.verse_key?.split(":")?.[1] || "0", 10);
-      const ab = parseInt(b.verse_key?.split(":")?.[1] || "0", 10);
-      return aa - ab;
-    });
-  };
-
-  // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) show the
-  // active surah + any other surahs that begin fresh on the same page.
-  // For single-page sessions (Fajr/Maghrib/Isha), cap to verses actually on
-  // today's Madinah page via verseToPageMap. Dhuhr spans 5 pages so skip.
-  const batchPreFilter = isPageBasedSession ? filterActivePlusFresh(pageBatch) : pageBatch;
-  const batch = verseToPageMap && fajrPageNum && isPageBasedSession
-    ? batchPreFilter.filter(v => verseToPageMap[v.verse_key] === fajrPageNum)
-    : batchPreFilter;
+  // Memorization batch — page-based sessions (Fajr/Maghrib/Isha) keep only the
+  // active surah's ayahs (filterActivePlusFresh), then cap to today's Madinah
+  // page via verseToPageMap. Dhuhr spans 5 pages so it skips both. The pure
+  // logic lives in src/hifz (extracted Wave 2).
+  const batchPreFilter = isPageBasedSession
+    ? filterActivePlusFresh(pageBatch, { activeSurahNum, queuedSurahs, completedAyahs })
+    : pageBatch;
+  const batch = capToMadinahPage(batchPreFilter, { verseToPageMap, fajrPageNum, isPageBasedSession });
 
   // Share the page batch with the main component so Maghrib / Isha activity
   // descriptions ("Listened to ..." / "Final review of ...") reflect the
@@ -383,38 +273,8 @@ export default function MyHifzTab(props) {
   //      - Once every ayah of a surah in this batch is at 20/20 AND every pair
   //        inside that surah is at 10/10, the "all N ayahs of [surah] together × 10"
   //        closer unlocks for that surah.
-  const connSurahGroups = (() => {
-    if (!isFajr || batch.length < 1) return [];
-    const map = {};
-    const order = [];
-    batch.forEach(v => {
-      const s = Number(v.verse_key.split(":")[0]);
-      if (!map[s]) { map[s] = []; order.push(s); }
-      map[s].push(v);
-    });
-    return order.map(s => ({ surahNum: s, verses: map[s] }));
-  })();
-  const connAllPairs = (() => {
-    if (!isFajr) return [];
-    const arr = [];
-    connSurahGroups.forEach(g => {
-      const verses = g.verses;
-      for (let i = 0; i < verses.length - 1; i++) {
-        const v1 = verses[i], v2 = verses[i + 1];
-        const a1 = v1.verse_key.split(":")[1];
-        const a2 = v2.verse_key.split(":")[1];
-        const bothDone = (repCounts[v1.verse_key] || 0) >= repTarget && (repCounts[v2.verse_key] || 0) >= repTarget;
-        arr.push({
-          key: `pair-${v1.verse_key}-${v2.verse_key}`,
-          label: `Ayah ${a1} + ${a2}`,
-          ayahs: [v1, v2],
-          ready: bothDone,
-          surahNum: g.surahNum,
-        });
-      }
-    });
-    return arr;
-  })();
+  const connSurahGroups = buildConnSurahGroups(batch, isFajr);
+  const connAllPairs = buildConnectionPairs({ connSurahGroups, isFajr, repCounts, repTarget });
   const connVisiblePairs = connAllPairs.filter(p => p.ready);
   // Closers — short surahs get one per-surah closer; long surahs follow the
   // Shaykh's two-section structure: section-1 closer → bridge pair (one of the
@@ -425,84 +285,7 @@ export default function MyHifzTab(props) {
   // ayahs occupy on this page. A verse whose first line sits in the first half
   // belongs to section 1; otherwise section 2. Falls back to ayah-count split
   // if line data isn't available (old cache, etc.).
-  const SECTION_SPLIT_LINE_THRESHOLD = 7;
-  const connClosers = connSurahGroups
-    .filter(g => g.verses.length >= 2)
-    .flatMap(g => {
-      const verses = g.verses;
-      const n = verses.length;
-      const surahName = SURAH_EN[g.surahNum] || `Surah ${g.surahNum}`;
-      const allAyahsDone = verses.every(v => (repCounts[v.verse_key] || 0) >= repTarget);
-      const surahPairs = connAllPairs.filter(p => p.surahNum === g.surahNum);
-      const surahPairsDone = surahPairs.length > 0 && surahPairs.every(p => (connectionReps[p.key] || 0) >= 10);
-
-      // Compute split point.
-      const surahLines = [...new Set(verses.flatMap(v => v._lines || []).filter(x => typeof x === "number"))].sort((a, b) => a - b);
-      const totalLines = surahLines.length;
-      let sec1, sec2;
-      if (totalLines >= SECTION_SPLIT_LINE_THRESHOLD) {
-        // Section 1 gets the first floor(totalLines/2) lines, section 2 the rest.
-        // For an 11-line surah layout (Al-Jumu'ah), that's 5 + 6, which lands the
-        // split after ayah 4 exactly like the book's example.
-        const midLineIdx = Math.floor(totalLines / 2); // 1-based count of section-1 lines
-        const sec1LineCutoff = surahLines[midLineIdx - 1];
-        sec1 = verses.filter(v => typeof v._firstLine === "number" && v._firstLine <= sec1LineCutoff);
-        sec2 = verses.filter(v => typeof v._firstLine === "number" && v._firstLine > sec1LineCutoff);
-        // Degenerate case (e.g. one ayah straddles the boundary): ensure both sections non-empty
-        if (sec1.length === 0 || sec2.length === 0) { sec1 = null; sec2 = null; }
-      }
-      // Ayah-count fallback (no line data, or split produced an empty section).
-      if (!sec1 || !sec2) {
-        if (n < 8) {
-          return [{
-            key: `closer-${g.surahNum}`,
-            label: `All ${n} ayahs of ${surahName} together`,
-            ayahs: verses,
-            ready: allAyahsDone && surahPairsDone,
-            surahNum: g.surahNum,
-          }];
-        }
-        const mid = Math.ceil(n / 2);
-        sec1 = verses.slice(0, mid);
-        sec2 = verses.slice(mid);
-      }
-
-      // Pairs grouped by section. The pair whose left verse is the last of
-      // section 1 is the bridge pair that gates section 2's closer.
-      const sec1Keys = new Set(sec1.map(v => v.verse_key));
-      const bridgePair = surahPairs.find(p => sec1Keys.has(p.ayahs[0].verse_key) && !sec1Keys.has(p.ayahs[1].verse_key));
-      const sec1Pairs = surahPairs.filter(p => sec1Keys.has(p.ayahs[0].verse_key) && sec1Keys.has(p.ayahs[1].verse_key));
-      const sec2Pairs = surahPairs.filter(p => !sec1Keys.has(p.ayahs[0].verse_key));
-      const sec1AyahsDone = sec1.every(v => (repCounts[v.verse_key] || 0) >= repTarget);
-      const sec2AyahsDone = sec2.every(v => (repCounts[v.verse_key] || 0) >= repTarget);
-      const sec1PairsDone = sec1Pairs.length === 0 || sec1Pairs.every(p => (connectionReps[p.key] || 0) >= 10);
-      const sec2PairsDone = sec2Pairs.length === 0 || sec2Pairs.every(p => (connectionReps[p.key] || 0) >= 10);
-      const bridgeDone = !bridgePair || (connectionReps[bridgePair.key] || 0) >= 10;
-
-      return [
-        {
-          key: `closer-${g.surahNum}-s1`,
-          label: `All ${sec1.length} ayahs of section 1 together`,
-          ayahs: sec1,
-          ready: sec1AyahsDone && sec1PairsDone,
-          surahNum: g.surahNum,
-        },
-        {
-          key: `closer-${g.surahNum}-s2`,
-          label: `All ${sec2.length} ayahs of section 2 together`,
-          ayahs: sec2,
-          ready: sec2AyahsDone && sec2PairsDone && bridgeDone,
-          surahNum: g.surahNum,
-        },
-        {
-          key: `closer-${g.surahNum}-page`,
-          label: `All ${n} ayahs of ${surahName} together`,
-          ayahs: verses,
-          ready: allAyahsDone && surahPairsDone,
-          surahNum: g.surahNum,
-        },
-      ];
-    });
+  const connClosers = buildClosers({ connSurahGroups, connAllPairs, repCounts, connectionReps, repTarget });
   const connVisibleClosers = connClosers.filter(c => c.ready);
   // The "active" closer is the first unlocked one that isn't yet at 10/10.
   // It takes priority over the pair modal — each surah gets its own dedicated
@@ -1026,60 +809,19 @@ export default function MyHifzTab(props) {
                         // the PREVIOUS surah (page tail continuation). Only
                         // fall back to the batch's surah when the page has no
                         // surah_name (full-page single-surah case).
-                        const firstSurahName=pageLayout.find(e=>e.type==="surah_name");
                         const anyBatchVerse=batch.find(v=>(verseToPageMap?.[v.verse_key]||v.page_number)===fajrPageNum);
-                        const startSurah=firstSurahName
-                          ? firstSurahName.sn-1
-                          : (anyBatchVerse
-                              ? parseInt(anyBatchVerse.verse_key.split(":")[0],10)
-                              : null);
-                        let currentSurah=startSurah;
-                        let ayahIdx=-1;
-                        return pageLayout.map((layoutEntry,i)=>{
-                          const type=layoutEntry.type;
-                          let lineText="";
-                          if(type!=="surah_name"&&type!=="basmallah"){
-                            ayahIdx++;
-                            lineText=pageLines[ayahIdx]||"";
-                          }
-                          if(type==="surah_name"){
-                            currentSurah=layoutEntry.sn;
-                          }
-                          // Skip lines that aren't part of today's batch —
-                          // drops tails of not-yet-memorized surahs and heads
-                          // of already-memorized surahs on split pages.
-                          if(batchSurahs.size>0&&!batchSurahs.has(currentSurah)) return null;
-                          const isCenter=layoutEntry.center===1;
-                          if(type==="surah_name"){
-                            const sn=layoutEntry.sn;
-                            return (
-                              <div key={i} style={{textAlign:"center",padding:"8px 0"}}>
-                                <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"100% 100%",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                  <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
-                                    <span>surah</span>
-                                    <span>{String(sn).padStart(3,"0")}</span>
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          }
-                          if(type==="basmallah"){
-                            return (
-                              <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
-                                {bismillahGlyphs&&loadedFonts.has(1)?(
-                                  <div style={{fontFamily:"'p1-v2',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
-                                ):(
-                                  <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                                )}
-                              </div>
-                            );
-                          }
-                          return (
-                            <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${fajrPageNum}-v2',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
-                              {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
-                            </div>
-                          );
-                        });
+                        return (
+                          <MushafPage
+                            pageNum={fajrPageNum}
+                            pageLines={pageLines}
+                            pageLayout={pageLayout}
+                            dark={dark}
+                            bismillahGlyphs={bismillahGlyphs}
+                            bismillahReady={loadedFonts.has(1)}
+                            renderSurah={(sn)=>batchSurahs.size===0||batchSurahs.has(sn)}
+                            fallbackStartSurah={anyBatchVerse?parseInt(anyBatchVerse.verse_key.split(":")[0],10):null}
+                          />
+                        );
                       })()}
                       {MUSHAF_INTERACTIVE&&(
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:14,paddingTop:10,borderTop:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(0,0,0,0.06)"}`}}>
@@ -1194,52 +936,20 @@ export default function MyHifzTab(props) {
                           // surahs not yet in the review window.
                           const pageSurahs=new Set(currentPg.ayahs.map(v=>
                             v.surah_number||parseInt(v.verse_key.split(":")[0],10)));
-                          const firstSurahName=pageLayout.find(e=>e.type==="surah_name");
-                          let currentSurah=firstSurahName
-                            ? firstSurahName.sn-1
-                            : (currentPg.ayahs[0]?.surah_number
-                                ||parseInt(currentPg.ayahs[0]?.verse_key.split(":")[0],10));
-                          let ayahIdx=-1;
-                          return pageLayout.map((layoutEntry,i)=>{
-                            const type=layoutEntry.type;
-                            let lineText="";
-                            if(type!=="surah_name"&&type!=="basmallah"){
-                              ayahIdx++;
-                              lineText=pageLines[ayahIdx]||"";
-                            }
-                            if(type==="surah_name"){ currentSurah=layoutEntry.sn; }
-                            if(pageSurahs.size>0&&!pageSurahs.has(currentSurah)) return null;
-                            const isCenter=layoutEntry.center===1;
-                            if(type==="surah_name"){
-                              const sn=layoutEntry.sn;
-                              return (
-                                <div key={i} style={{textAlign:"center",padding:"8px 0"}}>
-                                  <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"100% 100%",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                    <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
-                                      <span>surah</span>
-                                      <span>{String(sn).padStart(3,"0")}</span>
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            }
-                            if(type==="basmallah"){
-                              return (
-                                <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
-                                  {bismillahGlyphs&&loadedFonts.has(1)?(
-                                    <div style={{fontFamily:"'p1-v2',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
-                                  ):(
-                                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                                  )}
-                                </div>
-                              );
-                            }
-                            return (
-                              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pageNum}-v2',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
-                                {lineText.split(" ").map((w,wi)=>(<span key={wi}>{w}</span>))}
-                              </div>
-                            );
-                          });
+                          const fallbackStartSurah=currentPg.ayahs[0]?.surah_number
+                            ||parseInt(currentPg.ayahs[0]?.verse_key.split(":")[0],10);
+                          return (
+                            <MushafPage
+                              pageNum={pageNum}
+                              pageLines={pageLines}
+                              pageLayout={pageLayout}
+                              dark={dark}
+                              bismillahGlyphs={bismillahGlyphs}
+                              bismillahReady={loadedFonts.has(1)}
+                              renderSurah={(sn)=>pageSurahs.size===0||pageSurahs.has(sn)}
+                              fallbackStartSurah={fallbackStartSurah}
+                            />
+                          );
                         })()}
                         {(()=>{
                           const isOdd=currentPg.page%2===1;
@@ -1300,7 +1010,7 @@ export default function MyHifzTab(props) {
                               <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
                             </div>
                             <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{normalizeUthmani(v.text_uthmani).trim()+"\u2060"}</span>
                               <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(212,175,55,0.55)":"#A08848",marginRight:4}}>{toArabicDigits(parseInt(vKey.split(":")[1],10))}</span>
                             </div>
                           </div>
@@ -1398,7 +1108,7 @@ export default function MyHifzTab(props) {
                             }
                             return (
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2,...clampStyle}}>
-                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{(v.text_uthmani||"").replace(/\u06DF/g,"\u0652").trim()+"\u2060"}</span>
+                                <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:dark?"rgba(255,255,255,0.88)":"#2D2A26"}}>{normalizeUthmani(v.text_uthmani).trim()+"\u2060"}</span>
                                 <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",color:repsDone?(dark?"#E6B84A":"#2ECC71"):(dark?"rgba(212,175,55,0.55)":"#A08848"),marginRight:4}}>{toArabicDigits(parseInt(vKey.split(":")[1],10))}</span>
                               </div>
                             );
@@ -1444,7 +1154,7 @@ export default function MyHifzTab(props) {
                               </div>
                               <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
                                 {step.ayahs.map((a,ai)=>(
-                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(212,175,55,0.55)":"rgba(140,100,20,0.55)",margin:"0 4px"}}>{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}</span>}</span>
+                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{normalizeUthmani(a.text_uthmani)}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(212,175,55,0.55)":"rgba(140,100,20,0.55)",margin:"0 4px"}}>{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}</span>}</span>
                                 ))}
                               </div>
                               <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",overflow:"hidden"}}>
@@ -1478,7 +1188,7 @@ export default function MyHifzTab(props) {
                         <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"center",lineHeight:2,marginBottom:12}}>
                           {activeCloser.ayahs.map(a=>(
                             <span key={a.verse_key}>
-                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{(a.text_uthmani||"").replace(/\u06DF/g,"\u0652")}</span>
+                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{normalizeUthmani(a.text_uthmani)}</span>
                               <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(212,175,55,0.55)":"rgba(140,100,20,0.55)",margin:"0 4px"}}>{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}</span>
                             </span>
                           ))}
@@ -1512,7 +1222,7 @@ export default function MyHifzTab(props) {
                         <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
                         {/* Arabic */}
                         <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
-                          {(mv.text_uthmani||"").replace(/\u06DF/g,"\u0652")}
+                          {normalizeUthmani(mv.text_uthmani)}
                         </div>
                         {/* Reference */}
                         <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:20}}>
@@ -1560,8 +1270,8 @@ export default function MyHifzTab(props) {
                               const nextKey=`${ss}:${Number(sa)+1}`;
                               const simVerse=batch.find(v=>v.verse_key===simKey)||sessionVerses.find(v=>v.verse_key===simKey);
                               const nextVerse=batch.find(v=>v.verse_key===nextKey)||sessionVerses.find(v=>v.verse_key===nextKey);
-                              const simText=simVerse?(simVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[simKey];
-                              const nextText=nextVerse?(nextVerse.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[nextKey+"_next"];
+                              const simText=simVerse?normalizeUthmani(simVerse.text_uthmani):simVerseCache[simKey];
+                              const nextText=nextVerse?normalizeUthmani(nextVerse.text_uthmani):simVerseCache[nextKey+"_next"];
                               if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
                               return (
                                 <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>

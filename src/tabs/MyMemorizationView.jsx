@@ -1,26 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { SURAH_EN } from "../data/constants";
-import { JUZ_META, JUZ_SURAHS } from "../data/quran-metadata";
-
-const JUZ_PAGES = [1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582,605];
-
-function loadQcfFont(pageN, loadedFonts, setLoadedFonts) {
-  if (!pageN || pageN < 1 || pageN > 604) return;
-  const family = `p${pageN}-v2`;
-  const elId = `qcf-font-${family}`;
-  if (!document.getElementById(elId)) {
-    const style = document.createElement("style");
-    style.id = elId;
-    style.textContent = `@font-face{font-family:'${family}';src:url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff');font-display:block;}`;
-    document.head.appendChild(style);
-  }
-  if (loadedFonts.has(pageN)) return;
-  if (document.fonts && document.fonts.load) {
-    document.fonts.load(`16px '${family}'`).then(() => {
-      setLoadedFonts(prev => { const n = new Set(prev); n.add(pageN); return n; });
-    }).catch(() => {});
-  }
-}
+import { JUZ_META, JUZ_SURAHS, JUZ_PAGES } from "../data/quran-metadata";
+import { useQcfFont } from "../hooks/useQcfFont";
+import { useMushafData } from "../hooks/useMushafData";
+import { useBismillah } from "../hooks/useBismillah";
+import MushafPage from "../components/MushafPage";
 
 export default function MyMemorizationView({
   dark,
@@ -39,41 +23,15 @@ export default function MyMemorizationView({
   const [reviewJuz, setReviewJuz] = useState(null);
   const [reviewPageIdx, setReviewPageIdx] = useState(0);
   const touchStartX = useRef(0);
-  const [mushafPagesData, setMushafPagesData] = useState(null);
-  const [mushafLayoutData, setMushafLayoutData] = useState(null);
-  const [loadedFonts, setLoadedFonts] = useState(() => new Set());
-  const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [p, l] = await Promise.all([fetch("/v2/mushaf-pages.json"), fetch("/v2/mushaf-layout.json")]);
-        if (!cancelled && p.ok) setMushafPagesData(await p.json());
-        if (!cancelled && l.ok) setMushafLayoutData(await l.json());
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, []);
-  useEffect(() => {
-    loadQcfFont(1, loadedFonts, setLoadedFonts);
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("https://api.quran.com/api/v4/verses/by_key/1:1?words=true&word_fields=code_v2,char_type_name");
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        const words = (data.verse?.words || []).filter(w => w.char_type_name === "word").map(w => w.code_v2 || "");
-        if (!cancelled && words.length) setBismillahGlyphs(words.join(""));
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, []);
+  const { loadedFonts, loadQcfFont } = useQcfFont();
+  const { mushafPagesData, mushafLayoutData } = useMushafData();
+  const bismillahGlyphs = useBismillah(loadQcfFont);
   useEffect(() => {
     if (reviewJuz == null) return;
     setReviewPageIdx(0);
     const first = JUZ_PAGES[reviewJuz - 1];
     const last = (JUZ_PAGES[reviewJuz] || 605) - 1;
-    for (let p = first; p <= last; p++) loadQcfFont(p, loadedFonts, setLoadedFonts);
+    for (let p = first; p <= last; p++) loadQcfFont(p);
   }, [reviewJuz]);
   const isJDone = (n) => juzStatus[n] === "complete" || (JUZ_SURAHS[n] || []).every(s => juzStatus[`s${s.s}`] === "complete");
   const currentJuz = sessionJuz || 30;
@@ -128,45 +86,18 @@ export default function MyMemorizationView({
           }
           const firstSurahName = pageLayout.find(e => e.type === "surah_name");
           const leadSurahNum = firstSurahName ? firstSurahName.sn : ((JUZ_SURAHS[reviewJuz] || [])[0]?.s || 0);
-          let currentSurah = firstSurahName ? firstSurahName.sn - 1 : ((JUZ_SURAHS[reviewJuz] || [])[0]?.s || null);
-          let ayahIdx = -1;
-          const rendered = pageLayout.map((entry, i) => {
-            const type = entry.type;
-            if (type !== "surah_name" && type !== "basmallah") ayahIdx++;
-            if (type === "surah_name") currentSurah = entry.sn;
-            if (!juzSurahsSet.has(currentSurah)) return null;
-            const isCenter = entry.center === 1;
-            if (type === "surah_name") {
-              const sn = entry.sn;
-              return (
-                <div key={i} style={{textAlign:"center",padding:"8px 0"}}>
-                  <div style={{position:"relative",width:"100%",height:70,backgroundImage:"url('/surah_ornament.png')",backgroundSize:"100% 100%",backgroundRepeat:"no-repeat",backgroundPosition:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <span style={{fontFamily:"'surah-names',serif",fontSize:"clamp(28px,7.5vw,44px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",lineHeight:1,display:"inline-flex",alignItems:"center",gap:"0.04em",direction:"rtl"}}>
-                      <span>surah</span>
-                      <span>{String(sn).padStart(3,"0")}</span>
-                    </span>
-                  </div>
-                </div>
-              );
-            }
-            if (type === "basmallah") {
-              return (
-                <div key={i} style={{textAlign:"center",padding:"4px 0"}}>
-                  {bismillahGlyphs && loadedFonts.has(1) ? (
-                    <div style={{fontFamily:"'p1-v2',serif",fontSize:"clamp(20px,5.8vw,32px)",color:dark?"rgba(232,200,120,0.85)":"rgba(0,0,0,0.70)",direction:"rtl",lineHeight:2}}>{bismillahGlyphs}</div>
-                  ) : (
-                    <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:20,color:dark?"rgba(232,200,120,0.65)":"rgba(0,0,0,0.50)",direction:"rtl",lineHeight:2}}>بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ</div>
-                  )}
-                </div>
-              );
-            }
-            const lineText = pageLines[ayahIdx] || "";
-            return (
-              <div key={i} style={{direction:"rtl",display:"flex",justifyContent:isCenter?"center":"space-between",alignItems:"center",maxWidth:"min(540px,90vw)",marginInline:"auto",fontFamily:`'p${pn}-v2',serif`,fontSize:"clamp(20px,5vw,29px)",color:dark?"#E8DFC0":"#2D2A26",padding:"2px 0",whiteSpace:"nowrap",gap:isCenter?"0.25em":"0.10em"}}>
-                {lineText.split(" ").map((w, wi) => (<span key={wi}>{w}</span>))}
-              </div>
-            );
-          }).filter(Boolean);
+          const rendered = (
+            <MushafPage
+              pageNum={pn}
+              pageLines={pageLines}
+              pageLayout={pageLayout}
+              dark={dark}
+              bismillahGlyphs={bismillahGlyphs}
+              bismillahReady={loadedFonts.has(1)}
+              renderSurah={(sn) => juzSurahsSet.has(sn)}
+              fallbackStartSurah={(JUZ_SURAHS[reviewJuz] || [])[0]?.s || null}
+            />
+          );
           return (
             <div
               onTouchStart={e=>{ touchStartX.current = e.touches[0].clientX; }}

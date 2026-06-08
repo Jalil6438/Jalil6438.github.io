@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "../data/haramain";
+import { HARAMAIN_SURAHS, HARAMAIN_MOSQUES } from "../data/haramain";
+import { RAMADAN_NIGHTS } from "../data/ramadan";
 
 export default function MasjidaynTab({
   dark, T, masjidaynTab, setMasjidaynTab, activeStream,
@@ -79,48 +80,14 @@ export default function MasjidaynTab({
 
       {/* ═══ RAMADAN 1447 — with Mosque cards + Sheikh Badr Al-Turki ═══ */}
       {(masjidaynTab==="ramadan"||masjidaynTab==="live"||masjidaynTab==="haramain")&&(()=>{
-        const NIGHTS = [
-          {n:1,  taraweeh:"lRwXLCF8Udk", tahajjud:null},
-          {n:2,  taraweeh:"aBzvj0UHXsQ", tahajjud:null},
-          {n:3,  taraweeh:"Vkd3P7PlsLQ", tahajjud:null},
-          {n:4,  taraweeh:"_q0DAbkKDEY", tahajjud:null},
-          {n:5,  taraweeh:"KzRlzHbsuUc", tahajjud:null},
-          {n:6,  taraweeh:"9f8tyJ7ZyIw", tahajjud:null},
-          {n:7,  taraweeh:"N1JHCv05Rhw", tahajjud:null},
-          {n:8,  taraweeh:"6BEn6PD2vjU", tahajjud:null},
-          {n:9,  taraweeh:"1nnvyGOjpx8", tahajjud:null},
-          {n:10, taraweeh:"wSnomeZ983I", tahajjud:null},
-          {n:11, taraweeh:"I-urbxpNqHU", tahajjud:null},
-          {n:12, taraweeh:"ODIE3PM6kSU", tahajjud:null},
-          {n:13, taraweeh:"PcDI7mbbC88", tahajjud:null},
-          {n:14, taraweeh:"-dAdc6dvafc", tahajjud:null},
-          {n:15, taraweeh:"vPJDsDCV4t8", tahajjud:null},
-          {n:16, taraweeh:"HsBdxGMgLs8", tahajjud:null},
-          {n:17, taraweeh:"b_MqX9kAcqE", tahajjud:null},
-          {n:18, taraweeh:"0NdZR0MdsSg", tahajjud:null},
-          {n:19, taraweeh:"rg5u3pyKXfM", tahajjud:null},
-          {n:20, taraweeh:"MbzjYKYjF1Q", tahajjud:null},
-          {n:21, taraweeh:"659qlvcZD4Y", tahajjud:null},
-          {n:22, taraweeh:"V5nYjrTWT5g", tahajjud:null},
-          {n:23, taraweeh:"gRtjM_cwAZc", tahajjud:null},
-          {n:24, taraweeh:"C2BOVH9FAus", tahajjud:null},
-          {n:25, taraweeh:"zwJvs3A6EjA", tahajjud:null},
-          {n:26, taraweeh:"BDlvfPriqu4", tahajjud:null},
-          {n:27, taraweeh:"WimoXE57I4g", tahajjud:null},
-          {n:28, taraweeh:"Ls7hQl40M-E", tahajjud:null},
-          {n:29, taraweeh:"15Mxmi_hmWY", tahajjud:null},
-          {n:30, taraweeh:"RSevando-yI", tahajjud:null},
-        ];
+        const NIGHTS = RAMADAN_NIGHTS;
         const sel = selectedRamadanNight ?? 1;
         const selEntry = NIGHTS.find(x=>x.n===sel);
         const activeId = selEntry?.[ramadanVideoType] ?? selEntry?.taraweeh;
         const hasVideo = !!activeId;
         const activeLabel = ramadanVideoType==="tahajjud" ? "Tahajjud + Witr" : "Taraweeh";
 
-        const mosques = [
-          { id:"makkah",  icon:"🕋", title:"Masjid Al-Haram",  arabic:"المسجد الحرام",  color:"#E5534B", handle:"@saudiqurantv",  imams:MAKKAH_IMAMS, img:"/Makkah.png", bgPos:"center 70%" },
-          { id:"madinah", icon:"🌙", title:"Masjid An-Nabawi", arabic:"المسجد النبوي", color:"#F0C040", handle:"@saudisunnahtv", imams:MADINAH_IMAMS, img:"/Madinah.png", bgPos:"center bottom" },
-        ];
+        const mosques = HARAMAIN_MOSQUES;
 
         return (
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
