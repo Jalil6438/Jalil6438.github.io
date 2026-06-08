@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, Fragment } from "react";
-import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
-import { getSessionWisdom } from "../data/sessions";
 import { saveCompletedAyahs, toArabicDigits, normalizeUthmani } from "../utils";
 import { useQcfFont } from "../hooks/useQcfFont";
 import { useMushafData } from "../hooks/useMushafData";
 import { useBismillah } from "../hooks/useBismillah";
 import MushafPage from "../components/MushafPage";
+import SessionWisdom from "../components/SessionWisdom";
+import PairModal from "../components/PairModal";
+import CloserModal from "../components/CloserModal";
+import AyahPopupModal from "../components/AyahPopupModal";
 import {
   buildConnSurahGroups,
   buildConnectionPairs,
@@ -496,18 +498,7 @@ export default function MyHifzTab(props) {
                         return `Page ${currentPage} of ${totalPages}`;
                       })()}</div>
                     </div>
-                    {(()=>{
-                      const w=getSessionWisdom(sid,(sid==="fajr"||sid==="dhuhr"||sid==="asr")?wisdomOffset:0); if(!w||isDone) return null;
-                      return (
-                        <div style={{marginTop:8,padding:"10px 12px",borderRadius:8,background:dark?"rgba(217,177,95,0.04)":"rgba(180,140,40,0.04)",border:`1px solid ${dark?"rgba(217,177,95,0.08)":"rgba(140,100,20,0.08)"}`,textAlign:"center"}}>
-                          {w.type==="quran"&&<div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"rgba(232,200,120,0.65)":"rgba(140,100,20,0.70)",direction:"rtl",lineHeight:1.8,marginBottom:6}}>{w.arabic}</div>}
-                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#5A4A2A",lineHeight:1.5,fontStyle:w.type==="quran"?"italic":"normal"}}>"{w.text}"</div>
-                          <div style={{fontSize:9,color:dark?"rgba(230,184,74,0.35)":"rgba(140,100,20,0.40)",marginTop:4}}>
-                            {w.type==="quran"?`— ${w.ref}`:w.type==="hadith"?`— From ${w.src||w.attr}`:w.attr?`— From ${w.attr}`:"— From Sheikh Abdul Muhsin Al-Qasim"}
-                          </div>
-                        </div>
-                      );
-                    })()}
+                    <SessionWisdom sid={sid} wisdomOffset={wisdomOffset} isDone={isDone} dark={dark} />
                   </div>
                 </div>
               );
@@ -1130,164 +1121,26 @@ export default function MyHifzTab(props) {
                     soon as every pair in flight is at 10/10. The × is only for leaving
                     the session early; it re-opens when the next pair unlocks. ── */}
                 {showPairModal&&(
-                  <div onClick={()=>setPairModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.72)",backdropFilter:"blur(6px)"}}>
-                    <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto",scrollBehavior:"smooth",borderRadius:20,padding:"24px 20px 20px",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.98) 0%,rgba(10,17,32,0.99) 100%),radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 60%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.25)"}`,boxShadow:"0 24px 60px rgba(0,0,0,0.55),0 0 30px rgba(212,175,55,0.08)"}}>
-                      <div className="sbtn" onClick={()=>setPairModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
-                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingRight:18}}>
-                        <div style={{fontSize:20}}>🔗</div>
-                        <div>
-                          <div style={{fontSize:14,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Connection Phase (الربط)</div>
-                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"rgba(100,70,10,0.60)",marginTop:2,lineHeight:1.4}}>Recite each pair 10 times to link them together, while they are fresh.</div>
-                        </div>
-                      </div>
-                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                        {connVisiblePairs.map((step,idx)=>{
-                          const cr=connectionReps[step.key]||0;
-                          const crDone=cr>=10;
-                          const pct=Math.min((cr/10)*100,100);
-                          return (
-                            <div key={step.key} ref={idx===0?newestPairRef:null} className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[step.key]:Math.min(10,(prev[step.key]||0)+1)}))}
-                              style={{padding:"12px 14px",borderRadius:12,cursor:"pointer",userSelect:"none",background:dark?(crDone?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)"):(crDone?"rgba(74,222,128,0.08)":"rgba(0,0,0,0.03)"),border:`1px solid ${crDone?(dark?"rgba(74,222,128,0.30)":"rgba(46,204,113,0.35)"):(dark?"rgba(217,177,95,0.18)":"rgba(0,0,0,0.10)")}`,transition:"all .15s"}}>
-                              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                                <div style={{fontSize:12,fontWeight:600,color:crDone?(dark?"#4ADE80":"#2ECC71"):(dark?"rgba(243,231,200,0.75)":"#3D2E0A")}}>{step.label}</div>
-                                <div style={{fontSize:11,fontFamily:"'IBM Plex Mono',monospace",color:crDone?"#4ADE80":"rgba(230,184,74,0.65)"}}>{cr}/10</div>
-                              </div>
-                              <div style={{direction:"rtl",textAlign:"right",lineHeight:2}}>
-                                {step.ayahs.map((a,ai)=>(
-                                  <span key={a.verse_key}><span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.80)":"rgba(40,30,10,0.80)"}}>{normalizeUthmani(a.text_uthmani)}</span>{ai<step.ayahs.length-1&&<span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(212,175,55,0.55)":"rgba(140,100,20,0.55)",margin:"0 4px"}}>{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}</span>}</span>
-                                ))}
-                              </div>
-                              <div style={{height:3,marginTop:8,borderRadius:999,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",overflow:"hidden"}}>
-                                <div style={{height:"100%",width:`${pct}%`,background:crDone?"#4ADE80":"linear-gradient(90deg,#E6B84A,#F0C040)",borderRadius:999,transition:"width .3s"}}/>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
+                  <PairModal connVisiblePairs={connVisiblePairs} connectionReps={connectionReps} setConnectionReps={setConnectionReps} newestPairRef={newestPairRef} setPairModalDismissed={setPairModalDismissed} dark={dark} />
                 )}
 
                 {/* ── SURAH CLOSER MODAL — takes over the screen the moment a surah is ready
                     for its "all N ayahs together × 10" closer. Auto-closes on 10/10. The ×
                     is only for early exit. ── */}
-                {showCloserModal&&activeCloser&&(()=>{
-                  const cr=connectionReps[activeCloser.key]||0;
-                  const pct=Math.min((cr/10)*100,100);
-                  return (
-                  <div onClick={()=>setCloserModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:260,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.78)",backdropFilter:"blur(8px)"}}>
-                    <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:520,width:"100%",maxHeight:"88vh",overflowY:"auto",borderRadius:22,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(212,175,55,0.14),rgba(0,0,0,0) 55%),linear-gradient(180deg,rgba(15,26,43,0.99) 0%,rgba(10,17,32,1) 100%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.35)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 30px 70px rgba(0,0,0,0.60),0 0 40px rgba(212,175,55,0.15)"}}>
-                      <div className="sbtn" onClick={()=>setCloserModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
-                      <div style={{textAlign:"center",marginBottom:18,paddingTop:4}}>
-                        <div style={{fontSize:10,letterSpacing:".22em",textTransform:"uppercase",fontWeight:700,color:dark?"rgba(217,177,95,0.75)":"rgba(140,100,20,0.70)",marginBottom:6}}>Surah Closer (الربط)</div>
-                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:dark?"#F3E7BF":"#3D2E0A",lineHeight:1.3}}>{activeCloser.label}</div>
-                        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"rgba(100,70,10,0.65)",marginTop:6,lineHeight:1.5}}>Recite all ayahs together 10 times to seal the surah in memory.</div>
-                      </div>
-                      <div className="sbtn" onClick={()=>setConnectionReps(prev=>({...prev,[activeCloser.key]:Math.min(10,(prev[activeCloser.key]||0)+1)}))}
-                        style={{padding:"16px 16px 18px",borderRadius:14,cursor:"pointer",transition:"all .2s",background:dark?"rgba(212,175,55,0.06)":"rgba(212,175,55,0.06)",border:`1.5px solid ${dark?"rgba(212,175,55,0.35)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 0 14px rgba(212,175,55,0.12),0 4px 14px rgba(0,0,0,0.18)"}}>
-                        <div style={{direction:"rtl",textAlign:"justify",textAlignLast:"center",lineHeight:2,marginBottom:12}}>
-                          {activeCloser.ayahs.map(a=>(
-                            <span key={a.verse_key}>
-                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(243,231,200,0.90)":"rgba(40,30,10,0.90)"}}>{normalizeUthmani(a.text_uthmani)}</span>
-                              <span style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:22,color:dark?"rgba(212,175,55,0.55)":"rgba(140,100,20,0.55)",margin:"0 4px"}}>{toArabicDigits(parseInt(a.verse_key.split(":")[1],10))}</span>
-                            </span>
-                          ))}
-                        </div>
-                        <div style={{fontSize:13,fontWeight:700,color:dark?"rgba(243,231,200,0.80)":"#3D2E0A",marginBottom:8,textAlign:"center"}}>Recited <span style={{color:"#F0C040",fontSize:16}}>{cr}/10</span> · Tap to count</div>
-                        <div style={{width:"100%",height:6,borderRadius:999,background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)",overflow:"hidden"}}>
-                          <div style={{height:"100%",width:`${pct}%`,borderRadius:999,background:"linear-gradient(90deg,#E6B84A,#F0C040)",transition:"width .35s cubic-bezier(.4,0,.2,1)"}}/>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  );
-                })()}
+                {showCloserModal&&activeCloser&&(
+                  <CloserModal activeCloser={activeCloser} connectionReps={connectionReps} setConnectionReps={setConnectionReps} setCloserModalDismissed={setCloserModalDismissed} dark={dark} />
+                )}
 
                 {/* ── AYAH POPUP MODAL (all non-ASR sessions) ── */}
-                {currentSessionId!=="asr"&&openAyah&&(()=>{
-                  const mv=batch.find(v=>v.verse_key===openAyah);
-                  if(!mv) return null;
-                  const mvKey=mv.verse_key;
-                  const mvSurah=mv.surah_number||parseInt(mvKey.split(":")[0],10);
-                  const mvAyah=mvKey.split(":")[1];
-                  const mvTrans=translations[mvKey];
-                  const mvPlaying=playingKey===mvKey;
-                  const mvLoading=audioLoading===mvKey;
-                  const mvReps=repCounts[mvKey]||0;
-                  const mvRepsDone=mvReps>=repTarget;
-                  const mvPct=Math.min((mvReps/repTarget)*100,100);
-                  return (
-                    <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setOpenAyah(null)}>
-                      <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
-                        <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
-                        {/* Arabic */}
-                        <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
-                          {normalizeUthmani(mv.text_uthmani)}
-                        </div>
-                        {/* Reference */}
-                        <div style={{textAlign:"center",fontSize:12,color:"rgba(243,231,200,0.45)",marginBottom:20}}>
-                          Ayah {mvAyah} of Surah {SURAH_EN[mvSurah]||mvSurah}
-                        </div>
-                        {/* Translation */}
-                        <div style={{color:"rgba(243,231,200,0.78)",fontSize:14,lineHeight:1.8,textAlign:"center",marginBottom:18}}>
-                          {mvTrans===undefined?<span style={{color:"rgba(243,231,200,0.42)"}}>Loading...</span>:mvTrans||<span style={{color:"rgba(243,231,200,0.42)"}}>Translation unavailable</span>}
-                        </div>
-                        {/* Audio controls */}
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:16}}>
-                          <div className="sbtn" onClick={()=>(hasPerAyah(reciter)||currentReciter?.qulSlug)?playAyah(mvKey,mvKey):null} style={{width:56,height:56,borderRadius:"50%",background:dark?(mvPlaying?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))"):(mvPlaying?"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.10),rgba(228,216,184,0.95))":"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.04),rgba(228,216,184,0.95))"),border:`1.5px solid ${mvPlaying?"rgba(212,175,55,0.40)":"rgba(212,175,55,0.30)"}`,boxShadow:"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,color:mvPlaying?(dark?"#F0C040":"#6B645A"):(dark?"rgba(243,231,200,0.75)":"#5A4A20"),opacity:(hasPerAyah(reciter)||currentReciter?.qulSlug)?1:0.4}}>
-                            {mvLoading?<div className="spin" style={{width:14,height:14,border:"2px solid rgba(212,175,55,0.3)",borderTopColor:"#D4AF37",borderRadius:"50%"}}/>:(mvPlaying?"⏸":"▶")}
-                          </div>
-                          <div className="sbtn" onClick={()=>{setLooping(l=>{const next=!l;if(audioRef.current)audioRef.current.loop=next;return next;});}} style={{width:56,height:56,borderRadius:"50%",background:dark?(looping?"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.12),rgba(12,20,34,0.95))":"radial-gradient(circle at 50% 40%,rgba(212,175,55,0.06),rgba(12,20,34,0.95))"):(looping?"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.10),rgba(228,216,184,0.95))":"radial-gradient(circle at 50% 40%,rgba(139,106,16,0.04),rgba(228,216,184,0.95))"),border:`1.5px solid ${looping?"rgba(212,175,55,0.40)":"rgba(212,175,55,0.30)"}`,boxShadow:"0 0 12px rgba(212,175,55,0.18), 0 4px 14px rgba(0,0,0,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:looping?(dark?"#F0C040":"#6B645A"):(dark?"rgba(243,231,200,0.75)":"#5A4A20")}}>🔁</div>
-                        </div>
-                        {/* Rep counter — only in Fajr (new memorization). Review sessions
-                            show translation + audio only; no rep taps to avoid confusing
-                            users into thinking reviews involve 20× repetition. */}
-                        {currentSessionId==="fajr"&&(
-                          <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(repTarget,(prev[mvKey]||0)+1);if(newCount>=repTarget&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}if(newCount>=repTarget){setTimeout(()=>setOpenAyah(null),450);}return{...prev,[mvKey]:newCount};});}}
-                            style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .3s ease",
-                              background:dark?(mvRepsDone?"rgba(212,175,55,0.10)":"rgba(212,175,55,0.04)"):(mvRepsDone?"rgba(0,0,0,0.08)":"rgba(0,0,0,0.03)"),
-                              border:`1.5px solid ${mvRepsDone?"rgba(212,175,55,0.45)":"rgba(212,175,55,0.25)"}`,
-                              boxShadow:mvRepsDone?"0 0 16px rgba(212,175,55,0.20), 0 4px 14px rgba(0,0,0,0.15)":"0 0 12px rgba(212,175,55,0.12), 0 4px 14px rgba(0,0,0,0.10)"}}>
-                            {mvRepsDone?(
-                              <div style={{fontSize:13,fontWeight:700,color:"#E6B84A"}}>✓ {repTarget}/{repTarget} Complete — MashaAllah!</div>
-                            ):(
-                              <div>
-                                <div style={{fontSize:13,fontWeight:600,color:"rgba(255,255,255,0.7)",marginBottom:8}}>Recited <span style={{color:"#F0C040",fontWeight:700,transition:"all .2s"}}>{mvReps}/{repTarget}</span> · Tap after each recitation</div>
-                                <div style={{width:"100%",height:5,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
-                                  <div style={{width:`${mvPct}%`,height:"100%",borderRadius:999,background:mvPct>=100?"linear-gradient(90deg,#D4AF37,#F6E27A)":"linear-gradient(90deg,rgba(220,90,90,0.85) 0%,rgba(224,178,66,0.9) 55%,rgba(56,214,126,0.9) 100%)",transition:"width 0.4s cubic-bezier(.4,0,.2,1)"}}/>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {currentSessionId==="fajr"&&mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Restart</div>}
-                        {/* Similar verses (المتشابهات) */}
-                        {MUTASHABIHAT[mvKey]&&MUTASHABIHAT[mvKey].some(sk=>completedAyahs.has(sk))&&(
-                          <div style={{marginTop:12,padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
-                            <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
-                            {MUTASHABIHAT[mvKey].filter(sk=>completedAyahs.has(sk)).map(simKey=>{
-                              const [ss,sa]=simKey.split(":");
-                              const nextKey=`${ss}:${Number(sa)+1}`;
-                              const simVerse=batch.find(v=>v.verse_key===simKey)||sessionVerses.find(v=>v.verse_key===simKey);
-                              const nextVerse=batch.find(v=>v.verse_key===nextKey)||sessionVerses.find(v=>v.verse_key===nextKey);
-                              const simText=simVerse?normalizeUthmani(simVerse.text_uthmani):simVerseCache[simKey];
-                              const nextText=nextVerse?normalizeUthmani(nextVerse.text_uthmani):simVerseCache[nextKey+"_next"];
-                              if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
-                              return (
-                                <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
-                                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
-                                  {simText?<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{simText} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(Number(sa))}﴾</span></div>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
-                                  {nextText&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8,marginTop:2}}>{nextText} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(Number(sa)+1)}﴾</span></div>}
-                                </div>
-                              );
-                            })}
-                            <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.25)":"rgba(0,0,0,0.25)",marginTop:4}}>Compare these verses to strengthen your memorization</div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
+                {currentSessionId!=="asr"&&openAyah&&(
+                  <AyahPopupModal
+                    batch={batch} openAyah={openAyah} setOpenAyah={setOpenAyah} translations={translations}
+                    playingKey={playingKey} audioLoading={audioLoading} repCounts={repCounts} setRepCounts={setRepCounts} repTarget={repTarget}
+                    currentSessionId={currentSessionId} dark={dark} hasPerAyah={hasPerAyah} reciter={reciter} currentReciter={currentReciter} playAyah={playAyah}
+                    looping={looping} setLooping={setLooping} audioRef={audioRef} completedAyahs={completedAyahs} setCompletedAyahs={setCompletedAyahs}
+                    sessionVerses={sessionVerses} simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse}
+                  />
+                )}
 
                 {/* ── BATCH DONE / NEXT button — only visible when memorizing is active.
                     Hidden in Mushaf reading mode. ── */}
