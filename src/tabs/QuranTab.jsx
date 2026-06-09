@@ -17,9 +17,11 @@ const SHORT_METRIC_PAGES = new Set([
   46, 55, 57, 76, 83, 100, 101, 161, 175, 242, 245, 246, 379, 590,
 ]);
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { hizbLabel } from "../utils";
 import { loadQulSegments } from "../hooks/useAudio";
+import { useMushafData } from "../hooks/useMushafData";
+import { useBismillah } from "../hooks/useBismillah";
 
 export default function QuranTab(props) {
   const {
@@ -162,11 +164,31 @@ export default function QuranTab(props) {
   // — line-wrap calculations were done against each font's metrics, so a
   // mismatch causes some lines to come up short and `space-between` spreads
   // them unevenly.
-  const [pagesV2, setPagesV2] = useState(null);
-  const [layoutV2, setLayoutV2] = useState(null);
-  const mushafPagesData = pagesV2;
-  const mushafLayoutData = layoutV2;
-  const [pageContentMap, setPageContentMap] = useState(null); // { [page]: [{sNum, minA, maxA}, ...] }
+  const { mushafPagesData, mushafLayoutData, verseToPageMap } = useMushafData({
+    withVerseToPage: true,
+  });
+  // Invert verse->page into page->[{sNum,minA,maxA}] so bookmark pages can list
+  // their surahs + ayah ranges. (Was an inline fetch + setPageContentMap.)
+  const pageContentMap = useMemo(() => {
+    if (!verseToPageMap) return null;
+    const inv = {};
+    Object.entries(verseToPageMap).forEach(([vk, pg]) => {
+      const [s, a] = vk.split(":").map(Number);
+      if (!inv[pg]) inv[pg] = {};
+      if (!inv[pg][s]) inv[pg][s] = { min: a, max: a };
+      else {
+        if (a < inv[pg][s].min) inv[pg][s].min = a;
+        if (a > inv[pg][s].max) inv[pg][s].max = a;
+      }
+    });
+    const out = {};
+    Object.entries(inv).forEach(([pg, surahs]) => {
+      out[pg] = Object.entries(surahs)
+        .map(([s, r]) => ({ sNum: Number(s), minA: r.min, maxA: r.max }))
+        .sort((a, b) => a.sNum - b.sNum);
+    });
+    return out;
+  }, [verseToPageMap]);
   // Verses physically on the current mushaf page per OUR layout
   // (KFGQPC v2 verse-to-page.json). quran.com's default by_page uses
   // different page boundaries, so we drive the Translation view from
@@ -181,45 +203,6 @@ export default function QuranTab(props) {
   const [glyphVerseKeys, setGlyphVerseKeys] = useState([]);
   // Cache per-surah code_v2 lookups so flipping pages within a surah is fast.
   const codeV2CacheRef = useRef({});
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [pV2, lV2, v] = await Promise.all([
-          fetch("/v2/mushaf-pages.json"),
-          fetch("/v2/mushaf-layout.json"),
-          fetch("/verse-to-page.json"),
-        ]);
-        if (!cancelled && pV2.ok) setPagesV2(await pV2.json());
-        if (!cancelled && lV2.ok) setLayoutV2(await lV2.json());
-        if (!cancelled && v.ok) {
-          const map = await v.json();
-          // Invert verse->page into page->[{sNum,minA,maxA}] so bookmark
-          // pages can list their surahs + ayah ranges.
-          const inv = {};
-          Object.entries(map).forEach(([vk, pg]) => {
-            const [s, a] = vk.split(":").map(Number);
-            if (!inv[pg]) inv[pg] = {};
-            if (!inv[pg][s]) inv[pg][s] = { min: a, max: a };
-            else {
-              if (a < inv[pg][s].min) inv[pg][s].min = a;
-              if (a > inv[pg][s].max) inv[pg][s].max = a;
-            }
-          });
-          const out = {};
-          Object.entries(inv).forEach(([pg, surahs]) => {
-            out[pg] = Object.entries(surahs)
-              .map(([s, r]) => ({ sNum: Number(s), minA: r.min, maxA: r.max }))
-              .sort((a, b) => a.sNum - b.sNum);
-          });
-          setPageContentMap(out);
-        }
-      } catch {}
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // Build the exact list of verses physically on this page (per our layout)
   // by fetching the surahs covering it and slicing to the right ayah ranges.
@@ -328,27 +311,7 @@ export default function QuranTab(props) {
   // Fetch Fatihah verse 1:1 (the universal bismillah) once. We render
   // every surah-opener bismillah using THESE exact glyphs + the p1 font,
   // so the style is identical to what you see on page 1 of the mushaf.
-  const [bismillahGlyphs, setBismillahGlyphs] = useState(null);
-  useEffect(() => {
-    loadQcfFont(1);
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(
-          "https://api.quran.com/api/v4/verses/by_key/1:1?words=true&word_fields=code_v2,char_type_name",
-        );
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        const words = (data.verse?.words || [])
-          .filter((w) => w.char_type_name === "word")
-          .map((w) => w.code_v2 || "");
-        if (!cancelled && words.length) setBismillahGlyphs(words.join(""));
-      } catch {}
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [tajweedFont]);
+  const bismillahGlyphs = useBismillah(loadQcfFont);
 
   // Track the rub_el_hizb_number of the LAST verse on the previous page so we
   // can detect when a new rub starts at the very first verse of the current
