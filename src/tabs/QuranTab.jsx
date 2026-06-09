@@ -11,7 +11,7 @@ const SHORT_METRIC_PAGES = new Set([
 ]);
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import React, { useState, useEffect, useRef } from "react";
-import { toArabicDigits } from "../utils";
+import { toArabicDigits, hizbLabel } from "../utils";
 import { loadQulSegments } from "../hooks/useAudio";
 
 export default function QuranTab(props) {
@@ -106,44 +106,25 @@ export default function QuranTab(props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [setMushafPage]);
-  // Tajweed coloring is just the third Reading mode — derived, not its own
-  // state. quranMode persistence happens in the parent.
-  // TAJWEED DISABLED 2026-04-26 — uncomment line below + delete `false` line
-  // to restore. All V4 conditional branches stay live but unreachable while
-  // tajweedFont is hardcoded to false.
-  // const tajweedFont = quranMode === "tajweed";
+  // Tajweed (V4) coloring is disabled. The V4 font/layout/palette scaffolding
+  // was removed in cleanup; this flag stays false so the few remaining
+  // tajweedFont ? "v4" : "v2" expressions in the renderer fold to "v2".
+  // To restore tajweed, reintroduce V4 font + layout loading and flip this.
   const tajweedFont = false;
   const loadQcfFont = (pageN) => {
     if (!pageN || pageN < 1 || pageN > 604) return;
-    // V2 fonts (quran.com CDN) for plain Study mode, V4-tajweed (self-hosted
-    // in /fonts/v4/) when the user opts into tajweed coloring. Use a per-
-    // edition family name (p${pageN}-v2 / p${pageN}-v4) so both editions
-    // can coexist without collision and the renderer picks the active one.
-    const ed = tajweedFont ? "v4" : "v2";
-    const isTajweedEd = tajweedFont;
-    const family = `p${pageN}-${ed}`;
-    // ID includes the family name to avoid collision with other consumers
-    // (MyHifz, Asr, Memorization) which register `font-family: 'p${pageN}'`
-    // under id `qcf-font-v2-${pageN}`. Same id would short-circuit our
-    // registration and our `p${pageN}-${ed}` family would never exist.
+    // KFGQPC V2 per-page font from the quran.com CDN. ID includes the family
+    // name to avoid collision with other consumers (MyHifz, Asr, Memorization).
+    const family = `p${pageN}-v2`;
     const elId = `qcf-font-${family}`;
     if (!document.getElementById(elId)) {
       const style = document.createElement("style");
       style.id = elId;
-      const src = isTajweedEd
-        ? `url('/fonts/v4/p${pageN}.woff2') format('woff2')`
-        : `url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff')`;
-      // For the V4 tajweed font, register a custom palette that overrides the
-      // base ink color (index 0 — the non-tajweed letters) to ivory so the
-      // text remains legible on dark mode while tajweed-rule colors stay
-      // intact. The @font-palette-values rule binds to this specific family.
-      const paletteRule = isTajweedEd
-        ? `@font-palette-values --dark-${family}{font-family:'${family}';base-palette:0;override-colors:0 #E8DFC0;}`
-        : "";
-      style.textContent = `@font-face{font-family:'${family}';src:${src};font-display:block;}${paletteRule}`;
+      const src = `url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff2/p${pageN}.woff2') format('woff2'),url('https://cdn.jsdelivr.net/gh/quran/quran.com-frontend-next@production/public/fonts/quran/hafs/v2/woff/p${pageN}.woff') format('woff')`;
+      style.textContent = `@font-face{font-family:'${family}';src:${src};font-display:block;}`;
       document.head.appendChild(style);
     }
-    const key = `${ed}-${pageN}`;
+    const key = `v2-${pageN}`;
     if (loadedFonts.has(key)) return;
     if (document.fonts && document.fonts.load) {
       document.fonts
@@ -175,11 +156,9 @@ export default function QuranTab(props) {
   // mismatch causes some lines to come up short and `space-between` spreads
   // them unevenly.
   const [pagesV2, setPagesV2] = useState(null);
-  const [pagesV4, setPagesV4] = useState(null);
   const [layoutV2, setLayoutV2] = useState(null);
-  const [layoutV4, setLayoutV4] = useState(null);
-  const mushafPagesData = tajweedFont ? pagesV4 : pagesV2;
-  const mushafLayoutData = tajweedFont ? layoutV4 : layoutV2;
+  const mushafPagesData = pagesV2;
+  const mushafLayoutData = layoutV2;
   const [pageContentMap, setPageContentMap] = useState(null); // { [page]: [{sNum, minA, maxA}, ...] }
   // Verses physically on the current mushaf page per OUR layout
   // (KFGQPC v2 verse-to-page.json). quran.com's default by_page uses
@@ -199,20 +178,13 @@ export default function QuranTab(props) {
     let cancelled = false;
     (async () => {
       try {
-        // TAJWEED DISABLED 2026-04-26 — V4 layout/pages fetched but unused
-        // while tajweedFont is hardcoded false. Restore by uncommenting V4
-        // entries below + the setPagesV4/setLayoutV4 lines.
-        const [pV2, lV2, /*pV4, lV4,*/ v] = await Promise.all([
+        const [pV2, lV2, v] = await Promise.all([
           fetch("/v2/mushaf-pages.json"),
           fetch("/v2/mushaf-layout.json"),
-          /* fetch("/mushaf-pages.json"),     // active default = V4
-          fetch("/mushaf-layout.json"), */
           fetch("/verse-to-page.json"),
         ]);
         if (!cancelled && pV2.ok) setPagesV2(await pV2.json());
         if (!cancelled && lV2.ok) setLayoutV2(await lV2.json());
-        /* if (!cancelled && pV4.ok) setPagesV4(await pV4.json());
-        if (!cancelled && lV4.ok) setLayoutV4(await lV4.json()); */
         if (!cancelled && v.ok) {
           const map = await v.json();
           // Invert verse->page into page->[{sNum,minA,maxA}] so bookmark
@@ -418,6 +390,56 @@ export default function QuranTab(props) {
     : "#F3E9D2";
   const goldColor = "#E8D5A3";
   const inkColor = "#E8D5A3";
+
+  // Play a single ayah: qulSlug reciters seek+clip the surah file to the
+  // ayah's [from,to]; everyayah reciters stream the per-ayah mp3. Shared by
+  // the reading viewer and the ayah drawer.
+  const playAyahAudio = async (vk) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setPlayingKey(null);
+    }
+    const [s, a] = vk.split(":");
+    const rObj = RECITERS.find((r) => r.id === quranReciter);
+    if (rObj?.qulSlug) {
+      try {
+        const data = await loadQulSegments(rObj.qulSlug);
+        const t = data.verses[vk];
+        if (t) {
+          const url = `${data.audio_base}${String(s).padStart(3, "0")}.mp3`;
+          const au = new Audio(url);
+          audioRef.current = au;
+          const startMs = t[0],
+            endMs = t[1];
+          au.onloadedmetadata = () => {
+            try {
+              au.currentTime = startMs / 1000;
+            } catch {}
+            au.play();
+          };
+          au.ontimeupdate = () => {
+            if (au.currentTime * 1000 >= endMs) {
+              try {
+                au.pause();
+              } catch {}
+              setPlayingKey(null);
+            }
+          };
+          setPlayingKey(vk);
+          return;
+        }
+      } catch {}
+    }
+    const folder = getEveryayahFolder(quranReciter);
+    if (!folder) return;
+    const url = `https://everyayah.com/data/${folder}/${String(s).padStart(3, "0")}${String(a).padStart(3, "0")}.mp3`;
+    const au = new Audio(url);
+    audioRef.current = au;
+    setPlayingKey(vk);
+    au.play();
+    au.onended = () => setPlayingKey(null);
+  };
 
   return (
     <div
@@ -2025,53 +2047,6 @@ export default function QuranTab(props) {
                 }}
               >
                 {(() => {
-                  const playAyahAudio = async (vk) => {
-                    if (audioRef.current) {
-                      audioRef.current.pause();
-                      audioRef.current = null;
-                      setPlayingKey(null);
-                    }
-                    const [s, a] = vk.split(":");
-                    const rObj = RECITERS.find((r) => r.id === quranReciter);
-                    // qulSlug → play surah file with seek+clip to ayah's [from,to]
-                    if (rObj?.qulSlug) {
-                      try {
-                        const data = await loadQulSegments(rObj.qulSlug);
-                        const t = data.verses[vk];
-                        if (t) {
-                          const url = `${data.audio_base}${String(s).padStart(3, "0")}.mp3`;
-                          const au = new Audio(url);
-                          audioRef.current = au;
-                          const startMs = t[0],
-                            endMs = t[1];
-                          au.onloadedmetadata = () => {
-                            try {
-                              au.currentTime = startMs / 1000;
-                            } catch {}
-                            au.play();
-                          };
-                          au.ontimeupdate = () => {
-                            if (au.currentTime * 1000 >= endMs) {
-                              try {
-                                au.pause();
-                              } catch {}
-                              setPlayingKey(null);
-                            }
-                          };
-                          setPlayingKey(vk);
-                          return;
-                        }
-                      } catch {}
-                    }
-                    const folder = getEveryayahFolder(quranReciter);
-                    if (!folder) return;
-                    const url = `https://everyayah.com/data/${folder}/${String(s).padStart(3, "0")}${String(a).padStart(3, "0")}.mp3`;
-                    const au = new Audio(url);
-                    audioRef.current = au;
-                    setPlayingKey(vk);
-                    au.play();
-                    au.onended = () => setPlayingKey(null);
-                  };
                   // Group verses by surah for proper header centering
                   const surahGroups = [];
                   let cg = null;
@@ -2351,26 +2326,14 @@ export default function QuranTab(props) {
                     rubs.push(1);
                   }
                   const r = rubs[0];
-                  let hizbLabel = null;
-                  if (r != null) {
-                    const pos = ((r - 1) % 4) + 1;
-                    const hizb = Math.ceil(r / 4);
-                    hizbLabel =
-                      pos === 1
-                        ? `Hizb ${hizb}`
-                        : pos === 2
-                          ? `1/4 Hizb ${hizb}`
-                          : pos === 3
-                            ? `1/2 Hizb ${hizb}`
-                            : `3/4 Hizb ${hizb}`;
-                  }
+                  const marker = hizbLabel(r);
                   const isOdd = mushafPage % 2 === 1;
                   const text = isOdd
-                    ? hizbLabel
-                      ? `${hizbLabel} | Page ${mushafPage}`
+                    ? marker
+                      ? `${marker} | Page ${mushafPage}`
                       : `Page ${mushafPage}`
-                    : hizbLabel
-                      ? `Page ${mushafPage} | ${hizbLabel}`
+                    : marker
+                      ? `Page ${mushafPage} | ${marker}`
                       : `Page ${mushafPage}`;
                   return (
                     <div
@@ -2410,52 +2373,6 @@ export default function QuranTab(props) {
                 // Play Range happens to be passing through this ayah.
                 const isPlaying =
                   !mushafAudioPlaying && playingKey === selectedAyah;
-                const playAyahAudio = async (vk) => {
-                  if (audioRef.current) {
-                    audioRef.current.pause();
-                    audioRef.current = null;
-                    setPlayingKey(null);
-                  }
-                  const [s, a] = vk.split(":");
-                  const rObj = RECITERS.find((r) => r.id === quranReciter);
-                  if (rObj?.qulSlug) {
-                    try {
-                      const data = await loadQulSegments(rObj.qulSlug);
-                      const t = data.verses[vk];
-                      if (t) {
-                        const url = `${data.audio_base}${String(s).padStart(3, "0")}.mp3`;
-                        const au = new Audio(url);
-                        audioRef.current = au;
-                        const startMs = t[0],
-                          endMs = t[1];
-                        au.onloadedmetadata = () => {
-                          try {
-                            au.currentTime = startMs / 1000;
-                          } catch {}
-                          au.play();
-                        };
-                        au.ontimeupdate = () => {
-                          if (au.currentTime * 1000 >= endMs) {
-                            try {
-                              au.pause();
-                            } catch {}
-                            setPlayingKey(null);
-                          }
-                        };
-                        setPlayingKey(vk);
-                        return;
-                      }
-                    } catch {}
-                  }
-                  const folder = getEveryayahFolder(quranReciter);
-                  if (!folder) return;
-                  const url = `https://everyayah.com/data/${folder}/${String(s).padStart(3, "0")}${String(a).padStart(3, "0")}.mp3`;
-                  const au = new Audio(url);
-                  audioRef.current = au;
-                  setPlayingKey(vk);
-                  au.play();
-                  au.onended = () => setPlayingKey(null);
-                };
                 return (
                   <>
                     <div

@@ -74,6 +74,22 @@ export function toArabicDigits(num) {
   return String(num).replace(/[0-9]/g, d => "\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669"[d]);
 }
 
+// Mushaf hizb marker for a rub_el_hizb_number (1\u2013240). Each hizb is 4 rubs:
+// pos 1 = "Hizb N", 2 = "1/4 Hizb N", 3 = "1/2 Hizb N", 4 = "3/4 Hizb N".
+// Returns null for nullish input. Shared by the mushaf page footers.
+export function hizbLabel(r) {
+  if (r == null) return null;
+  const pos = ((r - 1) % 4) + 1;
+  const hizb = Math.ceil(r / 4);
+  return pos === 1
+    ? `Hizb ${hizb}`
+    : pos === 2
+      ? `1/4 Hizb ${hizb}`
+      : pos === 3
+        ? `1/2 Hizb ${hizb}`
+        : `3/4 Hizb ${hizb}`;
+}
+
 // Normalize KFGQPC `text_uthmani` for display: the payload encodes the small
 // high rounded zero (U+06DF / \u06df) where the app's serif Quran fonts expect a
 // regular sukun (U+0652 / \u0652). Swapping it keeps rendering consistent. Returns ""
