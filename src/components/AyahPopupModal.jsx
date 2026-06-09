@@ -76,17 +76,24 @@ export default function AyahPopupModal({
             <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
             {MUTASHABIHAT[mvKey].filter(sk=>completedAyahs.has(sk)).map(simKey=>{
               const [ss,sa]=simKey.split(":");
-              const nextKey=`${ss}:${Number(sa)+1}`;
-              const simVerse=batch.find(v=>v.verse_key===simKey)||sessionVerses.find(v=>v.verse_key===simKey);
-              const nextVerse=batch.find(v=>v.verse_key===nextKey)||sessionVerses.find(v=>v.verse_key===nextKey);
+              const saN=Number(sa);
+              const prevKey=saN>1?`${ss}:${saN-1}`:null;
+              const nextKey=`${ss}:${saN+1}`;
+              const findV=k=>batch.find(v=>v.verse_key===k)||sessionVerses.find(v=>v.verse_key===k);
+              const simVerse=findV(simKey),nextVerse=findV(nextKey),prevVerse=prevKey?findV(prevKey):null;
               const simText=simVerse?normalizeUthmani(simVerse.text_uthmani):simVerseCache[simKey];
               const nextText=nextVerse?normalizeUthmani(nextVerse.text_uthmani):simVerseCache[nextKey+"_next"];
+              const prevText=prevVerse?normalizeUthmani(prevVerse.text_uthmani):(prevKey?simVerseCache[prevKey+"_prev"]:"");
               if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
+              // before/after context helps tell near-identical (mutashābih) ayat apart
+              const aya=(t,n,dim)=>(<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:dim?16:18,color:dim?(dark?"rgba(243,231,200,0.40)":"#8A7A5A"):(dark?"rgba(243,231,200,0.78)":"#2D2A26"),fontWeight:dim?400:600,direction:"rtl",textAlign:"right",lineHeight:1.8}}>{t} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(n)}﴾</span></div>);
+              const ctx=(label,key)=>(<div style={{fontSize:8,letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",marginTop:6,marginBottom:1}}>{label} · {key}</div>);
               return (
                 <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
                   <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
-                  {simText?<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8}}>{simText} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(Number(sa))}﴾</span></div>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
-                  {nextText&&<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.70)":"#3D2E0A",direction:"rtl",textAlign:"right",lineHeight:1.8,marginTop:2}}>{nextText} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(Number(sa)+1)}﴾</span></div>}
+                  {prevText&&<>{ctx("↑ Ayah before",prevKey)}{aya(prevText,saN-1,true)}</>}
+                  {simText?<>{ctx("● Similar ayah",simKey)}{aya(simText,saN,false)}</>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
+                  {nextText&&<>{ctx("↓ Ayah after",nextKey)}{aya(nextText,saN+1,true)}</>}
                 </div>
               );
             })}
