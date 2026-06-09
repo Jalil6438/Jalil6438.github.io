@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, Fragment } from "react";
 import MUTASHABIHAT from "../mutashabihat.json";
+import SimilarVerses from "./SimilarVerses";
 import { SURAH_EN } from "../data/constants";
 import { SURAH_AR } from "../data/quran-metadata";
 import { toArabicDigits, mushafImageUrl } from "../utils";
@@ -115,23 +116,13 @@ function AsrSessionView({
     const [simVerseCache,setSimVerseCache]=useState({});
     const fetchSimVerse=async(vk)=>{
       if(simVerseCache[vk]) return;
-      const [s,a]=vk.split(":");
-      const aN=Number(a);
-      const nextKey=`${s}:${aN+1}`;
-      const prevKey=aN>1?`${s}:${aN-1}`:null; // ayah before the mutashabih (for before/after context)
+      const [s,a]=vk.split(":"); const aN=Number(a);
+      const want=[aN>1?`${s}:${aN-1}`:null, vk, `${s}:${aN+1}`].filter(Boolean);
       try{
-        const [res1,res2,res3]=await Promise.all([
-          fetch(`https://api.quran.com/api/v4/verses/by_key/${vk}?words=false&fields=text_uthmani`),
-          fetch(`https://api.quran.com/api/v4/verses/by_key/${nextKey}?words=false&fields=text_uthmani`),
-          prevKey?fetch(`https://api.quran.com/api/v4/verses/by_key/${prevKey}?words=false&fields=text_uthmani`):Promise.resolve(null)
-        ]);
-        const d1=res1&&res1.ok?await res1.json():null;
-        const d2=res2&&res2.ok?await res2.json():null;
-        const d3=res3&&res3.ok?await res3.json():null;
-        const text=(d1?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-        const nextText=(d2?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-        const prevText=(d3?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-        if(text) setSimVerseCache(prev=>({...prev,[vk]:text,[nextKey+"_next"]:nextText,...(prevKey?{[prevKey+"_prev"]:prevText}:{})}));
+        const ress=await Promise.all(want.map(k=>fetch(`https://api.quran.com/api/v4/verses/by_key/${k}?words=false&fields=text_uthmani`)));
+        const upd={};
+        for(let i=0;i<want.length;i++){ if(ress[i]&&ress[i].ok){ const d=await ress[i].json(); const t=(d?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652"); if(t) upd[want[i]]=t; } }
+        if(upd[vk]) setSimVerseCache(prev=>({...prev,...upd}));
       }catch{}
     };
     const T2={
@@ -466,37 +457,7 @@ function AsrSessionView({
                     {evLoading?"…":evPlaying?"⏸":"▶"}
                   </div>
                 </div>
-                {MUTASHABIHAT[evKey]&&MUTASHABIHAT[evKey].some(sk=>completedAyahs?.has(sk))&&(
-                  <div style={{padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
-                    <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
-                    {MUTASHABIHAT[evKey].filter(sk=>completedAyahs?.has(sk)).map(simKey=>{
-                      const [ss,sa]=simKey.split(":");
-                      const saN=Number(sa);
-                      const prevKey=saN>1?`${ss}:${saN-1}`:null;
-                      const nextKey=`${ss}:${saN+1}`;
-                      const txt=v=>(v?.text_uthmani||"").replace(/۟/g,"ْ");
-                      const simVerse=asrBatch.find(v=>v.verse_key===simKey);
-                      const nextVerse=asrBatch.find(v=>v.verse_key===nextKey);
-                      const prevVerse=prevKey?asrBatch.find(v=>v.verse_key===prevKey):null;
-                      const simText=simVerse?txt(simVerse):simVerseCache[simKey];
-                      const nextText=nextVerse?txt(nextVerse):simVerseCache[nextKey+"_next"];
-                      const prevText=prevVerse?txt(prevVerse):(prevKey?simVerseCache[prevKey+"_prev"]:"");
-                      if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
-                      // before/after context helps tell near-identical (mutashabih) ayat apart
-                      const aya=(t,n,dim)=>(<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:dim?16:18,color:dim?(dark?"rgba(243,231,200,0.40)":"#8A7A5A"):(dark?"rgba(243,231,200,0.70)":"#3D2E0A"),fontWeight:dim?400:600,direction:"rtl",textAlign:"right",lineHeight:1.8}}>{t} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(n)}﴾</span></div>);
-                      const ctx=(label,key)=>(<div style={{fontSize:8,letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",marginTop:6,marginBottom:1}}>{label} · {key}</div>);
-                      return (
-                        <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
-                          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
-                          {prevText&&<>{ctx("↑ Ayah before",prevKey)}{aya(prevText,saN-1,true)}</>}
-                          {simText?<>{ctx("● Similar ayah",simKey)}{aya(simText,saN,false)}</>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
-                          {nextText&&<>{ctx("↓ Ayah after",nextKey)}{aya(nextText,saN+1,true)}</>}
-                        </div>
-                      );
-                    })}
-                    <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.25)":"rgba(0,0,0,0.25)",marginTop:4}}>Compare these verses to strengthen your memorization</div>
-                  </div>
-                )}
+                {<SimilarVerses mvKey={evKey} matches={MUTASHABIHAT[evKey]} completedAyahs={completedAyahs} dark={dark} resolveText={k=>{const v=asrBatch.find(x=>x.verse_key===k);return v?(v.text_uthmani||"").replace(/\u06DF/g,"\u0652"):simVerseCache[k];}} requestFetch={fetchSimVerse} />}
               </div>
             </div>
           );

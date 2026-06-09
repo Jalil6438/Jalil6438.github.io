@@ -1,6 +1,7 @@
 import MUTASHABIHAT from "../mutashabihat.json";
 import { SURAH_EN } from "../data/constants";
-import { saveCompletedAyahs, toArabicDigits, normalizeUthmani } from "../utils";
+import { saveCompletedAyahs, normalizeUthmani } from "../utils";
+import SimilarVerses from "./SimilarVerses";
 
 // Ayah detail popup for all non-Asr sessions — Arabic + reference + translation,
 // audio play/loop, the Fajr rep counter (20×), and similar-verses (المتشابهات).
@@ -12,7 +13,7 @@ export default function AyahPopupModal({
   playingKey, audioLoading, repCounts, setRepCounts, repTarget,
   currentSessionId, dark, hasPerAyah, reciter, currentReciter, playAyah,
   looping, setLooping, audioRef, completedAyahs, setCompletedAyahs,
-  sessionVerses, simVerseCache, fetchSimVerse,
+  sessionVerses, simVerseCache, fetchSimVerse, sessionJuz,
 }) {
   const mv=batch.find(v=>v.verse_key===openAyah);
   if(!mv) return null;
@@ -29,7 +30,8 @@ export default function AyahPopupModal({
     <div style={{position:"fixed",inset:0,zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.70)",backdropFilter:"blur(6px)"}} onClick={()=>setOpenAyah(null)}>
       <div className="fi" style={{position:"relative",width:"100%",maxWidth:400,maxHeight:"85vh",overflowY:"auto",borderRadius:24,padding:"28px 22px 22px",background:dark?"radial-gradient(circle at 50% 0%,rgba(58,92,165,0.10) 0%,rgba(0,0,0,0) 40%),linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",border:"1px solid rgba(217,177,95,0.15)",boxShadow:"0 24px 60px rgba(0,0,0,0.50),0 0 30px rgba(217,177,95,0.06)"}} onClick={e=>e.stopPropagation()}>
         <div className="sbtn" onClick={()=>setOpenAyah(null)} style={{position:"absolute",top:14,right:18,fontSize:18,color:"rgba(243,231,200,0.30)"}}>×</div>
-        {/* Arabic */}
+        {/* Current ayah — keep the student's focus on what they're memorizing */}
+        <div style={{fontSize:9,letterSpacing:".18em",textTransform:"uppercase",fontWeight:700,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",textAlign:"center",marginBottom:4}}>Current Ayah · {mvKey}</div>
         <div style={{direction:"rtl",textAlign:"center",fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:"clamp(22px,5.4vw,31px)",lineHeight:2,color:"#F3E7C8",marginBottom:16}}>
           {normalizeUthmani(mv.text_uthmani)}
         </div>
@@ -70,36 +72,16 @@ export default function AyahPopupModal({
           </div>
         )}
         {currentSessionId==="fajr"&&mvReps>0&&<div className="sbtn" onClick={()=>setRepCounts(prev=>({...prev,[mvKey]:0}))} style={{textAlign:"center",fontSize:10,color:"rgba(255,255,255,0.2)",marginTop:8}}>Restart</div>}
-        {/* Similar verses (المتشابهات) */}
-        {MUTASHABIHAT[mvKey]&&MUTASHABIHAT[mvKey].some(sk=>completedAyahs.has(sk))&&(
-          <div style={{marginTop:12,padding:"10px 12px",borderRadius:10,background:dark?"rgba(230,140,40,0.06)":"rgba(180,100,20,0.04)",border:dark?"1px solid rgba(230,140,40,0.15)":"1px solid rgba(180,100,20,0.10)"}}>
-            <div style={{fontSize:10,color:dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)",letterSpacing:".10em",textTransform:"uppercase",fontWeight:600,marginBottom:6}}>Similar Verses · المتشابهات</div>
-            {MUTASHABIHAT[mvKey].filter(sk=>completedAyahs.has(sk)).map(simKey=>{
-              const [ss,sa]=simKey.split(":");
-              const saN=Number(sa);
-              const prevKey=saN>1?`${ss}:${saN-1}`:null;
-              const nextKey=`${ss}:${saN+1}`;
-              const findV=k=>batch.find(v=>v.verse_key===k)||sessionVerses.find(v=>v.verse_key===k);
-              const simVerse=findV(simKey),nextVerse=findV(nextKey),prevVerse=prevKey?findV(prevKey):null;
-              const simText=simVerse?normalizeUthmani(simVerse.text_uthmani):simVerseCache[simKey];
-              const nextText=nextVerse?normalizeUthmani(nextVerse.text_uthmani):simVerseCache[nextKey+"_next"];
-              const prevText=prevVerse?normalizeUthmani(prevVerse.text_uthmani):(prevKey?simVerseCache[prevKey+"_prev"]:"");
-              if(!simText&&!simVerseCache[simKey]) fetchSimVerse(simKey);
-              // before/after context helps tell near-identical (mutashābih) ayat apart
-              const aya=(t,n,dim)=>(<div style={{fontFamily:"'UthmanicHafs','Amiri Quran','Amiri',serif",fontSize:dim?16:18,color:dim?(dark?"rgba(243,231,200,0.40)":"#8A7A5A"):(dark?"rgba(243,231,200,0.78)":"#2D2A26"),fontWeight:dim?400:600,direction:"rtl",textAlign:"right",lineHeight:1.8}}>{t} <span style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:14,color:dark?"rgba(212,175,55,0.30)":"rgba(140,100,20,0.30)"}}>﴿{toArabicDigits(n)}﴾</span></div>);
-              const ctx=(label,key)=>(<div style={{fontSize:8,letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,color:dark?"rgba(243,231,200,0.30)":"#9A8A6A",marginTop:6,marginBottom:1}}>{label} · {key}</div>);
-              return (
-                <div key={simKey} style={{padding:"8px 0",borderTop:dark?"1px solid rgba(255,255,255,0.04)":"1px solid rgba(0,0,0,0.04)"}}>
-                  <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",marginBottom:4}}>{SURAH_EN[Number(ss)]} · {simKey}</div>
-                  {prevText&&<>{ctx("↑ Ayah before",prevKey)}{aya(prevText,saN-1,true)}</>}
-                  {simText?<>{ctx("● Similar ayah",simKey)}{aya(simText,saN,false)}</>:<div style={{fontSize:10,color:dark?"rgba(243,231,200,0.25)":"#9A8A6A"}}>Loading...</div>}
-                  {nextText&&<>{ctx("↓ Ayah after",nextKey)}{aya(nextText,saN+1,true)}</>}
-                </div>
-              );
-            })}
-            <div style={{fontSize:9,color:dark?"rgba(243,231,200,0.25)":"rgba(0,0,0,0.25)",marginTop:4}}>Compare these verses to strengthen your memorization</div>
-          </div>
-        )}
+        {/* Similar verses (المتشابهات) — before/after context + location + status */}
+        <SimilarVerses
+          mvKey={mvKey}
+          matches={MUTASHABIHAT[mvKey]}
+          completedAyahs={completedAyahs}
+          sessionJuz={sessionJuz}
+          dark={dark}
+          resolveText={k=>{const v=batch.find(x=>x.verse_key===k)||sessionVerses.find(x=>x.verse_key===k);return v?normalizeUthmani(v.text_uthmani):simVerseCache[k];}}
+          requestFetch={fetchSimVerse}
+        />
       </div>
     </div>
   );

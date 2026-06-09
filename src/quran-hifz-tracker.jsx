@@ -61,23 +61,14 @@ export default function RihlatAlHifz() {
   const [simVerseCache,setSimVerseCache]=useState({});
   const fetchSimVerse=async(vk)=>{
     if(simVerseCache[vk]) return;
-    const [s,a]=vk.split(":");
-    const aN=Number(a);
-    const nextKey=`${s}:${aN+1}`;
-    const prevKey=aN>1?`${s}:${aN-1}`:null; // ayah before the mutashabih (for before/after context)
+    const [s,a]=vk.split(":"); const aN=Number(a);
+    // look-alike + its neighbours, cached by plain verse_key
+    const want=[aN>1?`${s}:${aN-1}`:null, vk, `${s}:${aN+1}`].filter(Boolean);
     try{
-      const [res1,res2,res3]=await Promise.all([
-        fetch(`https://api.quran.com/api/v4/verses/by_key/${vk}?words=false&fields=text_uthmani`),
-        fetch(`https://api.quran.com/api/v4/verses/by_key/${nextKey}?words=false&fields=text_uthmani`),
-        prevKey?fetch(`https://api.quran.com/api/v4/verses/by_key/${prevKey}?words=false&fields=text_uthmani`):Promise.resolve(null)
-      ]);
-      const d1=res1&&res1.ok?await res1.json():null;
-      const d2=res2&&res2.ok?await res2.json():null;
-      const d3=res3&&res3.ok?await res3.json():null;
-      const text=(d1?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-      const nextText=(d2?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-      const prevText=(d3?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652");
-      if(text) setSimVerseCache(prev=>({...prev,[vk]:text,[nextKey+"_next"]:nextText,...(prevKey?{[prevKey+"_prev"]:prevText}:{})}));
+      const ress=await Promise.all(want.map(k=>fetch(`https://api.quran.com/api/v4/verses/by_key/${k}?words=false&fields=text_uthmani`)));
+      const upd={};
+      for(let i=0;i<want.length;i++){ if(ress[i]&&ress[i].ok){ const d=await ress[i].json(); const t=(d?.verse?.text_uthmani||"").replace(/\u06DF/g,"\u0652"); if(t) upd[want[i]]=t; } }
+      if(upd[vk]) setSimVerseCache(prev=>({...prev,...upd}));
     }catch{}
   };
   const [looping, setLooping]=useState(false);

@@ -1138,7 +1138,7 @@ export default function MyHifzTab(props) {
                     playingKey={playingKey} audioLoading={audioLoading} repCounts={repCounts} setRepCounts={setRepCounts} repTarget={repTarget}
                     currentSessionId={currentSessionId} dark={dark} hasPerAyah={hasPerAyah} reciter={reciter} currentReciter={currentReciter} playAyah={playAyah}
                     looping={looping} setLooping={setLooping} audioRef={audioRef} completedAyahs={completedAyahs} setCompletedAyahs={setCompletedAyahs}
-                    sessionVerses={sessionVerses} simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse}
+                    sessionVerses={sessionVerses} simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse} sessionJuz={sessionJuz}
                   />
                 )}
 
