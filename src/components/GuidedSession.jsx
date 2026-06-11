@@ -9,11 +9,11 @@ import { useEffect, useRef, useState } from "react";
 // performs the real action — no "Next" buttons. Guidance is a manga-style speech
 // bubble that sits BESIDE the highlighted control and points at it with a tail;
 // the control is the hero (glow + pulse) and is never covered. The session is:
-// recite ayah 1 → recite ayah 2 → connect the two → closer. Connection + closer
-// are tappable cards that show the REAL ayahs. The parent runs this with
+// recite ayah 1 → recite ayah 2 → connect the two. Connection is a tappable
+// card that shows the REAL ayahs. The parent runs this with
 // repTarget=1 and tutorialMode on, so nothing is committed as real progress.
 
-const PHRASE = { 1: "Read to Teacher", 2: "Tap Study", 3: "First Ayah", 4: "Recite → Tap", 5: "Next Ayah", 6: "Connect Ayahs", 7: "Recite Together" };
+const PHRASE = { 1: "Read to Teacher", 2: "Tap Study", 3: "First Ayah", 4: "Recite → Tap", 5: "Next Ayah", 6: "Connect Ayahs" };
 const TUT = { 1: "guided-mushaf-btn", 2: "guided-study", 3: "guided-ayah", 4: "guided-rep", 5: "guided-ayah-2" };
 
 const CREAM = "#FBF4E2";
@@ -50,21 +50,20 @@ function Bubble({ left, top, phrase, tailDir, tailOffset }) {
   );
 }
 
-// connection / closer demo card (the hero for steps 6 & 7). Shows the REAL ayahs
-// the user just recited (captured earlier, each with its own font) so they can
-// recite them together, then tap once. The opaque dim hides the live My Hifz UI.
-function DemoCard({ dark, kind, ayahs, onTap }) {
-  const conn = kind === "connection";
+// connection demo card (the hero for step 6). Shows the REAL ayahs the user just
+// recited (captured earlier, each with its own font) so they can recite them
+// together, then tap once. The opaque dim hides the live My Hifz UI behind it.
+function DemoCard({ dark, ayahs, onTap }) {
   const lines = (ayahs || []).filter((a) => a && a.text);
   return (
     <>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.9)", pointerEvents: "auto" }} />
       <div className="sbtn" onClick={onTap} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: "min(340px,88vw)", maxHeight: "72vh", overflowY: "auto", pointerEvents: "auto", background: dark ? "linear-gradient(180deg,#10203A,#0A1424)" : "#EADFC8", border: "1px solid rgba(246,226,122,0.5)", borderRadius: 18, padding: "20px 18px 22px", textAlign: "center", animation: "guidedCardPulse 1.5s ease-in-out infinite" }}>
-        <div style={{ fontSize: 9, letterSpacing: ".2em", textTransform: "uppercase", fontWeight: 800, color: "#F6E27A", marginBottom: 16 }}>{conn ? "Connection" : "Closer"}</div>
+        <div style={{ fontSize: 9, letterSpacing: ".2em", textTransform: "uppercase", fontWeight: 800, color: "#F6E27A", marginBottom: 16 }}>Connection</div>
         {lines.length ? lines.map((a, i) => (
           <div key={i} style={{ direction: "rtl", textAlign: "center", fontFamily: a.font || "'UthmanicHafs','Amiri Quran','Amiri',serif", fontSize: "clamp(22px,6vw,30px)", lineHeight: 2.1, color: dark ? "rgba(255,255,255,0.92)" : "#2D2A26", marginBottom: i < lines.length - 1 ? 4 : 14 }}>{a.text}</div>
-        )) : <div style={{ fontSize: 14, color: dark ? "rgba(243,231,200,0.7)" : "#2D2A26", marginBottom: 14 }}>{conn ? "Connect the two ayahs" : "Recite the section"}</div>}
-        <div style={{ fontSize: 12, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", marginBottom: 16 }}>{conn ? "Recite both ayahs together" : "Recite the section together"}</div>
+        )) : <div style={{ fontSize: 14, color: dark ? "rgba(243,231,200,0.7)" : "#2D2A26", marginBottom: 14 }}>Connect the two ayahs</div>}
+        <div style={{ fontSize: 12, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", marginBottom: 16 }}>Recite both ayahs together</div>
         <div style={{ padding: "13px", borderRadius: 12, background: "linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)", color: "#060A07", fontWeight: 800, fontSize: 14 }}>Recited 0/1 · Tap after reciting</div>
       </div>
     </>
@@ -79,7 +78,7 @@ function Completion({ dark, onComplete }) {
         <div style={{ fontSize: 34, marginBottom: 6 }}>🎓</div>
         <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: dark ? "#F6E27A" : "#6B4F00", marginBottom: 14 }}>Guided Session Complete</div>
         <div style={{ textAlign: "left", display: "inline-block", fontSize: 14, lineHeight: 2, color: dark ? "rgba(243,231,200,0.88)" : "#2D2A26", marginBottom: 20 }}>
-          You learned:<br />✓ Study<br />✓ Repetition<br />✓ Connection<br />✓ Closer
+          You learned:<br />✓ Study<br />✓ Repetition<br />✓ Connection
         </div>
         <div className="sbtn" onClick={onComplete} style={{ padding: "13px", borderRadius: 14, textAlign: "center", fontWeight: 800, fontSize: 14, background: "linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)", color: "#060A07", boxShadow: "0 10px 24px rgba(212,175,55,0.25)" }}>Start Session</div>
       </div>
@@ -89,7 +88,7 @@ function Completion({ dark, onComplete }) {
 
 export default function GuidedSession({ step, setStep, dark, hifzViewMode, openAyah, setOpenAyah, repCounts, onComplete }) {
   const [rect, setRect] = useState(null);
-  // captured ayahs (text + font) for the connection/closer cards — grabbed while
+  // captured ayahs (text + font) for the connection card — grabbed while
   // the Study rows are still on screen, since they're replaced once the real
   // connection phase opens behind the overlay.
   const ayahsRef = useRef([null, null]);
@@ -137,7 +136,7 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
   // ── place the bubble BESIDE the hero, pointing at it, never on it ──
   let target = null;
   if (step <= 5 && rect) target = { cx: rect.left + rect.width / 2, top: rect.top, bottom: rect.bottom };
-  if (step === 6 || step === 7) target = { cx: window.innerWidth / 2, top: window.innerHeight * 0.30, bottom: window.innerHeight * 0.72 };
+  if (step === 6) target = { cx: window.innerWidth / 2, top: window.innerHeight * 0.30, bottom: window.innerHeight * 0.72 };
 
   let bub = null;
   if (target) {
@@ -165,16 +164,16 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
         )
       )}
 
-      {/* STEPS 6–7 — connection / closer card showing the real ayahs */}
-      {(step === 6 || step === 7) && (
-        <DemoCard dark={dark} kind={step === 6 ? "connection" : "closer"} ayahs={cardAyahs} onTap={() => setStep(step + 1)} />
+      {/* STEP 6 — connection card showing the real ayahs */}
+      {step === 6 && (
+        <DemoCard dark={dark} ayahs={cardAyahs} onTap={() => setStep(7)} />
       )}
 
-      {/* the guiding bubble — beside the hero, pointing at it (steps 1–7) */}
-      {step <= 7 && bub && <Bubble left={bub.left} top={bub.top} phrase={phrase} tailDir={bub.tailDir} tailOffset={bub.tailOffset} />}
+      {/* the guiding bubble — beside the hero, pointing at it (steps 1–6) */}
+      {step <= 6 && bub && <Bubble left={bub.left} top={bub.top} phrase={phrase} tailDir={bub.tailDir} tailOffset={bub.tailOffset} />}
 
-      {/* STEP 8 — completion */}
-      {step === 8 && <Completion dark={dark} onComplete={onComplete} />}
+      {/* STEP 7 — completion */}
+      {step === 7 && <Completion dark={dark} onComplete={onComplete} />}
     </div>
   );
 }
