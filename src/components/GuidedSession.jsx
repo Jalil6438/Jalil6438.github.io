@@ -92,6 +92,7 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
   // the Study rows are still on screen, since they're replaced once the real
   // connection phase opens behind the overlay.
   const ayahsRef = useRef([null, null]);
+  const lastRectRef = useRef(null);
   const [cardAyahs, setCardAyahs] = useState([null, null]);
   const repped = Object.keys(repCounts || {}).filter((k) => (repCounts[k] || 0) >= 1);
   const reppedCount = repped.length;
@@ -110,10 +111,10 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
     else if (step === 4 && reppedCount >= 1) next = 5;
     else if (step === 5 && reppedCount >= 2) next = 6; // recited ayah 2 (1 rep)
     if (next != null) {
-      if (next === 6) {
-        setCardAyahs([...ayahsRef.current]); // snapshot the ayahs while the Study rows are still on screen
-        if (setOpenAyah) setOpenAyah(null); // close popup → clean connection card
-      }
+      // close the popup right away so moving to the next ayah / connection is
+      // snappy (otherwise it lingers ~450ms on the completion state).
+      if ((next === 5 || next === 6) && setOpenAyah) setOpenAyah(null);
+      if (next === 6) setCardAyahs([...ayahsRef.current]); // snapshot ayahs while the Study rows are still on screen
       setStep(next);
     }
   }, [step, hifzViewMode, openAyah, reppedCount, setStep, setOpenAyah]);
@@ -121,12 +122,22 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
   // ── live position of the single highlighted control (steps 1–5) ──
   useEffect(() => {
     if (step >= 6) { setRect(null); return; }
+    // capture the ayahs once per step (cheap) while the Study rows are present —
+    // they get replaced when the live connection phase opens. NOT per frame.
+    if (step >= 3) {
+      const a1 = ayahOf("guided-ayah"); if (a1) ayahsRef.current[0] = a1;
+      const a2 = ayahOf("guided-ayah-2"); if (a2) ayahsRef.current[1] = a2;
+    }
     let raf;
     const tick = () => {
       const el = activeTut ? document.querySelector(`[data-tut="${activeTut}"]`) : null;
-      setRect(el ? el.getBoundingClientRect() : null);
-      const a1 = ayahOf("guided-ayah"); if (a1) ayahsRef.current[0] = a1;
-      const a2 = ayahOf("guided-ayah-2"); if (a2) ayahsRef.current[1] = a2;
+      const r = el ? el.getBoundingClientRect() : null;
+      const p = lastRectRef.current;
+      // only re-render when the highlight actually moves — avoids 60fps churn
+      if (!r !== !p || (r && p && (Math.abs(r.left - p.left) > 0.5 || Math.abs(r.top - p.top) > 0.5 || Math.abs(r.width - p.width) > 0.5 || Math.abs(r.height - p.height) > 0.5))) {
+        lastRectRef.current = r;
+        setRect(r);
+      }
       raf = requestAnimationFrame(tick);
     };
     tick();
