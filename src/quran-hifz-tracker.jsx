@@ -10,6 +10,7 @@ import AsrSessionView from "./components/AsrSessionView";
 import QuranPageView from "./components/QuranPageView";
 import JuzSelectorModal from "./components/JuzSelectorModal";
 import SurahPickerModal from "./components/SurahPickerModal";
+import GuidedSession from "./components/GuidedSession";
 import AdjustPlan from "./components/AdjustPlan";
 import RihlahProgressPath from "./components/RihlahProgressPath";
 import AppSideDrawer from "./components/AppSideDrawer";
@@ -43,6 +44,12 @@ export default function RihlatAlHifz() {
   const [twoPageWarning,setTwoPageWarning]=useState(null); // {target, actual} | null
   const [showDua,setShowDua]=useState(true);
   const [showOnboarding, setShowOnboarding]=useState(()=>!localStorage.getItem("rihlat-onboarded"));
+  // Guided first-session tutorial (one-time). Rides on the real My Hifz UI with a
+  // tutorial repTarget of 1; tutorialMode keeps the rep tap from committing real
+  // memorization progress; completion persists as rihlat-guided-session-completed.
+  const [guidedActive,setGuidedActive]=useState(false);
+  const [guidedStep,setGuidedStep]=useState(1);
+  const guidedRepSnapRef=useRef("{}");
   const [onboardStep,setOnboardStep]=useState(1);
   const [visibleOnboardJuzCount,setVisibleOnboardJuzCount]=useState(5);
   const [userName,setUserName]=useState("");
@@ -93,6 +100,23 @@ export default function RihlatAlHifz() {
   // to today's bucket in `rihlat-daily-progress` so DailyProgressChart can
   // render bars over time.
   const prevCompletedSizeRef = useRef(null);
+  // ── Guided tutorial: start once when a brand-new user first reaches My Hifz ──
+  useEffect(() => {
+    if (showOnboarding || showDua || activeTab !== "myhifz" || guidedActive) return;
+    try { if (localStorage.getItem("rihlat-guided-session-completed")) return; } catch { return; }
+    try { guidedRepSnapRef.current = localStorage.getItem("rihlat-rep-counts") || "{}"; } catch {}
+    setGuidedStep(1);
+    setGuidedActive(true);
+  }, [showOnboarding, showDua, activeTab, guidedActive]);
+  const completeGuided = () => {
+    // tutorialMode prevented all completedAyahs/progress writes — only rep-counts
+    // were touched. Restore them so the real first session starts perfectly clean.
+    try { setRepCounts(JSON.parse(guidedRepSnapRef.current || "{}")); } catch { setRepCounts({}); }
+    setHifzViewMode("mushaf");
+    try { localStorage.setItem("rihlat-guided-session-completed", "1"); } catch {}
+    setGuidedActive(false);
+    setGuidedStep(1);
+  };
   useEffect(() => {
     const curr = completedAyahs.size;
     if (prevCompletedSizeRef.current === null) { prevCompletedSizeRef.current = curr; return; }
@@ -2036,7 +2060,8 @@ export default function RihlatAlHifz() {
       {!appPage&&activeTab==="myhifz"&&(
         <MyHifzTab
           pushActivity={pushActivity}
-          repTarget={repTarget}
+          repTarget={guidedActive?1:repTarget}
+          tutorialMode={guidedActive}
           asrSessionView={(!sessLoading&&currentSessionId==="asr"&&asrStarted&&batch.length>0)?(
             <AsrSessionView
               dark={dark}
@@ -2372,6 +2397,10 @@ export default function RihlatAlHifz() {
         setMushafSurahNum={setMushafSurahNum}
         setSelectedSurahNum={setSelectedSurahNum}
       />
+
+      {guidedActive && (
+        <GuidedSession step={guidedStep} setStep={setGuidedStep} dark={dark} hifzViewMode={hifzViewMode} openAyah={openAyah} repCounts={repCounts} onComplete={completeGuided} />
+      )}
 
       {/* Quran Reciter Modal */}
 <TwoPageWarningModal warning={twoPageWarning} onClose={()=>setTwoPageWarning(null)} dark={dark} />

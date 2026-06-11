@@ -13,7 +13,7 @@ export default function AyahPopupModal({
   playingKey, audioLoading, repCounts, setRepCounts, repTarget,
   currentSessionId, dark, hasPerAyah, reciter, currentReciter, playAyah,
   looping, setLooping, audioRef, completedAyahs, setCompletedAyahs,
-  sessionVerses, simVerseCache, fetchSimVerse, sessionJuz,
+  sessionVerses, simVerseCache, fetchSimVerse, sessionJuz, tutorialMode = false,
 }) {
   const mv=batch.find(v=>v.verse_key===openAyah);
   if(!mv) return null;
@@ -54,7 +54,7 @@ export default function AyahPopupModal({
             show translation + audio only; no rep taps to avoid confusing
             users into thinking reviews involve 20× repetition. */}
         {currentSessionId==="fajr"&&(
-          <div className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(repTarget,(prev[mvKey]||0)+1);if(newCount>=repTarget&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}if(newCount>=repTarget){setTimeout(()=>setOpenAyah(null),450);}return{...prev,[mvKey]:newCount};});}}
+          <div data-tut="guided-rep" className={mvRepsDone?"rep-done-glow":""} onClick={()=>{setRepCounts(prev=>{const newCount=Math.min(repTarget,(prev[mvKey]||0)+1);if(newCount>=repTarget&&!tutorialMode&&!completedAyahs.has(mvKey)){setCompletedAyahs(ca=>{const next=new Set(ca);next.add(mvKey);saveCompletedAyahs(next);return next;});}if(newCount>=repTarget){setTimeout(()=>setOpenAyah(null),450);}return{...prev,[mvKey]:newCount};});}}
             style={{width:"100%",padding:"14px",borderRadius:14,textAlign:"center",cursor:"pointer",transition:"all .3s ease",
               background:dark?(mvRepsDone?"rgba(212,175,55,0.10)":"rgba(212,175,55,0.04)"):(mvRepsDone?"rgba(0,0,0,0.08)":"rgba(0,0,0,0.03)"),
               border:`1.5px solid ${mvRepsDone?"rgba(212,175,55,0.45)":"rgba(212,175,55,0.25)"}`,

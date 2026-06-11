@@ -72,6 +72,7 @@ export default function MyHifzTab(props) {
     userPlanMode = "shaykh",
     // Reps per ayah — Shaykh's default is 20; custom users can adjust.
     repTarget = 20,
+    tutorialMode = false,
     // listen-along (full-page recitation helper for Mushaf mode)
     playMushafRange, stopMushafAudio, mushafAudioPlaying,
     // KFGQPC per-page PUA-encoded line data (loaded from /mushaf-pages.json)
@@ -683,7 +684,7 @@ export default function MyHifzTab(props) {
                   {currentSessionId==="fajr"&&isShaykhPlan&&(
                     <div style={{display:"flex",gap:4}}>
                       {["interactive","mushaf"].map(m=>(
-                        <div key={m} className="sbtn" onClick={()=>setHifzViewMode(m)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:hifzViewMode===m?700:400,letterSpacing:".06em",textTransform:"uppercase",color:hifzViewMode===m?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.35)":"#9A8A6A"),background:hifzViewMode===m?(dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)"):"transparent",border:`1px solid ${hifzViewMode===m?(dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"):"transparent"}`}}>
+                        <div key={m} data-tut={m==="interactive"?"guided-study":undefined} className="sbtn" onClick={()=>setHifzViewMode(m)} style={{padding:"3px 8px",borderRadius:6,fontSize:9,fontWeight:hifzViewMode===m?700:400,letterSpacing:".06em",textTransform:"uppercase",color:hifzViewMode===m?(dark?"#E8C76A":"#6B4F00"):(dark?"rgba(243,231,200,0.35)":"#9A8A6A"),background:hifzViewMode===m?(dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)"):"transparent",border:`1px solid ${hifzViewMode===m?(dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"):"transparent"}`}}>
                           {m==="interactive"?"Study":"Mushaf"}
                         </div>
                       ))}
@@ -739,7 +740,7 @@ export default function MyHifzTab(props) {
                     playingKey={playingKey} audioLoading={audioLoading} repCounts={repCounts} setRepCounts={setRepCounts} repTarget={repTarget}
                     currentSessionId={currentSessionId} dark={dark} hasPerAyah={hasPerAyah} reciter={reciter} currentReciter={currentReciter} playAyah={playAyah}
                     looping={looping} setLooping={setLooping} audioRef={audioRef} completedAyahs={completedAyahs} setCompletedAyahs={setCompletedAyahs}
-                    sessionVerses={sessionVerses} simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse} sessionJuz={sessionJuz}
+                    sessionVerses={sessionVerses} simVerseCache={simVerseCache} fetchSimVerse={fetchSimVerse} sessionJuz={sessionJuz} tutorialMode={tutorialMode}
                   />
                 )}
 

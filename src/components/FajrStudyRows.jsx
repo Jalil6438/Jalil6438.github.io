@@ -46,7 +46,7 @@ export default function FajrStudyRows({ batch, isShaykhPlan, verseToPageMap, faj
                             <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(217,177,95,0) 0%,${dark?"rgba(232,200,120,0.30)":"rgba(140,100,20,0.25)"} 50%,rgba(217,177,95,0) 100%)`}}/>
                           </div>
                         )}
-                        <div className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
+                        <div data-tut={i===0?"guided-ayah":i===1?"guided-ayah-2":undefined} className="sbtn" onClick={()=>{setOpenAyah(vKey);fetchTranslations([v]);}}
                           style={{borderRadius:14,padding:"12px 14px",background:dark?"#0F1A2B":"#EADFC8",border:`1px solid ${repsDone?"rgba(230,184,74,0.35)":"rgba(230,184,74,0.08)"}`,boxShadow:repsDone?"0 0 14px rgba(230,184,74,0.10)":"0 2px 8px rgba(0,0,0,0.20)",transition:"all .15s"}}>
                           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
                             <span style={{flex:1,fontSize:11,color:"#9CA3AF"}}>{SURAH_EN[sNum]} · {vKey}</span>
