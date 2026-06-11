@@ -61,7 +61,7 @@ export default function FajrMushafView({ pageBatch, batch, activeSurahNum, fajrP
                     curGroup.verses.push(v);
                   });
                   return (
-                    <div style={{marginBottom:16}}>
+                    <div data-tut="guided-mushaf" style={{marginBottom:16}}>
                       {/* Subtle coaching card — remind the user to read with a qualified
                           teacher first; Study mode is for memorization. */}
                       <div style={{marginBottom:10,padding:"8px 12px",borderRadius:10,background:dark?"rgba(217,177,95,0.05)":"rgba(180,140,40,0.05)",border:`1px solid ${dark?"rgba(217,177,95,0.12)":"rgba(140,100,20,0.12)"}`,fontSize:11,color:dark?"rgba(243,231,200,0.55)":"#5A4A2A",lineHeight:1.5,textAlign:"center"}}>
