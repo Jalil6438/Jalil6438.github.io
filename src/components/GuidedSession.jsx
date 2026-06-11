@@ -34,25 +34,18 @@ const ayahOf = (k) => {
   } catch { return null; }
 };
 
-// manga thought-cloud bubble: a lumpy cream silhouette (overlapping puffs) with a
-// comic ink outline (layered drop-shadows) + trailing tail puffs toward the
-// target. Gently floats so it feels like a companion speaking, not a static pill.
+// soft rounded speech bubble: one clean shape, light outline, a small pointed
+// tail toward the target. Calm — no float, the highlighted control is the hero.
 function Bubble({ left, top, phrase, tailDir, tailOffset }) {
   const down = tailDir === "down";
-  const puff = (d, l, t, k) => <div key={k} style={{ position: "absolute", width: d, height: d, left: l, top: t, borderRadius: "50%", background: CREAM }} />;
   return (
-    <div style={{ position: "absolute", left, top, transform: "translateX(-50%)", pointerEvents: "none", width: 214, height: 80, animation: "guidedFloat 2.6s ease-in-out infinite" }}>
-      {/* cream cloud silhouette + comic outline (4-way drop-shadow) + soft shadow */}
-      <div style={{ position: "absolute", inset: 0, filter: `drop-shadow(2px 0 0 ${INK}) drop-shadow(-2px 0 0 ${INK}) drop-shadow(0 2px 0 ${INK}) drop-shadow(0 -2px 0 ${INK}) drop-shadow(0 9px 12px rgba(0,0,0,0.5))` }}>
-        {/* trailing tail puffs toward the target */}
-        <div style={{ position: "absolute", width: 20, height: 20, borderRadius: "50%", background: CREAM, left: `calc(50% + ${tailOffset}px)`, top: down ? 58 : 2, transform: "translateX(-50%)" }} />
-        <div style={{ position: "absolute", width: 11, height: 11, borderRadius: "50%", background: CREAM, left: `calc(50% + ${tailOffset * 1.4}px)`, top: down ? 76 : -13, transform: "translateX(-50%)" }} />
-        {/* body + bumps */}
-        <div style={{ position: "absolute", left: 22, top: 16, width: 170, height: 48, borderRadius: "50%", background: CREAM }} />
-        {puff(50, 28, 4, "a")}{puff(62, 76, -6, "b")}{puff(52, 130, 2, "c")}{puff(44, 10, 26, "d")}{puff(46, 160, 24, "e")}{puff(48, 56, 40, "f")}{puff(52, 106, 40, "g")}
+    <div style={{ position: "absolute", left, top, transform: "translateX(-50%)", pointerEvents: "none" }}>
+      <div style={{ position: "relative", minWidth: 118, background: CREAM, color: INK, padding: "10px 18px", borderRadius: 18, fontWeight: 700, fontSize: 15.5, whiteSpace: "nowrap", textAlign: "center", boxShadow: "0 8px 22px rgba(0,0,0,0.42)", border: "1.5px solid rgba(42,36,24,0.45)", fontFamily: "'DM Sans',sans-serif", lineHeight: 1.2 }}>
+        {phrase}
+        {/* small pointed tail (thin outline behind a cream fill) */}
+        <div style={{ position: "absolute", left: `calc(50% + ${tailOffset}px)`, [down ? "top" : "bottom"]: "calc(100% - 1px)", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "10px solid transparent", borderRight: "10px solid transparent", [down ? "borderTop" : "borderBottom"]: "13px solid rgba(42,36,24,0.45)" }} />
+        <div style={{ position: "absolute", left: `calc(50% + ${tailOffset}px)`, [down ? "top" : "bottom"]: "calc(100% - 3px)", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "9px solid transparent", borderRight: "9px solid transparent", [down ? "borderTop" : "borderBottom"]: `12px solid ${CREAM}` }} />
       </div>
-      {/* text (outside the outline filter so it stays crisp) */}
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: INK, fontWeight: 800, fontSize: 15, lineHeight: 1.1, fontFamily: "'DM Sans',sans-serif", textAlign: "center", padding: "0 26px" }}>{phrase}</div>
     </div>
   );
 }
@@ -151,12 +144,12 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
     const below = step < 6 && target.top < window.innerHeight * 0.5;
     const top = below ? target.bottom + 18 : Math.max(108, target.top - 62);
     const left = Math.min(Math.max(target.cx, 112), window.innerWidth - 112);
-    bub = { left, top, tailDir: below ? "up" : "down", tailOffset: Math.max(-58, Math.min(58, target.cx - left)) };
+    bub = { left, top, tailDir: below ? "up" : "down", tailOffset: Math.max(-46, Math.min(46, target.cx - left)) };
   }
 
   return (
     <div data-guided-step={step} style={{ position: "fixed", inset: 0, zIndex: 4000, pointerEvents: "none" }}>
-      <style>{`@keyframes guidedPulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 4px rgba(246,226,122,0.7),0 0 22px 6px rgba(246,226,122,0.55)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 7px rgba(246,226,122,0.92),0 0 44px 12px rgba(246,226,122,0.95)}}@keyframes guidedCardPulse{0%,100%{box-shadow:0 0 26px 5px rgba(246,226,122,0.45),0 20px 50px rgba(0,0,0,0.6)}50%{box-shadow:0 0 48px 12px rgba(246,226,122,0.8),0 20px 50px rgba(0,0,0,0.6)}}@keyframes guidedFloat{0%,100%{transform:translateX(-50%) translateY(0) rotate(-1.5deg)}50%{transform:translateX(-50%) translateY(-7px) rotate(1.5deg)}}`}</style>
+      <style>{`@keyframes guidedPulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 4px rgba(246,226,122,0.7),0 0 22px 6px rgba(246,226,122,0.55)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 7px rgba(246,226,122,0.92),0 0 44px 12px rgba(246,226,122,0.95)}}@keyframes guidedCardPulse{0%,100%{box-shadow:0 0 26px 5px rgba(246,226,122,0.45),0 20px 50px rgba(0,0,0,0.6)}50%{box-shadow:0 0 48px 12px rgba(246,226,122,0.8),0 20px 50px rgba(0,0,0,0.6)}}`}</style>
 
       {/* STEP 1 — Mushaf is the hero: very light dim, page fully readable, tap to continue */}
       {step === 1 && (
