@@ -2,15 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import RihlahProgressPath from "../components/RihlahProgressPath";
 import DailyProgressChart from "../components/DailyProgressChart";
 import MilestonesProgress from "../components/MilestonesProgress";
-import HeatmapProgress from "../components/HeatmapProgress";
 import RingsProgress from "../components/RingsProgress";
 import JuzProgressRing from "../components/JuzProgressRing";
 
 // Toggle between the four mockup progression widgets. Lets us flip
 // designs without taking up all the screen real estate at once.
-function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedAyahs, pct, streak, sessionJuz, goalLabel, dailyChecks, recentBatches, checkHistory }) {
+function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedAyahs, pct, streak, sessionJuz, goalLabel, dailyChecks, recentBatches }) {
   const [view, setView] = useState(() => {
-    try { const v = localStorage.getItem("rihlat-gallery-view"); return (!v || v === "tree") ? "milestones" : v; } catch { return "milestones"; }
+    try { const v = localStorage.getItem("rihlat-gallery-view"); return (!v || v === "tree" || v === "heatmap") ? "milestones" : v; } catch { return "milestones"; }
   });
   const pickView = (id) => {
     setView(id);
@@ -22,7 +21,6 @@ function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedA
     { id: "milestones", label: "Milestones" },
     { id: "rings",      label: "Rings"      },
     { id: "bars",       label: "Bars"       },
-    { id: "heatmap",    label: "Heatmap"    },
   ];
   return (
     <>
@@ -43,7 +41,6 @@ function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedA
         ))}
       </div>
       {view === "rings"   && <RingsProgress      dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} dailyChecks={dailyChecks}/>}
-      {view === "heatmap" && <HeatmapProgress    dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} dailyChecks={dailyChecks} checkHistory={checkHistory}/>}
       {view === "milestones" && <MilestonesProgress dark={dark} completedCount={completedCount} completedSurahCount={completedSurahCount} memorizedAyahs={memorizedAyahs} streak={streak} pct={pct} sessionJuz={sessionJuz} goalLabel={goalLabel}/>}
       {view === "bars"    && <DailyProgressChart dark={dark} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} recentBatches={recentBatches} dailyChecks={dailyChecks}/>}
     </>
@@ -133,7 +130,6 @@ export default function RihlahHome({
   userPlanMode,
   goalLabel: goalLabelProp,
   recentBatches,
-  checkHistory,
 }) {
   const isShaykhPlan = userPlanMode !== "custom";
   // Relative time formatter: "just now" / "8 mins ago" / "Yesterday" / "3 days ago"
@@ -261,7 +257,6 @@ export default function RihlahHome({
           goalLabel={goalLabel}
           dailyChecks={dailyChecks}
           recentBatches={recentBatches}
-          checkHistory={checkHistory}
         />
       </div>
 
