@@ -112,6 +112,7 @@ export default function RihlatAlHifz() {
     // tutorialMode prevented all completedAyahs/progress writes — only rep-counts
     // were touched. Restore them so the real first session starts perfectly clean.
     try { setRepCounts(JSON.parse(guidedRepSnapRef.current || "{}")); } catch { setRepCounts({}); }
+    setOpenAyah(null);
     setHifzViewMode("mushaf");
     try { localStorage.setItem("rihlat-guided-session-completed", "1"); } catch {}
     setGuidedActive(false);
@@ -2399,7 +2400,7 @@ export default function RihlatAlHifz() {
       />
 
       {guidedActive && (
-        <GuidedSession step={guidedStep} setStep={setGuidedStep} dark={dark} hifzViewMode={hifzViewMode} openAyah={openAyah} repCounts={repCounts} onComplete={completeGuided} />
+        <GuidedSession step={guidedStep} setStep={setGuidedStep} dark={dark} hifzViewMode={hifzViewMode} openAyah={openAyah} setOpenAyah={setOpenAyah} repCounts={repCounts} onComplete={completeGuided} />
       )}
 
       {/* Quran Reciter Modal */}
