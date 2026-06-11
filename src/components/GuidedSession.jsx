@@ -1,48 +1,77 @@
 /* eslint-disable react-hooks/set-state-in-effect -- the overlay advances its step
    by observing the user's real action on the underlying My Hifz UI (external
    state); each branch is guarded by `step` so it can never loop. */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // ── Guided first-session tutorial ────────────────────────────────────────────
 // A companion that guides a brand-new user through their first hifz session on
 // the REAL My Hifz UI. Each instructional step advances only when the user
 // performs the real action — no "Next" buttons. Guidance is a manga-style speech
 // bubble that sits BESIDE the highlighted control and points at it with a tail;
-// the control is the hero (glow + pulse) and is never covered. Connection and
-// closer are two tappable demo cards. The parent runs this with repTarget=1 and
-// tutorialMode on, so nothing is committed as real memorization progress.
+// the control is the hero (glow + pulse) and is never covered. The session is:
+// recite ayah 1 → recite ayah 2 → connect the two → closer. Connection + closer
+// are tappable cards that show the REAL ayahs. The parent runs this with
+// repTarget=1 and tutorialMode on, so nothing is committed as real progress.
 
 const PHRASE = { 1: "Read to Teacher", 2: "Tap Study", 3: "First Ayah", 4: "Recite → Tap", 5: "Next Ayah", 6: "Connect Ayahs", 7: "Recite Together" };
-const TUT = { 1: "guided-mushaf", 2: "guided-study", 3: "guided-ayah", 4: "guided-rep", 5: "guided-ayah-2" };
+const TUT = { 1: "guided-mushaf-btn", 2: "guided-study", 3: "guided-ayah", 4: "guided-rep", 5: "guided-ayah-2" };
 
 const CREAM = "#FBF4E2";
 const INK = "#2A2418";
 
-// manga speech bubble: rounded cream body + an outlined pointed tail toward the target
+// read an ayah's rendered text AND its font straight from the Study card's RTL
+// line — capturing the font matters because Shaykh-plan pages render per-page
+// PUA glyphs (p{n}-v2) that only display in that exact font.
+const ayahOf = (k) => {
+  try {
+    const card = document.querySelector(`[data-tut="${k}"]`);
+    const rtl = card && card.querySelector('[style*="rtl"]');
+    if (!rtl) return null;
+    const text = (rtl.textContent || "").replace(/⁠/g, "").trim();
+    if (!text) return null;
+    const inner = rtl.querySelector("span") || rtl;
+    return { text, font: getComputedStyle(inner).fontFamily };
+  } catch { return null; }
+};
+
+// manga thought-cloud bubble: a lumpy cream silhouette (overlapping puffs) with a
+// comic ink outline (layered drop-shadows) + trailing tail puffs toward the
+// target. Gently floats so it feels like a companion speaking, not a static pill.
 function Bubble({ left, top, phrase, tailDir, tailOffset }) {
   const down = tailDir === "down";
+  const puff = (d, l, t, k) => <div key={k} style={{ position: "absolute", width: d, height: d, left: l, top: t, borderRadius: "50%", background: CREAM }} />;
   return (
-    <div style={{ position: "absolute", left, top, transform: "translateX(-50%)", pointerEvents: "none" }}>
-      <div style={{ position: "relative", background: CREAM, color: INK, padding: "11px 20px", borderRadius: 24, fontWeight: 800, fontSize: 17, whiteSpace: "nowrap", boxShadow: "0 12px 32px rgba(0,0,0,0.55)", border: `2.5px solid ${INK}`, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.15 }}>
-        {phrase}
-        {/* tail outline (ink) then fill (cream) → a comic-outlined pointer */}
-        <div style={{ position: "absolute", left: `calc(50% + ${tailOffset}px)`, [down ? "top" : "bottom"]: "calc(100% - 2px)", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "13px solid transparent", borderRight: "13px solid transparent", [down ? "borderTop" : "borderBottom"]: `19px solid ${INK}` }} />
-        <div style={{ position: "absolute", left: `calc(50% + ${tailOffset}px)`, [down ? "top" : "bottom"]: "calc(100% - 5px)", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "10px solid transparent", borderRight: "10px solid transparent", [down ? "borderTop" : "borderBottom"]: `15px solid ${CREAM}` }} />
+    <div style={{ position: "absolute", left, top, transform: "translateX(-50%)", pointerEvents: "none", width: 214, height: 80, animation: "guidedFloat 2.6s ease-in-out infinite" }}>
+      {/* cream cloud silhouette + comic outline (4-way drop-shadow) + soft shadow */}
+      <div style={{ position: "absolute", inset: 0, filter: `drop-shadow(2px 0 0 ${INK}) drop-shadow(-2px 0 0 ${INK}) drop-shadow(0 2px 0 ${INK}) drop-shadow(0 -2px 0 ${INK}) drop-shadow(0 9px 12px rgba(0,0,0,0.5))` }}>
+        {/* trailing tail puffs toward the target */}
+        <div style={{ position: "absolute", width: 20, height: 20, borderRadius: "50%", background: CREAM, left: `calc(50% + ${tailOffset}px)`, top: down ? 58 : 2, transform: "translateX(-50%)" }} />
+        <div style={{ position: "absolute", width: 11, height: 11, borderRadius: "50%", background: CREAM, left: `calc(50% + ${tailOffset * 1.4}px)`, top: down ? 76 : -13, transform: "translateX(-50%)" }} />
+        {/* body + bumps */}
+        <div style={{ position: "absolute", left: 22, top: 16, width: 170, height: 48, borderRadius: "50%", background: CREAM }} />
+        {puff(50, 28, 4, "a")}{puff(62, 76, -6, "b")}{puff(52, 130, 2, "c")}{puff(44, 10, 26, "d")}{puff(46, 160, 24, "e")}{puff(48, 56, 40, "f")}{puff(52, 106, 40, "g")}
       </div>
+      {/* text (outside the outline filter so it stays crisp) */}
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: INK, fontWeight: 800, fontSize: 15, lineHeight: 1.1, fontFamily: "'DM Sans',sans-serif", textAlign: "center", padding: "0 26px" }}>{phrase}</div>
     </div>
   );
 }
 
-// connection / closer demo card (the hero for steps 6 & 7) — user taps once
-function DemoCard({ dark, kind, a1, a2, onTap }) {
+// connection / closer demo card (the hero for steps 6 & 7). Shows the REAL ayahs
+// the user just recited (captured earlier, each with its own font) so they can
+// recite them together, then tap once. The opaque dim hides the live My Hifz UI.
+function DemoCard({ dark, kind, ayahs, onTap }) {
   const conn = kind === "connection";
+  const lines = (ayahs || []).filter((a) => a && a.text);
   return (
     <>
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.6)", pointerEvents: "auto" }} />
-      <div className="sbtn" onClick={onTap} style={{ position: "absolute", left: "50%", top: "46%", transform: "translate(-50%,-50%)", width: "min(320px,86vw)", pointerEvents: "auto", background: dark ? "linear-gradient(180deg,#10203A,#0A1424)" : "#EADFC8", border: "1px solid rgba(246,226,122,0.5)", borderRadius: 18, padding: "18px 18px 20px", textAlign: "center", animation: "guidedCardPulse 1.5s ease-in-out infinite" }}>
-        <div style={{ fontSize: 9, letterSpacing: ".2em", textTransform: "uppercase", fontWeight: 800, color: "#F6E27A", marginBottom: 12 }}>{conn ? "Connection" : "Closer"}</div>
-        <div style={{ fontFamily: "'UthmanicHafs','Amiri Quran','Amiri',serif", fontSize: 18, color: dark ? "rgba(243,231,200,0.85)" : "#2D2A26", marginBottom: 4 }}>{conn ? `${a1}  ﴿◇﴾  ${a2}` : "◈ ◈ ◈"}</div>
-        <div style={{ fontSize: 12, color: dark ? "rgba(243,231,200,0.5)" : "#6B645A", marginBottom: 16 }}>{conn ? "Recite both ayahs together" : "Recite the section together"}</div>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.9)", pointerEvents: "auto" }} />
+      <div className="sbtn" onClick={onTap} style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: "min(340px,88vw)", maxHeight: "72vh", overflowY: "auto", pointerEvents: "auto", background: dark ? "linear-gradient(180deg,#10203A,#0A1424)" : "#EADFC8", border: "1px solid rgba(246,226,122,0.5)", borderRadius: 18, padding: "20px 18px 22px", textAlign: "center", animation: "guidedCardPulse 1.5s ease-in-out infinite" }}>
+        <div style={{ fontSize: 9, letterSpacing: ".2em", textTransform: "uppercase", fontWeight: 800, color: "#F6E27A", marginBottom: 16 }}>{conn ? "Connection" : "Closer"}</div>
+        {lines.length ? lines.map((a, i) => (
+          <div key={i} style={{ direction: "rtl", textAlign: "center", fontFamily: a.font || "'UthmanicHafs','Amiri Quran','Amiri',serif", fontSize: "clamp(22px,6vw,30px)", lineHeight: 2.1, color: dark ? "rgba(255,255,255,0.92)" : "#2D2A26", marginBottom: i < lines.length - 1 ? 4 : 14 }}>{a.text}</div>
+        )) : <div style={{ fontSize: 14, color: dark ? "rgba(243,231,200,0.7)" : "#2D2A26", marginBottom: 14 }}>{conn ? "Connect the two ayahs" : "Recite the section"}</div>}
+        <div style={{ fontSize: 12, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", marginBottom: 16 }}>{conn ? "Recite both ayahs together" : "Recite the section together"}</div>
         <div style={{ padding: "13px", borderRadius: 12, background: "linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)", color: "#060A07", fontWeight: 800, fontSize: 14 }}>Recited 0/1 · Tap after reciting</div>
       </div>
     </>
@@ -65,12 +94,21 @@ function Completion({ dark, onComplete }) {
   );
 }
 
-const nextKey = (vk) => { const [s, a] = (vk || "114:1").split(":"); return `${s}:${Number(a) + 1}`; };
-
 export default function GuidedSession({ step, setStep, dark, hifzViewMode, openAyah, setOpenAyah, repCounts, onComplete }) {
   const [rect, setRect] = useState(null);
+  // captured ayahs (text + font) for the connection/closer cards — grabbed while
+  // the Study rows are still on screen, since they're replaced once the real
+  // connection phase opens behind the overlay.
+  const ayahsRef = useRef([null, null]);
+  const [cardAyahs, setCardAyahs] = useState([null, null]);
   const repped = Object.keys(repCounts || {}).filter((k) => (repCounts[k] || 0) >= 1);
   const reppedCount = repped.length;
+
+  // Step 5 switches its hero once Ayah 2 is open: card → "Next Ayah", then the
+  // repetition tracker inside the popup → "Recite → Tap" (so the user recites it).
+  const ayah2Open = step === 5 && openAyah && !repped.includes(openAyah);
+  const activeTut = ayah2Open ? "guided-rep" : (TUT[step] || null);
+  const phrase = ayah2Open ? "Recite → Tap" : PHRASE[step];
 
   // ── action-based auto-advance: each step advances only on the real action ──
   useEffect(() => {
@@ -78,42 +116,47 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
     if (step === 2 && hifzViewMode === "interactive") next = 3;
     else if (step === 3 && openAyah) next = 4;
     else if (step === 4 && reppedCount >= 1) next = 5;
-    else if (step === 5 && openAyah && !repped.includes(openAyah)) next = 6;
+    else if (step === 5 && reppedCount >= 2) next = 6; // recited ayah 2 (1 rep)
     if (next != null) {
-      if (next === 6 && setOpenAyah) setOpenAyah(null); // close the ayah-2 popup so the connection card is clean
+      if (next === 6) {
+        setCardAyahs([...ayahsRef.current]); // snapshot the ayahs while the Study rows are still on screen
+        if (setOpenAyah) setOpenAyah(null); // close popup → clean connection card
+      }
       setStep(next);
     }
-  }, [step, hifzViewMode, openAyah, reppedCount, repped, setStep, setOpenAyah]);
+  }, [step, hifzViewMode, openAyah, reppedCount, setStep, setOpenAyah]);
 
   // ── live position of the single highlighted control (steps 1–5) ──
-  const tut = TUT[step];
   useEffect(() => {
     if (step >= 6) { setRect(null); return; }
     let raf;
-    const tick = () => { const el = tut ? document.querySelector(`[data-tut="${tut}"]`) : null; setRect(el ? el.getBoundingClientRect() : null); raf = requestAnimationFrame(tick); };
+    const tick = () => {
+      const el = activeTut ? document.querySelector(`[data-tut="${activeTut}"]`) : null;
+      setRect(el ? el.getBoundingClientRect() : null);
+      const a1 = ayahOf("guided-ayah"); if (a1) ayahsRef.current[0] = a1;
+      const a2 = ayahOf("guided-ayah-2"); if (a2) ayahsRef.current[1] = a2;
+      raf = requestAnimationFrame(tick);
+    };
     tick();
     return () => cancelAnimationFrame(raf);
-  }, [step, tut]);
+  }, [step, activeTut]);
 
-  // ── resolve the target box for the bubble (steps 1–5 → the live rect; 6–7 →
-  //    the centered demo card) and place the bubble BESIDE it, never on it ──
+  // ── place the bubble BESIDE the hero, pointing at it, never on it ──
   let target = null;
   if (step <= 5 && rect) target = { cx: rect.left + rect.width / 2, top: rect.top, bottom: rect.bottom };
-  if (step === 6 || step === 7) { const ct = window.innerHeight * 0.46; target = { cx: window.innerWidth / 2, top: ct - 96, bottom: ct + 96 }; }
+  if (step === 6 || step === 7) target = { cx: window.innerWidth / 2, top: window.innerHeight * 0.30, bottom: window.innerHeight * 0.72 };
 
   let bub = null;
   if (target) {
-    // step 1 + steps 6/7 always sit ABOVE the target so the page / card stays clear;
-    // otherwise prefer below for top-half targets, above for bottom-half ones.
-    const below = step !== 1 && step < 6 && target.top < window.innerHeight * 0.5;
+    const below = step < 6 && target.top < window.innerHeight * 0.5;
     const top = below ? target.bottom + 18 : Math.max(108, target.top - 62);
     const left = Math.min(Math.max(target.cx, 112), window.innerWidth - 112);
     bub = { left, top, tailDir: below ? "up" : "down", tailOffset: Math.max(-58, Math.min(58, target.cx - left)) };
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 4000, pointerEvents: "none" }}>
-      <style>{`@keyframes guidedPulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 4px rgba(246,226,122,0.7),0 0 22px 6px rgba(246,226,122,0.55)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 7px rgba(246,226,122,0.92),0 0 44px 12px rgba(246,226,122,0.95)}}@keyframes guidedCardPulse{0%,100%{box-shadow:0 0 26px 5px rgba(246,226,122,0.45),0 20px 50px rgba(0,0,0,0.6)}50%{box-shadow:0 0 48px 12px rgba(246,226,122,0.8),0 20px 50px rgba(0,0,0,0.6)}}`}</style>
+    <div data-guided-step={step} style={{ position: "fixed", inset: 0, zIndex: 4000, pointerEvents: "none" }}>
+      <style>{`@keyframes guidedPulse{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 4px rgba(246,226,122,0.7),0 0 22px 6px rgba(246,226,122,0.55)}50%{box-shadow:0 0 0 9999px rgba(0,0,0,0.5),0 0 0 7px rgba(246,226,122,0.92),0 0 44px 12px rgba(246,226,122,0.95)}}@keyframes guidedCardPulse{0%,100%{box-shadow:0 0 26px 5px rgba(246,226,122,0.45),0 20px 50px rgba(0,0,0,0.6)}50%{box-shadow:0 0 48px 12px rgba(246,226,122,0.8),0 20px 50px rgba(0,0,0,0.6)}}@keyframes guidedFloat{0%,100%{transform:translateX(-50%) translateY(0) rotate(-1.5deg)}50%{transform:translateX(-50%) translateY(-7px) rotate(1.5deg)}}`}</style>
 
       {/* STEP 1 — Mushaf is the hero: very light dim, page fully readable, tap to continue */}
       {step === 1 && (
@@ -129,13 +172,13 @@ export default function GuidedSession({ step, setStep, dark, hifzViewMode, openA
         )
       )}
 
-      {/* STEPS 6–7 — connection / closer demo card is the hero */}
+      {/* STEPS 6–7 — connection / closer card showing the real ayahs */}
       {(step === 6 || step === 7) && (
-        <DemoCard dark={dark} kind={step === 6 ? "connection" : "closer"} a1={repped[0] || "114:1"} a2={nextKey(repped[0])} onTap={() => setStep(step + 1)} />
+        <DemoCard dark={dark} kind={step === 6 ? "connection" : "closer"} ayahs={cardAyahs} onTap={() => setStep(step + 1)} />
       )}
 
       {/* the guiding bubble — beside the hero, pointing at it (steps 1–7) */}
-      {step <= 7 && bub && <Bubble left={bub.left} top={bub.top} phrase={PHRASE[step]} tailDir={bub.tailDir} tailOffset={bub.tailOffset} />}
+      {step <= 7 && bub && <Bubble left={bub.left} top={bub.top} phrase={phrase} tailDir={bub.tailDir} tailOffset={bub.tailOffset} />}
 
       {/* STEP 8 — completion */}
       {step === 8 && <Completion dark={dark} onComplete={onComplete} />}
