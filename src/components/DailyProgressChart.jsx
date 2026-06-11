@@ -28,7 +28,16 @@ function loadSessionLog() {
   }
 }
 
-const SESSION_IDS = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+// Same per-session palette as the Rings view so a bar's colours read the same
+// way: Fajr → Isha, bottom → top.
+const SESSIONS = [
+  { id: "fajr",    label: "Fajr",    color: "#60A5FA" },
+  { id: "dhuhr",   label: "Dhuhr",   color: "#F59E0B" },
+  { id: "asr",     label: "Asr",     color: "#FB923C" },
+  { id: "maghrib", label: "Maghrib", color: "#A78BFA" },
+  { id: "isha",    label: "Isha",    color: "#34D399" },
+];
+const SESSION_IDS = SESSIONS.map(s => s.id);
 
 // Daily discipline score: mean of 5 session scores. Missed sessions count
 // as 0. Range 0..1. A perfect-on-time day = 1.0. Half-skipped + delayed
@@ -74,11 +83,16 @@ export default function DailyProgressChart({
       const dayLog = sessionLog[key];
       const score = dayLog ? dailyScore(dayLog) : 0;
       const sessionsCompleted = dayLog ? SESSION_IDS.filter(id => dayLog[id]).length : 0;
+      // Per-session scores for the stacked multi-colour bar.
+      const sessions = {};
+      if (dayLog) for (const s of SESSIONS) if (dayLog[s.id]) sessions[s.id] = dayLog[s.id].score ?? 1;
       days.push({
         date: d,
         key,
         score,
         sessionsCompleted,
+        sessions,
+        hasSessionData: Object.keys(sessions).length > 0,
         newAyahs: snap?.newAyahs ?? 0,
       });
     }
@@ -175,36 +189,39 @@ export default function DailyProgressChart({
             />
           ))}
           {series.map((d, i) => {
-            // Bar height = discipline score (0..1). Color tiers reflect how
-            // complete the day was: full 5/5 = green, partial = amber, today
-            // gets a bright gold highlight, no activity = dim baseline tick.
-            const h = d.score * 90;
+            // Each bar is a stack of per-session segments (one colour per
+            // session, Fajr→Isha bottom→top), so a glance shows which sessions
+            // were done that day and how well — the same colour language as the
+            // Rings view. Segment height = (sessionScore / 5) * 90.
             const x = i * 10 + 1;
             const w = 8;
             const isToday = i === series.length - 1;
             const active = d.score > 0;
-            // 6-tier color gradient by 0..5 sessions completed:
-            // 0=empty, 1=red, 2=orange, 3=amber, 4=gold, 5=green
-            const sc = d.sessionsCompleted ?? 0;
-            const tierColor = ["transparent","#DC2626","#EA580C","#F59E0B","#FACC15","#16A34A"][sc] || "#16A34A";
-            const fill = isToday ? "#F6E27A" : tierColor;
+            const op = hoverIdx === null || hoverIdx === i ? 1 : 0.45;
+            const GAP = 0.7;
+            const segs = [];
+            if (active && d.hasSessionData) {
+              let yBottom = 100;
+              for (const s of SESSIONS) {
+                const sc = d.sessions[s.id] ?? 0;
+                const segH = (sc / 5) * 90;
+                if (segH > 0.5) {
+                  const drawH = Math.max(0.8, segH - GAP);
+                  segs.push(<rect key={s.id} x={x} y={yBottom - drawH} width={w} height={drawH} fill={s.color} rx="0.8" opacity={op} />);
+                  yBottom -= segH;
+                }
+              }
+            } else if (active) {
+              // backfilled day (no per-session log) — single muted bar
+              const h = d.score * 90;
+              segs.push(<rect key="bf" x={x} y={100 - h} width={w} height={h} fill={accent} rx="1" opacity={op * 0.6} />);
+            }
             return (
               <g key={d.key} onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)} style={{ cursor: "pointer" }}>
                 <rect x={i * 10} y={0} width="10" height="100" fill="transparent" />
-                {!active && (
-                  <rect x={x} y={98} width={w} height={2} fill={accentDim} rx="1" />
-                )}
-                {active && (
-                  <rect
-                    x={x}
-                    y={100 - h}
-                    width={w}
-                    height={h}
-                    fill={fill}
-                    rx="1"
-                    opacity={hoverIdx === null || hoverIdx === i ? 1 : 0.55}
-                  />
-                )}
+                {!active && <rect x={x} y={98} width={w} height={2} fill={accentDim} rx="1" />}
+                {segs}
+                {isToday && active && <rect x={x - 0.5} y={Math.max(0, 100 - d.score * 90 - 3)} width={w + 1} height={1.4} fill="#F6E27A" rx="0.7" opacity={op} />}
               </g>
             );
           })}
@@ -239,6 +256,16 @@ export default function DailyProgressChart({
         <span>{fmtShort(series[0].date)}</span>
         <span>{fmtShort(series[Math.floor(series.length / 2)].date)}</span>
         <span>Today</span>
+      </div>
+
+      {/* Session colour legend — maps each bar segment to its session */}
+      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "4px 12px", marginTop: 10 }}>
+        {SESSIONS.map(s => (
+          <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} />
+            <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", color: muted, fontFamily: "'DM Sans', sans-serif" }}>{s.label}</span>
+          </div>
+        ))}
       </div>
 
       {/* Stats row */}
