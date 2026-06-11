@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import RihlahProgressPath from "../components/RihlahProgressPath";
 import DailyProgressChart from "../components/DailyProgressChart";
-import TreeProgress from "../components/TreeProgress";
+import MilestonesProgress from "../components/MilestonesProgress";
 import HeatmapProgress from "../components/HeatmapProgress";
 import RingsProgress from "../components/RingsProgress";
 import JuzProgressRing from "../components/JuzProgressRing";
 
 // Toggle between the four mockup progression widgets. Lets us flip
 // designs without taking up all the screen real estate at once.
-function ProgressGallery({ dark, completedCount, streak, sessionJuz, goalLabel, dailyChecks, recentBatches, checkHistory }) {
+function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedAyahs, pct, streak, sessionJuz, goalLabel, dailyChecks, recentBatches, checkHistory }) {
   const [view, setView] = useState(() => {
-    try { return localStorage.getItem("rihlat-gallery-view") || "rings"; } catch { return "rings"; }
+    try { const v = localStorage.getItem("rihlat-gallery-view"); return (!v || v === "tree") ? "milestones" : v; } catch { return "milestones"; }
   });
   const pickView = (id) => {
     setView(id);
@@ -19,10 +19,10 @@ function ProgressGallery({ dark, completedCount, streak, sessionJuz, goalLabel, 
   const accent = dark ? "#E6B84A" : "#B45309";
   const muted = dark ? "rgba(243,231,200,0.30)" : "#8B7355";
   const opts = [
-    { id: "rings",   label: "Rings"   },
-    { id: "heatmap", label: "Heatmap" },
-    { id: "tree",    label: "Tree"    },
-    { id: "bars",    label: "Bars"    },
+    { id: "milestones", label: "Milestones" },
+    { id: "rings",      label: "Rings"      },
+    { id: "bars",       label: "Bars"       },
+    { id: "heatmap",    label: "Heatmap"    },
   ];
   return (
     <>
@@ -44,7 +44,7 @@ function ProgressGallery({ dark, completedCount, streak, sessionJuz, goalLabel, 
       </div>
       {view === "rings"   && <RingsProgress      dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} dailyChecks={dailyChecks}/>}
       {view === "heatmap" && <HeatmapProgress    dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} dailyChecks={dailyChecks} checkHistory={checkHistory}/>}
-      {view === "tree"    && <TreeProgress       dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel}/>}
+      {view === "milestones" && <MilestonesProgress dark={dark} completedCount={completedCount} completedSurahCount={completedSurahCount} memorizedAyahs={memorizedAyahs} streak={streak} pct={pct} sessionJuz={sessionJuz} goalLabel={goalLabel}/>}
       {view === "bars"    && <DailyProgressChart dark={dark} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} recentBatches={recentBatches} dailyChecks={dailyChecks}/>}
     </>
   );
@@ -122,7 +122,7 @@ function ActivityRow({ ev, dark, timeAgo }) {
 export default function RihlahHome({
   dark, T,
   rihlahScrollRef,
-  completedCount, sessionJuz, sessionIdx, totalSV, timeline,
+  completedCount, completedSurahCount, memorizedAyahs, sessionJuz, sessionIdx, totalSV, timeline,
   goalYears, goalMonths, pct,
   SESSIONS, dailyChecks, toggleCheck,
   streak, checkedCount,
@@ -253,6 +253,9 @@ export default function RihlahHome({
         <ProgressGallery
           dark={dark}
           completedCount={completedCount}
+          completedSurahCount={completedSurahCount}
+          memorizedAyahs={memorizedAyahs}
+          pct={pct}
           streak={streak}
           sessionJuz={sessionJuz}
           goalLabel={goalLabel}

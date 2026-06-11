@@ -2146,7 +2146,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {!appPage&&activeTab==="rihlah"&&rihlahTab==="home"&&(
-        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel} recentBatches={recentBatches} checkHistory={checkHistory}/>
+        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} completedSurahCount={completedSurahCount} memorizedAyahs={memorizedAyahs} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel} recentBatches={recentBatches} checkHistory={checkHistory}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
