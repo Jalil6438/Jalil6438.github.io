@@ -2105,6 +2105,26 @@ export default function RihlatAlHifz() {
                 const sess=SESSIONS[activeSessionIndex]||SESSIONS[0];
                 const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
                 localStorage.setItem("jalil-asr-cycle",String(asrCycle+1));
+                // Log revised juz coverage so the Milestones "Juz N Revised"
+                // stations are real. Accumulate the pages this Asr session
+                // covered per juz; ~half a juz/day early on, so a juz becomes
+                // "½ revised" (>=10 pages) then "revised" (>=18 pages).
+                if(sess.id==="asr"){
+                  try {
+                    const rev=JSON.parse(localStorage.getItem("rihlat-revised-juz")||"{}");
+                    const byJuz={};
+                    (asrReviewBatch||[]).forEach(v=>{ const j=v.juz_number; const pg=v.page_number; if(j&&pg){ (byJuz[j]=byJuz[j]||[]).push(pg); } });
+                    const ts=Date.now();
+                    Object.keys(byJuz).forEach(j=>{
+                      const e=rev[j]||{pages:[],half:null,full:null};
+                      const ps=new Set(e.pages); byJuz[j].forEach(p=>ps.add(p)); e.pages=[...ps];
+                      if(!e.half && e.pages.length>=10) e.half=ts;
+                      if(!e.full && e.pages.length>=18) e.full=ts;
+                      rev[j]=e;
+                    });
+                    localStorage.setItem("rihlat-revised-juz",JSON.stringify(rev));
+                  } catch {}
+                }
                 setSessionsCompleted(prev=>({...prev,[sess.id]:true}));
                 toggleCheck(sess.id);
                 setAsrStarted(false);
