@@ -392,6 +392,21 @@ export default function MyHifzTab(props) {
     prevShowCloserModalRef.current = showCloserModal;
   }, [showPairModal, showCloserModal]);
 
+  // When Fajr's full al-Qasim flow is complete (all 20× reps, all connection
+  // pairs, all closers), the page closer is the very last step — yet the
+  // "Complete Session" button only lives on the last study page. If the user
+  // finished while viewing an earlier page they'd have to tap "next" through
+  // the rest to reach it. Jump them to the last study page on the moment of
+  // completion (false→true edge only, so they can still page back to review).
+  const prevConnAllDoneRef = useRef(false);
+  useEffect(() => {
+    if (connAllDone && !prevConnAllDoneRef.current) {
+      const lastFajrPage = isMushafFajr ? 0 : Math.max(1, Math.ceil(batch.length / 7)) - 1;
+      if (lastFajrPage > 0) setAyahPage(lastFajrPage);
+    }
+    prevConnAllDoneRef.current = connAllDone;
+  }, [connAllDone]);
+
   // Fajr milestone tracking — log 20× phase + connection phase in activity feed
   const repsLoggedRef = useRef(null); // tracks which page's 20× was logged
   const connLoggedRef = useRef(null); // tracks which page's connections were logged
