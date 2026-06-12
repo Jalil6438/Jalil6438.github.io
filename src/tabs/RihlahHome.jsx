@@ -230,7 +230,7 @@ export default function RihlahHome({
   };
 
   return (
-    <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:"transparent",position:"relative",zIndex:1,minHeight:0}} className="fi">
+    <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",overflowX:"hidden",background:"transparent",position:"relative",zIndex:1,minHeight:0}} className="fi">
 
       {/* ── AMBIENT GLOW ── */}
       <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
