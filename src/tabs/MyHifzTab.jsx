@@ -343,6 +343,11 @@ export default function MyHifzTab(props) {
   const anyPairInFlight = connVisiblePairs.some(p => (connectionReps[p.key] || 0) < 10);
   const showPairModal = memorizingActive && anyPairInFlight && !activeCloser && !pairModalDismissed;
   const showCloserModal = memorizingActive && !!activeCloser && !closerModalDismissed;
+  // If the user dismissed a closer/pair (e.g. tapped outside) while its work is
+  // still pending, the same unit never re-triggers on its own — surface a way
+  // back in so Fajr can still be finalized.
+  const closerPending = memorizingActive && !!activeCloser && closerModalDismissed;
+  const pairPending = memorizingActive && anyPairInFlight && !activeCloser && pairModalDismissed;
 
   // Keep the newest-unlocked pair centered in the modal viewport. When a new
   // pair joins the list (connVisiblePairs grows), scroll the newest card into
@@ -722,6 +727,15 @@ export default function MyHifzTab(props) {
                 {/* ── PAIR MODAL (الربط) — pops the moment a pair unlocks. Auto-closes as
                     soon as every pair in flight is at 10/10. The × is only for leaving
                     the session early; it re-opens when the next pair unlocks. ── */}
+                {/* Resume banner — reopens a dismissed pair/closer that still has
+                    work left, so an accidental tap-outside doesn't strand Fajr. */}
+                {(closerPending||pairPending)&&(
+                  <div className="sbtn" onClick={()=>{ setCloserModalDismissed(false); setPairModalDismissed(false); }}
+                    style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"12px 16px",marginBottom:12,borderRadius:14,cursor:"pointer",background:dark?"rgba(212,175,55,0.10)":"rgba(180,140,40,0.10)",border:`1.5px solid ${dark?"rgba(217,177,95,0.40)":"rgba(140,100,20,0.30)"}`,boxShadow:"0 0 14px rgba(212,175,55,0.15)",color:dark?"#E8C76A":"#6B4F00",fontWeight:700,fontSize:13}}>
+                    <span style={{fontSize:15}}>↩</span>
+                    {closerPending?`Resume Surah Closer — ${connectionReps[activeCloser.key]||0}/10`:"Resume Connection"}
+                  </div>
+                )}
                 {showPairModal&&(
                   <PairModal connVisiblePairs={connVisiblePairs} connectionReps={connectionReps} setConnectionReps={setConnectionReps} newestPairRef={newestPairRef} setPairModalDismissed={setPairModalDismissed} dark={dark} />
                 )}

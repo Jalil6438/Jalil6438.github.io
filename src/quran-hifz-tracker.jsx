@@ -221,10 +221,21 @@ export default function RihlatAlHifz() {
   const [yesterdayBatch,setYesterdayBatch]=useState([]);
   const [recentBatches,setRecentBatches]=useState([]); // last 5 days of fajr batches
   const [recentActivity,setRecentActivity]=useState(()=>{
-    try { return JSON.parse(localStorage.getItem("jalil-recent-activity")||"[]"); } catch { return []; }
-  }); // last 5 activity events — {type, text, ts}
+    try {
+      const arr = JSON.parse(localStorage.getItem("jalil-recent-activity")||"[]");
+      // De-dupe by text on load (newest kept) — cleans any duplicates that the
+      // page-completion logger wrote before the guard below existed.
+      const seen=new Set(); const out=[];
+      for(const e of arr){ if(e&&!seen.has(e.text)){ seen.add(e.text); out.push(e); } }
+      return out;
+    } catch { return []; }
+  }); // last activity events — {type, text, ts}
   function pushActivity(type, text) {
     setRecentActivity(prev => {
+      // Skip duplicates. The Fajr page-completion effect dedupes with an
+      // in-memory ref that RESETS when MyHifzTab remounts (e.g. tab switch),
+      // so a page still marked "done" would re-log; this guard stops that.
+      if(prev.some(e => e.text === text)) return prev;
       const next = [{type, text, ts: Date.now()}, ...prev].slice(0, 7);
       try { localStorage.setItem("jalil-recent-activity", JSON.stringify(next)); } catch {}
       return next;
