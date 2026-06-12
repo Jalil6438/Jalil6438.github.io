@@ -4,6 +4,13 @@ import { toArabicDigits, normalizeUthmani } from "../utils";
 // to count to 10. Auto-close/dismiss is controlled by the parent (rendered only
 // when showPairModal). Pure presentational — extracted verbatim from MyHifzTab.
 export default function PairModal({ connVisiblePairs, connectionReps, setConnectionReps, newestPairRef, setPairModalDismissed, dark }) {
+  // Rolling window: only ever show the 5 most recent pairs. As each new pair
+  // unlocks it pushes the oldest off the list, so the list stays a fixed 5 tall
+  // instead of growing the whole session. Pair logic is untouched — this only
+  // limits what's rendered.
+  const WINDOW = 5;
+  const windowPairs = connVisiblePairs.slice(-WINDOW);
+  const hiddenCount = connVisiblePairs.length - windowPairs.length;
   return (
     <div onClick={()=>setPairModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.72)",backdropFilter:"blur(6px)"}}>
       <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto",scrollBehavior:"smooth",borderRadius:20,padding:"24px 20px 20px",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.98) 0%,rgba(10,17,32,0.99) 100%),radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 60%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.25)"}`,boxShadow:"0 24px 60px rgba(0,0,0,0.55),0 0 30px rgba(212,175,55,0.08)"}}>
@@ -16,7 +23,8 @@ export default function PairModal({ connVisiblePairs, connectionReps, setConnect
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {connVisiblePairs.map((step,idx)=>{
+          {hiddenCount>0 && <div style={{fontSize:10,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:dark?"rgba(243,231,200,0.35)":"rgba(100,70,10,0.45)",letterSpacing:".05em",marginBottom:2}}>↑ {hiddenCount} earlier pair{hiddenCount>1?"s":""}</div>}
+          {windowPairs.map((step,idx)=>{
             const cr=connectionReps[step.key]||0;
             const crDone=cr>=10;
             const pct=Math.min((cr/10)*100,100);
