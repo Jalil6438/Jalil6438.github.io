@@ -1,34 +1,44 @@
 import { useRef, useEffect } from "react";
 
 // MilestonesProgress — the "Rihlat Al-Hifz" journey as a vertical timeline of
-// stations rather than an abstract tree. Completed milestones glow gold and are
-// joined by an illuminated path; the current goal pulses; future stations sit
-// muted and locked. Reads the same progress the rest of the app derives
-// (juz / surahs / ayahs / streak) so it always tells the user's real story.
+// milestones earned WHILE USING the app, each stamped with the date it was
+// reached. It is deliberately NOT a lifetime-hifz scoreboard: a user who joins
+// already knowing several ajzā' should still have a fresh journey here. App
+// milestones (joined / sessions / streaks / engagement) plus memorization done
+// *inside* Al-Hifz (current minus the baseline snapshotted at join). The Current
+// Goal card stays anchored to the user's real level ("Complete Juz N").
 
-const TOTAL_AYAHS = 6236, TOTAL_PAGES = 604;
+const TOTAL_AYAHS = 6236, TOTAL_PAGES = 604, DAY_MS = 86400000;
+const SES = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
 
-function buildMilestones({ memorizedAyahs = 0, completedSurahCount = 0, completedCount = 0, streak = 0, pct = 0 }) {
-  const pages = Math.round((memorizedAyahs / TOTAL_AYAHS) * TOTAL_PAGES);
-  const pctVal = pct || (memorizedAyahs / TOTAL_AYAHS) * 100;
-  // Curated stations along the path to becoming a Hafidh — increasing order so
-  // the "current goal" is simply the first one not yet reached.
-  return [
-    { label: "First Ayah", note: "Your journey begins", done: memorizedAyahs >= 1 },
-    { label: "First Page", note: "A full page held", done: pages >= 1 },
-    { label: "First Full Day", note: "Every session, one day", done: streak >= 1 },
-    { label: "First Surah", note: "A surah complete", done: completedSurahCount >= 1 },
-    { label: "Juz 30 Complete", note: "The first juz", done: completedCount >= 1 },
-    { label: "Juz 29 Complete", note: "Onward through Juz ʿAmma", done: completedCount >= 2 },
-    { label: "100 Pages Memorized", note: "A sixth of the way", done: pages >= 100 },
-    { label: "Quarter Qur'an", note: "One quarter held", done: pctVal >= 25 },
-    { label: "Half Qur'an", note: "Halfway home", done: pctVal >= 50 },
-    { label: "Three Quarters", note: "The summit in sight", done: pctVal >= 75 },
-    { label: "Hafidh", note: "The whole Qur'an, by Allah's grace", done: completedCount >= 30 },
-  ];
+const readJSON = (k, fb) => { try { const s = localStorage.getItem(k); return s ? JSON.parse(s) : fb; } catch { return fb; } };
+
+// Cumulative session signals from the per-day session log.
+function sessionStats() {
+  const log = readJSON("rihlat-session-log", {}) || {};
+  const days = Object.keys(log).sort();
+  let total = 0, activeDays = 0, fullDay = false, longest = 0, run = 0, prev = null;
+  for (const k of days) {
+    const n = SES.filter((id) => log[k] && log[k][id]).length;
+    if (n === 0) { continue; }
+    total += n; activeDays++; if (n === 5) fullDay = true;
+    const d = new Date(k + "T00:00:00").getTime();
+    run = prev !== null && Math.round((d - prev) / DAY_MS) === 1 ? run + 1 : 1;
+    longest = Math.max(longest, run); prev = d;
+  }
+  return { total, activeDays, fullDay, longestStreak: longest };
 }
 
-export default function MilestonesProgress({ dark, completedCount = 0, completedSurahCount = 0, memorizedAyahs = 0, streak = 0, pct = 0, sessionJuz, goalLabel }) {
+const fmtDate = (ts) => {
+  if (!ts) return "";
+  try {
+    const d = new Date(ts), now = new Date();
+    const opt = d.getFullYear() === now.getFullYear() ? { month: "short", day: "numeric" } : { month: "short", day: "numeric", year: "numeric" };
+    return d.toLocaleDateString(undefined, opt);
+  } catch { return ""; }
+};
+
+export default function MilestonesProgress({ dark, completedCount = 0, completedSurahCount = 0, memorizedAyahs = 0, streak = 0, sessionJuz, goalLabel }) {
   const accent = dark ? "#E6B84A" : "#B45309";
   const gold = dark ? "#F6E27A" : "#D4AF37";
   const text = dark ? "#F3E7C8" : "#2D2A26";
@@ -37,80 +47,126 @@ export default function MilestonesProgress({ dark, completedCount = 0, completed
   const lineLit = dark ? "rgba(246,226,122,0.6)" : "rgba(180,140,40,0.55)";
   const lineDim = dark ? "rgba(243,231,200,0.10)" : "rgba(45,42,38,0.10)";
 
-  const milestones = buildMilestones({ memorizedAyahs, completedSurahCount, completedCount, streak, pct });
-  // Monotonic "reached": reaching a later station implies the earlier ones, so
-  // the path never shows a locked/current station above a completed one (the
-  // underlying metrics — streak vs ayahs vs juz — don't always complete in order).
-  const reached = milestones.map((m) => m.done);
-  for (let i = reached.length - 2; i >= 0; i--) if (reached[i + 1]) reached[i] = true;
-  const currentIdx = reached.findIndex((r) => !r); // -1 → all complete (Hafidh)
+  // ── journey baseline (captured at join; falls back to "current" so we never
+  //    retroactively credit pre-app memorization) ──
+  const journey = readJSON("rihlat-journey-start", null);
+  const baseAyahs = journey ? (journey.ayahs ?? 0) : memorizedAyahs;
+  const baseJuz = journey ? (journey.juz ?? 0) : completedCount;
+  const baseSurahs = journey ? (journey.surahs ?? 0) : completedSurahCount;
+  const joinTs = journey ? journey.ts : null;
+
+  const { total: sessionsCount, activeDays, fullDay, longestStreak } = sessionStats();
+  const maxStreak = Math.max(streak || 0, longestStreak || 0);
+  const reflectionsCount = Object.keys(readJSON("rihlat-reflections", {}) || {}).length;
+  const bookmarksCount = (readJSON("rihlat-mushaf-bookmarks", []) || []).length;
   const pages = Math.round((memorizedAyahs / TOTAL_AYAHS) * TOTAL_PAGES);
+  const basePages = Math.round((baseAyahs / TOTAL_AYAHS) * TOTAL_PAGES);
+
+  // ── milestone definitions — all relative to the Al-Hifz journey ──
+  const defs = [
+    { key: "joined", label: "Joined Al-Hifz", note: "Your journey began", done: true, fixedDate: joinTs },
+    { key: "first-session", label: "First Session", note: "Your first sitting", done: sessionsCount >= 1 },
+    { key: "first-full-day", label: "First Full Day", note: "All five sessions in a day", done: fullDay },
+    { key: "first-week", label: "First Week", note: "Seven active days", done: activeDays >= 7 },
+    { key: "streak-7", label: "7-Day Streak", note: "A week unbroken", done: maxStreak >= 7 },
+    { key: "streak-30", label: "30-Day Streak", note: "A month unbroken", done: maxStreak >= 30 },
+    { key: "sessions-100", label: "100 Sessions", note: "A hundred sittings", done: sessionsCount >= 100 },
+    { key: "first-reflection", label: "First Reflection", note: "A thought recorded", done: reflectionsCount >= 1 },
+    { key: "first-bookmark", label: "First Bookmark", note: "A place saved", done: bookmarksCount >= 1 },
+    { key: "hifz-ayah", label: "First Ayah in Al-Hifz", note: "New memorization begun", done: memorizedAyahs > baseAyahs },
+    { key: "hifz-page", label: "First Page in Al-Hifz", note: "A page held, here", done: pages > basePages },
+    { key: "hifz-surah", label: "First Surah in Al-Hifz", note: "A surah completed, here", done: completedSurahCount > baseSurahs },
+    { key: "hifz-juz", label: "First Juz in Al-Hifz", note: "A juz completed, here", done: completedCount > baseJuz },
+  ];
+
+  // ── stamp + read achievement dates ──
+  const stored = readJSON("rihlat-milestone-dates", {}) || {};
+  const now = Date.now();
+  const items = defs.map((m) => ({ ...m, date: m.done ? (m.fixedDate || stored[m.key] || now) : null }));
+  const doneSig = items.map((m) => (m.done ? "1" : "0")).join("");
+  useEffect(() => {
+    const d = readJSON("rihlat-milestone-dates", {}) || {};
+    let changed = false;
+    for (const m of items) {
+      if (m.done && m.key !== "joined" && !d[m.key]) { d[m.key] = m.date; changed = true; }
+    }
+    if (changed) { try { localStorage.setItem("rihlat-milestone-dates", JSON.stringify(d)); } catch { /* ignore */ } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneSig]);
+
+  // Timeline order: achieved first (chronological by date), then locked.
+  const achieved = items.filter((m) => m.done).sort((a, b) => (a.date || 0) - (b.date || 0));
+  const locked = items.filter((m) => !m.done);
+  const timeline = [...achieved, ...locked];
+
+  const isHafidh = completedCount >= 30;
+  // Next juz on the (juz 30 → 1) path, derived from the real completed count so
+  // it always reflects the user's actual level — even when joining mid-journey.
+  const goalJuz = sessionJuz && sessionJuz < 30 - completedCount + 1 ? sessionJuz : Math.max(1, 30 - completedCount);
+  const goalText = isHafidh ? "Qur'an Complete" : `Complete Juz ${goalJuz}`;
+  const goalSub = isHafidh ? "Alhamdulillah — a Hafidh" : (goalLabel ? `Toward: ${goalLabel}` : "Keep going");
 
   const scrollRef = useRef(null);
-  const currentRef = useRef(null);
-  useEffect(() => {
-    const c = scrollRef.current, r = currentRef.current;
-    if (c && r) c.scrollTop = Math.max(0, r.offsetTop - c.clientHeight / 2 + r.clientHeight / 2);
-  }, [currentIdx]);
 
   const stats = [
-    { label: "Pages", value: pages },
-    { label: "Surahs", value: completedSurahCount },
-    { label: "Juz", value: completedCount },
+    { label: "Days", value: activeDays },
+    { label: "Sessions", value: sessionsCount },
     { label: "Streak", value: streak },
+    { label: "Juz", value: completedCount },
   ];
 
   return (
     <div style={{ position: "relative", borderRadius: 16, padding: "12px 14px 12px", background: dark ? "linear-gradient(180deg, rgba(15,26,43,0.85) 0%, rgba(10,17,32,0.92) 100%)" : "linear-gradient(180deg, rgba(232,221,200,0.95) 0%, rgba(218,205,180,0.95) 100%)", border: dark ? "1px solid rgba(212,175,55,0.18)" : "1px solid rgba(139,106,16,0.16)", boxShadow: dark ? "0 4px 16px rgba(0,0,0,0.30)" : "0 2px 10px rgba(0,0,0,0.06)", marginBottom: 10 }}>
-      <style>{`@keyframes mlPulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.9);opacity:0}}@media (prefers-reduced-motion: reduce){.ml-pulse{display:none}}`}</style>
+      <style>{`@keyframes mlGlow{0%,100%{box-shadow:0 0 14px rgba(246,226,122,0.25)}50%{box-shadow:0 0 24px rgba(246,226,122,0.5)}}@media (prefers-reduced-motion: reduce){.ml-goal{animation:none!important}}`}</style>
 
       {/* Header */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: sub, fontWeight: 700 }}>Memorization Journey</div>
-        <div style={{ fontSize: 13, color: accent, marginTop: 3, fontFamily: "'Playfair Display',serif" }}>{sessionJuz ? `Currently on Juz ${sessionJuz}` : "Begin your journey"}</div>
-        <div style={{ fontSize: 9, color: muted, marginTop: 2 }}>Goal: {goalLabel || "—"}</div>
+        <div style={{ fontSize: 10, color: muted, marginTop: 3 }}>{joinTs ? `Since ${fmtDate(joinTs)}` : "Your journey in Al-Hifz"}</div>
       </div>
 
-      {/* Timeline */}
-      <div ref={scrollRef} style={{ maxHeight: "min(38vh, 300px)", overflowY: "auto", margin: "0 -2px", paddingRight: 2 }}>
-        {milestones.map((m, i) => {
-          const done = reached[i];
-          const isCurrent = i === currentIdx;
-          const topLit = i > 0 && reached[i - 1];
-          const botLit = done;
+      {/* Current Goal — anchored to the user's REAL level, not the app milestones */}
+      <div className="ml-goal" style={{ borderRadius: 14, padding: "12px 14px", marginBottom: 14, background: dark ? "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(212,175,55,0.04))" : "rgba(180,140,40,0.08)", border: `1px solid ${dark ? "rgba(246,226,122,0.35)" : "rgba(140,100,20,0.25)"}`, animation: "mlGlow 3s ease-in-out infinite" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 14 }}>🎯</span>
+          <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: ".18em", textTransform: "uppercase", color: accent }}>Current Goal</span>
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: gold, fontFamily: "'Playfair Display',serif", lineHeight: 1.15 }}>{goalText}</div>
+        <div style={{ fontSize: 10, color: sub, marginTop: 2 }}>{goalSub}</div>
+      </div>
+
+      {/* Journey timeline — app milestones, each with the date it was reached */}
+      <div ref={scrollRef} style={{ maxHeight: "min(34vh, 280px)", overflowY: "auto", margin: "0 -2px", paddingRight: 2 }}>
+        {timeline.map((m, i) => {
+          const topLit = i > 0 && timeline[i - 1].done;
+          const botLit = m.done;
           return (
-            <div key={m.label} ref={isCurrent ? currentRef : null} style={{ display: "flex", gap: 12, minHeight: 46 }}>
-              {/* indicator column: connecting path + node */}
+            <div key={m.key} style={{ display: "flex", gap: 12, minHeight: 44 }}>
               <div style={{ position: "relative", width: 26, flexShrink: 0 }}>
                 {i > 0 && <div style={{ position: "absolute", left: "50%", top: 0, height: "50%", width: 2, transform: "translateX(-50%)", background: topLit ? lineLit : lineDim }} />}
-                {i < milestones.length - 1 && <div style={{ position: "absolute", left: "50%", top: "50%", bottom: 0, width: 2, transform: "translateX(-50%)", background: botLit ? lineLit : lineDim }} />}
-                <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {done ? (
+                {i < timeline.length - 1 && <div style={{ position: "absolute", left: "50%", top: "50%", bottom: 0, width: 2, transform: "translateX(-50%)", background: botLit ? lineLit : lineDim }} />}
+                <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)" }}>
+                  {m.done ? (
                     <div style={{ width: 24, height: 24, borderRadius: "50%", background: `radial-gradient(circle at 50% 35%, ${gold}, ${dark ? "#B8860B" : "#A87B12"})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: dark ? "#1A1206" : "#3A2A06", boxShadow: `0 0 10px ${dark ? "rgba(246,226,122,0.45)" : "rgba(180,140,40,0.35)"}` }}>✓</div>
-                  ) : isCurrent ? (
-                    <div style={{ position: "relative", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <div className="ml-pulse" style={{ position: "absolute", inset: 0, borderRadius: "50%", border: `2px solid ${gold}`, animation: "mlPulse 2.2s ease-out infinite" }} />
-                      <div style={{ width: 16, height: 16, borderRadius: "50%", background: gold, boxShadow: `0 0 12px ${gold}, 0 0 22px ${dark ? "rgba(246,226,122,0.5)" : "rgba(180,140,40,0.4)"}` }} />
-                    </div>
                   ) : (
                     <div style={{ width: 18, height: 18, borderRadius: "50%", border: `1.5px solid ${lineDim}`, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)" }} />
                   )}
                 </div>
               </div>
-              {/* content */}
-              <div style={{ flex: 1, minWidth: 0, paddingBottom: 8, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 13.5, fontWeight: done || isCurrent ? 700 : 500, color: done ? text : isCurrent ? accent : muted, fontFamily: "'DM Sans',sans-serif" }}>{m.label}</span>
-                  {isCurrent && <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase", color: dark ? "#1A1206" : "#3A2A06", background: `linear-gradient(90deg,${gold},${accent})`, padding: "2px 7px", borderRadius: 999 }}>Current Goal</span>}
+              <div style={{ flex: 1, minWidth: 0, paddingBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: m.done ? 700 : 500, color: m.done ? text : muted, fontFamily: "'DM Sans',sans-serif" }}>{m.label}</div>
+                  <div style={{ fontSize: 10, color: m.done ? sub : muted, marginTop: 1, opacity: m.done ? 0.9 : 0.6 }}>{m.note}</div>
                 </div>
-                <div style={{ fontSize: 10, color: done ? sub : muted, marginTop: 1, opacity: isCurrent || done ? 0.9 : 0.6 }}>{m.note}</div>
+                {m.done && m.date && <div style={{ flexShrink: 0, fontSize: 9, fontWeight: 600, color: accent, fontFamily: "'IBM Plex Mono',monospace", whiteSpace: "nowrap" }}>{fmtDate(m.date)}</div>}
+                {!m.done && <span style={{ flexShrink: 0, fontSize: 11, opacity: 0.4 }}>🔒</span>}
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Progress summary */}
+      {/* Journey stats */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, marginTop: 10, paddingTop: 10, borderTop: dark ? "1px solid rgba(212,175,55,0.10)" : "1px solid rgba(0,0,0,0.06)" }}>
         {stats.map((s) => (
           <div key={s.label} style={{ textAlign: "center" }}>

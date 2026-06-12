@@ -261,6 +261,18 @@ export default function RihlatAlHifz() {
     memorizedAyahs, totalAyahsInQuran, pct, completedCount, completedSurahCount,
   } = useHifzProgress(completedAyahs, setCompletedAyahs);
 
+  // Journey baseline — snapshot the date + memorization level the first time an
+  // onboarded user is loaded, so the Milestones view credits only progress made
+  // INSIDE Al-Hifz (not hifz the user brought with them). Written once.
+  useEffect(()=>{
+    if(!loaded) return;
+    try {
+      if(!localStorage.getItem("rihlat-onboarded")) return;
+      if(localStorage.getItem("rihlat-journey-start")) return;
+      localStorage.setItem("rihlat-journey-start", JSON.stringify({ ts: Date.now(), ayahs: memorizedAyahs, juz: completedCount, surahs: completedSurahCount }));
+    } catch {}
+  },[loaded,memorizedAyahs,completedCount,completedSurahCount]);
+
   // Load mushaf layout once
   useEffect(()=>{
     fetch("/quran-layout.json").then(r=>r.json()).then(d=>setMushafLayout(d)).catch(()=>{});
