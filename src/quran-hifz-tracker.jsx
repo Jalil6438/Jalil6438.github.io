@@ -15,14 +15,7 @@ import AdjustPlan from "./components/AdjustPlan";
 import RihlahProgressPath from "./components/RihlahProgressPath";
 import AppSideDrawer from "./components/AppSideDrawer";
 import AchievementsView from "./components/AchievementsView";
-import StatsPage from "./components/pages/StatsPage";
-import RemindersPage from "./components/pages/RemindersPage";
-import MethodPage from "./components/pages/MethodPage";
-import HelpPage from "./components/pages/HelpPage";
-import AboutPage from "./components/pages/AboutPage";
-import ExportPage from "./components/pages/ExportPage";
-import SettingsPage from "./components/pages/SettingsPage";
-import TermsPage from "./components/pages/TermsPage";
+import AppPageRouter from "./components/AppPageRouter";
 import RihlahHome from "./tabs/RihlahHome";
 import TwoPageWarningModal from "./components/TwoPageWarningModal";
 import MushafRangePickerModal from "./components/MushafRangePickerModal";
@@ -2400,35 +2393,11 @@ export default function RihlatAlHifz() {
 
 {/* ── Full-screen drawer pages — render below universal header so the
     profile row stays consistent across all drawer-reachable screens. ── */}
-{appPage&&(
-  <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0,background:dark?"#0B1220":"#F3E9D2"}}>
-    {appPage==="stats"&&<StatsPage dark={dark} onBack={()=>setAppPage(null)} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} pct={pct}/>}
-    {appPage==="reminders"&&<RemindersPage dark={dark} onBack={()=>setAppPage(null)}/>}
-    {appPage==="method"&&<MethodPage dark={dark} onBack={()=>setAppPage(null)}/>}
-    {appPage==="help"&&<HelpPage dark={dark} onBack={()=>setAppPage(null)}/>}
-    {appPage==="about"&&<AboutPage dark={dark} onBack={()=>setAppPage(null)}/>}
-    {appPage==="settings"&&<SettingsPage dark={dark} T={T} onBack={()=>setAppPage(null)}/>}
-    {appPage==="terms"&&<TermsPage dark={dark} T={T} onBack={()=>setAppPage(null)}/>}
-    {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage(null)} onExport={()=>{
-      try{
-        const KEYS=["jalil-quran-v8","rihlat-username","rihlat-onboarded","rihlat-rep-target","rihlat-fontsize","rihlat-default-reading-mode","rihlat-translation-source","rihlat-tafsir-view","rihlat-plan-mode","rihlat-mushaf-bookmarks","rihlat-reflections","rihlat-daily-progress","rihlat-session-log","rihlat-gallery-view","rihlat-tajweed","jalil-recent-activity","jalil-badge-milestones","jalil-asr-cycle","jalil-quran-lastpage","jalil-wisdom-offset","jalil-hifz-reminder"];
-        const data={};
-        for(const k of KEYS){ const v=localStorage.getItem(k); if(v!==null) data[k]=v; }
-        const payload={app:"rihlat-al-hifz",version:1,exportedAt:new Date().toISOString(),data};
-        const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement("a");
-        a.href=url;
-        const today=new Date().toISOString().slice(0,10);
-        a.download=`rihlat-backup-${today}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }catch(e){ alert("Export failed: "+e.message); }
-    }}/>}
-  </div>
-)}
+<AppPageRouter
+  appPage={appPage} setAppPage={setAppPage} dark={dark} T={T}
+  completedCount={completedCount} streak={streak} sessionJuz={sessionJuz}
+  goalLabel={goalLabel} pct={pct}
+/>
 
 <ReciterModal
   show={showReciterModal}
