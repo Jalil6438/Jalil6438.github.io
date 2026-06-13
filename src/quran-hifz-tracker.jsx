@@ -431,7 +431,6 @@ export default function RihlatAlHifz() {
       if(!isJuzDone(j)){ next=j; break; }
     }
     const target=next||30;
-    console.log('[INIT]', {target, sessionJuz, willUpdate: target!==sessionJuz, juz30done: isJuzDone(30), juz29done: isJuzDone(29), juz28done: isJuzDone(28), s67: juzStatus['s67'], s68: juzStatus['s68'], juz29status: juzStatus[29], juz30status: juzStatus[30]});
     if(target!==sessionJuz) setSessionJuz(target);
   },[loaded,juzStatus]);
 
@@ -659,7 +658,6 @@ export default function RihlatAlHifz() {
         }
       });
       const added=ca.size-prevSize;
-      console.log('[V9 BACKFILL]',{juzStatus:js,prevSize,newSize:ca.size,added});
       if(added>0){saveCompletedAyahs(ca);setCompletedAyahs(ca);}
     } catch(e){console.error('[V9 BACKFILL ERROR]',e);}
     setLoaded(true);
@@ -684,7 +682,6 @@ export default function RihlatAlHifz() {
   // until the lookup table is in.
   useEffect(()=>{
     if(!sessionJuz||!loaded||!verseToPage) return;
-    console.log('[FETCH START]', {sessionJuz, 'juzProgress[sessionJuz]': juzProgress[sessionJuz]});
     let cancelled=false;
     (async()=>{
       setSessLoading(true); setSessionVerses([]); setSessError(false);
@@ -799,19 +796,15 @@ export default function RihlatAlHifz() {
             toBackfill.forEach(v=>{if(v.verse_key) freshCompleted.add(v.verse_key);});
             saveCompletedAyahs(freshCompleted);
             setCompletedAyahs(freshCompleted);
-            console.log('[PROGRESS BACKFILL]',{savedProgress,backfilled:toBackfill.length});
           }
-          console.log('[FETCH DONE]', {sessionJuz, totalVerses: all.length, unfinished: unfinishedVerses.length, ordered: orderedVerses.length, surahsInOrder, newSessionIdx: newIdx, completedAyahsSize: freshCompleted.size, first5: orderedVerses.slice(0,5).map(v=>v.verse_key), verseAtIdx: orderedVerses[newIdx]?.verse_key});
           setSessionVerses(orderedVerses); setSessionIdx(newIdx);
           // Backfill: add already-progressed ayahs to completedAyahs
           if(newIdx>0){
             const toAdd=orderedVerses.slice(0,newIdx);
-            console.log('[BACKFILL]', {newIdx, toAdd: toAdd.length, keys: toAdd.slice(0,3).map(v=>v.verse_key)});
             setCompletedAyahs(prev=>{
               const next=new Set(prev);
               let added=0;
               toAdd.forEach(v=>{if(v.verse_key&&!next.has(v.verse_key)){next.add(v.verse_key);added++;}});
-              console.log('[BACKFILL RESULT]', {added, totalNow: next.size});
               if(added>0) saveCompletedAyahs(next);
               return added>0?next:prev;
             });
@@ -856,8 +849,6 @@ export default function RihlatAlHifz() {
       // pct calculation uses surah keys directly via memorizedAyahs formula
     });
     if(juzToUnmark.length>0){
-      console.log('[AUTO-FIX] UNMARKING JUZ:', juzToUnmark, 'juzCompletedInSession:', [...juzCompletedInSession]);
-      juzToUnmark.forEach(n=>{const surahs=JUZ_SURAHS[n]||[];console.log(`[AUTO-FIX] Juz ${n} surahs:`, surahs.map(s=>({s:s.s, status:juzStatus[`s${s.s}`]})));});
       setJuzStatus(prev=>{
         const next={...prev};
         juzToUnmark.forEach(n=>delete next[n]);
@@ -1508,7 +1499,6 @@ export default function RihlatAlHifz() {
         }
       }
 
-      console.log('[ASR POOL]',{freshCASize:freshCA.size,eligibleJuz,eligibleSurahs,juzStatusKeys:Object.keys(freshJS).filter(k=>freshJS[k]==="complete")});
       // Filter out the surah currently being memorized from eligibleSurahs
       // (it's reviewed in Dhuhr, not Asr). Keep individual memorized surahs
       // in the pool regardless of whether a juz is complete — Asr shows
