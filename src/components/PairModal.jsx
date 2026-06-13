@@ -15,12 +15,10 @@ export default function PairModal({ connVisiblePairs, connectionReps, setConnect
     <div onClick={()=>setPairModalDismissed(true)} style={{position:"fixed",inset:0,zIndex:250,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",background:"rgba(0,0,0,0.72)",backdropFilter:"blur(6px)"}}>
       <div className="fi" onClick={e=>e.stopPropagation()} style={{position:"relative",maxWidth:460,width:"100%",maxHeight:"85vh",overflowY:"auto",scrollBehavior:"smooth",borderRadius:20,padding:"24px 20px 20px",background:dark?"linear-gradient(180deg,rgba(15,26,43,0.98) 0%,rgba(10,17,32,0.99) 100%),radial-gradient(circle at 50% 0%,rgba(212,175,55,0.08),transparent 60%)":"#EADFC8",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.25)"}`,boxShadow:"0 24px 60px rgba(0,0,0,0.55),0 0 30px rgba(212,175,55,0.08)"}}>
         <div className="sbtn" onClick={()=>setPairModalDismissed(true)} style={{position:"absolute",top:12,right:16,fontSize:22,lineHeight:1,color:dark?"rgba(243,231,200,0.35)":"rgba(45,42,38,0.40)"}}>×</div>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingRight:18}}>
-          <div style={{fontSize:20}}>🔗</div>
-          <div>
-            <div style={{fontSize:14,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Connection Phase (الربط)</div>
-            <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"rgba(100,70,10,0.60)",marginTop:2,lineHeight:1.4}}>Recite each pair 10 times to link them together, while they are fresh.</div>
-          </div>
+        <div style={{textAlign:"center",marginBottom:14,paddingTop:2}}>
+          <div style={{fontSize:20,marginBottom:2}}>🔗</div>
+          <div style={{fontSize:14,fontWeight:700,color:dark?"#E8C76A":"#6B4F00"}}>Connection Phase (الربط)</div>
+          <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.50)":"rgba(100,70,10,0.60)",marginTop:4,lineHeight:1.4}}>Recite each pair 10 times to link them together, while they are fresh.</div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {hiddenCount>0 && <div style={{fontSize:10,textAlign:"center",fontFamily:"'IBM Plex Mono',monospace",color:dark?"rgba(243,231,200,0.35)":"rgba(100,70,10,0.45)",letterSpacing:".05em",marginBottom:2}}>↑ {hiddenCount} earlier pair{hiddenCount>1?"s":""}</div>}

@@ -1,4 +1,4 @@
-import { SURAH_EN } from "../data/constants.js";
+import { SURAH_EN, SURAH_AYAH_COUNTS } from "../data/constants.js";
 
 // ── Connection phase (الربط) — surah "closer" logic for the al-Qasim method ──
 // Pure. Extracted verbatim from MyHifzTab.
@@ -26,6 +26,12 @@ export function buildClosers({
       const verses = g.verses;
       const n = verses.length;
       const surahName = SURAH_EN[g.surahNum] || `Surah ${g.surahNum}`;
+      // A closer only truly closes the surah if this group reaches the surah's
+      // final ayah (a surah can span multiple pages/batches).
+      const lastAyah = SURAH_AYAH_COUNTS?.[g.surahNum];
+      const groupClosesSurah =
+        lastAyah != null &&
+        verses.some((v) => Number(String(v.verse_key).split(":")[1]) === lastAyah);
       const allAyahsDone = verses.every(
         (v) => (repCounts[v.verse_key] || 0) >= repTarget,
       );
@@ -68,6 +74,7 @@ export function buildClosers({
               ayahs: verses,
               ready: allAyahsDone && surahPairsDone,
               surahNum: g.surahNum,
+              closesSurah: groupClosesSurah,
             },
           ];
         }
@@ -103,6 +110,7 @@ export function buildClosers({
           ayahs: sec1,
           ready: sec1AyahsDone && sec1PairsDone,
           surahNum: g.surahNum,
+          closesSurah: false, // first section — never the surah's end
         },
         {
           key: `closer-${g.surahNum}-s2`,
@@ -110,6 +118,7 @@ export function buildClosers({
           ayahs: sec2,
           ready: sec2AyahsDone && sec2PairsDone && bridgeDone,
           surahNum: g.surahNum,
+          closesSurah: groupClosesSurah,
         },
         {
           key: `closer-${g.surahNum}-page`,
@@ -117,6 +126,7 @@ export function buildClosers({
           ayahs: verses,
           ready: allAyahsDone && surahPairsDone,
           surahNum: g.surahNum,
+          closesSurah: groupClosesSurah,
         },
       ];
     });
