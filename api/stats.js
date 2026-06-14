@@ -57,6 +57,8 @@ export default async function handler(req, res) {
         if (country && country !== "XX") cmds.push(["SADD", "alhifz:countries", country]);
         // Monthly-active: this device, this calendar month.
         if (id) cmds.push(["SADD", monthKey(), id]);
+        // All-time unique reciters — server-side set, self-healing (doesn't rely on a client-side flag).
+        if (id) cmds.push(["SADD", "alhifz:reciters", id]);
       } else if (event === "user") {
         cmds.push(["INCR", "alhifz:users"]);
       } else if (event === "install") {
@@ -70,7 +72,7 @@ export default async function handler(req, res) {
     }
 
     const out = await pipeline([
-      ["GET", "alhifz:users"],
+      ["SCARD", "alhifz:reciters"],
       ["SCARD", "alhifz:countries"],
       ["SCARD", monthKey()],
       ["GET", "alhifz:installs"],
