@@ -28,10 +28,25 @@ export function cronEnabled(env = process.env) {
   return isGateEnabled(env.ALHIFZ_CRON_ENABLED);
 }
 
+// Progress shadow-backup gate. Disabled by default and everywhere except an
+// Al-Hifz deployment that sets ALHIFZ_PROGRESS_BACKUP_ENABLED to exactly
+// "true". While disabled the backup route performs NO datastore access and the
+// client makes NO backup requests — local progress behavior is unchanged.
+export function progressBackupEnabled(env = process.env) {
+  return isGateEnabled(env.ALHIFZ_PROGRESS_BACKUP_ENABLED);
+}
+
 // Uniform, information-free response body for disabled notification APIs.
 // No secrets, project names, paths, or environment details.
 export const DISABLED_RESPONSE = Object.freeze({
   ok: false,
   enabled: false,
   error: "notifications are not enabled for this deployment",
+});
+
+// Uniform, information-free response body for the disabled backup API.
+export const PROGRESS_BACKUP_DISABLED_RESPONSE = Object.freeze({
+  ok: false,
+  enabled: false,
+  error: "progress backup is not enabled for this deployment",
 });
