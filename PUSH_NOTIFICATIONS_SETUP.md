@@ -6,6 +6,35 @@ handlers (`src/sw.js`), server storage + scheduler + sender (`api/push/*`, Upsta
 Vercel cron (`vercel.json`). **It cannot deliver anything until the steps below are done by a
 human with Vercel access — no real keys are committed anywhere.**
 
+## 0. Project isolation (read first — two Vercel projects share this repo)
+
+This repository feeds **two** Vercel projects: **al-hifz** and **noortech-share**.
+All notification functionality is **disabled by default** behind two server-only
+environment gates, so the shared codebase cannot accidentally push or run the
+scheduler inside the wrong project:
+
+| Gate | Effect when NOT exactly `true` |
+|---|---|
+| `ALHIFZ_PUSH_ENABLED` | subscribe/unsubscribe write nothing, test-push sends nothing, VAPID is never used; APIs return a neutral "not enabled for this deployment" response |
+| `ALHIFZ_CRON_ENABLED` | `/api/push/cron` is a safe successful no-op — no subscription reads, no writes, no dedupe keys, no sends (so a shared-project cron invocation never errors) |
+
+Rules:
+
+- **Al-Hifz project:** set both gates to the exact lowercase string `true` — but only
+  AFTER the credentials in steps 1–3 are configured.
+- **noortech-share project:** leave both gates **absent** (or anything other than
+  `true`). Do not set the VAPID/CRON variables there either.
+- Only the exact string `true` enables. `TRUE`, `1`, `yes`, or padded whitespace are
+  all treated as disabled. The gates are server-only (never `NEXT_PUBLIC_`/`VITE_`).
+- Branch pushes create **preview deployments in BOTH projects** — that is normal CI
+  behavior. A preview deployment is **not** a production deployment.
+- Enabling the gates does not weaken anything: `CRON_SECRET` auth, VAPID checks,
+  dedupe, and cleanup all still apply when enabled.
+- Readiness can be checked safely at `GET /api/notifications/health`
+  (booleans + generic labels only; no secrets).
+- **No background-notification claim is complete until a real closed-PWA test passes
+  on an Android phone** (step 6).
+
 ## 1. Generate VAPID keys
 
 ```bash
@@ -27,6 +56,8 @@ Preview):
 | `VAPID_SUBJECT` | `mailto:you@yourdomain.com` (a contact URI, required by the spec) |
 | `CRON_SECRET` | any long random string — protects `/api/push/cron` |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | already set for `/api/stats`; the same store holds subscriptions |
+| `ALHIFZ_PUSH_ENABLED` | `true` (exact lowercase) — Al-Hifz project ONLY, after the rows above are set |
+| `ALHIFZ_CRON_ENABLED` | `true` (exact lowercase) — Al-Hifz project ONLY, after `CRON_SECRET` is set |
 
 Redeploy after saving (env changes need a new deployment).
 
@@ -51,8 +82,12 @@ every 5–10 minutes. The 15-minute due-window plus per-day dedupe keys make any
 ≤ 15-minute cadence safe (no misses, no duplicates).
 
 ⚠️ **Shared repo caveat:** this repository feeds TWO Vercel projects (`al-hifz`,
-`noortech-share`). Root `vercel.json` may apply to both — verify in the
-`noortech-share` project that the cron is not unintentionally active there.
+`noortech-share`). Root `vercel.json` may apply to both, so the cron may also fire
+in `noortech-share`. That is now harmless by design: without
+`ALHIFZ_CRON_ENABLED=true` in that project, `/api/push/cron` is a safe successful
+no-op (no reads, no writes, no sends, no dedupe keys). Still verify in the
+`noortech-share` dashboard that the cron isn't scheduled there if you want zero
+invocations at all — that check can only be done in the dashboard, not from the repo.
 
 ## 4. Grant permission on Android / the installed PWA
 
