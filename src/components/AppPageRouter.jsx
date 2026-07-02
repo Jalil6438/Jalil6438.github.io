@@ -6,6 +6,7 @@ import AboutPage from "./pages/AboutPage";
 import ExportPage from "./pages/ExportPage";
 import SettingsPage from "./pages/SettingsPage";
 import TermsPage from "./pages/TermsPage";
+import { downloadLocalExport } from "../backup/localExport";
 
 // Full-screen drawer pages — rendered below the universal header so the profile
 // row stays consistent across all drawer-reachable screens. Pure presentational
@@ -82,6 +83,12 @@ export default function AppPageRouter({ appPage, setAppPage, dark, T, completedC
           window.location.reload();
         };
         reader.readAsText(file);
+      }} onExportSnapshot={()=>{
+        // Versioned progress-snapshot export (Phase 1). Superset of the raw
+        // export above — also captures jalil-quran-v9 and the Isha lock. Never
+        // mutates progress; contains no secret or notification data.
+        const ok=downloadLocalExport();
+        if(!ok) alert("Export failed on this device.");
       }}/>}
     </div>
   );
