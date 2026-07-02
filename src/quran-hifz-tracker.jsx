@@ -41,9 +41,17 @@ import Onboarding from "./components/Onboarding";
 import useInjectedFonts from "./hooks/useInjectedFonts";
 import useReminders from "./hooks/useReminders";
 import DuaScreen from "./components/DuaScreen";
+import { createBackupClient } from "./backup/backupClient";
 
 export default function RihlatAlHifz() {
   const [dark,setDark]=useState(true);
+  // Phase 1 shadow backup — DORMANT (enabled:false): installs no listeners,
+  // runs no timers, makes no network request. The notifyProgressChanged() calls
+  // in the save effects below are no-ops until a later phase activates it via
+  // health-driven readiness. localStorage remains the sole source of truth.
+  const backupClientRef=useRef(null);
+  if(!backupClientRef.current) backupClientRef.current=createBackupClient({enabled:false});
+  useEffect(()=>{ const c=backupClientRef.current; if(c) c.start(); return ()=>{ if(c) c.stop(); }; },[]);
   const [tabBeforeAdjust,setTabBeforeAdjust]=useState(null); // {activeTab, rihlahTab}
   const [twoPageWarning,setTwoPageWarning]=useState(null); // {target, actual} | null
   const [showDua,setShowDua]=useState(true);
@@ -137,6 +145,7 @@ export default function RihlatAlHifz() {
       } catch {}
     }
     prevCompletedSizeRef.current = curr;
+    if(backupClientRef.current) backupClientRef.current.notifyProgressChanged();
   }, [completedAyahs.size]);
   const [notes,setNotes]=useState({});
   const [loaded,setLoaded]=useState(false);
@@ -773,7 +782,7 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit})); } catch {}
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit})); if(backupClientRef.current) backupClientRef.current.notifyProgressChanged(); } catch {}
   },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit]);
 
   // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
