@@ -7,6 +7,7 @@
 // device/installation id, IANA timezone, per-session reminder config, daily
 // completion/lock status, and lastUpdated. No secrets, no personal data.
 import { isValidSubscription, SESSION_IDS } from "../_lib/push-core.mjs";
+import { pushEnabled, DISABLED_RESPONSE } from "../_lib/gates.mjs";
 import {
   storeConfigured, subIdFromEndpoint,
   getSubscriptionRecord, putSubscriptionRecord, deleteSubscriptionRecord,
@@ -40,6 +41,9 @@ function sanitizeDailyStatus(input) {
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+  // Deployment gate FIRST: in a project not configured as Al-Hifz, this route
+  // must never read or mutate the subscription store.
+  if (!pushEnabled()) return res.status(503).json(DISABLED_RESPONSE);
   if (!storeConfigured()) return res.status(503).json({ error: "subscription store not configured", configured: false });
 
   try {

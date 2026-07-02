@@ -8,6 +8,7 @@
 // Auth: when CRON_SECRET is set, requires Authorization: Bearer <CRON_SECRET>
 // (Vercel Cron attaches this header automatically when the env var exists).
 import { dueSessions, dedupeKey } from "../_lib/push-core.mjs";
+import { cronEnabled } from "../_lib/gates.mjs";
 import {
   storeConfigured, listSubscriptionIds, getSubscriptionRecord,
   deleteSubscriptionRecord, claimDedupe,
@@ -21,6 +22,15 @@ const WINDOW_MINUTES = 15;
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") return res.status(405).json({ error: "method not allowed" });
+
+  // Deployment gate FIRST (before auth): this repo feeds two Vercel projects,
+  // and vercel.json crons may fire in both. In a project not configured as
+  // Al-Hifz the scheduler is a safe successful no-op — no subscription reads,
+  // no writes, no dedupe keys, no sends — so a shared-project cron invocation
+  // never produces repeated platform errors.
+  if (!cronEnabled()) {
+    return res.status(200).json({ ok: true, enabled: false, noop: true, sent: 0, skipped: 0, failed: 0, cleaned: 0 });
+  }
 
   const secret = process.env.CRON_SECRET;
   if (secret && req.headers.authorization !== `Bearer ${secret}`) {

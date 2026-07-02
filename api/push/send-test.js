@@ -5,10 +5,14 @@
 // service → service worker, and works with the tab closed.
 import { storeConfigured, subIdFromEndpoint, getSubscriptionRecord, deleteSubscriptionRecord } from "../_lib/store.mjs";
 import { vapidConfigured, sendSessionPush } from "../_lib/sender.mjs";
+import { pushEnabled, DISABLED_RESPONSE } from "../_lib/gates.mjs";
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ error: "method not allowed" });
+  // Deployment gate FIRST: no VAPID use, no store reads, no sends in a
+  // project not configured as Al-Hifz.
+  if (!pushEnabled()) return res.status(503).json(DISABLED_RESPONSE);
   if (!vapidConfigured()) return res.status(503).json({ error: "VAPID not configured", configured: false });
   if (!storeConfigured()) return res.status(503).json({ error: "subscription store not configured", configured: false });
 

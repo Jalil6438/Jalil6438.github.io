@@ -56,7 +56,9 @@ export default function RemindersPage({ dark, onBack }) {
   };
 
   // ── BACKGROUND PUSH (real web push — works with the app closed) ──
-  // pushState: "loading" | "unsupported" | "denied" | "unconfigured" |
+  // pushState: "loading" | "unsupported" | "denied" | "disabled" (server
+  //            gate off for this deployment) | "unconfigured" (enabled but
+  //            missing config) | "unavailable" (server unreachable) |
   //            "ready" (can enable) | "subscribed" | "error"
   const [pushState, setPushState] = useState("loading");
   const [pushConfig, setPushConfig] = useState(null);
@@ -64,6 +66,9 @@ export default function RemindersPage({ dark, onBack }) {
   const [pushMsg, setPushMsg] = useState("");
 
   useEffect(() => {
+    // Single check on mount — never retries in a loop and never re-prompts
+    // for permission on its own (permission is only requested from the
+    // explicit Enable button).
     let alive = true;
     (async () => {
       if (!isPushSupported()) { if (alive) setPushState("unsupported"); return; }
@@ -71,13 +76,16 @@ export default function RemindersPage({ dark, onBack }) {
         const cfg = await fetchPushConfig();
         if (!alive) return;
         setPushConfig(cfg);
+        // Server gate off for this deployment — honest neutral state; do not
+        // attempt a subscription.
+        if (cfg.enabled === false) { setPushState("disabled"); return; }
         if (!cfg.configured || !cfg.publicKey) { setPushState("unconfigured"); return; }
         if (typeof Notification !== "undefined" && Notification.permission === "denied") { setPushState("denied"); return; }
         const sub = await getExistingSubscription();
         if (!alive) return;
         setPushState(sub ? "subscribed" : "ready");
       } catch {
-        if (alive) setPushState("unconfigured");
+        if (alive) setPushState("unavailable");
       }
     })();
     return () => { alive = false; };
@@ -136,7 +144,9 @@ export default function RemindersPage({ dark, onBack }) {
       case "loading": return box("Background notifications", "Checking availability…", null);
       case "unsupported": return box("Background notifications not supported", "This browser doesn't support Web Push. On iOS, install the app to your home screen first (iOS 16.4+).", null);
       case "denied": return box("Notifications blocked", "Re-enable notifications for this site/app in your browser or Android settings, then return here.", null);
-      case "unconfigured": return box("Background notifications not configured", `The server is missing ${pushConfig?.missing?.join(" + ") || "push configuration"} — reminders currently work only while the app is open (foreground fallback above). See PUSH_NOTIFICATIONS_SETUP.md.`, null);
+      case "disabled": return box("Notifications are not configured for this deployment", "Reminders work only while the app is open (foreground fallback below).", null);
+      case "unconfigured": return box("Background notifications not configured", "The server's push configuration is incomplete — reminders currently work only while the app is open (foreground fallback below).", null);
+      case "unavailable": return box("Notification server unavailable", "Could not reach the server to check notification status. Reminders still work while the app is open.", null);
       case "ready": return box("Enable background notifications", "Get session reminders even when the app is closed. Delivered by your device's push service.", { label: "Enable", onClick: enableBackgroundPush });
       case "subscribed": return box("Background notifications on", "Reminders are delivered by the server at your configured times — the app can be closed. Android battery savers may delay delivery.", { label: "Send test", onClick: sendServerTest, secondary: { label: "Disable", onClick: disableBackgroundPush } });
       case "error": default: return box("Background notifications", pushMsg || "Something went wrong.", { label: "Retry", onClick: enableBackgroundPush });
