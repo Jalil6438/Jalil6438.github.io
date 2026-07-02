@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import StatsPage from "./pages/StatsPage";
 import RemindersPage from "./pages/RemindersPage";
 import MethodPage from "./pages/MethodPage";
@@ -6,13 +7,27 @@ import AboutPage from "./pages/AboutPage";
 import ExportPage from "./pages/ExportPage";
 import SettingsPage from "./pages/SettingsPage";
 import TermsPage from "./pages/TermsPage";
+import RecoveryPage from "./pages/RecoveryPage";
+import RecoveryPreviewPage from "./pages/RecoveryPreviewPage";
 import { downloadLocalExport } from "../backup/localExport";
+import { probeRecoveryAvailability } from "../backup/recoveryClient";
 
 // Full-screen drawer pages — rendered below the universal header so the profile
 // row stays consistent across all drawer-reachable screens. Pure presentational
 // dispatch on appPage; extracted verbatim from the root component. Returns null
 // when no drawer page is open so the caller can render it unconditionally.
 export default function AppPageRouter({ appPage, setAppPage, dark, T, completedCount, streak, longestStreak, sessionJuz, goalLabel, pct }) {
+  // Whether to surface the Phase-2 recovery UI at all. Defaults to HIDDEN and
+  // only flips on if the safe health endpoint reports the gate is enabled — so a
+  // Production build with recovery off never shows it in navigation. This is a
+  // health GET, not a recovery request; it carries/returns no secret.
+  const [recoveryAvailable, setRecoveryAvailable] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    probeRecoveryAvailability().then((v) => { if (alive) setRecoveryAvailable(v); });
+    return () => { alive = false; };
+  }, []);
+
   if (!appPage) return null;
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0,background:dark?"#0B1220":"#F3E9D2"}}>
@@ -23,7 +38,13 @@ export default function AppPageRouter({ appPage, setAppPage, dark, T, completedC
       {appPage==="about"&&<AboutPage dark={dark} onBack={()=>setAppPage(null)}/>}
       {appPage==="settings"&&<SettingsPage dark={dark} T={T} onBack={()=>setAppPage(null)}/>}
       {appPage==="terms"&&<TermsPage dark={dark} T={T} onBack={()=>setAppPage(null)}/>}
-      {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage(null)} onExport={()=>{
+      {appPage==="recovery"&&<RecoveryPage dark={dark} available={recoveryAvailable} onBack={()=>setAppPage("export")}/>}
+      {appPage==="recovery-preview"&&<RecoveryPreviewPage dark={dark} available={recoveryAvailable} onBack={()=>setAppPage("export")}/>}
+      {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage(null)}
+        recoveryAvailable={recoveryAvailable}
+        onOpenRecovery={()=>setAppPage("recovery")}
+        onOpenRecoveryPreview={()=>setAppPage("recovery-preview")}
+        onExport={()=>{
         try{
           const KEYS=["jalil-quran-v8","rihlat-username","rihlat-onboarded","rihlat-rep-target","rihlat-fontsize","rihlat-default-reading-mode","rihlat-translation-source","rihlat-tafsir-view","rihlat-plan-mode","rihlat-mushaf-bookmarks","rihlat-reflections","rihlat-daily-progress","rihlat-session-log","rihlat-gallery-view","rihlat-tajweed","jalil-recent-activity","jalil-badge-milestones","jalil-asr-cycle","jalil-quran-lastpage","jalil-wisdom-offset","jalil-hifz-reminder"];
           const data={};

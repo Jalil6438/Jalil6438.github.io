@@ -1,7 +1,7 @@
 import React from "react";
 import AppPage from "./AppPage";
 
-export default function ExportPage({ dark, onBack, onExport, onImport, onExportSnapshot }) {
+export default function ExportPage({ dark, onBack, onExport, onImport, onExportSnapshot, recoveryAvailable = false, onOpenRecovery, onOpenRecoveryPreview }) {
   return (
     <AppPage dark={dark} title="Backup & Restore" subtitle="Save or restore your progress" onBack={onBack}>
       <div style={{ fontSize: 13, color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A", lineHeight: 1.7, marginBottom: 20 }}>
@@ -61,6 +61,41 @@ export default function ExportPage({ dark, onBack, onExport, onImport, onExportS
             }}
           >
             Download Progress Snapshot (.json)
+          </div>
+        </>
+      )}
+
+      {/* Phase-2 Progress Protection — only surfaced when the recovery gate is
+          enabled on this deployment (hidden by default, so it never appears in
+          Production navigation while recovery is off). */}
+      {recoveryAvailable && (
+        <>
+          <div style={{ height: 1, margin: "22px 0 18px", background: dark ? "rgba(217,177,95,0.15)" : "rgba(0,0,0,0.08)" }} />
+          <div style={{ fontSize: 13, color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A", lineHeight: 1.7, marginBottom: 14 }}>
+            <strong>Progress Protection.</strong> Create a private recovery code so you can check your server backup from
+            another device if this one is lost. It verifies your backup — it does not restore progress yet.
+          </div>
+          <div className="sbtn" onClick={() => { onOpenRecovery && onOpenRecovery(); }}
+            style={{
+              width: "100%", padding: "13px 16px", borderRadius: 14, textAlign: "center",
+              fontSize: 13, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase",
+              background: "transparent", color: dark ? "#E0BD78" : "#8A6A10",
+              border: `1px solid ${dark ? "rgba(217,177,95,0.40)" : "rgba(140,100,20,0.35)"}`,
+              cursor: "pointer", display: "block", boxSizing: "border-box", marginBottom: 12,
+            }}
+          >
+            Create Recovery Code
+          </div>
+          <div className="sbtn" onClick={() => { onOpenRecoveryPreview && onOpenRecoveryPreview(); }}
+            style={{
+              width: "100%", padding: "13px 16px", borderRadius: 14, textAlign: "center",
+              fontSize: 13, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase",
+              background: "transparent", color: dark ? "#E0BD78" : "#8A6A10",
+              border: `1px solid ${dark ? "rgba(217,177,95,0.40)" : "rgba(140,100,20,0.35)"}`,
+              cursor: "pointer", display: "block", boxSizing: "border-box",
+            }}
+          >
+            Recovery Preview (read-only)
           </div>
         </>
       )}
