@@ -11,11 +11,11 @@ import TermsPage from "./pages/TermsPage";
 // row stays consistent across all drawer-reachable screens. Pure presentational
 // dispatch on appPage; extracted verbatim from the root component. Returns null
 // when no drawer page is open so the caller can render it unconditionally.
-export default function AppPageRouter({ appPage, setAppPage, dark, T, completedCount, streak, sessionJuz, goalLabel, pct }) {
+export default function AppPageRouter({ appPage, setAppPage, dark, T, completedCount, streak, longestStreak, sessionJuz, goalLabel, pct }) {
   if (!appPage) return null;
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0,background:dark?"#0B1220":"#F3E9D2"}}>
-      {appPage==="stats"&&<StatsPage dark={dark} onBack={()=>setAppPage(null)} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} pct={pct}/>}
+      {appPage==="stats"&&<StatsPage dark={dark} onBack={()=>setAppPage(null)} completedCount={completedCount} streak={streak} longestStreak={longestStreak??streak} sessionJuz={sessionJuz} goalLabel={goalLabel} pct={pct}/>}
       {appPage==="reminders"&&<RemindersPage dark={dark} onBack={()=>setAppPage(null)}/>}
       {appPage==="method"&&<MethodPage dark={dark} onBack={()=>setAppPage(null)}/>}
       {appPage==="help"&&<HelpPage dark={dark} onBack={()=>setAppPage(null)}/>}

@@ -44,7 +44,10 @@ export default function RemindersPage({ dark, onBack }) {
 
   const sendTest = () => {
     if (permission !== "granted") return;
-    try { new Notification("Rihlat al-Hifz", { body: "Notifications are working — bismillah." }); } catch {}
+    // Honest test: exercises the exact mechanism reminders use (an in-tab
+    // Notification). This is NOT server push — reminders cannot fire while
+    // the app is closed, and the copy below must never claim otherwise.
+    try { new Notification("Rihlat al-Hifz", { body: "Reminders will look like this while the app is open — bismillah." }); } catch {}
   };
 
   const enabledCount = DEFAULTS.filter(d => prefs.sessions[d.id]?.enabled).length;
@@ -145,7 +148,7 @@ export default function RemindersPage({ dark, onBack }) {
       </div>
 
       <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355", textAlign: "center", marginTop: 18, lineHeight: 1.6, fontStyle: "italic" }}>
-        Reminders fire only while the app is open in your browser. For background nudges, install the app to your home screen.
+        Reminders fire only while the app is open — they cannot reach you when the app is closed. True background notifications are not supported yet.
       </div>
     </AppPage>
   );

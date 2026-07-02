@@ -7,7 +7,7 @@ import JuzProgressRing from "../components/JuzProgressRing";
 
 // Toggle between the four mockup progression widgets. Lets us flip
 // designs without taking up all the screen real estate at once.
-function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedAyahs, pct, streak, sessionJuz, goalLabel, dailyChecks, recentBatches }) {
+function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedAyahs, pct, streak, longestStreak, sessionJuz, goalLabel, dailyChecks, recentBatches }) {
   const [view, setView] = useState(() => {
     try { const v = localStorage.getItem("rihlat-gallery-view"); return (!v || v === "tree" || v === "heatmap") ? "milestones" : v; } catch { return "milestones"; }
   });
@@ -42,7 +42,7 @@ function ProgressGallery({ dark, completedCount, completedSurahCount, memorizedA
       </div>
       {view === "rings"   && <RingsProgress      dark={dark} completedCount={completedCount} streak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} dailyChecks={dailyChecks}/>}
       {view === "milestones" && <MilestonesProgress dark={dark} completedCount={completedCount} completedSurahCount={completedSurahCount} memorizedAyahs={memorizedAyahs} streak={streak} pct={pct} sessionJuz={sessionJuz} goalLabel={goalLabel}/>}
-      {view === "bars"    && <DailyProgressChart dark={dark} completedCount={completedCount} streak={streak} longestStreak={streak} sessionJuz={sessionJuz} goalLabel={goalLabel} recentBatches={recentBatches} dailyChecks={dailyChecks}/>}
+      {view === "bars"    && <DailyProgressChart dark={dark} completedCount={completedCount} streak={streak} longestStreak={longestStreak??streak} sessionJuz={sessionJuz} goalLabel={goalLabel} recentBatches={recentBatches} dailyChecks={dailyChecks}/>}
     </>
   );
 }
@@ -122,7 +122,7 @@ export default function RihlahHome({
   completedCount, completedSurahCount, memorizedAyahs, sessionJuz, sessionIdx, totalSV, timeline,
   goalYears, goalMonths, pct,
   SESSIONS, dailyChecks, toggleCheck,
-  streak, checkedCount,
+  streak, longestStreak, checkedCount,
   dailyNew, allChecked,
   setRihlahTab,
   haramainMeta,
@@ -251,6 +251,7 @@ export default function RihlahHome({
           completedCount={completedCount}
           completedSurahCount={completedSurahCount}
           memorizedAyahs={memorizedAyahs}
+          longestStreak={longestStreak}
           pct={pct}
           streak={streak}
           sessionJuz={sessionJuz}

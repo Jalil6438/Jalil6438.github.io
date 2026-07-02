@@ -4,7 +4,7 @@ import { RECITERS, SURAH_EN, SURAH_AYAH_COUNTS, JUZ_RANGES, DARK, LIGHT, STATUS_
 import { SESSIONS, getSessionWisdom } from "./data/sessions";
 import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
-import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage } from "./utils";
+import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage, computeLongestStreak } from "./utils";
 import HlsPlayer from "./components/HlsPlayer";
 import AsrSessionView from "./components/AsrSessionView";
 import QuranPageView from "./components/QuranPageView";
@@ -436,6 +436,15 @@ export default function RihlatAlHifz() {
 
 
   const [streak,setStreak]=useState(0);
+
+  // Real longest streak — the historical max from the session log, never less
+  // than the live streak. Previously every consumer was handed the *current*
+  // streak as "longest", so the stat reset to 0 whenever the streak broke.
+  const longestStreak=useMemo(()=>{
+    let logLongest=0;
+    try { logLongest=computeLongestStreak(JSON.parse(localStorage.getItem("rihlat-session-log")||"{}")); } catch {}
+    return Math.max(streak||0,logLongest);
+  },[streak]);
 
   // Badge milestone celebrations — fires once per milestone, stored in localStorage.
   // On the first run after onboarding, any milestones the user already meets (because
@@ -1982,7 +1991,7 @@ export default function RihlatAlHifz() {
 
       {/* ═══ MY RIHLAH — PROFILE HOME ═══ */}
       {!appPage&&activeTab==="rihlah"&&rihlahTab==="home"&&(
-        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} completedSurahCount={completedSurahCount} memorizedAyahs={memorizedAyahs} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel} recentBatches={recentBatches} checkHistory={checkHistory}/>
+        <RihlahHome dark={dark} T={T} rihlahScrollRef={rihlahScrollRef} completedCount={completedCount} completedSurahCount={completedSurahCount} memorizedAyahs={memorizedAyahs} sessionJuz={sessionJuz} sessionIdx={sessionIdx} totalSV={totalSV} timeline={timeline} goalYears={goalYears} goalMonths={goalMonths} pct={pct} SESSIONS={SESSIONS} dailyChecks={dailyChecks} toggleCheck={toggleCheck} streak={streak} longestStreak={longestStreak} checkedCount={checkedCount} dailyNew={dailyNew} allChecked={allChecked} setRihlahTab={setRihlahTab} haramainMeta={haramainMeta} recentActivity={recentActivity} userPlanMode={userPlanMode} goalLabel={goalLabel} recentBatches={recentBatches} checkHistory={checkHistory}/>
       )}
 
       {/* ═══ MY MEMORIZATION — JOURNEY VIEW ═══ */}
@@ -2088,7 +2097,7 @@ export default function RihlatAlHifz() {
           dark={dark}
           completedCount={completedCount}
           streak={streak}
-          longestStreak={streak}
+          longestStreak={longestStreak}
           onBack={()=>{
             if(tabBeforeAdjust){
               setActiveTab(tabBeforeAdjust.activeTab);
@@ -2173,7 +2182,7 @@ export default function RihlatAlHifz() {
     profile row stays consistent across all drawer-reachable screens. ── */}
 <AppPageRouter
   appPage={appPage} setAppPage={setAppPage} dark={dark} T={T}
-  completedCount={completedCount} streak={streak} sessionJuz={sessionJuz}
+  completedCount={completedCount} streak={streak} longestStreak={longestStreak} sessionJuz={sessionJuz}
   goalLabel={goalLabel} pct={pct}
 />
 

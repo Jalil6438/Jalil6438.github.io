@@ -1,5 +1,7 @@
 // ── UTILITY FUNCTIONS — extracted from quran-hifz-tracker.jsx ──
-import { SURAH_AYAH_COUNTS, JUZ_RANGES } from "./data/constants";
+// Explicit .js extension so this module (and everything it exports) can be
+// imported by plain Node for unit tests — Vite resolves it identically.
+import { SURAH_AYAH_COUNTS, JUZ_RANGES } from "./data/constants.js";
 
 // Auto-crop white margins from a mushaf page image. Returns a data URL, or the
 // original URL on any failure (tainted canvas / load error).
@@ -144,6 +146,27 @@ export function expandRangeToKeys(startKey, endKey) {
     if (a > SURAH_AYAH_COUNTS[s]) { s++; a = 1; }
   }
   return keys;
+}
+
+// ── LONGEST STREAK ──
+// Longest run of consecutive active days in a rihlat-session-log-shaped object
+// ({ "YYYY-MM-DD": { fajr: {...}, ... } }). A day counts as active when it has
+// at least one completed session. Pure — callers pass the parsed log so this
+// stays unit-testable (same walk MilestonesProgress uses).
+export function computeLongestStreak(log) {
+  const DAY_MS = 86400000;
+  const days = Object.keys(log || {})
+    .filter((k) => log[k] && Object.values(log[k]).some(Boolean))
+    .sort();
+  let longest = 0, run = 0, prev = null;
+  for (const k of days) {
+    const d = new Date(k + "T00:00:00").getTime();
+    if (Number.isNaN(d)) continue;
+    run = prev !== null && Math.round((d - prev) / DAY_MS) === 1 ? run + 1 : 1;
+    longest = Math.max(longest, run);
+    prev = d;
+  }
+  return longest;
 }
 
 const _juzKeyCache = {};
