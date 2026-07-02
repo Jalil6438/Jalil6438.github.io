@@ -27,6 +27,16 @@ export const kSnapshot = (reciterId, snapshotId) => `${NS}snap:${reciterId}:${sn
 export const kLatest = (reciterId) => `${NS}latest:${reciterId}`;
 export const kIndex = (reciterId) => `${NS}index:${reciterId}`;
 
+// ── RECOVERY KEYS (Phase 2) ──
+// A clearly-separated `recovery:` sub-namespace under the SAME isolated root, so
+// these can never collide with snap/latest/index/idem/verifier above, nor with
+// notification (alhifz:push:*), statistics (alhifz:reciters/opens/active:*), or
+// another app on the shared codebase. `targetId` is an opaque throttle handle
+// derived from the reciterId by the core — never the raw reciterId or token.
+export const kRecoveryVerifier = (reciterId) => `${NS}recovery:verifier:${reciterId}`;
+export const kRecoveryMeta = (reciterId) => `${NS}recovery:meta:${reciterId}`;
+export const kRecoveryAttempt = (targetId) => `${NS}recovery:attempt:${targetId}`;
+
 // Retention / bounds (documented in docs/backend). Long TTLs are refreshed on
 // each write, so an actively-backing device never expires while a truly
 // abandoned reciter's data eventually ages out — no unbounded growth.
@@ -34,6 +44,13 @@ export const SNAPSHOT_TTL_SECONDS = 400 * 24 * 3600; // ~13 months
 export const POINTER_TTL_SECONDS = 400 * 24 * 3600;
 export const IDEMPOTENCY_TTL_SECONDS = 2 * 24 * 3600;
 export const RECENT_INDEX_MAX = 20; // metadata-only ring; never unbounded
+
+// Recovery verifier + metadata persist as long as a backup does (a recovery
+// code created today must still open a backup made a year later). The attempt
+// counter is deliberately SHORT-LIVED — throttling is a speed bump, never a
+// permanent lockout.
+export const RECOVERY_VERIFIER_TTL_SECONDS = 400 * 24 * 3600; // ~13 months
+export const RECOVERY_ATTEMPT_TTL_SECONDS = 15 * 60; // 15-minute sliding window
 
 // Minimal Upstash REST pipeline (self-contained, mirrors api/_lib/store.mjs).
 async function pipeline(commands) {
@@ -106,6 +123,67 @@ export function createUpstashProgressStore() {
       const arr = out?.[0]?.result;
       return Array.isArray(arr) ? arr.map(safeParse).filter(Boolean) : [];
     },
+
+    // ── RECOVERY (Phase 2) ──
+    // Register the recovery verifier for a reciter the FIRST time (SET NX). Never
+    // overwrites an existing verifier — rotation goes through replaceRecoveryVerifier
+    // (which requires current-device proof at the core). Returns true when WE set it.
+    async registerRecoveryVerifier(reciterId, verifierHex, meta) {
+      const out = await pipeline([
+        ["SET", kRecoveryVerifier(reciterId), verifierHex, "NX", "EX", String(RECOVERY_VERIFIER_TTL_SECONDS)],
+      ]);
+      const claimed = out?.[0]?.result === "OK";
+      if (claimed) {
+        await pipeline([
+          ["SET", kRecoveryMeta(reciterId), JSON.stringify(meta), "EX", String(RECOVERY_VERIFIER_TTL_SECONDS)],
+        ]);
+      }
+      return claimed;
+    },
+
+    async getRecoveryVerifier(reciterId) {
+      const out = await pipeline([["GET", kRecoveryVerifier(reciterId)]]);
+      const raw = out?.[0]?.result;
+      return typeof raw === "string" ? raw : null;
+    },
+
+    async getRecoveryMeta(reciterId) {
+      const out = await pipeline([["GET", kRecoveryMeta(reciterId)]]);
+      return safeParse(out?.[0]?.result);
+    },
+
+    // Rotation: overwrite the verifier + metadata unconditionally (the core has
+    // already proven current-device ownership before calling this).
+    async replaceRecoveryVerifier(reciterId, verifierHex, meta) {
+      await pipeline([
+        ["SET", kRecoveryVerifier(reciterId), verifierHex, "EX", String(RECOVERY_VERIFIER_TTL_SECONDS)],
+        ["SET", kRecoveryMeta(reciterId), JSON.stringify(meta), "EX", String(RECOVERY_VERIFIER_TTL_SECONDS)],
+      ]);
+      return true;
+    },
+
+    // Read-only latest-snapshot metadata for the recovery preview. Same pointer
+    // the backup flow maintains; recovery NEVER writes it.
+    async getLatestSnapshotMetadataForRecovery(reciterId) {
+      const out = await pipeline([["GET", kLatest(reciterId)]]);
+      return safeParse(out?.[0]?.result);
+    },
+
+    // Bounded attempt counter: INCR then set/refresh a short TTL. Returns the
+    // current count so the core can enforce a limit. Keyed by opaque targetId.
+    async recordRecoveryAttempt(targetId, ttlSeconds = RECOVERY_ATTEMPT_TTL_SECONDS) {
+      const out = await pipeline([
+        ["INCR", kRecoveryAttempt(targetId)],
+        ["EXPIRE", kRecoveryAttempt(targetId), String(ttlSeconds)],
+      ]);
+      const n = out?.[0]?.result;
+      return typeof n === "number" ? n : Number(n) || 0;
+    },
+
+    async clearRecoveryAttemptWindow(targetId) {
+      await pipeline([["DEL", kRecoveryAttempt(targetId)]]);
+      return true;
+    },
   };
 }
 
@@ -118,6 +196,9 @@ export function createMemoryProgressStore({ faults = {} } = {}) {
   const snapshots = new Map(); // `${reciterId}:${snapshotId}` -> json
   const latest = new Map();
   const index = new Map(); // reciterId -> [metaJson, ...] (newest first)
+  const recoveryVerifiers = new Map(); // reciterId -> verifierHex
+  const recoveryMeta = new Map(); // reciterId -> meta object
+  const recoveryAttempts = new Map(); // targetId -> count
 
   const maybeFail = (name) => {
     if (faults[name]) throw faults[name];
@@ -125,7 +206,7 @@ export function createMemoryProgressStore({ faults = {} } = {}) {
 
   return {
     // test introspection (not part of the production interface)
-    _dump: () => ({ verifiers, idem, snapshots, latest, index }),
+    _dump: () => ({ verifiers, idem, snapshots, latest, index, recoveryVerifiers, recoveryMeta, recoveryAttempts }),
 
     async getVerifier(reciterId) {
       maybeFail("getVerifier");
@@ -165,6 +246,44 @@ export function createMemoryProgressStore({ faults = {} } = {}) {
     async listRecentSnapshotMetadata(reciterId, n = RECENT_INDEX_MAX) {
       maybeFail("listRecentSnapshotMetadata");
       return (index.get(reciterId) || []).slice(0, n).map(safeParse).filter(Boolean);
+    },
+
+    // ── RECOVERY (Phase 2) — mirrors the Upstash adapter's semantics ──
+    async registerRecoveryVerifier(reciterId, verifierHex, meta) {
+      maybeFail("registerRecoveryVerifier");
+      if (recoveryVerifiers.has(reciterId)) return false; // SET NX semantics
+      recoveryVerifiers.set(reciterId, verifierHex);
+      recoveryMeta.set(reciterId, meta);
+      return true;
+    },
+    async getRecoveryVerifier(reciterId) {
+      maybeFail("getRecoveryVerifier");
+      return recoveryVerifiers.has(reciterId) ? recoveryVerifiers.get(reciterId) : null;
+    },
+    async getRecoveryMeta(reciterId) {
+      maybeFail("getRecoveryMeta");
+      return recoveryMeta.has(reciterId) ? recoveryMeta.get(reciterId) : null;
+    },
+    async replaceRecoveryVerifier(reciterId, verifierHex, meta) {
+      maybeFail("replaceRecoveryVerifier");
+      recoveryVerifiers.set(reciterId, verifierHex);
+      recoveryMeta.set(reciterId, meta);
+      return true;
+    },
+    async getLatestSnapshotMetadataForRecovery(reciterId) {
+      maybeFail("getLatestSnapshotMetadataForRecovery");
+      return latest.has(reciterId) ? safeParse(latest.get(reciterId)) : null;
+    },
+    async recordRecoveryAttempt(targetId /* ttlSeconds ignored in-memory */) {
+      maybeFail("recordRecoveryAttempt");
+      const n = (recoveryAttempts.get(targetId) || 0) + 1;
+      recoveryAttempts.set(targetId, n);
+      return n;
+    },
+    async clearRecoveryAttemptWindow(targetId) {
+      maybeFail("clearRecoveryAttemptWindow");
+      recoveryAttempts.delete(targetId);
+      return true;
     },
   };
 }

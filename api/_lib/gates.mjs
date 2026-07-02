@@ -36,6 +36,16 @@ export function progressBackupEnabled(env = process.env) {
   return isGateEnabled(env.ALHIFZ_PROGRESS_BACKUP_ENABLED);
 }
 
+// Progress RECOVERY gate (Phase 2). Independent of the backup gate so recovery
+// setup + read-only preview can be enabled for validation without touching the
+// backup switch. Disabled by default and everywhere except an Al-Hifz
+// deployment that sets ALHIFZ_PROGRESS_RECOVERY_ENABLED to exactly "true".
+// While disabled: the setup and preview routes perform NO datastore access, the
+// client makes NO recovery request, and local progress behavior is unchanged.
+export function progressRecoveryEnabled(env = process.env) {
+  return isGateEnabled(env.ALHIFZ_PROGRESS_RECOVERY_ENABLED);
+}
+
 // Uniform, information-free response body for disabled notification APIs.
 // No secrets, project names, paths, or environment details.
 export const DISABLED_RESPONSE = Object.freeze({
@@ -49,4 +59,13 @@ export const PROGRESS_BACKUP_DISABLED_RESPONSE = Object.freeze({
   ok: false,
   enabled: false,
   error: "progress backup is not enabled for this deployment",
+});
+
+// Uniform, information-free response body for the disabled recovery APIs
+// (setup + preview). Deliberately non-alarming: recovery being off is a normal
+// deployment state, not an error the reciter caused.
+export const PROGRESS_RECOVERY_DISABLED_RESPONSE = Object.freeze({
+  ok: false,
+  enabled: false,
+  error: "progress recovery is not enabled for this deployment",
 });
