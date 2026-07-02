@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BuddyAR — Content Credits &amp; Licenses</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 780px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #1a1a1a; }
+    h1 { font-size: 1.5rem; }
+    .note { background: #f4f6f8; border-left: 4px solid #4a7; padding: .75rem 1rem; border-radius: 4px; font-size: .9rem; }
+    .credits-list { list-style: none; padding: 0; }
+    .credit { border: 1px solid #e3e3e3; border-radius: 8px; padding: .75rem 1rem; margin: .6rem 0; }
+    .credit-title { font-weight: 600; display: block; margin-bottom: .25rem; }
+    .credit-role, .credit-changes { color: #555; font-size: .9rem; }
+    .credit-source, .credit-license { display: inline-block; margin-right: 1rem; font-size: .9rem; }
+    .credit-empty { color: #777; font-style: italic; }
+    footer { margin-top: 2rem; font-size: .8rem; color: #777; }
+  </style>
+</head>
+<body>
+  <h1>Content Credits &amp; Licenses</h1>
+  <p class="note">
+    This page is generated automatically from the licensing manifest
+    (<code>content/licenses/arabic-content-manifest.json</code>). Only assets with a
+    cleared status (<code>approved-for-pilot</code>, <code>ingested</code>, or
+    <code>verified</code>) appear here. Attribution text is never hardcoded in the UI.
+  </p>
+
+  <div id="credits">Loading credits…</div>
+
+  <footer>
+    BuddyAR supplemental content. CC-BY / CC-BY-SA works are credited to their creators;
+    CC-BY-SA derivatives remain under CC-BY-SA. CC0 / Public Domain works are credited voluntarily.
+  </footer>
+
+  <script type="module">
+    import { renderCreditsInto } from "./credits.js";
+    const container = document.getElementById("credits");
+    try {
+      // Adjust the path if the manifest is served from a different route.
+      const res = await fetch("../licenses/arabic-content-manifest.json");
+      const manifest = await res.json();
+      renderCreditsInto(container, manifest);
+    } catch (err) {
+      container.textContent = "Could not load the licensing manifest: " + err.message;
+    }
+  </script>
+</body>
+</html>

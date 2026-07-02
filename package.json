@@ -1,0 +1,14 @@
+{
+  "name": "buddyar-arabic-licensing",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Auditable licensing/compliance workflow for legally reusable Arabic supplemental content in BuddyAR. Static site content is unaffected.",
+  "scripts": {
+    "licenses:verify": "node scripts/verify-licenses.mjs",
+    "licenses:csv": "node scripts/generate-csv.mjs",
+    "licenses:csv:check": "node scripts/generate-csv.mjs --check",
+    "test": "node --test"
+  },
+  "license": "SEE content/licenses/README.md"
+}

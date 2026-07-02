@@ -1,0 +1,20 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Do not commit downloaded media binaries by default — track them deliberately.
+content/pilot/**/*.mp3
+content/pilot/**/*.wav
+content/pilot/**/*.ogg
+content/pilot/**/*.pdf
+content/pilot/**/*.epub
+content/pilot/**/*.png
+content/pilot/**/*.jpg
+content/pilot/**/*.jpeg
+content/pilot/**/*.svg
+!content/pilot/**/.gitkeep
+
+# Never commit secrets or personal data
+*.env
+.env*
+secrets*
