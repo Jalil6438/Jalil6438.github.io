@@ -78,6 +78,13 @@ match length via timing. See [`api/_lib/recovery-core.mjs`](../../api/_lib/recov
 
 ---
 
+> **Deployment note (function consolidation).** Both actions are served by a
+> single Vercel dynamic route, [`api/progress/recovery/[action].js`](../../api/progress/recovery/%5Baction%5D.js),
+> so the deployment ships **one** serverless function while preserving the two
+> public paths `/api/progress/recovery/setup` and `/api/progress/recovery/preview`.
+> This keeps the project within the Hobby plan's 12-function limit with no client
+> change; all logic stays in the tested core `api/_lib/recovery-core.mjs`.
+
 ## 4. Setup authorization (`POST /api/progress/recovery/setup`)
 
 Registering or rotating a recovery verifier **requires the Phase-1 device
