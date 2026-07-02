@@ -36,7 +36,9 @@ export default function MyHifzTab(props) {
     sessionJuz, setSessionJuz, sessionIdx, setSessionIdx, totalSV, dailyNew,
     setShowJuzModal,
     // sessions state
-    activeSessionIndex, setActiveSessionIndex, sessionsCompleted, setSessionsCompleted, setStreak,
+    activeSessionIndex, setActiveSessionIndex, sessionsCompleted, setSessionsCompleted,
+    // C1: Isha→Fajr lock — completing Isha locks My Hifz until the next Fajr.
+    hifzLocked, hifzLockExpiry, onIshaCycleComplete,
     currentSessionId, isAsr, toggleCheck,
     // batch
     batch: rawBatch, bEnd, bDone, fajrBatch, sessionVerses,
@@ -463,6 +465,28 @@ export default function MyHifzTab(props) {
     }
   }, [currentSessionId, batch, ayahPage, repCounts, connectionReps, pushActivity]);
 
+  // ── C1: ISHA → FAJR LOCK SCREEN ──
+  // After Isha completes, My Hifz rests until the next Fajr. Only this tab is
+  // gated — the Qur'an, Rihlah, and Haramain tabs stay fully available.
+  if (hifzLocked) {
+    const unlockLabel = hifzLockExpiry
+      ? new Date(hifzLockExpiry).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      : "Fajr";
+    return (
+      <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",padding:"40px 28px",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2"}} className="fi">
+        <div style={{fontSize:44,marginBottom:14}}>🌙</div>
+        <div style={{fontSize:17,fontWeight:800,color:dark?"#F3E7C8":"#2D2A26",marginBottom:8}}>Today's cycle is complete</div>
+        <div style={{fontSize:12.5,lineHeight:1.7,color:dark?"rgba(243,231,200,0.60)":"#6B645A",maxWidth:320,marginBottom:14}}>
+          Mā shāʾ Allāh — you finished all five sessions through Isha. One page a day,
+          firmly. My Hifz is resting and will open again at Fajr ({unlockLabel}).
+        </div>
+        <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.40)":"#8B7355",maxWidth:300,lineHeight:1.6}}>
+          Sleep on what you memorized — the Qur'an tab remains open for reading.
+        </div>
+      </div>
+    );
+  }
+
   return (
         <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",position:"relative"}} className="fi gold-particles">
 
@@ -859,11 +883,12 @@ export default function MyHifzTab(props) {
                       }
                       setActiveSessionIndex(0);
                       setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
-                      // One full Fajr→Isha cycle = +1 to streak. Defines a
-                      // "day" by completion of the daily plan rather than a
-                      // calendar day so rapid testing reflects progress.
-                      if(setStreak) setStreak(p=>(p||0)+1);
-                      // Start each new day on Fajr Mushaf (read with teacher first)
+                      // C1: completing Isha ends the day — engage the
+                      // Isha→Fajr lock and award the (single) streak credit.
+                      // The next page cannot start until the lock releases at
+                      // the next Fajr, enforcing one page per daily cycle.
+                      if(onIshaCycleComplete) onIshaCycleComplete();
+                      // The new day resumes on Fajr Mushaf (read with teacher first)
                       setHifzViewMode("mushaf");
                     } else {
                       setActiveSessionIndex(i=>i+1);

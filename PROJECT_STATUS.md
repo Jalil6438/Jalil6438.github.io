@@ -1,6 +1,6 @@
 # Al-Hifz (Rihlat Al-Hifz) — Project Status
 
-_Last updated: 2026-07-02 · branch `claude/al-hifz-maintenance` · full audit report in `MAINTENANCE_REPORT.md`, issue registry in `KNOWN_ISSUES.md`._
+_Last updated: 2026-07-02 (second pass) · branch `claude/al-hifz-maintenance-notifications` (continues `claude/al-hifz-maintenance` @ `fffed7a`, which is preserved) · audit in `MAINTENANCE_REPORT.md`, issues in `KNOWN_ISSUES.md`, push setup in `PUSH_NOTIFICATIONS_SETUP.md`._
 
 ## What this app is
 
@@ -14,30 +14,37 @@ serverless `api/` routes (stats via Upstash Redis; unused QuranFoundation OAuth)
 
 | Area | Status | Notes |
 |---|---|---|
-| Build (`npm run build`) | ✅ PASS | PWA SW generated, 49 precache entries (~8 MB). 635 KB JS chunk (no code-splitting). |
-| Tests (`npm test`) | ✅ 12/12 | New — `node --test`, added by this audit (data integrity + longest-streak). |
-| Lint (`npm run lint`) | ❌ 300 problems | Was 320; the 21 `api/` false positives fixed. Remainder is pre-existing hygiene (unused vars, empty catches, hooks warnings). |
+| Build (`npm run build`) | ✅ PASS | PWA SW now `injectManifest` (custom `src/sw.js` with push handlers), same 49 precache entries — offline shell parity preserved. |
+| Tests (`npm test`) | ✅ 60/60 | Metadata + longest-streak + Isha lock (7 required scenarios) + rollover + streak single-credit + Asr rotation + push scheduling/dedupe/cleanup/payload. |
+| Lint (`npm run lint`) | ❌ pre-existing hygiene only | All NEW code lint-clean; remaining problems predate this work (unused vars, empty catches, hooks warnings). |
 | Typecheck | — | Not configured (plain JSX, no TypeScript). |
-| Deployment | ⛔ Not deployed by this audit | Branch pushes auto-build two Vercel previews (`al-hifz`, `noortech-share`) — see `DEPLOYMENT_GUARDRAILS.md`. No production deploy. |
+| Deployment | 🔶 **Preview deployments only** | Every branch push auto-builds **preview deployments** for both connected Vercel projects (`al-hifz`, `noortech-share`). That is CI behavior, not a production release — production deploys only on a merge to the production branch, which has not happened. |
 
-## Notification pipeline — **client-only timer, NOT push** ⚠️
+## Notification pipeline — **real web push IMPLEMENTED, blocked on credentials + device verification** 🔶
 
-The Reminders feature is an **in-tab `setInterval` loop** (`src/hooks/useReminders.js`)
-that fires a local `Notification` while the app is open. There is **no** PushManager
-subscription, no VAPID keys, no service-worker `push` handler, no backend subscription
-storage, no scheduled job, and no prayer-time calculation (times are manual strings).
-**A notification cannot arrive while the app is closed — this is why Qur'an-session
-notifications "did not arrive."**
+The full pipeline now exists end-to-end:
 
-Classification requested by the audit: **partially implemented — client-only timer**
-(permission UI is real; delivery is in-tab only).
+- **Client** (`src/push.js`, Reminders page): user-action permission request, SW-ready
+  `PushManager.subscribe` with the VAPID public key (base64url→Uint8Array), server upsert,
+  key-rotation refresh, unsubscribe, and honest UI states (unsupported / denied /
+  **server-not-configured** / ready / subscribed).
+- **Service worker** (`src/sw.js`, injectManifest): `push` renders the session notification;
+  `notificationclick` closes it, focuses an existing window or opens `/?session=<id>`,
+  landing on My Hifz. Precache/offline behavior replicated 1:1 from the old generateSW build.
+- **Server** (`api/push/*` + Upstash): subscription records (endpoint+keys, device id,
+  IANA timezone, per-session times/toggles, daily completion + Isha-lock status,
+  lastUpdated), VAPID sender (`web-push`), 404/410 cleanup, per-day `SET NX` duplicate
+  guard, `CRON_SECRET`-protected scheduler at `/api/push/cron` (vercel.json: every 10 min).
+- **Real test button**: calls `POST /api/push/send-test` — genuinely server-delivered
+  through the push provider; labeled honestly when configuration is missing. The old
+  in-tab timer remains only as a clearly-labeled foreground fallback.
 
-- The UI copy has been corrected to say this honestly (no fake "background nudges" claim).
-- The existing Test button exercises the real in-tab mechanism — it was **not** replaced
-  with a fake push test, per the maintenance rules.
-- Real push requires: VAPID keypair, subscribe flow + subscription storage (e.g. Upstash),
-  a Vercel Cron sender, an SW `push` handler, and **verification on a real phone with the
-  app closed**. Not marked complete; see KNOWN_ISSUES H1.
+**NOT yet done — and required before calling this complete:** VAPID keys + CRON_SECRET
+must be set in Vercel (placeholders in `.env.example`; instructions in
+`PUSH_NOTIFICATIONS_SETUP.md`), the cron cadence needs a Pro plan or an external
+scheduler on Hobby, and **a real push must arrive on Jalil's phone while the PWA is
+closed**. Until that device test passes, background notifications are implemented but
+NOT verified.
 
 ## Offline status — **shell yes, content mostly no** ⚠️
 
@@ -69,11 +76,18 @@ client-generated IDs). See KNOWN_ISSUES H7/M7.
 - Guided flow cannot skip sessions (single active session, sequential advance).
 - Completed data survives refresh and day rollover (`jalil-quran-v8`/`v9`).
 - 20× reps, connection pairs/closers gating, Dhuhr 5-page lookback, Asr 6-stage table: implemented per the book.
-- **However:** the "Isha locks My Hifz until next Fajr" rule is **not implemented** —
-  the cycle resets immediately on Isha completion (a deliberate testing shortcut left
-  in the code), which permits unlimited pages/day across repeated cycles. This is a
-  **core-progression decision** and was NOT changed by this audit — approval needed.
-  See KNOWN_ISSUES C1 (and related H2/H3 rollover/streak issues).
+- **Isha lock (C1): RESTORED.** Completing Isha now locks My Hifz until the next Fajr
+  (configured Fajr reminder time, else 05:00). The lock persists in localStorage, so
+  reload/close cannot bypass it; the rapid-testing reset shortcut is removed from
+  production behavior; existing progress is untouched. Verified by 15 automated tests
+  covering all 7 required scenarios (`tests/isha-lock.test.mjs`).
+- **Day rollover (H2): FIXED** — guided-session state now resets to a fresh Fajr on a
+  new local day (memorization data preserved; legacy blobs restore safely).
+- **Streak (H3): FIXED** — a calendar day is credited at most once across all three
+  award paths (`src/hifz/streak.js`).
+- **Asr rotation (H4): FIXED** — the half-of-juz now advances per full pass through the
+  eligible list, so both halves of every juz are reached for even AND odd juz counts
+  (`src/hifz/asrRotation.js`; includes a regression witness of the old bug).
 
 ## Fixes applied this audit (safe, non-methodology)
 

@@ -9,6 +9,14 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      // injectManifest: we author src/sw.js ourselves so the service worker
+      // can carry the Web Push handlers (push / notificationclick). The
+      // precache manifest and runtime caching that generateSW used to emit
+      // are replicated 1:1 inside src/sw.js — offline shell behavior is
+      // unchanged.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       // SW disabled during `vite dev`; runs in build/preview only.
       devOptions: { enabled: false },
       // Single reconciled manifest (replaces the broken site.webmanifest +
@@ -31,11 +39,10 @@ export default defineConfig({
           { src: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        // SPA navigations fall back to the shell when offline (but never /api/*).
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//],
-        cleanupOutdatedCaches: true,
+      // injectManifest options — navigation fallback, cleanup, and the runtime
+      // font caches now live in src/sw.js (workbox-precaching / -routing /
+      // -strategies imports). Only the precache file list is configured here.
+      injectManifest: {
         // quran-layout.json is ~1MB; keep headroom.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         // PRECACHE: app shell + the local JSON the Mushaf/Hifz views need + the
@@ -60,39 +67,6 @@ export default defineConfig({
           'tab-*.png',
           'prayer-*.png',
           'UthmanicHafs*.woff2',
-        ],
-        runtimeCaching: [
-          {
-            // Per-page KFGQPC v2 fonts from jsdelivr — cache-first, cached on
-            // visit so a previously-viewed page renders its font offline. LRU
-            // capped so we never balloon toward all 604 pages.
-            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*\/fonts\/quran\/.*\.(?:woff2?|ttf|otf)$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'qcf-page-fonts',
-              expiration: { maxEntries: 140, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // Google Fonts stylesheet (UI typography) — SWR.
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'google-fonts-css',
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            // Google Fonts files — cache-first.
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-files',
-              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
         ],
       },
     }),

@@ -1,5 +1,15 @@
 # Al-Hifz Maintenance Report — 2026-07-02
 
+> **SECOND PASS (same day):** work continued on `claude/al-hifz-maintenance-notifications`
+> (created from `fffed7a`; the original branch is preserved untouched). The second pass
+> restored the Isha lock (C1), fixed H2/H3/H4 with regression tests (60/60 passing), and
+> implemented the complete web-push pipeline (client + SW + server + cron), blocked only
+> on Vercel credentials and a real-device test. Details: §10 below, `KNOWN_ISSUES.md`
+> (updated statuses), and `PUSH_NOTIFICATIONS_SETUP.md`.
+> **Deployment classification correction:** branch pushes DO produce Vercel **preview
+> deployments** for both connected projects — earlier "no deployment" phrasing meant only
+> that no *production* deploy occurred.
+
 Branch: `claude/al-hifz-maintenance` (off `master`, where the app lives — `main` is a placeholder page).
 Rules honored: no deploy, no merge to main, five-session methodology / one-page cap / Isha-lock behavior **not altered**, tests added for every bug fixed, all assumptions documented.
 
@@ -112,3 +122,55 @@ npm test                       # 12/12 after adding tests
 npm run lint                   # 300 problems (api/ false positives gone)
 npm run build                  # pass (after all fixes)
 ```
+
+---
+
+## 10. SECOND PASS — core-rule restoration + real web push (branch `claude/al-hifz-maintenance-notifications`)
+
+### Core rules restored (owner-directed; methodology unchanged)
+| Fix | Implementation | Tests |
+|---|---|---|
+| **C1 Isha lock** | `src/hifz/cycleLock.js` + MyHifzTab lock screen + tracker lock state. Isha completion persists a lock until the next Fajr (configured reminder time, else 05:00); reload/close cannot bypass it; rapid-testing reset removed; post-midnight Isha unlocks the same day's Fajr; progress untouched. | 15 tests — all 7 required scenarios |
+| **H2 rollover** | `resolveCycleStateOnLoad` + `cycleDate` stamp: prior-day guided state resets to fresh Fajr on load (kept while locked; legacy blobs restore as-is). | 4 tests |
+| **H3 streak** | `src/hifz/streak.js` single-credit: one +1 per local day across all three award paths; missed day still breaks. | 8 tests |
+| **H4 Asr rotation** | `src/hifz/asrRotation.js`: chunk advances per full pass through the eligible list; juz-pool rotation proven identical to before; even+odd counts fully covered. | 7 tests (incl. regression witness of the old bug) |
+
+### Web push pipeline (implemented; delivery pending credentials + device test)
+- **Client** `src/push.js` + Reminders UI: user-gesture permission, `PushManager.subscribe`
+  (VAPID key base64url→Uint8Array), server upsert, key-rotation refresh, unsubscribe,
+  honest states (unsupported/denied/unconfigured/ready/subscribed), REAL server test button.
+- **SW** `src/sw.js` (migrated generateSW→injectManifest, precache parity at 49 entries):
+  `push` + `notificationclick` (focus window or open `/?session=<id>` → My Hifz; closes itself).
+- **Server** `api/push/{config,subscribe,send-test,cron}.js` + `api/_lib/{push-core,store,sender}.mjs`:
+  Upstash records (endpoint+keys, device id, IANA timezone, session times, daily completion +
+  Isha-lock status, lastUpdated), VAPID sender, 404/410 cleanup, `SET NX EX` per-day dedupe,
+  `CRON_SECRET` auth, per-subscriber error isolation, count/status-only logging.
+- **Cron** `vercel.json` `*/10 * * * *` (NOTE: requires Vercel Pro; Hobby → external scheduler;
+  see PUSH_NOTIFICATIONS_SETUP.md §3, incl. the two-projects-one-repo caveat).
+- **Env** `.env.example` placeholders only (`VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY/VAPID_SUBJECT`,
+  `CRON_SECRET`); no real keys committed or logged anywhere.
+- Scheduler suppresses: completed sessions (client sync via `syncDailyStatus`), everything
+  during the Isha lock, disabled sessions/subscribers, and stale windows.
+
+### Verification tiers (required distinction)
+- **Verified in automated tests (60/60):** lock semantics incl. reload/reopen persistence &
+  progress preservation; rollover reset; streak single-credit; Asr full coverage; timezone
+  due-window math; completed/locked/disabled skips; dedupe keys; 404/410 cleanup decision;
+  payload contents & click routing; subscription validation; metadata invariants.
+- **Verified in a browser:** NOTHING — this environment has no browser/device. Subscribe
+  flow, SW behavior, and UI states are build-validated only.
+- **Unfinished:** none of the scoped work (all components written and wired).
+- **Blocked only by credentials:** VAPID keys + CRON_SECRET in Vercel; cron cadence
+  (Pro plan or external scheduler); preview-env vars for preview testing.
+- **Real Android/PWA device testing still required:** background arrival with the PWA
+  closed on Jalil's phone; notification tap → correct session; duplicate-prevention and
+  expired-cleanup runs; Android battery-manager behavior. **Background notifications are
+  NOT claimed complete until that passes.**
+
+### Validation (second pass)
+- `npm test`: **60/60 pass**
+- `npm run build`: **PASS** (injectManifest, precache 49 entries — parity)
+- `npx eslint` on every file changed in this pass: **clean** (all remaining repo lint
+  problems are pre-existing and untouched)
+- Deployment: **preview deployments only** (auto on branch push, both Vercel projects);
+  no production deploy, no merge, no PR.

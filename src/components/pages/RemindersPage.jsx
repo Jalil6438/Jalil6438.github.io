@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
 import AppPage from "./AppPage";
+import {
+  isPushSupported, fetchPushConfig, getExistingSubscription,
+  subscribeToPush, syncSubscriptionToServer, unsubscribeFromPush,
+  requestServerTestPush,
+} from "../../push";
 
 export default function RemindersPage({ dark, onBack }) {
   const DEFAULTS = [
@@ -14,7 +19,7 @@ export default function RemindersPage({ dark, onBack }) {
     try {
       const saved = JSON.parse(localStorage.getItem("rihlat-reminders") || "null");
       if (saved && saved.sessions) return saved;
-    } catch {}
+    } catch { /* corrupted prefs — fall through to defaults */ }
     const sessions = {};
     DEFAULTS.forEach(d => { sessions[d.id] = { enabled: false, time: d.time }; });
     return { sessions };
@@ -24,7 +29,7 @@ export default function RemindersPage({ dark, onBack }) {
   );
 
   useEffect(() => {
-    try { localStorage.setItem("rihlat-reminders", JSON.stringify(prefs)); } catch {}
+    try { localStorage.setItem("rihlat-reminders", JSON.stringify(prefs)); } catch { /* storage unavailable */ }
   }, [prefs]);
 
   const requestPermission = async () => {
@@ -32,7 +37,7 @@ export default function RemindersPage({ dark, onBack }) {
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
-    } catch {}
+    } catch { /* prompt blocked */ }
   };
 
   const toggleSession = (id) => {
@@ -44,17 +49,138 @@ export default function RemindersPage({ dark, onBack }) {
 
   const sendTest = () => {
     if (permission !== "granted") return;
-    // Honest test: exercises the exact mechanism reminders use (an in-tab
-    // Notification). This is NOT server push — reminders cannot fire while
-    // the app is closed, and the copy below must never claim otherwise.
-    try { new Notification("Rihlat al-Hifz", { body: "Reminders will look like this while the app is open — bismillah." }); } catch {}
+    // Foreground fallback test: exercises the in-tab timer mechanism only.
+    // The REAL background test (server-delivered push) lives in the
+    // Background notifications section below.
+    try { new Notification("Rihlat al-Hifz", { body: "Foreground reminders will look like this while the app is open — bismillah." }); } catch { /* blocked */ }
   };
+
+  // ── BACKGROUND PUSH (real web push — works with the app closed) ──
+  // pushState: "loading" | "unsupported" | "denied" | "unconfigured" |
+  //            "ready" (can enable) | "subscribed" | "error"
+  const [pushState, setPushState] = useState("loading");
+  const [pushConfig, setPushConfig] = useState(null);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMsg, setPushMsg] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!isPushSupported()) { if (alive) setPushState("unsupported"); return; }
+      try {
+        const cfg = await fetchPushConfig();
+        if (!alive) return;
+        setPushConfig(cfg);
+        if (!cfg.configured || !cfg.publicKey) { setPushState("unconfigured"); return; }
+        if (typeof Notification !== "undefined" && Notification.permission === "denied") { setPushState("denied"); return; }
+        const sub = await getExistingSubscription();
+        if (!alive) return;
+        setPushState(sub ? "subscribed" : "ready");
+      } catch {
+        if (alive) setPushState("unconfigured");
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const enableBackgroundPush = async () => {
+    if (pushBusy || !pushConfig?.publicKey) return;
+    setPushBusy(true); setPushMsg("");
+    try {
+      // Permission must come from this explicit user action.
+      const perm = await Notification.requestPermission();
+      setPermission(perm);
+      if (perm !== "granted") { setPushState(perm === "denied" ? "denied" : "ready"); return; }
+      const sub = await subscribeToPush(pushConfig.publicKey);
+      await syncSubscriptionToServer(sub, { enabled: true });
+      setPushState("subscribed");
+      setPushMsg("Background notifications enabled — send a test below.");
+    } catch (err) {
+      setPushState("error");
+      setPushMsg(err?.message || "Could not enable background notifications.");
+    } finally { setPushBusy(false); }
+  };
+
+  const disableBackgroundPush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true); setPushMsg("");
+    try { await unsubscribeFromPush(); setPushState("ready"); setPushMsg("Background notifications disabled."); }
+    catch { setPushMsg("Could not fully disable — try again."); }
+    finally { setPushBusy(false); }
+  };
+
+  const sendServerTest = async () => {
+    if (pushBusy) return;
+    setPushBusy(true); setPushMsg("");
+    try {
+      await requestServerTestPush();
+      setPushMsg("Sent from the server — it should arrive via your device's push service, even with the app closed.");
+    } catch (err) {
+      setPushMsg(`Test failed: ${err?.message || "unknown error"}`);
+    } finally { setPushBusy(false); }
+  };
+
+  // Keep the server's copy of reminder times/toggles in step while subscribed.
+  useEffect(() => {
+    if (pushState !== "subscribed") return;
+    getExistingSubscription().then((sub) => {
+      if (sub) return syncSubscriptionToServer(sub);
+    }).catch(() => {});
+  }, [prefs, pushState]);
 
   const enabledCount = DEFAULTS.filter(d => prefs.sessions[d.id]?.enabled).length;
 
+  const pushCard = (() => {
+    const box = (title, body, action) => ({ title, body, action });
+    switch (pushState) {
+      case "loading": return box("Background notifications", "Checking availability…", null);
+      case "unsupported": return box("Background notifications not supported", "This browser doesn't support Web Push. On iOS, install the app to your home screen first (iOS 16.4+).", null);
+      case "denied": return box("Notifications blocked", "Re-enable notifications for this site/app in your browser or Android settings, then return here.", null);
+      case "unconfigured": return box("Background notifications not configured", `The server is missing ${pushConfig?.missing?.join(" + ") || "push configuration"} — reminders currently work only while the app is open (foreground fallback above). See PUSH_NOTIFICATIONS_SETUP.md.`, null);
+      case "ready": return box("Enable background notifications", "Get session reminders even when the app is closed. Delivered by your device's push service.", { label: "Enable", onClick: enableBackgroundPush });
+      case "subscribed": return box("Background notifications on", "Reminders are delivered by the server at your configured times — the app can be closed. Android battery savers may delay delivery.", { label: "Send test", onClick: sendServerTest, secondary: { label: "Disable", onClick: disableBackgroundPush } });
+      case "error": default: return box("Background notifications", pushMsg || "Something went wrong.", { label: "Retry", onClick: enableBackgroundPush });
+    }
+  })();
+
   return (
     <AppPage dark={dark} title="Reminders" subtitle={`${enabledCount} of 5 enabled`} onBack={onBack}>
-      {/* Permission banner */}
+      {/* ── Background push (real, server-delivered) ── */}
+      <div style={{
+        marginBottom: 12, padding: "14px", borderRadius: 12,
+        background: pushState === "subscribed" ? (dark ? "rgba(56,214,126,0.08)" : "rgba(20,140,60,0.06)") : (dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"),
+        border: `1px solid ${pushState === "subscribed" ? (dark ? "rgba(56,214,126,0.30)" : "rgba(20,140,60,0.25)") : (dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)")}`,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ fontSize: 18 }}>{pushState === "subscribed" ? "📲" : "🛰️"}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: dark ? "#F3E7C8" : "#2D2A26" }}>{pushCard.title}</div>
+            <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", marginTop: 2, lineHeight: 1.5 }}>{pushCard.body}</div>
+          </div>
+        </div>
+        {(pushCard.action || pushMsg) && (
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
+            {pushCard.action && (
+              <div className="sbtn" onClick={pushCard.action.onClick} style={{
+                padding: "8px 14px", borderRadius: 8, fontSize: 11, fontWeight: 700, opacity: pushBusy ? 0.5 : 1,
+                background: dark ? "rgba(212,175,55,0.18)" : "rgba(180,140,40,0.15)",
+                color: dark ? "#F0C040" : "#6B4F00",
+                border: `1px solid ${dark ? "rgba(212,175,55,0.40)" : "rgba(139,106,16,0.30)"}`,
+              }}>{pushBusy ? "Working…" : pushCard.action.label}</div>
+            )}
+            {pushCard.action?.secondary && (
+              <div className="sbtn" onClick={pushCard.action.secondary.onClick} style={{
+                padding: "8px 14px", borderRadius: 8, fontSize: 11, fontWeight: 600, opacity: pushBusy ? 0.5 : 1,
+                color: dark ? "rgba(243,231,200,0.60)" : "#6B645A",
+                border: `1px solid ${dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
+              }}>{pushCard.action.secondary.label}</div>
+            )}
+            {pushMsg && <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", flexBasis: "100%", lineHeight: 1.5 }}>{pushMsg}</div>}
+          </div>
+        )}
+      </div>
+
+      {/* Foreground (in-tab) permission banner — fallback only */}
       <div style={{
         marginBottom: 16, padding: "12px 14px", borderRadius: 12,
         background: permission === "granted"
@@ -148,7 +274,7 @@ export default function RemindersPage({ dark, onBack }) {
       </div>
 
       <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355", textAlign: "center", marginTop: 18, lineHeight: 1.6, fontStyle: "italic" }}>
-        Reminders fire only while the app is open — they cannot reach you when the app is closed. True background notifications are not supported yet.
+        The times above drive both delivery paths. With background notifications ON, the server delivers reminders even when the app is closed. Without them, the foreground fallback fires only while the app is open — it is not background delivery.
       </div>
     </AppPage>
   );

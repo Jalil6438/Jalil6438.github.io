@@ -14,9 +14,9 @@ Fix status: `FIXED` (this audit) · `OPEN` · `OPEN-NEEDS-APPROVAL` (touches cor
 - **Severity:** Critical (defeats the Isha-lock rule and, across a sitting, the one-page/day intent).
 - **Repro:** Complete Fajr→Isha once; the tab instantly offers the next page's Fajr; repeat indefinitely.
 - **Root cause:** Testing shortcut left in; calendar/Fajr gating never (re)added.
-- **Files:** `src/tabs/MyHifzTab.jsx:827-867` (esp. 860-865), `src/quran-hifz-tracker.jsx:1877` (render gate).
-- **Fix status:** `OPEN-NEEDS-APPROVAL` — this is core progression behavior; per maintenance rules it was documented, not changed.
-- **Tests added:** none (blocked on decision). **Manual verification:** no (clear from code); product decision required.
+- **Files:** `src/tabs/MyHifzTab.jsx` (end-of-cycle + lock screen), `src/hifz/cycleLock.js`, `src/quran-hifz-tracker.jsx` (lock state/interval).
+- **Fix status:** **FIXED** (owner-directed, second pass) — Isha completion engages a persistent lock until the next Fajr (configured Fajr reminder time, else 05:00); the rapid-testing reset was removed from production behavior; a lock screen replaces the session UI on My Hifz only; progress data untouched. Post-midnight Isha unlocks at the same day's Fajr (no extra-day punishment).
+- **Tests added:** `tests/isha-lock.test.mjs` — 15 tests covering all 7 required scenarios (lock on Isha; reload survives; close/reopen survives; holds across the whole cycle incl. midnight; unlocks at next valid Fajr; no new page while locked; progress intact). **Manual verification:** on-device pass still recommended (checklist).
 
 ## H1 — Notifications are a client-only timer; no real push
 - **Screen/feature:** Reminders page / session notifications.
@@ -26,18 +26,18 @@ Fix status: `FIXED` (this audit) · `OPEN` · `OPEN-NEEDS-APPROVAL` (touches cor
 - **Repro:** Enable a reminder, close the app/tab, wait past the time → no notification.
 - **Root cause:** Push pipeline never built; UI implied more than the implementation delivers.
 - **Files:** `src/hooks/useReminders.js`, `src/components/pages/RemindersPage.jsx`, `vite.config.js` (SW has no push handler), `api/` (no subscription route).
-- **Fix status:** `OPEN-NEEDS-APPROVAL` for real push (needs VAPID keys, subscription storage, Vercel Cron sender, SW push handler, and **on-phone verification with the app closed** before it may be called done). **Partial mitigation FIXED:** misleading copy corrected (see M11). No fake test control was added.
-- **Tests added:** none yet. **Manual verification:** required on a real device once built.
+- **Fix status:** **IMPLEMENTED — blocked on credentials + device verification** (second pass). Full pipeline shipped: client subscribe flow (`src/push.js`, Reminders UI with honest states), SW `push`/`notificationclick` handlers (`src/sw.js`, injectManifest), Upstash subscription storage, VAPID sender with 404/410 cleanup, `SET NX` per-day duplicate guard, `CRON_SECRET`-protected scheduler (`api/push/cron.js` + `vercel.json`), and a genuinely server-delivered test button. Env placeholders only (`.env.example`); no real keys committed. **NOT marked complete:** requires VAPID/CRON_SECRET in Vercel, a Pro-plan cron (or external scheduler on Hobby), and a real push arriving on the owner's phone with the PWA closed — see `PUSH_NOTIFICATIONS_SETUP.md`.
+- **Tests added:** `tests/push-schedule.test.mjs` (timezone scheduling, completed/locked/disabled skips, dedupe keys), `tests/push-payload.test.mjs` (payload, click routing, 404/410 cleanup decision, subscription validation). **Manual verification:** required on a real Android device / installed PWA.
 
 ## H2 — Guided flow never resets on calendar rollover; desyncs from the daily checklist
 - **Screen/feature:** App load on a new day (My Hifz vs Rihlah home checklist).
 - **Expected:** Next-day state is consistent everywhere.
 - **Actual:** On load, `dailyChecks` is reset when the date changes, but `activeSessionIndex`/`sessionsCompleted` are restored unconditionally — home shows "0 of 5" while My Hifz resumes mid-cycle with earlier sessions still marked complete.
 - **Severity:** High. **Repro:** Complete Fajr+Dhuhr; reopen the app the next day; compare the two screens.
-- **Root cause:** Only `dailyChecks` is date-guarded (`src/quran-hifz-tracker.jsx:628-633` vs 624-625).
-- **Files:** `src/quran-hifz-tracker.jsx:624-633, 668`.
-- **Fix status:** `OPEN-NEEDS-APPROVAL` — the correct reset depends on the C1 decision (what defines a "day").
-- **Tests:** none. **Manual verification:** recommended.
+- **Root cause:** Only `dailyChecks` was date-guarded.
+- **Files:** `src/hifz/cycleLock.js` (`resolveCycleStateOnLoad`), `src/quran-hifz-tracker.jsx` (load block, `cycleDate` stamp in `toggleCheck`, persist blob).
+- **Fix status:** **FIXED** (second pass) — a `cycleDate` stamp travels with the persisted guided state; on load, state from a previous day resets to a fresh Fajr (kept only while the Isha lock is active, since it was already reset at Isha). Legacy blobs without `cycleDate` restore as-is — nothing is nuked. Memorization progress is never part of the reset.
+- **Tests:** 4 rollover cases in `tests/isha-lock.test.mjs` (same-day restore, next-day reset, locked-keep, legacy-restore). **Manual verification:** next-day reload check on device.
 
 ## H3 — Streak can increment via three competing mechanisms
 - **Screen/feature:** Streak counter (drives badges).
@@ -45,19 +45,19 @@ Fix status: `FIXED` (this audit) · `OPEN` · `OPEN-NEEDS-APPROVAL` (touches cor
 - **Actual:** Increments on (a) load-time rollover if yesterday complete, (b) `toggleCheck` rollover, (c) **every** completed Fajr→Isha cycle regardless of calendar. Two cycles in one sitting ⇒ +2; a cycle spanning midnight can also trip (a)/(b).
 - **Severity:** High (gamification integrity). **Repro:** Run two full cycles in one day.
 - **Root cause:** Per-cycle model added without removing calendar-based bumps.
-- **Files:** `src/quran-hifz-tracker.jsx:631, 1332-1343`; `src/tabs/MyHifzTab.jsx:865`.
-- **Fix status:** `OPEN-NEEDS-APPROVAL` (single source of truth depends on C1/H2 decision).
-- **Tests:** none. **Manual verification:** recommended.
+- **Files:** `src/hifz/streak.js` (`applyStreakCredit`/`breakStreak`), `src/quran-hifz-tracker.jsx` (all three award sites), `src/tabs/MyHifzTab.jsx` (cycle completion now calls the tracker's single-credit path).
+- **Fix status:** **FIXED** (second pass) — every award path flows through `applyStreakCredit`, which credits a local calendar day at most once (`streakLastCredit` persisted in the v8 blob). The Isha lock additionally makes a second same-day cycle impossible. Missed days still break the streak.
+- **Tests:** `tests/streak-credit.test.mjs` (8 tests: double-cycle, cycle+rollover, cross-midnight, backdated, break semantics). **Manual verification:** optional.
 
 ## H4 — Asr rotation shows only one half of each juz when the eligible-juz count is even
 - **Screen/feature:** Asr auto-review pool.
 - **Expected:** Over a full rotation, both halves of every completed juz get revised.
 - **Actual:** Juz selection (`startIdx=(asrCycle*juzCount)%len`) and half selection (`chunkIdx=asrCycle%2`) share one counter; with an even number of eligible juz the parities lock (e.g. juz 27a, 28b, 29a, 30b, 27a… — 27b/28a/29b/30a never appear).
 - **Severity:** High (revision coverage silently halves). **Repro:** 4 completed juz, complete several Asr sessions, log the shown ranges.
-- **Root cause:** Chunk index derived from the global cycle counter instead of per-juz visit count.
-- **Files:** `src/quran-hifz-tracker.jsx:1540-1546, 1686-1688`.
-- **Fix status:** `OPEN-NEEDS-APPROVAL` — sits in the heart of the revision method; fix must be runtime-verified so it wasn't patched blind.
-- **Tests:** none yet (fix should come with extracted, testable rotation logic). **Manual verification:** required.
+- **Root cause:** Chunk index derived from the global cycle counter instead of pass count.
+- **Files:** `src/hifz/asrRotation.js` (`selectAsrJuzPool` unchanged-behavior extraction + `selectAsrChunkIndex` fix), `src/quran-hifz-tracker.jsx` (both call sites).
+- **Fix status:** **FIXED** (second pass) — the chunk advances once per full pass through the eligible list, decoupling half-selection from list parity. Daily amounts and the 6-stage table are untouched (no methodology redesign); juz-pool rotation is bit-identical to before (proven by test).
+- **Tests:** `tests/asr-rotation.test.mjs` (7 tests: full-coverage for even 2/4-juz and odd 1/3/5-juz lists, multi-juz pools, a regression witness proving the OLD selector skipped halves, pool-rotation equivalence, degenerate inputs). **Manual verification:** observe Asr ranges across several days on device.
 
 ## H5 — Qur'an content is not cached for offline use
 - **Screen/feature:** All reading/memorization views offline.
@@ -112,7 +112,7 @@ Fix status: `FIXED` (this audit) · `OPEN` · `OPEN-NEEDS-APPROVAL` (touches cor
 - **Tests added:** `tests/longest-streak.test.mjs` (8 tests: empty/gaps/ordering/month boundary/malformed keys). **Manual verification:** optional.
 
 ## M3 — "Juz Revised" milestones largely unreachable
-- Depends on H4 (the same half is shown repeatedly, so the revised-pages set saturates ~10 < the 18-page "full" threshold). `src/quran-hifz-tracker.jsx:1916-1931`; `src/components/MilestonesProgress.jsx:71,102-103`. **Status:** `OPEN` (falls out of the H4 fix). Manual verification after.
+- Depended on H4 (the same half was shown repeatedly, so the revised-pages set saturated ~10 < the 18-page "full" threshold). `src/quran-hifz-tracker.jsx`; `src/components/MilestonesProgress.jsx:71,102-103`. **Status:** expected fixed by the H4 rotation fix (both halves now accumulate) — **needs on-device confirmation** over a full rotation before closing.
 
 ## M4 — Mushaf fetch failure shows a blank page (no error/retry UI)
 - Quran tab: on `api.quran.com` failure, `setMushafVerses([])` and nothing else — blank page, silent. `src/quran-hifz-tracker.jsx:374-378`. Sessions view, by contrast, has a proper error+Retry UI. **Status:** `OPEN` (UI addition; pairs with H5/M9).

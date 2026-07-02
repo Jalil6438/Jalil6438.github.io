@@ -18,11 +18,15 @@ items marked 🔍 verify an open finding's real-world impact (see `KNOWN_ISSUES.
 - [ ] Cannot open a later session in My Hifz before completing the earlier one
 - [ ] Completing a session persists across refresh (`sessionsCompleted`)
 - [ ] One-page cap: Fajr batch is exactly one Madinah page (Shaykh mode)
-- [ ] 🔍 C1: After completing Isha, observe that My Hifz immediately offers the NEXT page's
-      Fajr (no lock). Confirm whether this matches your intent or should lock until next Fajr
-- [ ] 🔍 H2: Complete Fajr+Dhuhr, reopen the app the next day — do the home checklist (0/5)
-      and My Hifz (mid-cycle) disagree?
-- [ ] 🔍 H3: Complete two full cycles in one sitting — does the streak jump +2?
+- [ ] ⚠ C1 (fix verify): Complete Isha → My Hifz shows the 🌙 lock screen with the Fajr
+      unlock time; reload the app → still locked; force-close and reopen → still locked;
+      other tabs (Qur'an/Rihlah/Haramain) remain fully usable
+- [ ] ⚠ C1: After the next Fajr time passes, My Hifz unlocks on a fresh Fajr with the
+      NEXT page; total pages memorized that day never exceeds one
+- [ ] ⚠ H2 (fix verify): Complete Fajr+Dhuhr, reopen the app the next day — BOTH the home
+      checklist (0/5) and My Hifz (fresh Fajr) agree; yesterday's memorized ayahs intact
+- [ ] ⚠ H3 (fix verify): streak rises by exactly +1 per completed day — completing Isha
+      after midnight, or reopening the app next morning, must NOT add a second +1
 - [ ] Completed data is not lost overnight: yesterday's memorized ayahs still marked
 - [ ] Next-day state: Dhuhr shows the previous day's page(s) in review
 
@@ -34,8 +38,8 @@ items marked 🔍 verify an open finding's real-world impact (see `KNOWN_ISSUES.
 - [ ] Rep counter: an ayah commits only at the rep target (default 20×)
 - [ ] Revision batches: Dhuhr shows ~5 pages back from today
 - [ ] Previous-day review present at Dhuhr
-- [ ] 🔍 H4: With an EVEN number of completed juz, log the Asr range shown across 6-8 days —
-      do both halves of each juz ever appear?
+- [ ] ⚠ H4 (fix verify): With an EVEN number of completed juz, log the Asr range across
+      2× (juz-count) days — both halves of every juz must appear over the rotation
 - [ ] 🔍 L14: On a surah/page boundary (e.g. ʿAbasa, page 585/586), complete Fajr and verify
       the next day starts exactly where marking ended (no skipped/duplicated ayahs)
 
@@ -52,14 +56,21 @@ items marked 🔍 verify an open finding's real-world impact (see `KNOWN_ISSUES.
 - [ ] Empty states: new user sees sensible Asr/Dhuhr/activity placeholders
 - [ ] No dead buttons anywhere (report any control that does nothing)
 
-## Notifications (expect client-only behavior — H1 is OPEN)
-- [ ] Permission flow: Allow → banner turns green
-- [ ] ⚠ M11: Banner/footer copy says reminders fire only while the app is open (no
-      "background nudges" claim)
-- [ ] Test button fires an OS notification while the app is open, with the honest wording
-- [ ] With the app OPEN at a configured time: reminder fires once, not repeatedly
-- [ ] With the app CLOSED at a configured time: confirm nothing arrives (documents H1;
-      do NOT mark notifications working)
+## Notifications — background push (IMPLEMENTED; requires Vercel env first)
+_Prereq: complete steps 1–3 of `PUSH_NOTIFICATIONS_SETUP.md` (VAPID keys, env vars, cron)._
+- [ ] Reminders page shows the Background notifications card; with env unset it honestly
+      says "not configured" (never pretends to work)
+- [ ] Enable → permission prompt → card flips to "Background notifications on"
+- [ ] **Send test → CLOSE the PWA completely → notification still arrives** (this is the
+      gate for calling notifications working; Android battery savers may delay it)
+- [ ] Tap the notification → app opens/focuses on My Hifz for the right session
+- [ ] Cron dry-run: `GET /api/push/cron` with the secret twice around a due time →
+      first run `sent:1`, second `deduped:1`, only ONE notification on the phone
+- [ ] After Isha completion (lock active): no further session pushes arrive that night
+- [ ] Session completed in-app → its reminder does not fire later that day
+- [ ] Expired-subscription cleanup: clear site data, trigger send → cron reports `cleaned`
+- [ ] Foreground fallback still works while the app is open and is labeled as
+      foreground-only (never described as background delivery)
 
 ## Offline (expect partial support — H5/M9/M10 are OPEN)
 - [ ] Install as PWA; go airplane-mode; app shell opens

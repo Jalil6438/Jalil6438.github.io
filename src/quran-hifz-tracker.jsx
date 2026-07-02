@@ -5,6 +5,10 @@ import { SESSIONS, getSessionWisdom } from "./data/sessions";
 import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
 import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage, computeLongestStreak } from "./utils";
+import { localDateKey, createIshaLock, isHifzLocked, lockExpiry, resolveCycleStateOnLoad, loadLock, saveLock, clearLock, DEFAULT_FAJR_TIME } from "./hifz/cycleLock";
+import { applyStreakCredit } from "./hifz/streak";
+import { selectAsrJuzPool, selectAsrChunkIndex } from "./hifz/asrRotation";
+import { syncDailyStatus } from "./push";
 import HlsPlayer from "./components/HlsPlayer";
 import AsrSessionView from "./components/AsrSessionView";
 import QuranPageView from "./components/QuranPageView";
@@ -436,6 +440,82 @@ export default function RihlatAlHifz() {
 
 
   const [streak,setStreak]=useState(0);
+  // H3: a calendar day may be credited to the streak at most once, from any
+  // of the three award paths (Isha cycle, load rollover, toggleCheck rollover).
+  const [streakLastCredit,setStreakLastCredit]=useState(null);
+  // H2: which local day the persisted guided-session state belongs to.
+  const [cycleDate,setCycleDate]=useState(null);
+
+  // ── C1: ISHA → FAJR LOCK ──
+  // Completing Isha locks My Hifz until the next Fajr (user's configured Fajr
+  // reminder time, else 05:00 — the app's existing Fajr proxy). The lock
+  // persists in localStorage so reload/close cannot bypass it.
+  const fajrTimeStr=()=>{
+    try {
+      const prefs=JSON.parse(localStorage.getItem("rihlat-reminders")||"null");
+      const t=prefs?.sessions?.fajr?.time;
+      if(t&&/^\d{1,2}:\d{2}$/.test(t)) return t;
+    } catch { /* corrupted prefs — use default */ }
+    return DEFAULT_FAJR_TIME;
+  };
+  const [hifzLock,setHifzLock]=useState(()=>loadLock());
+  const [hifzLocked,setHifzLocked]=useState(()=>isHifzLocked(loadLock(),new Date(),DEFAULT_FAJR_TIME));
+  useEffect(()=>{
+    const evaluate=()=>{
+      const lockedNow=isHifzLocked(hifzLock,new Date(),fajrTimeStr());
+      setHifzLocked(lockedNow);
+      if(hifzLock&&!lockedNow){
+        // Fajr arrived — release the lock and start the fresh cycle.
+        clearLock();
+        setHifzLock(null);
+        setActiveSessionIndex(0);
+        setSessionsCompleted({fajr:false,dhuhr:false,asr:false,maghrib:false,isha:false});
+      }
+    };
+    evaluate();
+    const iv=setInterval(evaluate,30000);
+    return ()=>clearInterval(iv);
+  },[hifzLock]);
+
+  // Called by MyHifzTab when the Isha session completes a full Fajr→Isha
+  // cycle: engage the lock and award today's (single) streak credit.
+  // Memorization progress itself is advanced by the caller before this runs.
+  const onIshaCycleComplete=()=>{
+    const lock=createIshaLock(new Date());
+    saveLock(lock);
+    setHifzLock(lock);
+    setHifzLocked(true);
+    const todayKey=localDateKey(new Date());
+    setCycleDate(todayKey);
+    const res=applyStreakCredit({streak,lastCredit:streakLastCredit},todayKey);
+    if(res.applied){ setStreak(res.streak); setStreakLastCredit(res.lastCredit); }
+    // Tell the push scheduler the day is done and My Hifz is resting — no
+    // further session reminders until the lock releases at Fajr. Fire-and-
+    // forget: no-ops when there is no active push subscription.
+    syncDailyStatus({
+      date: todayKey,
+      completed: { fajr:true, dhuhr:true, asr:true, maghrib:true, isha:true },
+      lockedUntil: lockExpiry(lock, fajrTimeStr()),
+    });
+  };
+
+  // Notification-click routing: the SW either posts open-session to an
+  // existing window or opens /?session=<id>. Both land on My Hifz.
+  useEffect(()=>{
+    try {
+      const params=new URLSearchParams(window.location.search);
+      if(params.get("session")){
+        setActiveTab("myhifz");
+        params.delete("session");
+        const qs=params.toString();
+        window.history.replaceState({},"",window.location.pathname+(qs?`?${qs}`:""));
+      }
+    } catch { /* no URL API */ }
+    if(!("serviceWorker" in navigator)) return;
+    const onMsg=(e)=>{ if(e.data?.type==="open-session") setActiveTab("myhifz"); };
+    navigator.serviceWorker.addEventListener("message",onMsg);
+    return ()=>navigator.serviceWorker.removeEventListener("message",onMsg);
+  },[]);
 
   // Real longest streak — the historical max from the session log, never less
   // than the live streak. Previously every consumer was handed the *current*
@@ -630,14 +710,33 @@ export default function RihlatAlHifz() {
         if(p.checkHistory) setCheckHistory(p.checkHistory);
         if(p.reciter) setReciter(p.reciter);
         if(p.showTrans!==undefined) setShowTrans(p.showTrans);
-        if(p.activeSessionIndex!==undefined) setActiveSessionIndex(p.activeSessionIndex);
-        if(p.sessionsCompleted) setSessionsCompleted(p.sessionsCompleted);
+        // H2: the guided-session state is only restored if it belongs to
+        // today (or the Isha→Fajr lock is still active); otherwise the day
+        // starts fresh at Fajr. Memorization progress is never touched here.
+        const todayKeyLocal=localDateKey(new Date());
+        const lockedAtLoad=isHifzLocked(loadLock(),new Date(),fajrTimeStr());
+        const resolved=resolveCycleStateOnLoad(
+          {activeSessionIndex:p.activeSessionIndex,sessionsCompleted:p.sessionsCompleted,cycleDate:p.cycleDate},
+          todayKeyLocal,lockedAtLoad
+        );
+        setActiveSessionIndex(resolved.activeSessionIndex);
+        setSessionsCompleted(resolved.sessionsCompleted);
+        setCycleDate(resolved.cycleDate);
+        if(p.streakLastCredit) setStreakLastCredit(p.streakLastCredit);
         const today=TODAY();
         if(p.dailyChecks?.date===today) setDailyChecks(p.dailyChecks);
         else {
           const prev=p.dailyChecks||{};
           const wasComplete=SESSIONS.every(s=>prev[s.id]);
-          setStreak(wasComplete?(p.streak||0)+1:0);
+          // H3: credit yesterday exactly once (the Isha cycle usually already
+          // did); an incomplete yesterday breaks the streak.
+          if(wasComplete){
+            const prevKey=prev.date?localDateKey(new Date(prev.date)):null;
+            const res=applyStreakCredit({streak:p.streak||0,lastCredit:p.streakLastCredit||null},prevKey);
+            if(res.applied){ setStreak(res.streak); setStreakLastCredit(res.lastCredit); }
+          } else {
+            setStreak(0);
+          }
           setDailyChecks({date:today});
         }
       }
@@ -674,8 +773,8 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
-  },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
+    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit})); } catch {}
+  },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit]);
 
   // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
   useEffect(()=>{
@@ -1348,14 +1447,31 @@ export default function RihlatAlHifz() {
     if(rolledOver){
       const prev=dailyChecks;
       const wasCompleteYesterday=SESSIONS.every(s=>prev[s.id]);
-      setStreak(p=>wasCompleteYesterday?(p||0)+1:0);
+      // H3: same single-credit rule as the load path — yesterday can only be
+      // credited once (the Isha cycle usually already did it).
+      if(wasCompleteYesterday){
+        const prevKey=prev.date?localDateKey(new Date(prev.date)):null;
+        const res=applyStreakCredit({streak,lastCredit:streakLastCredit},prevKey);
+        if(res.applied){ setStreak(res.streak); setStreakLastCredit(res.lastCredit); }
+      } else {
+        setStreak(0);
+      }
     }
+    // H2: stamp which local day the in-flight guided cycle belongs to.
+    setCycleDate(localDateKey(new Date()));
     const base=rolledOver?{date:today}:dailyChecks;
     const wasChecked=rolledOver?false:dailyChecks[id];
     const updated={...base,[id]:true};
     setDailyChecks(updated);
     const dk=DATEKEY();
     setCheckHistory(prev=>({...prev,[dk]:{...(prev[dk]||{}),[id]:true}}));
+    // Push scheduler sync: completed sessions today should not be re-prompted.
+    // Fire-and-forget; no-ops when there is no active push subscription.
+    {
+      const completedNow={};
+      SESSIONS.forEach(s=>{ if(updated[s.id]) completedNow[s.id]=true; });
+      syncDailyStatus({ date: localDateKey(new Date()), completed: completedNow });
+    }
     // Per-session completion log (timestamp + simple in-window score) so the
     // DailyProgressChart can compute a 0-1 daily discipline score.
     try {
@@ -1545,14 +1661,14 @@ export default function RihlatAlHifz() {
         : 3;
       // Sort eligible juz in mushaf order for cycling
       const sortedEligible = [...eligibleJuz].sort((a,b) => a - b);
-      // Rotate through all completed juz — advances each session
+      // Rotate through all completed juz — advances each session.
+      // H4: selection extracted to src/hifz/asrRotation.js so the half-of-juz
+      // chunk below can advance per PASS through the list instead of sharing
+      // this counter's parity (which skipped half of every juz when the
+      // eligible count was even).
       const asrCycle=parseInt(localStorage.getItem("jalil-asr-cycle")||"0",10);
       const juzCount = Math.max(1, Math.ceil(dailyJuzAmount));
-      const startIdx = (asrCycle * juzCount) % sortedEligible.length;
-      const juzPool = [];
-      for(let i = 0; i < juzCount && i < sortedEligible.length; i++) {
-        juzPool.push(sortedEligible[(startIdx + i) % sortedEligible.length]);
-      }
+      const juzPool = selectAsrJuzPool(asrCycle, juzCount, sortedEligible);
 
       // Step 3 — fetch verses for selected juz
       const allVerses = [];
@@ -1693,7 +1809,9 @@ export default function RihlatAlHifz() {
       }
 
       const numChunks = chunks.length || 1;
-      const chunkIdx = ((asrCycle % numChunks) + numChunks) % numChunks;
+      // H4: chunk advances once per full pass through the eligible juz, so
+      // every half of every juz is reached regardless of list parity.
+      const chunkIdx = selectAsrChunkIndex(asrCycle, juzCount, sortedEligible.length, numChunks);
       const daily = chunks[chunkIdx] || filtered;
 
       setAsrSelectedJuz(juzPool);
@@ -1962,7 +2080,8 @@ export default function RihlatAlHifz() {
           reciter={reciter} currentReciter={currentReciter} setReciterMode={setReciterMode} setShowReciterModal={setShowReciterModal} hasPerAyah={hasPerAyah}
           sessionJuz={sessionJuz} setSessionJuz={setSessionJuz} sessionIdx={sessionIdx} setSessionIdx={setSessionIdx} totalSV={totalSV} dailyNew={dailyNew}
           setShowJuzModal={setShowJuzModal}
-          activeSessionIndex={activeSessionIndex} setActiveSessionIndex={setActiveSessionIndex} sessionsCompleted={sessionsCompleted} setSessionsCompleted={setSessionsCompleted} setStreak={setStreak}
+          activeSessionIndex={activeSessionIndex} setActiveSessionIndex={setActiveSessionIndex} sessionsCompleted={sessionsCompleted} setSessionsCompleted={setSessionsCompleted}
+          hifzLocked={hifzLocked} hifzLockExpiry={lockExpiry(hifzLock,fajrTimeStr())} onIshaCycleComplete={onIshaCycleComplete}
           currentSessionId={currentSessionId} isAsr={isAsr} toggleCheck={toggleCheck}
           batch={batch} bEnd={bEnd} bDone={bDone} fajrBatch={fajrBatch} sessionVerses={sessionVerses}
           sessLoading={sessLoading} sessError={sessError}
