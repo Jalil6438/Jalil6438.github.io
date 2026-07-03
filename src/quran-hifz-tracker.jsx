@@ -4,8 +4,11 @@ import { RECITERS, SURAH_EN, SURAH_AYAH_COUNTS, JUZ_RANGES, DARK, LIGHT, STATUS_
 import { SESSIONS, getSessionWisdom } from "./data/sessions";
 import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
-import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage, computeLongestStreak } from "./utils";
+import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, didV9LoadFail, expandRangeToKeys, getJuzKeys, cropMushafImage, computeLongestStreak } from "./utils";
 import { localDateKey, createIshaLock, isHifzLocked, lockExpiry, resolveCycleStateOnLoad, loadLock, saveLock, clearLock, DEFAULT_FAJR_TIME } from "./hifz/cycleLock";
+import { shouldPersistV8, isEmptyV8 } from "./storage/progressPersistence.js";
+import { quarantineRaw, safeGetItem, safeSetItem } from "./storage/safeStorage.js";
+import OfflineStatus from "./components/OfflineStatus";
 import { applyStreakCredit } from "./hifz/streak";
 import { selectAsrJuzPool, selectAsrChunkIndex } from "./hifz/asrRotation";
 import { syncDailyStatus } from "./push";
@@ -136,7 +139,10 @@ export default function RihlatAlHifz() {
     const prev = prevCompletedSizeRef.current;
     if (curr > prev) {
       const delta = curr - prev;
-      const today = new Date().toISOString().slice(0, 10);
+      // Local date key (matches cycleLock/session-log everywhere else). Avoid
+      // toISOString — it converts to UTC and mis-dates the snapshot for users
+      // east/west of UTC around local midnight.
+      const today = localDateKey(new Date());
       try {
         const snaps = JSON.parse(localStorage.getItem("rihlat-daily-progress") || "{}");
         const existing = snaps[today] || { newAyahs: 0, totalAyahs: 0 };
@@ -468,7 +474,7 @@ export default function RihlatAlHifz() {
     return DEFAULT_FAJR_TIME;
   };
   const [hifzLock,setHifzLock]=useState(()=>loadLock());
-  const [hifzLocked,setHifzLocked]=useState(()=>isHifzLocked(loadLock(),new Date(),DEFAULT_FAJR_TIME));
+  const [hifzLocked,setHifzLocked]=useState(()=>isHifzLocked(loadLock(),new Date(),fajrTimeStr()));
   useEffect(()=>{
     const evaluate=()=>{
       const lockedNow=isHifzLocked(hifzLock,new Date(),fajrTimeStr());
@@ -542,8 +548,9 @@ export default function RihlatAlHifz() {
   // threshold through in-app work.
   useEffect(()=>{
     if(!loaded||showOnboarding) return;
-    const hasStorage=localStorage.getItem("jalil-badge-milestones")!==null;
-    const shown=JSON.parse(localStorage.getItem("jalil-badge-milestones")||"{}");
+    const badgeRaw=safeGetItem("jalil-badge-milestones");
+    const hasStorage=badgeRaw!==null;
+    let shown={}; try { shown=badgeRaw?JSON.parse(badgeRaw):{}; } catch { shown={}; }
     // Per-milestone du'a in second-person voice — feels like the app is
     // praying FOR the user as they earn the badge.
     // Plural forms (كُمْ suffix) — gender-neutral, addresses both male and
@@ -602,7 +609,7 @@ export default function RihlatAlHifz() {
       // First run: seed any already-met milestones as shown, don't pop.
       let seeded=false;
       for(const m of milestones){ if(m.test){ shown[m.key]=true; seeded=true; } }
-      localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
+      safeSetItem("jalil-badge-milestones",JSON.stringify(shown));
       if(seeded) return; // skip popping on the seed pass
     }
     // Collect every eligible-but-unshown milestone, mark them all shown in
@@ -618,7 +625,7 @@ export default function RihlatAlHifz() {
       }
     }
     if(pending.length){
-      localStorage.setItem("jalil-badge-milestones",JSON.stringify(shown));
+      safeSetItem("jalil-badge-milestones",JSON.stringify(shown));
     }
     // Defer modal popping to end-of-cycle. Streak bumps once per
     // Fajr→Isha cycle (in MyHifzTab end-of-Isha handler), so a streak
@@ -697,8 +704,8 @@ export default function RihlatAlHifz() {
   useInjectedFonts();
 
   useEffect(()=>{
+    const d=safeGetItem("jalil-quran-v8");
     try {
-      const d=localStorage.getItem("jalil-quran-v8");
       if(d){
         const p=JSON.parse(d);
         setJuzStatus(p.juzStatus||{});
@@ -749,7 +756,13 @@ export default function RihlatAlHifz() {
           setDailyChecks({date:today});
         }
       }
-    } catch {}
+    } catch {
+      // Corrupt v8: salvage the raw bytes to `jalil-quran-v8.corrupt` BEFORE the
+      // save effect can overwrite them. The save effect additionally refuses to
+      // persist empty defaults over a corrupt/non-empty blob (shouldPersistV8),
+      // so a failed read can never become a destructive default write.
+      quarantineRaw("jalil-quran-v8", d);
+    }
     // One-time backfill: sync juzStatus into completedAyahs
     try {
       const p=JSON.parse(localStorage.getItem("jalil-quran-v8")||"{}");
@@ -775,14 +788,26 @@ export default function RihlatAlHifz() {
         }
       });
       const added=ca.size-prevSize;
-      if(added>0){saveCompletedAyahs(ca);setCompletedAyahs(ca);}
+      // If the v9 read failed (unavailable/corrupt), it was already salvaged to
+      // `.corrupt`; do NOT overwrite the intact-but-unreadable v9 with this
+      // partial (v8-derived) set. Still surface the derived completions in memory.
+      if(added>0){ if(!didV9LoadFail()) saveCompletedAyahs(ca); setCompletedAyahs(ca); }
     } catch(e){console.error('[V9 BACKFILL ERROR]',e);}
     setLoaded(true);
   },[]);
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit})); if(backupClientRef.current) backupClientRef.current.notifyProgressChanged(); } catch {}
+    const blob={juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit};
+    // Guard against the corrupt-load reset cascade: only the EMPTY-blob case can
+    // be a destructive reset, so only then do we read the stored value and refuse
+    // to clobber a non-empty (or corrupt-but-recoverable) blob with empty defaults.
+    // Real progress always persists normally (incl. legitimate edits/deletions).
+    if(isEmptyV8(blob)){
+      if(!shouldPersistV8(safeGetItem("jalil-quran-v8"),blob)) return;
+    }
+    const res=safeSetItem("jalil-quran-v8",JSON.stringify(blob));
+    if(res.ok && backupClientRef.current) backupClientRef.current.notifyProgressChanged();
   },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted,cycleDate,streakLastCredit]);
 
   // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
@@ -1964,6 +1989,9 @@ export default function RihlatAlHifz() {
           Rihlah tab so this image shows through both. */}
       {/* Mountain backdrop removed — path can't reliably overlay it. */}
       <style>{buildGlobalCss(dark, T)}</style>
+
+      {/* Restrained, non-blocking offline / storage status (fixed overlay). */}
+      <OfflineStatus/>
 
       {/* ── ASR FULL-SCREEN MODE ── */}
       {(<>

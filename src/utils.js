@@ -2,6 +2,7 @@
 // Explicit .js extension so this module (and everything it exports) can be
 // imported by plain Node for unit tests — Vite resolves it identically.
 import { SURAH_AYAH_COUNTS, JUZ_RANGES } from "./data/constants.js";
+import { quarantineRaw, safeSetItem } from "./storage/safeStorage.js";
 
 // Auto-crop white margins from a mushaf page image. Returns a data URL, or the
 // original URL on any failure (tainted canvas / load error).
@@ -126,12 +127,39 @@ export function calcTimeline(years, memorizedAyahs, months, nextJuzAyahs, comple
 // ── V9 AYAH STORAGE ──
 const V9_KEY = "jalil-quran-v9";
 
+// True when the most recent loadCompletedAyahs() could NOT read/parse an existing
+// value (storage unavailable, or the stored value was corrupt). Callers use this
+// to avoid overwriting intact-but-unreadable v9 with an empty/partial set — a
+// failed read must never become a destructive default write.
+let _v9LoadFailed = false;
+export function didV9LoadFail() { return _v9LoadFailed; }
+
 export function loadCompletedAyahs() {
-  try { const s = localStorage.getItem(V9_KEY); return s ? new Set(JSON.parse(s)) : new Set(); } catch { return new Set(); }
+  _v9LoadFailed = false;
+  let raw = null;
+  try {
+    raw = localStorage.getItem(V9_KEY);
+  } catch {
+    _v9LoadFailed = true;   // storage unavailable → flag so we don't overwrite
+    return new Set();
+  }
+  if (raw == null) return new Set();  // genuinely absent → brand-new user
+  try {
+    return new Set(JSON.parse(raw));
+  } catch {
+    // Corrupt: salvage the raw bytes to `<key>.corrupt` BEFORE anything can
+    // overwrite them, then fall back to empty and flag the failure.
+    quarantineRaw(V9_KEY, raw);
+    _v9LoadFailed = true;
+    return new Set();
+  }
 }
 
+// Persist the completed-ayah set. Returns { ok, quota, unavailable } and surfaces
+// a restrained notice on failure (via safeSetItem) rather than silently swallowing
+// a quota error — so the reciter learns their progress may not be saving.
 export function saveCompletedAyahs(set) {
-  try { localStorage.setItem(V9_KEY, JSON.stringify([...set])); } catch {}
+  return safeSetItem(V9_KEY, JSON.stringify([...set]));
 }
 
 // ── JUZ KEY HELPERS ──
