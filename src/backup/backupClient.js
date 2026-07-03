@@ -121,14 +121,48 @@ export function createBackupClient(userConfig = {}) {
     if (storage) writeJSON(storage, METRICS_STORAGE_KEY, m);
   }
 
+  // Keep only structurally-valid queue entries. A single corrupt/non-object
+  // entry must never (a) wedge the head so nothing drains, nor (b) cause the
+  // whole queue to be discarded — valid entries are preserved.
+  function isValidQueueItem(it) {
+    return Boolean(it && typeof it === "object" && it.snapshot && typeof it.snapshot === "object");
+  }
+
   function loadQueue() {
     if (!storage) return [];
     const q = readJSON(storage, QUEUE_STORAGE_KEY, []);
-    return Array.isArray(q) ? q : [];
+    if (!Array.isArray(q)) return [];
+    // Self-heal on every read: drop malformed entries (quarantine) and re-bound
+    // to queueMax (keep newest), regardless of how the persisted blob was
+    // produced. This makes the send path structurally unable to see a bad entry.
+    const valid = q.filter(isValidQueueItem);
+    return valid.length > cfg.queueMax ? valid.slice(valid.length - cfg.queueMax) : valid;
   }
 
   function saveQueue(q) {
     if (storage) writeJSON(storage, QUEUE_STORAGE_KEY, q);
+  }
+
+  // Purge malformed/overflow entries from the PERSISTED queue once, counting the
+  // drops in metrics and rewriting storage. Called at start() and before each
+  // enqueue so a corrupt persisted blob is cleaned rather than merely ignored.
+  function sanitizeStoredQueue() {
+    if (!storage) return;
+    const raw = readJSON(storage, QUEUE_STORAGE_KEY, null);
+    if (!Array.isArray(raw)) {
+      // Whole-blob corruption (unparseable / non-array): nothing recoverable,
+      // start clean. The newest snapshot is a full superset rebuilt on next save.
+      if (raw !== null) saveQueue([]);
+      return;
+    }
+    let cleaned = raw.filter(isValidQueueItem);
+    if (cleaned.length > cfg.queueMax) cleaned = cleaned.slice(cleaned.length - cfg.queueMax);
+    const dropped = raw.length - cleaned.length;
+    if (dropped > 0) {
+      m.droppedCount += dropped;
+      saveQueue(cleaned);
+      persistMetrics();
+    }
   }
 
   function ensureIdentity() {
@@ -298,6 +332,9 @@ export function createBackupClient(userConfig = {}) {
       onlineHandler = () => flush();
       window.addEventListener("online", onlineHandler);
     }
+    // Clean any malformed/overflow entries left in a persisted queue (counting
+    // the drops) before resuming, so a corrupt blob can never wedge the drain.
+    sanitizeStoredQueue();
     // Resume any work persisted from a previous session.
     flush();
   }
