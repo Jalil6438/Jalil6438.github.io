@@ -9,8 +9,10 @@ import SettingsPage from "./pages/SettingsPage";
 import TermsPage from "./pages/TermsPage";
 import RecoveryPage from "./pages/RecoveryPage";
 import RecoveryPreviewPage from "./pages/RecoveryPreviewPage";
+import RestorePage from "./pages/RestorePage";
 import { downloadLocalExport } from "../backup/localExport";
 import { probeRecoveryAvailability } from "../backup/recoveryClient";
+import { probeRestoreAvailability } from "../backup/restoreClient";
 
 // Full-screen drawer pages — rendered below the universal header so the profile
 // row stays consistent across all drawer-reachable screens. Pure presentational
@@ -22,9 +24,14 @@ export default function AppPageRouter({ appPage, setAppPage, dark, T, completedC
   // Production build with recovery off never shows it in navigation. This is a
   // health GET, not a recovery request; it carries/returns no secret.
   const [recoveryAvailable, setRecoveryAvailable] = useState(false);
+  // Phase-3 restore is gated INDEPENDENTLY and additionally requires recovery.
+  // Defaults HIDDEN; only flips on if the safe health endpoint reports both the
+  // recovery AND restore gates are enabled+ready. Health GET only — no secret.
+  const [restoreAvailable, setRestoreAvailable] = useState(false);
   useEffect(() => {
     let alive = true;
     probeRecoveryAvailability().then((v) => { if (alive) setRecoveryAvailable(v); });
+    probeRestoreAvailability().then((v) => { if (alive) setRestoreAvailable(v); });
     return () => { alive = false; };
   }, []);
 
@@ -40,10 +47,13 @@ export default function AppPageRouter({ appPage, setAppPage, dark, T, completedC
       {appPage==="terms"&&<TermsPage dark={dark} T={T} onBack={()=>setAppPage(null)}/>}
       {appPage==="recovery"&&<RecoveryPage dark={dark} available={recoveryAvailable} onBack={()=>setAppPage("export")}/>}
       {appPage==="recovery-preview"&&<RecoveryPreviewPage dark={dark} available={recoveryAvailable} onBack={()=>setAppPage("export")}/>}
+      {appPage==="restore"&&<RestorePage dark={dark} available={restoreAvailable} onBack={()=>setAppPage("export")}/>}
       {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage(null)}
         recoveryAvailable={recoveryAvailable}
+        restoreAvailable={restoreAvailable}
         onOpenRecovery={()=>setAppPage("recovery")}
         onOpenRecoveryPreview={()=>setAppPage("recovery-preview")}
+        onOpenRestore={()=>setAppPage("restore")}
         onExport={()=>{
         try{
           const KEYS=["jalil-quran-v8","rihlat-username","rihlat-onboarded","rihlat-rep-target","rihlat-fontsize","rihlat-default-reading-mode","rihlat-translation-source","rihlat-tafsir-view","rihlat-plan-mode","rihlat-mushaf-bookmarks","rihlat-reflections","rihlat-daily-progress","rihlat-session-log","rihlat-gallery-view","rihlat-tajweed","jalil-recent-activity","jalil-badge-milestones","jalil-asr-cycle","jalil-quran-lastpage","jalil-wisdom-offset","jalil-hifz-reminder"];

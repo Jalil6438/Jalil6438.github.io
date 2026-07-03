@@ -8,7 +8,7 @@
 
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from "workbox-precaching";
 import { registerRoute, NavigationRoute } from "workbox-routing";
-import { CacheFirst, StaleWhileRevalidate } from "workbox-strategies";
+import { CacheFirst, StaleWhileRevalidate, NetworkOnly } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
@@ -21,6 +21,20 @@ cleanupOutdatedCaches();
 registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html"), {
   denylist: [/^\/api\//],
 }));
+
+// ── PROGRESS BACKUP / RECOVERY / RESTORE — NETWORK-ONLY, NEVER REPLAYED ──
+// The Phase-1/2/3 progress endpoints must always hit the live network and must
+// never be cached, precached, or replayed from a background queue. Restore in
+// particular is a sensitive, single-use, explicit action: a replayed restore
+// request could re-consume an authorization or resurface a stale snapshot. We
+// register an explicit NetworkOnly strategy (with NO BackgroundSyncPlugin, so
+// failed requests are NOT queued for later replay) for every method. This SW
+// registers no `sync`/`periodicsync` handler and no Background Sync queue
+// anywhere, so nothing can replay these requests after the fact.
+const progressApiMatcher = ({ url }) => url.pathname.startsWith("/api/progress/");
+for (const method of ["GET", "POST", "PUT", "PATCH", "DELETE"]) {
+  registerRoute(progressApiMatcher, new NetworkOnly(), method);
+}
 
 // Per-page KFGQPC v2 fonts from jsdelivr — cache-first, cached on visit so a
 // previously-viewed page renders its font offline. LRU capped.

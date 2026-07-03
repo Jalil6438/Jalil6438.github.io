@@ -1,7 +1,7 @@
 import React from "react";
 import AppPage from "./AppPage";
 
-export default function ExportPage({ dark, onBack, onExport, onImport, onExportSnapshot, recoveryAvailable = false, onOpenRecovery, onOpenRecoveryPreview }) {
+export default function ExportPage({ dark, onBack, onExport, onImport, onExportSnapshot, recoveryAvailable = false, restoreAvailable = false, onOpenRecovery, onOpenRecoveryPreview, onOpenRestore }) {
   return (
     <AppPage dark={dark} title="Backup & Restore" subtitle="Save or restore your progress" onBack={onBack}>
       <div style={{ fontSize: 13, color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A", lineHeight: 1.7, marginBottom: 20 }}>
@@ -97,6 +97,31 @@ export default function ExportPage({ dark, onBack, onExport, onImport, onExportS
           >
             Recovery Preview (read-only)
           </div>
+
+          {/* Phase-3 Controlled Restore — only surfaced when the restore gate is
+              ALSO enabled (restoreAvailable already requires recovery + restore +
+              a configured store). Hidden by default, so it never appears in
+              Production navigation while restore is off. */}
+          {restoreAvailable && (
+            <>
+              <div style={{ fontSize: 13, color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A", lineHeight: 1.7, margin: "14px 0" }}>
+                <strong>Restore a backup.</strong> Replace the progress on this device with a server backup, using your
+                recovery code. This <strong>replaces</strong> local progress — it is not synchronization, and you'll be
+                asked to confirm first.
+              </div>
+              <div className="sbtn" onClick={() => { onOpenRestore && onOpenRestore(); }}
+                style={{
+                  width: "100%", padding: "13px 16px", borderRadius: 14, textAlign: "center",
+                  fontSize: 13, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase",
+                  background: "transparent", color: dark ? "#E0BD78" : "#8A6A10",
+                  border: `1px solid ${dark ? "rgba(217,177,95,0.40)" : "rgba(140,100,20,0.35)"}`,
+                  cursor: "pointer", display: "block", boxSizing: "border-box",
+                }}
+              >
+                Restore Backup
+              </div>
+            </>
+          )}
         </>
       )}
     </AppPage>
