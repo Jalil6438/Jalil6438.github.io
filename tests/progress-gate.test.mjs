@@ -49,13 +49,15 @@ test("30. health endpoint returns only safe booleans and leaks no secret", async
   assert.equal(s.includes("SECRET_TOKEN_MUST_NOT_LEAK"), false, "token must never appear");
   assert.equal(s.includes("fake-upstash"), false, "url must never appear");
   // Exactly the safe keys — no tokens, ids, payloads, key names, or paths.
-  // (Phase 2 adds the three recovery booleans; still only safe booleans.)
+  // (Phase 2 adds the three recovery booleans; Phase 3 adds the two restore
+  // booleans; still only safe booleans.)
   assert.deepEqual(
     Object.keys(captured).sort(),
     [
       "app", "deployment",
       "progressBackupEnabled", "progressBackupReady", "progressStoreConfigured",
       "progressRecoveryEnabled", "progressRecoveryReady", "progressRecoveryStoreConfigured",
+      "progressRestoreEnabled", "progressRestoreReady",
     ].sort()
   );
   assert.equal(typeof captured.progressBackupEnabled, "boolean");
@@ -64,6 +66,8 @@ test("30. health endpoint returns only safe booleans and leaks no secret", async
   assert.equal(typeof captured.progressRecoveryEnabled, "boolean");
   assert.equal(typeof captured.progressRecoveryStoreConfigured, "boolean");
   assert.equal(typeof captured.progressRecoveryReady, "boolean");
+  assert.equal(typeof captured.progressRestoreEnabled, "boolean");
+  assert.equal(typeof captured.progressRestoreReady, "boolean");
 });
 
 test("health endpoint rejects non-GET", async () => {
