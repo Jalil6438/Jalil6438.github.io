@@ -11,6 +11,8 @@ import { registerRoute, NavigationRoute } from "workbox-routing";
 import { CacheFirst, StaleWhileRevalidate, NetworkOnly } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
+import { RangeRequestsPlugin } from "workbox-range-requests";
+import { isAudioRequest, isQuranApiRequest, QURAN_API_CACHE, AUDIO_CACHE } from "./swRoutes.js";
 
 // ── PART 1: PRECACHE + RUNTIME CACHING (parity with the old generateSW) ──
 
@@ -36,6 +38,53 @@ for (const method of ["GET", "POST", "PUT", "PATCH", "DELETE"]) {
   registerRoute(progressApiMatcher, new NetworkOnly(), method);
 }
 
+// ── PUBLIC QUR'AN TEXT/METADATA — offline-first read ──
+// Ayah text, tafsir, and audio-file metadata come from api.quran.com /
+// api.qurancdn.com. Previously these were never cached, so My Hifz sessions and
+// reader views showed "Unable to load ayahs" offline. Cache-on-success
+// (StaleWhileRevalidate) so content viewed once online renders on a later
+// offline reopen. These are PUBLIC, non-secret responses. Matched by cross-origin
+// host only, so this can never catch same-origin /api/progress|auth|push (which
+// stay NetworkOnly / uncached). Bounded with purgeOnQuotaError.
+registerRoute(
+  ({ url, request }) => isQuranApiRequest(url, request.method),
+  new StaleWhileRevalidate({
+    cacheName: QURAN_API_CACHE.cacheName,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: QURAN_API_CACHE.statuses }),
+      new ExpirationPlugin({
+        maxEntries: QURAN_API_CACHE.maxEntries,
+        maxAgeSeconds: QURAN_API_CACHE.maxAgeSeconds,
+        purgeOnQuotaError: QURAN_API_CACHE.purgeOnQuotaError,
+      }),
+    ],
+  }),
+  "GET"
+);
+
+// ── RECITATION AUDIO — bounded cache-on-success ──
+// Audio was never cached, so a page listened to once could not replay offline.
+// CacheFirst caches on success (NO auto bulk-download — only what is played is
+// stored), bounded to AUDIO_CACHE.maxEntries (LRU) with purgeOnQuotaError so it
+// degrades under storage pressure. RangeRequestsPlugin serves the partial (206)
+// range responses that <audio> elements issue, so cached audio is seekable.
+registerRoute(
+  ({ url, request }) => isAudioRequest(url, request.method),
+  new CacheFirst({
+    cacheName: AUDIO_CACHE.cacheName,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: AUDIO_CACHE.statuses }),
+      new RangeRequestsPlugin(),
+      new ExpirationPlugin({
+        maxEntries: AUDIO_CACHE.maxEntries,
+        maxAgeSeconds: AUDIO_CACHE.maxAgeSeconds,
+        purgeOnQuotaError: AUDIO_CACHE.purgeOnQuotaError,
+      }),
+    ],
+  }),
+  "GET"
+);
+
 // Per-page KFGQPC v2 fonts from jsdelivr — cache-first, cached on visit so a
 // previously-viewed page renders its font offline. LRU capped.
 registerRoute(
@@ -43,7 +92,10 @@ registerRoute(
   new CacheFirst({
     cacheName: "qcf-page-fonts",
     plugins: [
-      new ExpirationPlugin({ maxEntries: 140, maxAgeSeconds: 60 * 60 * 24 * 365 }),
+      // 604 pages exist; a broad reviewer can view well over 140 in a session.
+      // Raise the LRU cap (each woff2 is ~30–90 KB) and purge under quota so
+      // previously-viewed pages still render their glyphs offline.
+      new ExpirationPlugin({ maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 365, purgeOnQuotaError: true }),
       new CacheableResponsePlugin({ statuses: [0, 200] }),
     ],
   })

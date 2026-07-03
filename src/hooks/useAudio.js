@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { RECITERS, QURAN_RECITERS } from "../data/constants";
+import { emitAppNotice, NOTICE } from "../appEvents.js";
 
 // QUL extracted segment JSONs (built by scripts/extract-qul-segments.cjs).
 // Lazy-fetched on first use per slug; cached for the life of the page.
@@ -21,6 +22,13 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
   const surahQueueRef = useRef([]);
   const surahIdxRef = useRef(0);
   const [mushafAudioPlaying,setMushafAudioPlaying]=useState(false);
+  // Offline/unreachable audio feedback. `audioError` lets a view render an inline
+  // "needs connection" note; a restrained global notice is also emitted (shown
+  // by OfflineStatus). Cleared on the next successful load.
+  const [audioError,setAudioError]=useState(null);
+  const isOffline=()=>{ try { return typeof navigator!=="undefined" && navigator.onLine===false; } catch { return false; } };
+  const signalAudioUnavailable=()=>{ setAudioError("unavailable"); try { emitAppNotice({ type: NOTICE.AUDIO_OFFLINE }); } catch { /* no-op */ } };
+  const clearAudioError=()=>setAudioError(null);
 
   function getEveryayahFolder(id){
     if(!id) return null; // no reciter picked — caller must handle (don't play)
@@ -43,7 +51,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     function playDirect(url){
       const audio=new Audio(url);
       audioRef.current=audio;
-      audio.oncanplay=()=>{setAudioLoading(null);setPlayingKey(key);};
+      audio.oncanplay=()=>{setAudioLoading(null);setPlayingKey(key);clearAudioError();};
       audio.onended=()=>{
         if(looping){
           audio.currentTime=0;
@@ -52,8 +60,8 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
           setPlayingKey(null);
         }
       };
-      audio.onerror=()=>{setAudioLoading(null);setPlayingKey(null);};
-      audio.play().catch(()=>{setAudioLoading(null);setPlayingKey(null);});
+      audio.onerror=()=>{setAudioLoading(null);setPlayingKey(null);signalAudioUnavailable();};
+      audio.play().catch(()=>{setAudioLoading(null);setPlayingKey(null);signalAudioUnavailable();});
     }
 
     const everyayahFolder=getEveryayahFolder(reciter);
@@ -92,21 +100,28 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     //   2. qulSlug      → surah file + seek to ayah range
     //   3. everyayah    → per-ayah clip
     if(currentReciter.recitationId){
+      // Bounded fetch: abort after 8s so a hanging/captive-portal request can
+      // never leave the spinner spinning forever with no cancel path.
+      const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
+      const to=ctrl?setTimeout(()=>{try{ctrl.abort();}catch{/* no-op */}},8000):null;
       try {
-        const res=await fetch(`https://api.qurancdn.com/api/qdc/audio/reciters/${currentReciter.recitationId}/audio_files?chapter_number=${surah}&juz_number=0&page_number=0&hizb_number=0&rub_el_hizb_number=0&verse_key=${verseKey}`);
+        const res=await fetch(`https://api.qurancdn.com/api/qdc/audio/reciters/${currentReciter.recitationId}/audio_files?chapter_number=${surah}&juz_number=0&page_number=0&hizb_number=0&rub_el_hizb_number=0&verse_key=${verseKey}`, ctrl?{signal:ctrl.signal}:undefined);
         if(res.ok){
           const data=await res.json();
           const url=data.audio_files?.[0]?.url;
           if(url){ playDirect(url.startsWith("http")?url:`https://audio.qurancdn.com/${url}`); return; }
         }
-      } catch {}
+      } catch { /* fetch failed/aborted — fall through to the next audio source */ } finally { if(to) clearTimeout(to); }
     }
     if(currentReciter.qulSlug){
       const ok=await playQulAyah(currentReciter.qulSlug);
       if(ok) return;
     }
     if(everyayahUrl){ playDirect(everyayahUrl); return; }
+    // No source could be resolved/played (offline or unreachable) — clear the
+    // spinner and surface a clear "audio needs connection" note.
     setAudioLoading(null);
+    signalAudioUnavailable();
   }
 
   function playSurahQueue(verses, surahNum, startIdx=0, reciterId=reciter) {
@@ -146,7 +161,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     const audio=new Audio(url); audio.preload="auto"; audioRef.current=audio;
     audio.oncanplay=()=>setAudioLoading(null);
     audio.onended=()=>{ surahIdxRef.current=idx+1; playNextInQueue(surahQueueRef.current,idx+1,surahNum,reciterId); };
-    audio.onerror=()=>{ surahIdxRef.current=idx+1; playNextInQueue(surahQueueRef.current,idx+1,surahNum,reciterId); };
+    audio.onerror=()=>{ if(isOffline()){ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); signalAudioUnavailable(); return; } surahIdxRef.current=idx+1; playNextInQueue(surahQueueRef.current,idx+1,surahNum,reciterId); };
     audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
   }
 
@@ -252,7 +267,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
         if(ms>=endMs){ advance(); }
       };
       audio.onended=()=>advance();
-      audio.onerror=()=>advance();
+      audio.onerror=()=>{ if(isOffline()){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); signalAudioUnavailable(); return; } advance(); };
     }
 
     playSegment(0);
@@ -290,8 +305,8 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
       // tail of the current one (esp. wasl reciters); cleaner to play
       // back-to-back and accept any natural silence between clips.
       audio.onended=()=>playIdx(idx+1);
-      audio.onerror=()=>playIdx(idx+1);
-      audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); });
+      audio.onerror=()=>{ if(isOffline()){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); signalAudioUnavailable(); return; } playIdx(idx+1); };
+      audio.play().catch(()=>{ setMushafAudioPlaying(false); setPlayingKey(null); signalAudioUnavailable(); });
     }
     playIdx(0);
   }
@@ -402,7 +417,7 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
         if(ms>=seg.endMs){ advance(); }
       };
       audio.onended=()=>advance();
-      audio.onerror=()=>advance();
+      audio.onerror=()=>{ if(isOffline()){ setMushafAudioPlaying(false); setPlayingKey(null); setAudioLoading(null); signalAudioUnavailable(); return; } advance(); };
     }
     playSegment(0);
   }
@@ -465,10 +480,10 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     setPlayingSurah(surahNum); setPlayingKey(`surah-${surahNum}`); setAudioLoading(`surah-${surahNum}`);
     const audio=new Audio(url);
     audioRef.current=audio;
-    audio.oncanplay=()=>{ setAudioLoading(null); };
+    audio.oncanplay=()=>{ setAudioLoading(null); clearAudioError(); };
     audio.onended=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
-    audio.onerror=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); };
-    audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); });
+    audio.onerror=()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); signalAudioUnavailable(); };
+    audio.play().catch(()=>{ setPlayingSurah(null); setPlayingKey(null); setAudioLoading(null); signalAudioUnavailable(); });
   }
 
   return {
@@ -481,6 +496,8 @@ export default function useAudio({ reciter, currentReciter, looping, quranRecite
     setPlayingSurah,
     mushafAudioPlaying,
     setMushafAudioPlaying,
+    audioError,
+    clearAudioError,
     playAyah,
     playSurahQueue,
     playNextInQueue,
