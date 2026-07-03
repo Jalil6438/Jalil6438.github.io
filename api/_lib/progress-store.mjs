@@ -37,6 +37,14 @@ export const kRecoveryVerifier = (reciterId) => `${NS}recovery:verifier:${recite
 export const kRecoveryMeta = (reciterId) => `${NS}recovery:meta:${reciterId}`;
 export const kRecoveryAttempt = (targetId) => `${NS}recovery:attempt:${targetId}`;
 
+// ── RESTORE KEYS (Phase 3) ──
+// A clearly-separated `restore:` sub-namespace under the SAME isolated root. The
+// restore authorization record is keyed by (reciterId, authId) and holds ONLY
+// hashes/verifiers + non-sensitive snapshot binding metadata — never the raw
+// authorization secret, the raw device id, or any progress payload. Like every
+// other key here it uses opaque ids only.
+export const kRestoreAuth = (reciterId, authId) => `${NS}restore:auth:${reciterId}:${authId}`;
+
 // Retention / bounds (documented in docs/backend). Long TTLs are refreshed on
 // each write, so an actively-backing device never expires while a truly
 // abandoned reciter's data eventually ages out — no unbounded growth.
@@ -51,6 +59,11 @@ export const RECENT_INDEX_MAX = 20; // metadata-only ring; never unbounded
 // permanent lockout.
 export const RECOVERY_VERIFIER_TTL_SECONDS = 400 * 24 * 3600; // ~13 months
 export const RECOVERY_ATTEMPT_TTL_SECONDS = 15 * 60; // 15-minute sliding window
+
+// A restore authorization is deliberately SHORT-LIVED and single-use. The record
+// self-expires after this window even if it is never consumed, so a stale or
+// abandoned authorization can never be replayed later.
+export const RESTORE_AUTH_TTL_SECONDS = 10 * 60; // 10 minutes
 
 // Minimal Upstash REST pipeline (self-contained, mirrors api/_lib/store.mjs).
 async function pipeline(commands) {
@@ -184,6 +197,34 @@ export function createUpstashProgressStore() {
       await pipeline([["DEL", kRecoveryAttempt(targetId)]]);
       return true;
     },
+
+    // ── RESTORE (Phase 3) ──
+    // Read a stored snapshot envelope (the raw validated JSON string) by id. The
+    // execute step returns exactly this to the authorized, single-use caller —
+    // the ONE place raw progress ever leaves the server, and only then.
+    async getSnapshotJson(reciterId, snapshotId) {
+      const out = await pipeline([["GET", kSnapshot(reciterId, snapshotId)]]);
+      const raw = out?.[0]?.result;
+      return typeof raw === "string" ? raw : null;
+    },
+
+    // Create a restore authorization record the FIRST time only (SET NX). The
+    // record is a JSON object of hashes/verifiers + non-sensitive binding
+    // metadata; it self-expires via the short TTL. Returns true when WE set it.
+    async createRestoreAuth(reciterId, authId, record, ttlSeconds = RESTORE_AUTH_TTL_SECONDS) {
+      const out = await pipeline([
+        ["SET", kRestoreAuth(reciterId, authId), JSON.stringify(record), "NX", "EX", String(ttlSeconds)],
+      ]);
+      return out?.[0]?.result === "OK";
+    },
+
+    // Atomically fetch-and-delete the authorization record — GETDEL guarantees
+    // single-use: the FIRST executor gets the record and removes it in one op; a
+    // concurrent or later executor gets null. Returns the parsed record or null.
+    async consumeRestoreAuth(reciterId, authId) {
+      const out = await pipeline([["GETDEL", kRestoreAuth(reciterId, authId)]]);
+      return safeParse(out?.[0]?.result);
+    },
   };
 }
 
@@ -199,6 +240,7 @@ export function createMemoryProgressStore({ faults = {} } = {}) {
   const recoveryVerifiers = new Map(); // reciterId -> verifierHex
   const recoveryMeta = new Map(); // reciterId -> meta object
   const recoveryAttempts = new Map(); // targetId -> count
+  const restoreAuths = new Map(); // `${reciterId}:${authId}` -> record object
 
   const maybeFail = (name) => {
     if (faults[name]) throw faults[name];
@@ -206,7 +248,7 @@ export function createMemoryProgressStore({ faults = {} } = {}) {
 
   return {
     // test introspection (not part of the production interface)
-    _dump: () => ({ verifiers, idem, snapshots, latest, index, recoveryVerifiers, recoveryMeta, recoveryAttempts }),
+    _dump: () => ({ verifiers, idem, snapshots, latest, index, recoveryVerifiers, recoveryMeta, recoveryAttempts, restoreAuths }),
 
     async getVerifier(reciterId) {
       maybeFail("getVerifier");
@@ -284,6 +326,30 @@ export function createMemoryProgressStore({ faults = {} } = {}) {
       maybeFail("clearRecoveryAttemptWindow");
       recoveryAttempts.delete(targetId);
       return true;
+    },
+
+    // ── RESTORE (Phase 3) — mirrors the Upstash adapter's semantics ──
+    async getSnapshotJson(reciterId, snapshotId) {
+      maybeFail("getSnapshotJson");
+      const k = `${reciterId}:${snapshotId}`;
+      return snapshots.has(k) ? snapshots.get(k) : null;
+    },
+    async createRestoreAuth(reciterId, authId, record) {
+      maybeFail("createRestoreAuth");
+      const k = `${reciterId}:${authId}`;
+      if (restoreAuths.has(k)) return false; // SET NX semantics
+      // Store a deep copy so a later mutation of the caller's object cannot bleed
+      // into the persisted record (parity with the JSON round-trip in Upstash).
+      restoreAuths.set(k, JSON.parse(JSON.stringify(record)));
+      return true;
+    },
+    async consumeRestoreAuth(reciterId, authId) {
+      maybeFail("consumeRestoreAuth");
+      const k = `${reciterId}:${authId}`;
+      if (!restoreAuths.has(k)) return null; // GETDEL on a missing key → null
+      const rec = restoreAuths.get(k);
+      restoreAuths.delete(k); // atomic fetch-and-delete → single-use
+      return rec;
     },
   };
 }

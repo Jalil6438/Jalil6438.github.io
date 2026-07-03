@@ -3,7 +3,7 @@
 // Returns ONLY non-sensitive booleans and a standard deployment label. Never
 // returns tokens, URLs, key names, identifiers, stored payloads, secret
 // lengths/hashes, or server paths. Read-only: mutates no state.
-import { progressBackupEnabled, progressRecoveryEnabled } from "../_lib/gates.mjs";
+import { progressBackupEnabled, progressRecoveryEnabled, progressRestoreEnabled } from "../_lib/gates.mjs";
 import { storeConfigured } from "../_lib/progress-store.mjs";
 
 export default async function handler(req, res) {
@@ -13,6 +13,7 @@ export default async function handler(req, res) {
   const enabled = progressBackupEnabled();
   const store = storeConfigured();
   const recovery = progressRecoveryEnabled();
+  const restore = progressRestoreEnabled();
 
   // VERCEL_ENV is Vercel's standard non-secret deployment label
   // ("production" | "preview" | "development"); null when not on Vercel.
@@ -30,6 +31,10 @@ export default async function handler(req, res) {
     progressRecoveryEnabled: recovery,
     progressRecoveryStoreConfigured: store,
     progressRecoveryReady: recovery && store,
+    // Phase 3 controlled restore — same secret-free discipline: booleans only.
+    // Independent gate; restore is only offered when it AND recovery are ready.
+    progressRestoreEnabled: restore,
+    progressRestoreReady: restore && store,
     deployment,
   });
 }
