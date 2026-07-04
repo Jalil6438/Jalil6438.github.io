@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
 import { saveCompletedAyahs, normalizeUthmani } from "../utils";
-import { CheckGlyph, PlayGlyph, StopGlyph } from "../components/glyphs";
+import { CheckGlyph, PlayGlyph, StopGlyph, BookGlyph, WarnGlyph, SealGlyph } from "../components/glyphs";
 import { useQcfFont } from "../hooks/useQcfFont";
 import { useMushafData } from "../hooks/useMushafData";
 import { useBismillah } from "../hooks/useBismillah";
@@ -535,7 +535,7 @@ export default function MyHifzTab(props) {
             {/* ── ASR EMPTY STATE — shown when auto-pool has nothing ── */}
             {SESSIONS[activeSessionIndex]?.id==="asr"&&!sessLoading&&!asrStarted&&batch.length===0&&!asrIsCustomized&&(
               <div className="fi" style={{position:"fixed",inset:0,zIndex:90,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:dark?"linear-gradient(180deg,#060C18 0%,#040814 100%)":"#F3E9D2",padding:"32px 24px"}}>
-                <div style={{fontSize:36,marginBottom:16}}>📖</div>
+                <div style={{marginBottom:16,color:"#E6B84A",display:"flex"}}><BookGlyph size={40}/></div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F3E7C8",fontWeight:700,textAlign:"center",marginBottom:10}}>Nothing to review yet</div>
                 <div style={{fontSize:13,color:"rgba(243,231,200,0.45)",textAlign:"center",lineHeight:1.8,maxWidth:280,marginBottom:28}}>
                   Complete a surah or a full juz to unlock Asr review.
@@ -667,7 +667,7 @@ export default function MyHifzTab(props) {
             {sessLoading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:40,gap:12}}><div className="spin" style={{width:26,height:26,border:`2px solid ${T.border}`,borderTopColor:"#F0C040",borderRadius:"50%"}}/><div style={{fontSize:12,color:T.dim}}>Loading ayahs...</div></div>}
             {!sessLoading&&sessError&&(
               <div style={{background:dark?"linear-gradient(180deg,#0F1A2B 0%,#0C1526 100%)":"#EADFC8",border:dark?"1px solid rgba(230,184,74,0.10)":"1px solid rgba(139,106,16,0.15)",borderRadius:20,boxShadow:"0 10px 28px rgba(0,0,0,0.28),inset 0 1px 0 rgba(255,255,255,0.03)",padding:"30px 22px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
-                <div style={{width:74,height:74,borderRadius:"50%",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,boxShadow:"0 0 10px rgba(230,184,74,0.10)",fontSize:30}}>📖</div>
+                <div style={{width:74,height:74,borderRadius:"50%",background:"rgba(230,184,74,0.08)",border:"1px solid rgba(230,184,74,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18,boxShadow:"0 0 10px rgba(230,184,74,0.10)",color:"#E6B84A"}}><WarnGlyph size={32}/></div>
                 <div style={{fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:10}}>Unable to load ayahs</div>
                 <div style={{fontSize:14,lineHeight:1.7,color:"rgba(255,255,255,0.60)",maxWidth:320,marginBottom:22}}>Please check your connection and try again.</div>
                 <div className="sbtn" onClick={()=>setSessionJuz(n=>n)} style={{background:"linear-gradient(180deg,#F0C040 0%,#D89A10 100%)",color:"#0B1220",border:"none",borderRadius:14,padding:"12px 28px",fontWeight:700,fontSize:16,boxShadow:"0 6px 14px rgba(240,192,64,0.14)",cursor:"pointer"}}>Retry</div>
@@ -780,7 +780,7 @@ export default function MyHifzTab(props) {
                   <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
                     <div style={{display:"flex",justifyContent:"center",color:"#F0C040",marginBottom:8}}><CheckGlyph size={24}/></div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
-                    <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>Session complete — MashaAllah! 🤲</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>Session complete — MashaAllah!</div>
                   </div>
                 ):(()=>{
                   // In Mushaf Fajr the whole page is one day's effort — no internal 7-ayah pagination.
@@ -902,7 +902,7 @@ export default function MyHifzTab(props) {
 
             {!sessLoading&&currentSessionId==="fajr"&&batch.length===0&&totalSV>0&&juzCompletedInSession.has(sessionJuz)&&(
               <div style={{textAlign:"center",paddingTop:40}}>
-                <div style={{fontSize:26,marginBottom:10}}>🎉</div>
+                <div style={{marginBottom:10,color:T.accent,display:"flex",justifyContent:"center"}}><SealGlyph size={30}/></div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:T.accent,marginBottom:6}}>Juz {JUZ_META.find(m=>m.num===sessionJuz)?.roman||sessionJuz} Complete — Alhamdulillah!</div>
                 <div style={{fontSize:10,color:T.sub,marginBottom:6,letterSpacing:".06em"}}>Juz {sessionJuz}</div>
                 <div style={{fontSize:13,color:T.sub}}>Select the next Juz above to continue.</div>

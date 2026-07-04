@@ -1,4 +1,5 @@
 import React from "react";
+import { BookGlyph } from "./glyphs";
 
 export default function TwoPageWarningModal({warning,onClose,dark}){
   if(!warning) return null;
@@ -6,7 +7,7 @@ export default function TwoPageWarningModal({warning,onClose,dark}){
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",backdropFilter:"blur(6px)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
       <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:20,maxWidth:380,width:"100%",border:"1px solid rgba(217,177,95,0.30)",boxShadow:"0 20px 60px rgba(0,0,0,0.60), 0 0 30px rgba(212,175,55,0.15)",padding:"22px 20px"}} onClick={e=>e.stopPropagation()}>
         <div style={{textAlign:"center",marginBottom:12}}>
-          <div style={{fontSize:28,marginBottom:8}}>📖</div>
+          <div style={{marginBottom:8,color:"#D4AF37",display:"flex",justifyContent:"center"}}><BookGlyph size={30}/></div>
           <div style={{fontSize:10,color:"#D4AF37",letterSpacing:".16em",textTransform:"uppercase",fontWeight:700,marginBottom:6}}>Sheikh Al-Qasim's Wisdom</div>
         </div>
         <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:dark?"#F6E27A":"#B45309",direction:"rtl",textAlign:"center",lineHeight:1.8,marginBottom:12}}>

@@ -1,5 +1,5 @@
 import React from "react";
-import { WarnGlyph, UserGlyph, TrashGlyph } from "./glyphs";
+import { WarnGlyph, UserGlyph, TrashGlyph, CalendarGlyph } from "./glyphs";
 
 export default function SettingsModal({
   show,
@@ -62,7 +62,7 @@ export default function SettingsModal({
               <div style={{width:36,height:4,background:dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)",borderRadius:2,margin:"0 auto 12px"}}/>
               <div className="sbtn" onClick={onClose} style={{position:"absolute",top:10,right:14,width:28,height:28,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:T.dim,background:dark?"rgba(255,255,255,0.05)":"rgba(0,0,0,0.05)",border:`1px solid ${dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.10)"}`,lineHeight:1}}>×</div>
               <div style={{fontSize:15,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A"}}>Settings</div>
-              <div style={{fontSize:10,color:T.dim,marginTop:4}}>📅 Joined 2026</div>
+              <div style={{fontSize:10,color:T.dim,marginTop:4,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><CalendarGlyph size={11}/><span>Joined 2026</span></div>
             </div>
             <div style={{overflowY:"auto",padding:"14px 18px 28px"}}>
               {/* Settings is now profile/account focused — Theme, Plan, About,

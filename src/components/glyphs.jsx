@@ -174,3 +174,62 @@ export const SessionGlyph = ({ id, size = 16, style }) => {
   const G = SESSION_GLYPHS[id] || DhuhrGlyph;
   return <G size={size} style={style} />;
 };
+
+// ── Bucket 3: milestone / plan-detail / empty-state glyphs ──
+// Calm line marks (currentColor) that replace the remaining decorative emoji in
+// milestone toasts, the plan/pace panels, and empty/complete states.
+export const BookGlyph = ({ size = 16, style }) => ( // open mushaf / memorization
+  <Svg size={size} style={style}>
+    <path d="M12 6.4C10 5.1 7.4 4.7 4.5 5.1v12.5c2.9-.4 5.5 0 7.5 1.3 2-1.3 4.6-1.7 7.5-1.3V5.1C16.6 4.7 14 5.1 12 6.4z" />
+    <path d="M12 6.4V19" />
+  </Svg>
+);
+export const CalendarGlyph = ({ size = 16, style }) => (
+  <Svg size={size} style={style} sw={1.7}>
+    <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
+    <line x1="4" y1="9.5" x2="20" y2="9.5" />
+    <line x1="8" y1="3.5" x2="8" y2="7" /><line x1="16" y1="3.5" x2="16" y2="7" />
+  </Svg>
+);
+export const ChartGlyph = ({ size = 16, style }) => ( // progress bars
+  <Svg size={size} style={style} sw={1.7}>
+    <path d="M4 19.5h16" />
+    <rect x="6" y="14" width="3" height="5.5" rx="0.6" />
+    <rect x="10.5" y="10" width="3" height="9.5" rx="0.6" />
+    <rect x="15" y="6.5" width="3" height="13" rx="0.6" />
+  </Svg>
+);
+export const CrescentGlyph = ({ size = 16, style }) => ( // milestone / rest state
+  <Svg size={size} style={style} fill="currentColor" sw={0}>
+    <path d="M20 14.2A8 8 0 1 1 11 4.2a6.3 6.3 0 0 0 9 10z" />
+  </Svg>
+);
+export const KaabaGlyph = ({ size = 16, style }) => ( // full Qur'an completion
+  <Svg size={size} style={style} sw={1.7}>
+    <rect x="5" y="6.5" width="14" height="13" rx="1" />
+    <line x1="5" y1="10.5" x2="19" y2="10.5" strokeWidth={2.2} />
+    <path d="M10.5 19.5v-3.4h3v3.4" />
+  </Svg>
+);
+export const SealGlyph = ({ size = 16, style }) => ( // 8-point rosette — celebration
+  <Svg size={size} style={style} sw={1.5}>
+    <path d="M12 2.6 20 12 12 21.4 4 12z" />
+    <rect x="5.8" y="5.8" width="12.4" height="12.4" />
+    <circle cx="12" cy="12" r="2" />
+  </Svg>
+);
+// "not yet / future" marker — pairs with HalfDiscGlyph (current) + CheckGlyph (done)
+export const PendingGlyph = ({ size = 16, style }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
+    style={base(size, style)} aria-hidden="true"><circle cx="12" cy="12" r="7.5" strokeDasharray="2.6 2.6" /></svg>
+);
+// Graded 1–5 intensity meter for the plan pace picker (5 = intense … 1 = gentle).
+export const IntensityGlyph = ({ level = 3, size = 16, style }) => (
+  <svg viewBox="0 0 24 24" style={base(size, style)} aria-hidden="true">
+    {[0, 1, 2, 3, 4].map((i) => {
+      const h = 5 + i * 3.4;
+      return <rect key={i} x={2.2 + i * 4.4} y={20 - h} width="2.8" height={h} rx="1"
+        fill="currentColor" opacity={i < level ? 1 : 0.22} />;
+    })}
+  </svg>
+);

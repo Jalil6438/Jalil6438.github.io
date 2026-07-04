@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SURAH_EN, JUZ_RANGES } from "../data/constants";
 import { toArabicDigits, normalizeUthmani } from "../utils";
-import { CheckGlyph, StarGlyph, HalfDiscGlyph } from "./glyphs";
+import { CheckGlyph, StarGlyph, HalfDiscGlyph, PendingGlyph } from "./glyphs";
 
 // ── Mutashābihāt (المتشابهات) panel ──────────────────────────────────────────
 // Purpose: help the memorizer answer "when I hit this wording, which occurrence
@@ -71,7 +71,7 @@ function SimilarMatch({ mvKey, m, dark, resolveText, requestFetch }) {
     ? { txt: "Already Memorized", icon: <CheckGlyph size={10} />, c: dark ? "#4ADE80" : "#2ECC71" }
     : m.rank === 1
       ? { txt: "Current Juz", icon: <HalfDiscGlyph size={10} />, c: dark ? "#E6B84A" : "#8B6A10" }
-      : { txt: "🔮 Future Memorization", c: dark ? "rgba(183,148,244,0.80)" : "#7C5CC0" };
+      : { txt: "Future Memorization", icon: <PendingGlyph size={10} />, c: dark ? "rgba(183,148,244,0.80)" : "#7C5CC0" };
 
   const aya = (t, n, dim) => (<div style={{ fontFamily: "'UthmanicHafs','Amiri Quran','Amiri',serif", fontSize: dim ? 16 : 18, color: dim ? (dark ? "rgba(243,231,200,0.40)" : "#8A7A5A") : (dark ? "rgba(243,231,200,0.80)" : "#2D2A26"), fontWeight: dim ? 400 : 600, direction: "rtl", textAlign: "right", lineHeight: 1.8 }}>{normalizeUthmani(t)} <span style={{ fontFamily: "'Amiri Quran','Amiri',serif", fontSize: 14, color: dark ? "rgba(212,175,55,0.30)" : "rgba(140,100,20,0.30)" }}>﴿{toArabicDigits(n)}﴾</span></div>);
   const lbl = (label, key) => (<div style={{ fontSize: 8, letterSpacing: ".12em", textTransform: "uppercase", fontWeight: 700, color: dark ? "rgba(243,231,200,0.30)" : "#9A8A6A", marginTop: 6, marginBottom: 1 }}>{label} · {key}</div>);

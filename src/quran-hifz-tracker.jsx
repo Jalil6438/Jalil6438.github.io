@@ -6,6 +6,7 @@ import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metada
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
 import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage } from "./utils";
 import HlsPlayer from "./components/HlsPlayer";
+import { SealGlyph, StarGlyph, CrescentGlyph, BookGlyph, KaabaGlyph, StreakGlyph } from "./components/glyphs";
 import AsrSessionView from "./components/AsrSessionView";
 import QuranPageView from "./components/QuranPageView";
 import JuzSelectorModal from "./components/JuzSelectorModal";
@@ -462,13 +463,14 @@ export default function RihlatAlHifz() {
     const juzMilestone=(n)=>{
       const img=n===30?"/badge-hafiz.png":n<=15?`/badge-juz-${n}.png`:"/badge-juz-15.png";
       const dua=n===1?DUA.jaza:n===15?DUA.waffaq:n===30?DUA.barak:DUA.taqabbal;
-      if(n===1) return {emoji:"🎉",img,dua,msg:"You just completed your first juz!"};
-      if(n===5) return {emoji:"🌟",img,dua,msg:"5 juz memorized — keep going!"};
-      if(n===10) return {emoji:"✨",img,dua,msg:"10 juz memorized — a third of the Qur'an!"};
-      if(n===15) return {emoji:"🌙",img,dua,msg:"Half the Qur'an memorized!"};
-      if(n===20) return {emoji:"📖",img,dua,msg:"20 juz — you are close!"};
-      if(n===30) return {emoji:"🕋",img,dua,msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"};
-      return {emoji:"🎉",img,dua,msg:`${n} juz memorized — Al-Hamdulillah!`};
+      const mColor={color:"#E6B84A"};
+      if(n===1) return {emoji:<SealGlyph size={54} style={mColor}/>,img,dua,msg:"You just completed your first juz!"};
+      if(n===5) return {emoji:<StarGlyph size={54} style={mColor}/>,img,dua,msg:"5 juz memorized — keep going!"};
+      if(n===10) return {emoji:<StarGlyph size={54} style={mColor}/>,img,dua,msg:"10 juz memorized — a third of the Qur'an!"};
+      if(n===15) return {emoji:<CrescentGlyph size={54} style={mColor}/>,img,dua,msg:"Half the Qur'an memorized!"};
+      if(n===20) return {emoji:<BookGlyph size={54} style={mColor}/>,img,dua,msg:"20 juz — you are close!"};
+      if(n===30) return {emoji:<KaabaGlyph size={54} style={mColor}/>,img,dua,msg:"30 juz — the entire Qur'an. Al-Hamdulillah!"};
+      return {emoji:<SealGlyph size={54} style={mColor}/>,img,dua,msg:`${n} juz memorized — Al-Hamdulillah!`};
     };
     const milestones=[];
     for(let n=1;n<=30;n++){
@@ -498,7 +500,7 @@ export default function RihlatAlHifz() {
     };
     [7,14,21,30,40,60,100].forEach(n=>{
       const m=streakMilestone(n);
-      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:"🔥",image:m.img,dua:streakDuaFor(n),title:m.title,msg:m.msg});
+      if(m) milestones.push({key:`streak-${n}`,test:streak>=n,emoji:<StreakGlyph size={54} style={{color:"#E6B84A"}}/>,image:m.img,dua:streakDuaFor(n),title:m.title,msg:m.msg});
     });
     if(!hasStorage){
       // First run: seed any already-met milestones as shown, don't pop.

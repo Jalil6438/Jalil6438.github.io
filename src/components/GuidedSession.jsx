@@ -2,7 +2,7 @@
    by observing the user's real action on the underlying My Hifz UI (external
    state); each branch is guarded by `step` so it can never loop. */
 import { useEffect, useRef, useState } from "react";
-import { CheckGlyph } from "./glyphs";
+import { CheckGlyph, SealGlyph } from "./glyphs";
 
 // ── Guided first-session tutorial ────────────────────────────────────────────
 // A companion that guides a brand-new user through their first hifz session on
@@ -76,7 +76,7 @@ function Completion({ dark, onComplete }) {
     <>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.68)", pointerEvents: "auto" }} />
       <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: "min(340px,88vw)", pointerEvents: "auto", background: dark ? "linear-gradient(180deg,#10203A,#0A1424)" : "#EADFC8", border: "1px solid rgba(246,226,122,0.4)", borderRadius: 20, padding: "26px 22px", boxShadow: "0 22px 60px rgba(0,0,0,0.6)", textAlign: "center" }}>
-        <div style={{ fontSize: 34, marginBottom: 6 }}>🎓</div>
+        <div style={{ marginBottom: 6, color: dark ? "#F6E27A" : "#6B4F00", display: "flex", justifyContent: "center" }}><SealGlyph size={36} /></div>
         <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: dark ? "#F6E27A" : "#6B4F00", marginBottom: 14 }}>Guided Session Complete</div>
         <div style={{ textAlign: "left", display: "inline-block", fontSize: 14, lineHeight: 2, color: dark ? "rgba(243,231,200,0.88)" : "#2D2A26", marginBottom: 20 }}>
           You learned:<br /><CheckGlyph size={13} style={{ marginRight: 6 }} />Study<br /><CheckGlyph size={13} style={{ marginRight: 6 }} />Repetition<br /><CheckGlyph size={13} style={{ marginRight: 6 }} />Connection

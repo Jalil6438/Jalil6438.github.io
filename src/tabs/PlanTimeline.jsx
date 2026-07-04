@@ -2,6 +2,8 @@
 // pace, principles of memorization, and a daily-rotating verse. Pure
 // presentational; the Arabic verses are copied byte-for-byte from the original.
 // The render gate stays in the parent (same pattern as RihlahHome).
+import { BookGlyph, CalendarGlyph } from "../components/glyphs";
+
 export default function PlanTimeline({ dark, setRihlahTab, rihlahScrollRef, userPlanMode, goalYears, goalMonths, goalLabel, dailyNew, timeline, pct, sessionJuz }) {
   return (
         <div ref={rihlahScrollRef} style={{flex:1,overflowY:"auto",background:dark?"linear-gradient(180deg,#0B1220,#0E1628)":"#F3E9D2",padding:"16px 16px 24px"}} className="fi gold-particles">
@@ -45,12 +47,12 @@ export default function PlanTimeline({ dark, setRihlahTab, rihlahScrollRef, user
           <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Your Pace</div>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
-              <span style={{fontSize:14}}>📖</span>
+              <span style={{display:"flex",color:"#F3E7C8"}}><BookGlyph size={15}/></span>
               <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${dailyNew} ayahs / day`:"1 page / day"}</span>
             </div>
             <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.35) 50%,rgba(217,177,95,0) 100%)"}}/>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
-              <span style={{fontSize:14}}>📆</span>
+              <span style={{display:"flex",color:"#F3E7C8"}}><CalendarGlyph size={15}/></span>
               <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${timeline.juzPerMonth} juz / month`:"~1.5 juz / month"}</span>
             </div>
           </div>
