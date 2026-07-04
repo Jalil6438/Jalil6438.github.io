@@ -1,4 +1,5 @@
 import { SURAH_EN } from "../data/constants";
+import { GoalGlyph, StreakGlyph } from "./glyphs";
 
 // Universal app header — hamburger + app title, profile row (avatar, name,
 // next-target), goal/streak badges, and the overall progress bar. Hidden on the
@@ -53,10 +54,10 @@ export default function UniversalHeader({ activeTab, appPage, dark, T, setShowAp
         {/* Badges row — full width */}
         <div style={{display:"flex",gap:6,marginTop:6,justifyContent:"flex-start"}}>
           {[
-            {label:"🎯 "+goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
-            {label:"🔥 "+streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
+            {icon:<GoalGlyph size={9}/>, label:goalLabel, color:dark?"#38BDF8":"#1E6B9A", bg:dark?"rgba(56,189,248,0.12)":"rgba(56,189,248,0.08)", border:dark?"rgba(56,189,248,0.25)":"rgba(56,189,248,0.20)"},
+            {icon:<StreakGlyph size={9}/>, label:streak+"-Day Streak", color:dark?"#F6A623":"#B87A10", bg:dark?"rgba(246,166,35,0.12)":"rgba(246,166,35,0.08)", border:dark?"rgba(246,166,35,0.25)":"rgba(246,166,35,0.20)"},
           ].map((pill,i)=>(
-            <div key={i} style={{fontSize:8,color:pill.color,background:pill.bg,padding:"2px 7px",borderRadius:14,border:`1px solid ${pill.border}`,whiteSpace:"nowrap"}}>{pill.label}</div>
+            <div key={i} style={{fontSize:8,color:pill.color,background:pill.bg,padding:"2px 7px",borderRadius:14,border:`1px solid ${pill.border}`,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:4}}>{pill.icon}{pill.label}</div>
           ))}
         </div>
         {/* Progress row */}

@@ -2,6 +2,7 @@
    by observing the user's real action on the underlying My Hifz UI (external
    state); each branch is guarded by `step` so it can never loop. */
 import { useEffect, useRef, useState } from "react";
+import { CheckGlyph } from "./glyphs";
 
 // ── Guided first-session tutorial ────────────────────────────────────────────
 // A companion that guides a brand-new user through their first hifz session on
@@ -78,7 +79,7 @@ function Completion({ dark, onComplete }) {
         <div style={{ fontSize: 34, marginBottom: 6 }}>🎓</div>
         <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: dark ? "#F6E27A" : "#6B4F00", marginBottom: 14 }}>Guided Session Complete</div>
         <div style={{ textAlign: "left", display: "inline-block", fontSize: 14, lineHeight: 2, color: dark ? "rgba(243,231,200,0.88)" : "#2D2A26", marginBottom: 20 }}>
-          You learned:<br />✓ Study<br />✓ Repetition<br />✓ Connection
+          You learned:<br /><CheckGlyph size={13} style={{ marginRight: 6 }} />Study<br /><CheckGlyph size={13} style={{ marginRight: 6 }} />Repetition<br /><CheckGlyph size={13} style={{ marginRight: 6 }} />Connection
         </div>
         <div className="sbtn" onClick={onComplete} style={{ padding: "13px", borderRadius: 14, textAlign: "center", fontWeight: 800, fontSize: 14, background: "linear-gradient(90deg,#D4AF37,#F6E27A 60%,#EED97A)", color: "#060A07", boxShadow: "0 10px 24px rgba(212,175,55,0.25)" }}>Start Session</div>
       </div>

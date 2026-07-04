@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CheckGlyph, GoalGlyph } from "./glyphs";
 
 // MilestonesProgress — the "Rihlat Al-Hifz" journey as a braided, expandable
 // timeline. Major STAGES are collapsed (each dated); tapping one opens the
@@ -128,7 +129,7 @@ export default function MilestonesProgress({ dark, completedCount = 0, memorized
 
   const Node = ({ done, hue }) => (
     done
-      ? <div style={{ width: 22, height: 22, borderRadius: "50%", background: `radial-gradient(circle at 50% 35%, ${hue}, ${dark ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.18)"})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: dark ? "#0C1320" : "#fff", boxShadow: `0 0 9px ${hue}66`, flexShrink: 0 }}>✓</div>
+      ? <div style={{ width: 22, height: 22, borderRadius: "50%", background: `radial-gradient(circle at 50% 35%, ${hue}, ${dark ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.18)"})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: dark ? "#0C1320" : "#fff", boxShadow: `0 0 9px ${hue}66`, flexShrink: 0 }}><CheckGlyph size={13} /></div>
       : <div style={{ width: 16, height: 16, borderRadius: "50%", border: `1.5px solid ${branch}`, background: dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)", flexShrink: 0 }} />
   );
 
@@ -143,7 +144,7 @@ export default function MilestonesProgress({ dark, completedCount = 0, memorized
 
       <div className="ml-goal" style={{ borderRadius: 14, padding: "12px 14px", marginBottom: 14, background: dark ? "linear-gradient(135deg, rgba(212,175,55,0.14), rgba(212,175,55,0.04))" : "rgba(180,140,40,0.08)", border: `1px solid ${dark ? "rgba(246,226,122,0.35)" : "rgba(140,100,20,0.25)"}`, animation: "mlGlow 3s ease-in-out infinite" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 14 }}>🎯</span>
+          <span style={{ display: "flex", color: accent }}><GoalGlyph size={15} /></span>
           <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: ".18em", textTransform: "uppercase", color: accent }}>Current Goal</span>
         </div>
         <div style={{ fontSize: 18, fontWeight: 700, color: gold, fontFamily: "'Playfair Display',serif", lineHeight: 1.15 }}>{goalText}</div>
@@ -179,7 +180,7 @@ export default function MilestonesProgress({ dark, completedCount = 0, memorized
                     const sDate = dateOf(s);
                     return (
                       <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{ width: s.done ? 13 : 9, height: s.done ? 13 : 9, borderRadius: "50%", flexShrink: 0, background: s.done ? hue : "transparent", border: s.done ? "none" : `1.5px solid ${branch}`, boxShadow: s.done ? `0 0 5px ${hue}66` : "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 900, color: dark ? "#0C1320" : "#fff" }}>{s.done ? "✓" : ""}</div>
+                        <div style={{ width: s.done ? 13 : 9, height: s.done ? 13 : 9, borderRadius: "50%", flexShrink: 0, background: s.done ? hue : "transparent", border: s.done ? "none" : `1.5px solid ${branch}`, boxShadow: s.done ? `0 0 5px ${hue}66` : "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 900, color: dark ? "#0C1320" : "#fff" }}>{s.done ? <CheckGlyph size={8} /> : ""}</div>
                         <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
                           <span style={{ fontSize: 12, fontWeight: s.done ? 600 : 400, color: s.done ? sub : muted, fontFamily: "'DM Sans',sans-serif" }}>{s.label}</span>
                           {s.done && sDate && <span style={{ flexShrink: 0, fontSize: 8.5, color: muted, fontFamily: "'IBM Plex Mono',monospace" }}>{fmtDate(sDate)}</span>}

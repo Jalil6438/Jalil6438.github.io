@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AppPage from "./AppPage";
+import { CheckGlyph, BellGlyph } from "../glyphs";
 
 export default function RemindersPage({ dark, onBack }) {
   const DEFAULTS = [
@@ -62,7 +63,7 @@ export default function RemindersPage({ dark, onBack }) {
           : (dark ? "rgba(212,175,55,0.20)" : "rgba(139,106,16,0.18)")}`,
         display: "flex", alignItems: "center", gap: 10,
       }}>
-        <div style={{ fontSize: 18 }}>{permission === "granted" ? "✓" : "🔔"}</div>
+        <div style={{ display: "flex", color: permission === "granted" ? (dark ? "#38D67E" : "#148C3C") : (dark ? "#E6B84A" : "#8B6A10") }}>{permission === "granted" ? <CheckGlyph size={18} /> : <BellGlyph size={18} />}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: dark ? "#F3E7C8" : "#2D2A26" }}>
             {permission === "granted" ? "Notifications enabled" : permission === "denied" ? "Notifications blocked" : permission === "unsupported" ? "Notifications not supported" : "Allow notifications"}

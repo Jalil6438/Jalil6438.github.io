@@ -1,5 +1,6 @@
 import { SURAH_EN } from "../data/constants";
 import { toArabicDigits } from "../utils";
+import { BookmarkGlyph, EditGlyph, CheckGlyph, PinGlyph, PlayGlyph, StopGlyph, NextGlyph, LibraryGlyph } from "./glyphs";
 
 export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, fetchTafsir, fetchTranslations, fontSize, mushafAudioPlaying, mushafBookmarks, setMushafBookmarks, mushafPage, setMushafPage, mushafVerses, pageContentMap, parseTafsirBlocks, playAyahAudio, playingKey, setPlayingKey, reflections, setReflections, selectedAyah, setSelectedAyah, setMushafRangeEnd, setMushafRangeStart, setShowMushafRangePicker, setShowPickers, showPickers, setTafsirTab, stopMushafAudio, tafsirData, tafsirTab, translations, tajweedFont, TAFSIR_SOURCES, SURAH_PAGES }) {
                 const [sNum, aNum] = (selectedAyah || "").split(":");
@@ -259,12 +260,12 @@ export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, 
                             {/* eslint-disable-next-line react-hooks/refs -- audioRef is accessed only inside the onClick handler below, not during render */}
                             {[
                               {
-                                icon: "🔖",
+                                icon: <BookmarkGlyph size={22} />,
                                 label: "Bookmark",
                                 action: () => setDrawerView("save-options"),
                               },
                               {
-                                icon: isPlaying ? "⏹" : "▶",
+                                icon: isPlaying ? <StopGlyph size={22} /> : <PlayGlyph size={22} />,
                                 label: isPlaying ? "Stop" : "Play",
                                 action: () => {
                                   if (isPlaying) {
@@ -278,14 +279,14 @@ export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, 
                               },
                               mushafAudioPlaying
                                 ? {
-                                    icon: "⏹",
+                                    icon: <StopGlyph size={22} />,
                                     label: "Stop",
                                     action: () => {
                                       stopMushafAudio();
                                     },
                                   }
                                 : {
-                                    icon: "⏭",
+                                    icon: <NextGlyph size={22} />,
                                     label: "Play Range",
                                     action: () => {
                                       stopMushafAudio();
@@ -295,7 +296,7 @@ export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, 
                                     },
                                   },
                               {
-                                icon: "✏️",
+                                icon: <EditGlyph size={22} />,
                                 label: "Reflect",
                                 action: () => setDrawerView("reflect"),
                               },
@@ -652,7 +653,7 @@ export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, 
                                 marginTop: 4,
                               }}
                             >
-                              Saved ✓
+                              Saved <CheckGlyph size={12} style={{ marginLeft: 3 }} />
                             </div>
                           )}
                         </div>
@@ -733,8 +734,8 @@ export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, 
                                 }}
                               >
                                 {isPageSaved
-                                  ? `✦ Page ${mushafPage} Saved — Tap to Remove`
-                                  : `📌 Save Page ${mushafPage}`}
+                                  ? <><CheckGlyph size={12} style={{ marginRight: 5 }} />Page {mushafPage} Saved — Tap to Remove</>
+                                  : <><PinGlyph size={13} style={{ marginRight: 5 }} />Save Page {mushafPage}</>}
                               </div>
                               <div
                                 className="sbtn"
@@ -777,8 +778,8 @@ export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, 
                                 }}
                               >
                                 {isAyahSaved
-                                  ? "✦ Ayah Saved — Tap to Remove"
-                                  : `🔖 Save Ayah · ${selectedAyah}`}
+                                  ? <><CheckGlyph size={12} style={{ marginRight: 5 }} />Ayah Saved — Tap to Remove</>
+                                  : <><BookmarkGlyph size={13} style={{ marginRight: 5 }} />Save Ayah · {selectedAyah}</>}
                               </div>
                               <div
                                 className="sbtn"
@@ -801,7 +802,7 @@ export default function AyahDrawer({ audioRef, dark, drawerView, setDrawerView, 
                                   fontWeight: 600,
                                 }}
                               >
-                                📚 View Saved
+                                <LibraryGlyph size={14} style={{ marginRight: 5, verticalAlign: "-2px" }} />View Saved
                               </div>
                               <div
                                 className="sbtn"

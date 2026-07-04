@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { SURAH_EN } from "../data/constants";
+import { LoopGlyph } from "./glyphs";
 
 function formatLabel(verseKey){
   if(!verseKey) return "—";
@@ -100,7 +101,7 @@ export default function MushafRangePickerModal({
                   style={{flexShrink:0,padding:"0 12px",borderRadius:14,display:"flex",alignItems:"center",gap:8,
                     background:dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",
                     border:`1px solid ${looping?"rgba(232,200,120,0.55)":"rgba(217,177,95,0.14)"}`}}>
-                  <span style={{fontSize:16,opacity:looping?1:0.55}}>🔁</span>
+                  <span style={{display:"inline-flex",opacity:looping?1:0.55,color:looping?"#E8C76A":(dark?"rgba(243,231,200,0.7)":"#8B6A10")}}><LoopGlyph size={16}/></span>
                   <div style={{position:"relative",width:34,height:20,borderRadius:999,background:looping?"linear-gradient(90deg,#D4AF37,#8B6A10)":dark?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.18)",transition:"background .2s"}}>
                     <div style={{position:"absolute",top:2,left:looping?16:2,width:16,height:16,borderRadius:"50%",background:"#fff",boxShadow:"0 1px 3px rgba(0,0,0,0.30)",transition:"left .2s"}}/>
                   </div>

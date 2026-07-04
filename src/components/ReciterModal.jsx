@@ -1,4 +1,39 @@
 import { QURAN_RECITERS, RECITERS } from "../data/constants";
+import { CheckGlyph } from "./glyphs";
+
+// Small, restrained line glyphs for reciter rows + group headers. Gold/ivory,
+// no glow — deliberately lighter than the drawer medallions so a long reciter
+// list stays scannable and uncrowded. Decorative (aria-hidden); the adjacent
+// name/label carries the meaning.
+function WaveGlyph({ size = 12, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"
+      fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" style={{ display: "block" }}>
+      <line x1="5" y1="9.5" x2="5" y2="14.5" />
+      <line x1="9.5" y1="5.5" x2="9.5" y2="18.5" />
+      <line x1="14" y1="8" x2="14" y2="16" />
+      <line x1="18.5" y1="10.5" x2="18.5" y2="13.5" />
+    </svg>
+  );
+}
+function KaabaGlyph({ size = 12, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"
+      fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round" style={{ display: "block" }}>
+      <rect x="5.5" y="6.5" width="13" height="13" rx="1" />
+      <line x1="5.5" y1="10.5" x2="18.5" y2="10.5" strokeWidth="1.9" />
+      <path d="M10.8 19.5v-3.4h2.4v3.4" />
+    </svg>
+  );
+}
+function CrescentGlyph({ size = 12, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"
+      fill={color} style={{ display: "block" }}>
+      <path d="M20.5 14.2A8 8 0 1 1 11 4.2a6.3 6.3 0 0 0 9.5 10z" />
+    </svg>
+  );
+}
 
 export default function ReciterModal({
   show, onClose, dark,
@@ -24,10 +59,10 @@ export default function ReciterModal({
         background:isSelected?(dark?"rgba(230,184,74,0.10)":"rgba(180,140,40,0.08)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
         border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.35)":"rgba(160,120,20,0.40)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
         boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
-        <div style={{width:22,height:22,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:10}}>🎙️</div>
+        <div style={{width:22,height:22,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><WaveGlyph size={12} color={isSelected?(dark?"#E6B84A":"#8C6410"):(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)")}/></div>
         <div style={{flex:1,minWidth:0,fontSize:12,fontWeight:isSelected?700:500,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.70)":"rgba(40,30,10,0.70)"),overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.name}</div>
         <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:16,direction:"rtl",color:isSelected?(dark?"rgba(230,184,74,0.85)":"rgba(140,100,20,0.90)"):(dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.65)"),flexShrink:0,lineHeight:1,transform:"translateY(-3px)"}}>{r.arabic}</div>
-        {isSelected&&<div style={{fontSize:12,color:"#E6B84A",fontWeight:700,flexShrink:0,marginLeft:2}}>✓</div>}
+        {isSelected&&<div style={{display:"flex",color:"#E6B84A",flexShrink:0,marginLeft:2}}><CheckGlyph size={13}/></div>}
       </div>
     );
   };
@@ -47,7 +82,10 @@ export default function ReciterModal({
             return (
               <div key={group} style={{marginBottom:12}}>
                 <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.50)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:8}}>
-                  <span>{group==="Masjid Al-Haram"?"🕋":group==="Masjid An-Nabawi"?"🌙":"🎙️"} {group}</span>
+                  <span style={{display:"inline-flex",alignItems:"center",gap:6}}>
+                    {(()=>{const c=dark?"rgba(217,177,95,0.70)":"rgba(140,100,20,0.65)";return group==="Masjid Al-Haram"?<KaabaGlyph size={12} color={c}/>:group==="Masjid An-Nabawi"?<CrescentGlyph size={12} color={c}/>:<WaveGlyph size={12} color={c}/>;})()}
+                    <span>{group}</span>
+                  </span>
                   <div style={{flex:1,height:1,background:dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.06)"}}/>
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:5}}>

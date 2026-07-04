@@ -1,4 +1,33 @@
 import React from "react";
+import { FallbackGlyph } from "./glyphs";
+
+// Medallion icon. If the WebP fails to load, fall back to a neutral SVG ring
+// (never an emoji) so a row keeps its alignment without drawing attention.
+// Decorative only — aria-hidden, since the adjacent label names the item.
+function RowIcon({ img }) {
+  const [ok, setOk] = React.useState(true);
+  const SIZE = 44;
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        width: SIZE, height: SIZE, flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}
+    >
+      {img && ok ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setOk(false)}
+          style={{ width: SIZE, height: SIZE, objectFit: "contain", display: "block", filter: "drop-shadow(0 0 5px rgba(230,184,74,0.55))" }}
+        />
+      ) : (
+        <FallbackGlyph size={SIZE - 12} />
+      )}
+    </span>
+  );
+}
 
 // AppSideDrawer — side menu shared by all tabs. Mirrors the QuranTab
 // drawer's look (left slide-in, dim scrim) but holds global app entries
@@ -11,18 +40,18 @@ import React from "react";
 export default function AppSideDrawer({ open, onClose, dark, username, initials, streak = 0, completedCount = 0, onPick }) {
   if (!open) return null;
 
-  const Row = ({ icon, label, sublabel, id }) => (
+  const Row = ({ img, label, sublabel, id }) => (
     <div
       className="sbtn"
       onClick={() => { onPick && onPick(id); }}
       style={{
         display: "flex", alignItems: "center", gap: 12,
-        padding: "12px 12px", borderRadius: 12, marginBottom: 4,
+        padding: "10px 12px", borderRadius: 12, marginBottom: 4,
         cursor: "pointer", color: dark ? "rgba(243,231,200,0.88)" : "#2D2A26",
         fontSize: 14, fontWeight: 500,
       }}
     >
-      <span style={{ fontSize: 18, width: 26, textAlign: "center", flexShrink: 0 }}>{icon}</span>
+      <RowIcon img={img} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div>{label}</div>
         {sublabel && <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355", marginTop: 1 }}>{sublabel}</div>}
@@ -88,22 +117,22 @@ export default function AppSideDrawer({ open, onClose, dark, username, initials,
         {/* Body — scroll if rows overflow */}
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 18px" }}>
           <SectionLabel>Journey</SectionLabel>
-          <Row icon="🏆" label="Achievements" sublabel="Streaks, juz badges, hafiz" id="achievements"/>
-          <Row icon="📊" label="Stats & Progress" sublabel="History, daily score, totals" id="stats"/>
-          <Row icon="📅" label="Adjust Plan" sublabel="Set goal timeline + memorization pace" id="plan"/>
+          <Row img="/menu-achievements.webp" label="Achievements" sublabel="Streaks, juz badges, hafiz" id="achievements"/>
+          <Row img="/menu-stats-progress.webp" label="Stats & Progress" sublabel="History, daily score, totals" id="stats"/>
+          <Row img="/menu-adjust-plan.webp" label="Adjust Plan" sublabel="Set goal timeline + memorization pace" id="plan"/>
 
           <SectionLabel>App</SectionLabel>
-          <Row icon="🎙️" label="Memorization Reciter" sublabel="Audio for Fajr/Dhuhr/Asr/Maghrib/Isha sessions" id="hifzReciter"/>
-          <Row icon="⚙️" label="Settings" sublabel="Profile, reset" id="settings"/>
-          <Row icon="🌙" label={dark ? "Light Mode" : "Dark Mode"} id="theme"/>
-          <Row icon="🔔" label="Reminders" id="reminders"/>
+          <Row img="/menu-memorization-reciter.webp" label="Memorization Reciter" sublabel="Audio for Fajr/Dhuhr/Asr/Maghrib/Isha sessions" id="hifzReciter"/>
+          <Row img="/menu-settings.webp" label="Settings" sublabel="Profile, reset" id="settings"/>
+          <Row img="/menu-light-mode.webp" label={dark ? "Light Mode" : "Dark Mode"} id="theme"/>
+          <Row img="/menu-reminders.webp" label="Reminders" id="reminders"/>
 
           <SectionLabel>Support</SectionLabel>
-          <Row icon="📚" label="The Method" sublabel="Shaykh Al-Qasim's approach" id="method"/>
-          <Row icon="❔" label="Help" id="help"/>
-          <Row icon="ℹ️" label="About" id="about"/>
-          <Row icon="📄" label="Terms & Privacy" id="terms"/>
-          <Row icon="📤" label="Export Data" id="export"/>
+          <Row img="/menu-method.webp" label="The Method" sublabel="Shaykh Al-Qasim's approach" id="method"/>
+          <Row img="/menu-help.webp" label="Help" id="help"/>
+          <Row img="/menu-about.webp" label="About" id="about"/>
+          <Row img="/menu-terms-privacy.webp" label="Terms & Privacy" id="terms"/>
+          <Row img="/menu-export-data.webp" label="Export Data" id="export"/>
         </div>
 
         <style>{`

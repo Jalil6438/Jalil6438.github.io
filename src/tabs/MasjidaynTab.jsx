@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { HARAMAIN_SURAHS, HARAMAIN_MOSQUES } from "../data/haramain";
 import { RAMADAN_NIGHTS } from "../data/ramadan";
+import { CheckGlyph, StarGlyph, PlayGlyph, PauseGlyph, MicGlyph } from "../components/glyphs";
 
 export default function MasjidaynTab({
   dark, T, masjidaynTab, setMasjidaynTab, activeStream,
@@ -30,7 +31,7 @@ export default function MasjidaynTab({
             background:isSelected?(dark?`${mosqueColor}12`:`${mosqueColor}08`):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
             border:`1px solid ${isSelected?mosqueColor+"50":(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
             boxShadow:isSelected?`0 0 14px ${mosqueColor}15`:"none"}}>
-            <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?`${mosqueColor}18`:(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?mosqueColor+"40":(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:12}}>🎙️</div>
+            <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?`${mosqueColor}18`:(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?mosqueColor+"40":(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:isSelected?mosqueColor:(dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.55)")}}><MicGlyph size={14}/></div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.65)":"rgba(40,30,10,0.65)")}}>{imam.name}</div>
               <div style={{display:"flex",gap:6,alignItems:"center",marginTop:2}}>
@@ -40,7 +41,7 @@ export default function MasjidaynTab({
                 {imam.retired&&!imam.deceased&&<span style={{fontSize:7,color:T.dim}}>{imam.retired}</span>}
               </div>
             </div>
-            {isSelected&&<div style={{fontSize:14,color:mosqueColor,fontWeight:700,flexShrink:0}}>✓</div>}
+            {isSelected&&<div style={{display:"flex",color:mosqueColor,flexShrink:0}}><CheckGlyph size={15}/></div>}
           </div>
           {/* Surah grid when selected */}
           {isSelected&&hasAudio&&(
@@ -53,7 +54,7 @@ export default function MasjidaynTab({
                 return (
                   <div key={sNum} className="sbtn" onClick={()=>{playHaramainSurah(imam,sNum,pkey,mosqueColor);setExpandedMosque(null);}} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 8px",borderRadius:4,background:isP?`${mosqueColor}15`:T.surface2,border:`1px solid ${isP?mosqueColor:T.border}`}}>
                     <div style={{width:22,height:22,borderRadius:"50%",flexShrink:0,background:isP?mosqueColor:T.surface,border:`1px solid ${isP?mosqueColor:T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:isP?"#fff":T.dim}}>
-                      {isP?"⏸":"▶"}
+                      {isP?<PauseGlyph size={10}/>:<PlayGlyph size={10}/>}
                     </div>
                     <div style={{minWidth:0}}>
                       <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:7,color:isP?mosqueColor:T.vdim}}>{String(sNum).padStart(3,"0")}</div>
@@ -171,7 +172,7 @@ export default function MasjidaynTab({
                 {hasVideo ? (
                   haramainMeta || expandedMosque ? (
                     <div style={{height:220,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6,background:dark?"#0A0E18":"#D8CCB0"}}>
-                      <div style={{fontSize:22,opacity:0.4}}>⏸</div>
+                      <div style={{display:"flex",opacity:0.4,color:dark?"rgba(243,231,200,0.45)":"#6B645A"}}><PauseGlyph size={22}/></div>
                       <div style={{fontSize:11,color:dark?"rgba(243,231,200,0.45)":"#6B645A",textAlign:"center",maxWidth:260,lineHeight:1.5}}>
                         {haramainMeta ? "Taraweeh paused — currently listening to an imam recording" : "Taraweeh paused while viewing mosque"}
                       </div>
@@ -191,14 +192,14 @@ export default function MasjidaynTab({
                     <div style={{fontSize:11,color:dark?"#888":"#6B645A"}}>Night {sel} {ramadanVideoType} — opens on YouTube</div>
                     <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
                        style={{padding:"8px 18px",background:"#E5534B",color:"#fff",borderRadius:6,textDecoration:"none",fontSize:12,fontWeight:700}}>
-                      ▶ Open on YouTube
+                      <PlayGlyph size={12} style={{marginRight:6,verticalAlign:"-2px"}}/>Open on YouTube
                     </a>
                   </div>
                 )}
                 <div style={{padding:"6px 12px",background:dark?"#111":"#E0D5BC",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <span style={{fontSize:11,color:"#E5534B",fontWeight:600}}>Night {sel} · {activeLabel}</span>
                   {hasVideo
-                    ? <span style={{fontSize:9,color:dark?"#555":"#6B645A"}}>▶ in app</span>
+                    ? <span style={{fontSize:9,color:dark?"#555":"#6B645A",display:"inline-flex",alignItems:"center",gap:3}}><PlayGlyph size={9}/> in app</span>
                     : <a href="https://www.youtube.com/@sheikh_badr_al_turki/videos" target="_blank" rel="noreferrer"
                          style={{fontSize:9,color:"#E5534B",textDecoration:"none"}}>Open YouTube ↗</a>}
                 </div>
@@ -261,7 +262,7 @@ export default function MasjidaynTab({
                               }}>
                                 <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:isActive?"#E5534B":T.sub}}>{x.n}</div>
                                 <div style={{fontSize:12,color:isActive?"#E5534B":T.sub}}>Night {x.n}</div>
-                                {isActive&&<div style={{position:"absolute",right:8,fontSize:12,color:"#E5534B",fontWeight:700}}>✓</div>}
+                                {isActive&&<div style={{position:"absolute",right:8,display:"flex",color:"#E5534B"}}><CheckGlyph size={13}/></div>}
                               </div>
                             );
                           })}
@@ -277,9 +278,9 @@ export default function MasjidaynTab({
                               background:isActiveTar?(dark?"rgba(229,83,75,0.10)":"rgba(229,83,75,0.08)"):is27?(dark?"rgba(229,83,75,0.06)":"rgba(229,83,75,0.04)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
                               border:`1px solid ${isActiveTar?"#E5534B50":is27?"#E5534B30":(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
                             }}>
-                              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:isActiveTar?"#E5534B":is27?"#E5534B":T.sub}}>{x.n}{is27?" ★":""}</div>
+                              <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:isActiveTar?"#E5534B":is27?"#E5534B":T.sub}}>{x.n}{is27&&<StarGlyph size={11} style={{marginLeft:3}}/>}</div>
                               <div style={{fontSize:11,color:isActiveTar?"#E5534B":T.sub}}>Taraweeh</div>
-                              {isActiveTar&&<div style={{position:"absolute",right:8,fontSize:12,color:"#E5534B",fontWeight:700}}>✓</div>}
+                              {isActiveTar&&<div style={{position:"absolute",right:8,display:"flex",color:"#E5534B"}}><CheckGlyph size={13}/></div>}
                             </div>
                             <div className="sbtn" onClick={()=>{setSelectedRamadanNight(x.n);setRamadanVideoType("tahajjud");setShowNightPicker(null);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6,padding:"10px 12px",borderRadius:12,position:"relative",
                               background:isActiveTah?(dark?"rgba(183,148,244,0.10)":"rgba(183,148,244,0.08)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
@@ -287,7 +288,7 @@ export default function MasjidaynTab({
                             }}>
                               <div style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:14,fontWeight:700,color:isActiveTah?"#B794F4":T.sub}}>{x.n}</div>
                               <div style={{fontSize:11,color:isActiveTah?"#B794F4":T.dim}}>Tahajjud</div>
-                              {isActiveTah&&<div style={{position:"absolute",right:8,fontSize:12,color:"#B794F4",fontWeight:700}}>✓</div>}
+                              {isActiveTah&&<div style={{position:"absolute",right:8,display:"flex",color:"#B794F4"}}><CheckGlyph size={13}/></div>}
                             </div>
                           </div>
                         );

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import RihlahProgressPath from "../components/RihlahProgressPath";
 import DailyProgressChart from "../components/DailyProgressChart";
+import { CheckGlyph, SessionGlyph } from "../components/glyphs";
 import MilestonesProgress from "../components/MilestonesProgress";
 import RingsProgress from "../components/RingsProgress";
 import JuzProgressRing from "../components/JuzProgressRing";
@@ -319,8 +320,8 @@ export default function RihlahHome({
                   <div className="sbtn" onClick={()=>toggleCheck(row.id)} style={{padding:"10px 8px",cursor:"pointer",borderRadius:10,background:done?`linear-gradient(90deg,${sess?.color||"#4ADE80"}22 0%,${sess?.color||"#4ADE80"}08 100%)`:"transparent",border:`1px solid ${done?(sess?.color||"#4ADE80")+"55":"transparent"}`,boxShadow:done?`inset 0 0 14px ${sess?.color||"#4ADE80"}18`:"none",transition:"all .2s"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:30,height:30,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0,background:`radial-gradient(circle,${row.glow} 0%,transparent 70%)`,filter:`drop-shadow(0 0 ${done?10:6}px ${row.glow})`,position:"relative"}}>
-                        {sess?.icon}
-                        {done&&<div style={{position:"absolute",bottom:-2,right:-2,width:14,height:14,borderRadius:"50%",background:sess?.color||"#4ADE80",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:800,boxShadow:`0 0 6px ${sess?.color||"#4ADE80"}80`}}>✓</div>}
+                        {sess && <SessionGlyph id={sess.id} size={17} style={{ color: sess.color }} />}
+                        {done&&<div style={{position:"absolute",bottom:-2,right:-2,width:14,height:14,borderRadius:"50%",background:sess?.color||"#4ADE80",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:800,boxShadow:`0 0 6px ${sess?.color||"#4ADE80"}80`}}><CheckGlyph size={9}/></div>}
                       </div>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{fontSize:13,fontWeight:600}}>
@@ -347,7 +348,7 @@ export default function RihlahHome({
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <div style={{width:36,height:36,borderRadius:12,background:`linear-gradient(135deg,${activeSess.color}88,${activeSess.color}44)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 4px 12px ${activeSess.color}40`}}>
-              <span style={{fontSize:18}}>{activeSess.icon}</span>
+              <span style={{display:"flex",color:activeSess.color}}><SessionGlyph id={activeSess.id} size={18}/></span>
             </div>
             <div>
               <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.9)",letterSpacing:".05em",textTransform:"uppercase"}}>{activeSess.time}</div>
@@ -361,7 +362,7 @@ export default function RihlahHome({
               ))}
             </div>
             <div className="sbtn" onClick={()=>toggleCheck(activeSess.id)} style={{fontSize:9,padding:"5px 14px",background:activeDone?"#4ADE80":"rgba(255,255,255,0.06)",border:activeDone?"1px solid rgba(74,222,128,0.4)":"1px solid rgba(255,255,255,0.1)",borderRadius:20,color:activeDone?"#052e16":"rgba(255,255,255,0.5)",fontWeight:700,boxShadow:activeDone?"0 0 12px rgba(74,222,128,0.3)":"none",transition:"all .2s"}}>
-              {activeDone?"✓ Done":`Complete ${activeSess.time}`}
+              {activeDone?<><CheckGlyph size={10} style={{marginRight:3}}/>Done</>:`Complete ${activeSess.time}`}
             </div>
           </div>
         </div>

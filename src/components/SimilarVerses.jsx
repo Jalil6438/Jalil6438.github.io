@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SURAH_EN, JUZ_RANGES } from "../data/constants";
 import { toArabicDigits, normalizeUthmani } from "../utils";
+import { CheckGlyph, StarGlyph, HalfDiscGlyph } from "./glyphs";
 
 // ── Mutashābihāt (المتشابهات) panel ──────────────────────────────────────────
 // Purpose: help the memorizer answer "when I hit this wording, which occurrence
@@ -67,9 +68,9 @@ function SimilarMatch({ mvKey, m, dark, resolveText, requestFetch }) {
 
   const tm = m.type && TYPE_META[m.type];
   const status = m.memorized
-    ? { txt: "✓ Already Memorized", c: dark ? "#4ADE80" : "#2ECC71" }
+    ? { txt: "Already Memorized", icon: <CheckGlyph size={10} />, c: dark ? "#4ADE80" : "#2ECC71" }
     : m.rank === 1
-      ? { txt: "◐ Current Juz", c: dark ? "#E6B84A" : "#8B6A10" }
+      ? { txt: "Current Juz", icon: <HalfDiscGlyph size={10} />, c: dark ? "#E6B84A" : "#8B6A10" }
       : { txt: "🔮 Future Memorization", c: dark ? "rgba(183,148,244,0.80)" : "#7C5CC0" };
 
   const aya = (t, n, dim) => (<div style={{ fontFamily: "'UthmanicHafs','Amiri Quran','Amiri',serif", fontSize: dim ? 16 : 18, color: dim ? (dark ? "rgba(243,231,200,0.40)" : "#8A7A5A") : (dark ? "rgba(243,231,200,0.80)" : "#2D2A26"), fontWeight: dim ? 400 : 600, direction: "rtl", textAlign: "right", lineHeight: 1.8 }}>{normalizeUthmani(t)} <span style={{ fontFamily: "'Amiri Quran','Amiri',serif", fontSize: 14, color: dark ? "rgba(212,175,55,0.30)" : "rgba(140,100,20,0.30)" }}>﴿{toArabicDigits(n)}﴾</span></div>);
@@ -79,11 +80,11 @@ function SimilarMatch({ mvKey, m, dark, resolveText, requestFetch }) {
     <div style={{ padding: "10px 0", borderTop: dark ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(0,0,0,0.04)" }}>
       {/* memorization status + similar location */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 1 }}>
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".03em", color: status.c }}>{status.txt}</span>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".03em", color: status.c, display: "inline-flex", alignItems: "center", gap: 4 }}>{status.icon}{status.txt}</span>
         <span style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.45)" : "#6B645A" }}>Surah {SURAH_EN[Number(ss)] || ss}{m.juz ? ` · Juz ${m.juz}` : ""}</span>
       </div>
       {/* similarity type (architecture; renders only when the dataset supplies a type) */}
-      {tm && <div style={{ fontSize: 10, color: dark ? "rgba(230,184,74,0.65)" : "#8B6A10", marginBottom: 1, letterSpacing: ".04em" }}>{"★".repeat(tm.stars)}{"☆".repeat(5 - tm.stars)} <span style={{ fontSize: 9, opacity: 0.85 }}>{tm.label}{m.score ? ` · ${m.score}` : ""}</span></div>}
+      {tm && <div style={{ fontSize: 10, color: dark ? "rgba(230,184,74,0.65)" : "#8B6A10", marginBottom: 1, letterSpacing: ".04em", display: "flex", alignItems: "center", gap: 3 }}>{Array.from({ length: 5 }, (_, i) => <StarGlyph key={i} size={10} filled={i < tm.stars} />)} <span style={{ fontSize: 9, opacity: 0.85 }}>{tm.label}{m.score ? ` · ${m.score}` : ""}</span></div>}
       {/* before / similar / after of the look-alike */}
       {prevText && <>{lbl("↑ Ayah before", prevKey)}{aya(prevText, saN - 1, true)}</>}
       {simText ? <>{lbl("● Similar ayah", simKey)}{aya(simText, saN, false)}</> : <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.25)" : "#9A8A6A" }}>Loading...</div>}

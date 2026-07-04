@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { SURAH_EN } from "../data/constants";
 import { JUZ_META, JUZ_SURAHS, SURAH_AR } from "../data/quran-metadata";
 import { saveCompletedAyahs, normalizeUthmani } from "../utils";
+import { CheckGlyph, PlayGlyph, StopGlyph } from "../components/glyphs";
 import { useQcfFont } from "../hooks/useQcfFont";
 import { useMushafData } from "../hooks/useMushafData";
 import { useBismillah } from "../hooks/useBismillah";
@@ -498,7 +499,7 @@ export default function MyHifzTab(props) {
                       <div style={{flex:1}}>
                         <div style={{fontSize:14,fontWeight:700,color:isDone?"#4ADE80":(dark?"#F0E6D0":"#2D2A26")}}>{sessionLabel}</div>
                       </div>
-                      <div style={{fontSize:12,color:dark?"rgba(230,184,74,0.60)":"#6B645A",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?"✓":(()=>{
+                      <div style={{fontSize:12,color:dark?"rgba(230,184,74,0.60)":"#6B645A",fontFamily:"'IBM Plex Mono',monospace"}}>{isDone?<CheckGlyph size={13}/>:(()=>{
                         // Fajr counts ayahs that hit the full 20 reps — that's
                         // the memorization metric. Review sessions don't use
                         // rep counters, so the rep-based count would always
@@ -610,7 +611,7 @@ export default function MyHifzTab(props) {
                   {/* Select All — control row */}
                   <div className="sbtn" onClick={()=>loadAsrJuzReview(activeJuz)}
                     style={{display:"flex",alignItems:"center",gap:10,padding:"4px 4px",marginBottom:6}}>
-                    <div style={{width:15,height:15,borderRadius:3,background:isJuzSelected?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${isJuzSelected?"#D4AF37":"rgba(212,175,55,0.30)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:700,flexShrink:0}}>{isJuzSelected?"✓":""}</div>
+                    <div style={{width:15,height:15,borderRadius:3,background:isJuzSelected?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:`1.5px solid ${isJuzSelected?"#D4AF37":"rgba(212,175,55,0.30)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#060A07",fontWeight:700,flexShrink:0}}>{isJuzSelected?<CheckGlyph size={11}/>:""}</div>
                     <div style={{fontSize:11,color:isJuzSelected?"rgba(217,177,95,0.85)":"rgba(217,177,95,0.50)",fontWeight:500}}>Select all</div>
                   </div>
 
@@ -692,7 +693,7 @@ export default function MyHifzTab(props) {
                     <div style={{textAlign:"center",marginBottom:10}}>
                       <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(pageAyahs); }}
                         style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
-                        <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
+                        <span style={{display:"inline-flex"}}>{mushafAudioPlaying?<StopGlyph size={10}/>:<PlayGlyph size={10}/>}</span>
                         {mushafAudioPlaying?"Stop":"Play Page"}
                       </div>
                     </div>
@@ -777,7 +778,7 @@ export default function MyHifzTab(props) {
                     Hidden in Mushaf reading mode. ── */}
                 {memorizingActive&&(bDone?(
                   <div style={{textAlign:"center",padding:"20px",background:T.surface,border:"1px solid #F0C04030",borderRadius:8}}>
-                    <div style={{fontSize:22,marginBottom:8}}>✅</div>
+                    <div style={{display:"flex",justifyContent:"center",color:"#F0C040",marginBottom:8}}><CheckGlyph size={24}/></div>
                     <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F0C040",marginBottom:4}}>Batch Complete — MashaAllah!</div>
                     <div style={{fontSize:12,color:"rgba(255,255,255,0.45)"}}>Session complete — MashaAllah! 🤲</div>
                   </div>

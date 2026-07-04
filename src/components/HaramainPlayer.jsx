@@ -3,6 +3,7 @@
 // Mounts with slide-up animation. Tap mini to expand, tap chevron to collapse.
 
 import { useState, useRef, useEffect } from "react";
+import { PlayGlyph, PauseGlyph, NextGlyph, RewindGlyph, ForwardGlyph } from "./glyphs";
 
 function formatTime(s) {
   if (!s || !isFinite(s)) return "0:00";
@@ -81,7 +82,7 @@ export default function HaramainPlayer({
               </div>
             </div>
           </div>
-          <div className="sbtn" onClick={(e) => { e.stopPropagation(); onPlayPause(); }} style={{ fontSize: 24, color: mosqueColor, padding: "0 6px", textShadow: `0 0 12px ${mosqueColor}60`, flexShrink: 0, lineHeight: 1 }}>{isPlaying ? "⏸" : "▶"}</div>
+          <div className="sbtn" onClick={(e) => { e.stopPropagation(); onPlayPause(); }} style={{ display: "flex", color: mosqueColor, padding: "0 6px", filter: `drop-shadow(0 0 12px ${mosqueColor}60)`, flexShrink: 0 }}>{isPlaying ? <PauseGlyph size={24} /> : <PlayGlyph size={24} />}</div>
           <div className="sbtn" onClick={(e) => { e.stopPropagation(); handleClose(); }} style={{ fontSize: 18, color: dark ? "rgba(243,231,200,0.45)" : "#6B645A", padding: "0 4px", flexShrink: 0, lineHeight: 1 }}>×</div>
         </div>
         {/* Thin mini progress strip */}
@@ -130,19 +131,19 @@ export default function HaramainPlayer({
           <div style={{ fontSize: 7, letterSpacing: ".08em", fontWeight: 700, color: dark ? "rgba(243,231,200,0.40)" : "#6B645A" }}>previous</div>
         </div>
         <div className="sbtn" onClick={stop(() => onSkip(-10))} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: 4 }}>
-          <div style={{ fontSize: 18, color: dark ? "rgba(243,231,200,0.80)" : "#3D2E0A", lineHeight: 1 }}>⏪</div>
+          <div style={{ display: "flex", color: dark ? "rgba(243,231,200,0.80)" : "#3D2E0A" }}><RewindGlyph size={18} /></div>
           <div style={{ fontSize: 7, letterSpacing: ".08em", fontWeight: 700, color: dark ? "rgba(243,231,200,0.40)" : "#6B645A" }}>10s back</div>
         </div>
         <div className="sbtn" onClick={stop(onPlayPause)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: 4 }}>
-          <div style={{ fontSize: 28, color: mosqueColor, lineHeight: 1, textShadow: `0 0 16px ${mosqueColor}60` }}>{isPlaying ? "⏸" : "▶"}</div>
+          <div style={{ display: "flex", color: mosqueColor, filter: `drop-shadow(0 0 16px ${mosqueColor}60)` }}>{isPlaying ? <PauseGlyph size={28} /> : <PlayGlyph size={28} />}</div>
           <div style={{ fontSize: 7, letterSpacing: ".08em", fontWeight: 700, color: mosqueColor, opacity: 0.7 }}>{isPlaying ? "pause" : "play"}</div>
         </div>
         <div className="sbtn" onClick={stop(() => onSkip(10))} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: 4 }}>
-          <div style={{ fontSize: 18, color: dark ? "rgba(243,231,200,0.80)" : "#3D2E0A", lineHeight: 1 }}>⏩</div>
+          <div style={{ display: "flex", color: dark ? "rgba(243,231,200,0.80)" : "#3D2E0A" }}><ForwardGlyph size={18} /></div>
           <div style={{ fontSize: 7, letterSpacing: ".08em", fontWeight: 700, color: dark ? "rgba(243,231,200,0.40)" : "#6B645A" }}>10s fwd</div>
         </div>
         <div className="sbtn" onClick={stop(onNext)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: 4 }}>
-          <div style={{ fontSize: 18, color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A", lineHeight: 1 }}>⏭</div>
+          <div style={{ display: "flex", color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A" }}><NextGlyph size={18} /></div>
           <div style={{ fontSize: 7, letterSpacing: ".08em", fontWeight: 700, color: dark ? "rgba(243,231,200,0.40)" : "#6B645A" }}>next</div>
         </div>
       </div>

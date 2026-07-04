@@ -1,4 +1,5 @@
 import React from "react";
+import { WarnGlyph, UserGlyph, TrashGlyph } from "./glyphs";
 
 export default function SettingsModal({
   show,
@@ -40,7 +41,7 @@ export default function SettingsModal({
       {showResetConfirm && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.40)",zIndex:1001,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setShowResetConfirm(false)}>
           <div style={{background:dark?"linear-gradient(180deg,#0E1628 0%,#080E1A 100%)":"#EADFC8",borderRadius:20,maxWidth:360,width:"100%",border:"1px solid rgba(229,83,75,0.30)",boxShadow:"0 20px 60px rgba(0,0,0,0.60), 0 0 30px rgba(229,83,75,0.15)",padding:"22px 20px",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
+            <div style={{display:"flex",justifyContent:"center",color:"#E5534B",marginBottom:8}}><WarnGlyph size={34}/></div>
             <div style={{fontSize:16,fontWeight:700,color:dark?"#F3E7C8":"#3D2E0A",marginBottom:8}}>Reset All Progress?</div>
             <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.60)":"#6B645A",lineHeight:1.6,marginBottom:18}}>
               This will erase all your memorized juz, streaks, bookmarks, and settings. This cannot be undone.
@@ -68,11 +69,11 @@ export default function SettingsModal({
                   Terms & Privacy live in the side drawer as global app entries. */}
               {/* Name Change */}
               <div className="sbtn" onClick={()=>{setEditName(localStorage.getItem("rihlat-username")||"");setShowNameModal(true);}} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:`1px solid ${dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)"}`,borderRadius:12,marginBottom:6}}>
-                <div style={{fontSize:13,color:T.text}}>👤 Name Change</div>
+                <div style={{fontSize:13,color:T.text,display:"flex",alignItems:"center",gap:8}}><UserGlyph size={16}/><span>Name Change</span></div>
               </div>
               {/* Reset Progress */}
               <div className="sbtn" onClick={()=>setShowResetConfirm(true)} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:"rgba(229,83,75,0.08)",border:"1px solid rgba(229,83,75,0.30)",borderRadius:12,marginBottom:6,marginTop:10}}>
-                <div style={{fontSize:13,color:"#E5534B",fontWeight:600}}>🗑️ Reset All Progress</div>
+                <div style={{fontSize:13,color:"#E5534B",fontWeight:600,display:"flex",alignItems:"center",gap:8}}><TrashGlyph size={16}/><span>Reset All Progress</span></div>
               </div>
               {/* Version */}
               <div style={{textAlign:"center",marginTop:14,fontSize:10,color:T.dim}}>

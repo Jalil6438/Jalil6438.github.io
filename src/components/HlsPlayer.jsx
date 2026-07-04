@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { StreamGlyph } from "./glyphs";
 
 // ── HLS PLAYER COMPONENT (standalone — clean) ────────────────────────────────
 function HlsPlayer({ src, T }) {
@@ -49,7 +50,7 @@ function HlsPlayer({ src, T }) {
       )}
       {status==="error"&&(
         <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.88)",gap:10,padding:20}}>
-          <div style={{fontSize:24}}>📡</div>
+          <div style={{display:"flex",color:"#ccc"}}><StreamGlyph size={26}/></div>
           <div style={{fontSize:13,color:"#ccc",textAlign:"center"}}>Stream unavailable in this browser</div>
           <div style={{fontSize:11,color:"#777",textAlign:"center"}}>Use the YouTube button below to watch live</div>
         </div>

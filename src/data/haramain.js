@@ -6,7 +6,6 @@ export const LIVE_STREAMS = [
     name:"Masjid Al-Haram — Makkah",
     arabic:"قناة القرآن الكريم",
     color:"#E5534B",
-    icon:"🕋",
     label:"Makkah",
     aloula:"https://www.aloula.sa/live/qurantvsa",
     aloulaEmbed:"https://www.aloula.sa/live/qurantvsa",
@@ -19,7 +18,6 @@ export const LIVE_STREAMS = [
     name:"Masjid An-Nabawi — Madinah",
     arabic:"قناة السنة النبوية",
     color:"#F0C040",
-    icon:"🌙",
     label:"Madinah",
     aloula:"https://www.aloula.sa/live/sunnatvsa",
     aloulaEmbed:"https://www.aloula.sa/live/sunnatvsa",
@@ -132,6 +130,6 @@ export const HARAMAIN_SURAHS = [
 // ── HARAMAIN MOSQUE CARDS ── display metadata + imam rosters for the Masjidayn
 // tab (Masjid Al-Haram + Masjid An-Nabawi). References the imam lists above.
 export const HARAMAIN_MOSQUES = [
-  { id:"makkah",  icon:"🕋", title:"Masjid Al-Haram",  arabic:"المسجد الحرام",  color:"#E5534B", handle:"@saudiqurantv",  imams:MAKKAH_IMAMS, img:"/Makkah.png", bgPos:"center 70%" },
-  { id:"madinah", icon:"🌙", title:"Masjid An-Nabawi", arabic:"المسجد النبوي", color:"#F0C040", handle:"@saudisunnahtv", imams:MADINAH_IMAMS, img:"/Madinah.png", bgPos:"center bottom" },
+  { id:"makkah",  title:"Masjid Al-Haram",  arabic:"المسجد الحرام",  color:"#E5534B", handle:"@saudiqurantv",  imams:MAKKAH_IMAMS, img:"/Makkah.png", bgPos:"center 70%" },
+  { id:"madinah", title:"Masjid An-Nabawi", arabic:"المسجد النبوي", color:"#F0C040", handle:"@saudisunnahtv", imams:MADINAH_IMAMS, img:"/Madinah.png", bgPos:"center bottom" },
 ];

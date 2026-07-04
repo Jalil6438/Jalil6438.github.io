@@ -1,6 +1,28 @@
+import { useState } from "react";
+import { FallbackGlyph } from "./glyphs";
+
+// Decorative medallion icon; if the image fails to load it falls back to a
+// neutral SVG ring (never an emoji) so a row keeps alignment without drawing
+// attention. aria-hidden — the row label already names the item.
+function RowIcon({ img, size = 56 }) {
+  const [ok, setOk] = useState(true);
+  return (
+    <span
+      aria-hidden="true"
+      style={{ width: size, height: size, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      {img && ok ? (
+        <img src={img} alt="" onError={() => setOk(false)} style={{ width: size, height: size, objectFit: "contain", display: "block", filter: "drop-shadow(0 0 5px rgba(230,184,74,0.55))" }} />
+      ) : (
+        <FallbackGlyph size={size - 14} />
+      )}
+    </span>
+  );
+}
+
 // Module-level so they aren't re-created each render (react-hooks/static-components).
 // `dark` is threaded in as a prop; behavior is identical to the inline versions.
-function Row({ icon, label, onClick, disabled, dark }) {
+function Row({ img, label, onClick, disabled, dark }) {
   return (
     <div
       className={disabled ? undefined : "sbtn"}
@@ -19,22 +41,13 @@ function Row({ icon, label, onClick, disabled, dark }) {
         fontWeight: 500,
       }}
     >
-      <span
-        style={{
-          fontSize: 16,
-          width: 22,
-          textAlign: "center",
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </span>
+      <RowIcon img={img} />
       <span style={{ flex: 1, minWidth: 0 }}>{label}</span>
     </div>
   );
 }
 
-function NavRow({ img, emoji, label, onClick, dark }) {
+function NavRow({ img, label, onClick, dark }) {
   return (
     <div
       className="sbtn"
@@ -57,26 +70,17 @@ function NavRow({ img, emoji, label, onClick, dark }) {
           src={img}
           alt=""
           style={{
-            width: 44,
-            height: 44,
+            width: 56,
+            height: 56,
             objectFit: "contain",
             flexShrink: 0,
             opacity: 0.95,
+            filter: "drop-shadow(0 0 6px rgba(230,184,74,0.6))",
           }}
         />
       ) : (
-        <span
-          style={{
-            fontSize: 28,
-            width: 44,
-            height: 44,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          {emoji}
+        <span style={{ width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <FallbackGlyph size={40} />
         </span>
       )}
       <span style={{ flex: 1, minWidth: 0 }}>{label}</span>
@@ -176,7 +180,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
           </div>
           <Row
             dark={dark}
-            icon="📋"
+            img="/menu-surah.webp"
             label="Surah"
             onClick={() => {
               setShowQuranSurahModal(true);
@@ -185,7 +189,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
           />
           <Row
             dark={dark}
-            icon="🌐"
+            img="/menu-translation.webp"
             label="Translation"
             onClick={() => {
               setDrawerView("translation");
@@ -194,7 +198,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
           />
           <Row
             dark={dark}
-            icon="📖"
+            img="/menu-tafsir.webp"
             label="Tafsir"
             onClick={() => {
               setDrawerView("tafsir-page");
@@ -203,7 +207,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
           />
           <Row
             dark={dark}
-            icon="🎙️"
+            img="/menu-reciter.webp"
             label="Reciter"
             onClick={() => {
               setReciterMode("quran");
@@ -239,7 +243,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
           {setActiveTab && (
             <NavRow
               dark={dark}
-              img="/tab-hifz.png"
+              img="/menu-myhifz.webp"
               label="My Hifz"
               onClick={() => {
                 setActiveTab("myhifz");
@@ -250,7 +254,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
           {setActiveTab && setRihlahTab && (
             <NavRow
               dark={dark}
-              img="/tab-rihlah.png"
+              img="/menu-journey.webp"
               label="Journey"
               onClick={() => {
                 setRihlahTab("home");
@@ -262,7 +266,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
           {setActiveTab && (
             <NavRow
               dark={dark}
-              emoji="🕋"
+              img="/menu-haramain.webp"
               label="Haramain"
               onClick={() => {
                 setActiveTab("masjidayn");
@@ -298,16 +302,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
               cursor: "pointer",
             }}
           >
-            <span
-              style={{
-                fontSize: 18,
-                width: 22,
-                textAlign: "center",
-                flexShrink: 0,
-              }}
-            >
-              ⚙️
-            </span>
+            <RowIcon img="/menu-settings.webp" size={56} />
             <span style={{ flex: 1, minWidth: 0 }}>Settings</span>
           </div>
         </div>

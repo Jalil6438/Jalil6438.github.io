@@ -1,5 +1,6 @@
 import { SURAH_EN } from "../data/constants";
 import MushafPage from "./MushafPage";
+import { PlayGlyph, StopGlyph } from "./glyphs";
 
 export default function FajrMushafView({ pageBatch, batch, activeSurahNum, fajrPageNum, dark, playMushafRange, mushafAudioPlaying, stopMushafAudio, reciter, loadedFonts, mushafPagesData, mushafLayoutData, verseToPageMap, bismillahGlyphs, repCounts, repTarget }) {
   const MUSHAF_INTERACTIVE = false;
@@ -66,7 +67,7 @@ export default function FajrMushafView({ pageBatch, batch, activeSurahNum, fajrP
                         <div style={{textAlign:"center",marginBottom:2}}>
                           <div className="sbtn" onClick={()=>{ if(mushafAudioPlaying) stopMushafAudio&&stopMushafAudio(); else playMushafRange(batch); }}
                             style={{display:"inline-flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:999,fontSize:10,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase",color:dark?"#E8C76A":"#6B4F00",background:dark?"rgba(217,177,95,0.10)":"rgba(180,140,40,0.08)",border:`1px solid ${dark?"rgba(217,177,95,0.25)":"rgba(140,100,20,0.20)"}`}}>
-                            <span style={{fontSize:10}}>{mushafAudioPlaying?"■":"▶"}</span>
+                            <span style={{display:"inline-flex"}}>{mushafAudioPlaying?<StopGlyph size={10}/>:<PlayGlyph size={10}/>}</span>
                             {mushafAudioPlaying?"Stop":"Play Page"}
                           </div>
                         </div>

@@ -1809,13 +1809,6 @@ export default function RihlatAlHifz() {
   }
 
 
-  const TABS=[
-    {id:"myhifz",     label:"My Hifz"},
-    {id:"quran",      label:"Al-Qur'an"},
-    {id:"rihlah",     label:"Journey"},
-    {id:"masjidayn",  label:"🕋 Al-Masjidayn"},
-  ];
-
 
 
   return (

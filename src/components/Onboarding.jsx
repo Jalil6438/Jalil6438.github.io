@@ -1,5 +1,6 @@
 import { calcTimeline } from "../utils";
 import { JUZ_META, JUZ_SURAHS, JUZ_OPENERS } from "../data/quran-metadata";
+import { CheckGlyph } from "./glyphs";
 import { SURAH_EN, SURAH_AYAH_COUNTS, MADANI_SURAHS } from "../data/constants";
 
 export default function Onboarding({
@@ -215,7 +216,7 @@ export default function Onboarding({
                           if(completing) surahs.forEach(s=>v9MarkSurahComplete(s.s));
                           else v9MarkJuzIncomplete(j.num);
                         }} style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"8px 10px",borderRadius:10,background:"rgba(212,175,55,0.03)",border:"1px solid rgba(212,175,55,0.16)",boxShadow:"0 0 10px rgba(212,175,55,0.05)"}}>
-                          <div style={{width:18,height:18,borderRadius:5,background:allChecked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:allChecked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:allChecked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{allChecked?"✓":""}</div>
+                          <div style={{width:18,height:18,borderRadius:5,background:allChecked?"linear-gradient(135deg,#D4AF37,#F6E27A)":"transparent",border:allChecked?"1px solid rgba(246,226,122,0.7)":"1.5px solid rgba(212,175,55,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#060A07",fontWeight:700,flexShrink:0,boxShadow:allChecked?"0 0 10px rgba(212,175,55,0.35)":"none"}}>{allChecked?<CheckGlyph size={12}/>:""}</div>
                           <div style={{fontSize:12,color:allChecked?"#F6E27A":"rgba(212,175,55,0.8)",fontWeight:700,letterSpacing:".02em"}}>Select all surahs in Juz {j.num}</div>
                         </div>
                         {/* Surah list — picker-style rows (number + name + meta) */}

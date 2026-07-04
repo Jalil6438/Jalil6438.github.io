@@ -8,14 +8,14 @@ export default function BottomTabBar({ activeTab, appPage, dark, setActiveTab, s
   return (
     <div style={{order:99,zIndex:80,background:dark?"rgba(8,10,18,0.97)":"#EADFC8",borderTop:`1px solid ${dark?"rgba(212,175,55,0.10)":"rgba(0,0,0,0.08)"}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
       {[
-        {id:"myhifz",  img:"/tab-hifz.png",   label:"My Hifz"},
-        {id:"quran",   img:"/tab-quran.png",   label:"Al-Qur'an"},
-        {id:"rihlah",  img:"/tab-rihlah.png",  label:"Journey"},
-        {id:"masjidayn",icon:"🕋",  label:"Haramain"},
+        {id:"myhifz",  img:"/menu-myhifz.webp",   label:"My Hifz"},
+        {id:"quran",   img:"/menu-quran.webp",    label:"Al-Qur'an"},
+        {id:"rihlah",  img:"/menu-journey.webp",  label:"Journey"},
+        {id:"masjidayn",img:"/menu-haramain.webp",  label:"Haramain"},
       ].map(t=>(
         <div key={t.id} className="ttab" onClick={()=>{setActiveTab(t.id);if(t.id==="rihlah")setRihlahTab("home");}} style={{flex:1,padding:"2px 4px 2px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:0}}>
           {t.img?(
-            <img src={t.img} alt={t.label} style={{width:64,height:64,objectFit:"contain",transform:t.id==="rihlah"?"translateY(6px)":undefined,opacity:activeTab===t.id?1:0.55,transition:"all .15s",filter:activeTab===t.id?"brightness(1.2) drop-shadow(0 0 6px rgba(212,175,55,0.7))":"brightness(0.8)"}}/>
+            <img src={t.img} alt={t.label} style={{width:64,height:64,objectFit:"contain",opacity:activeTab===t.id?1:0.72,transition:"all .15s",filter:activeTab===t.id?"brightness(1.15) drop-shadow(0 0 7px rgba(230,184,74,0.85))":"brightness(0.92) drop-shadow(0 0 2px rgba(230,184,74,0.3))"}}/>
           ):(
             <span style={{fontSize:40,width:64,height:64,display:"flex",alignItems:"center",justifyContent:"center",opacity:activeTab===t.id?1:0.55}}>{t.icon}</span>
           )}
