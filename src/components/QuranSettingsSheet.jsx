@@ -1,4 +1,4 @@
-export default function QuranSettingsSheet({ dark, setShowQuranSettings, setDark, translationSource, setTranslationSource, tafsirTab, setTafsirTab, TAFSIR_SOURCES }) {
+export default function QuranSettingsSheet({ dark, setShowQuranSettings, translationSource, setTranslationSource, tafsirTab, setTafsirTab, TAFSIR_SOURCES }) {
   return (
         <>
           <div
@@ -78,109 +78,6 @@ export default function QuranSettingsSheet({ dark, setShowQuranSettings, setDark
               >
                 ×
               </div>
-            </div>
-            {/* Theme */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 6px",
-                borderBottom: dark
-                  ? "1px solid rgba(217,177,95,0.10)"
-                  : "1px solid rgba(139,106,16,0.10)",
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: dark ? "rgba(243,231,200,0.90)" : "#2D2A26",
-                  }}
-                >
-                  Theme
-                </div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: dark ? "rgba(243,231,200,0.40)" : "#6B645A",
-                    marginTop: 2,
-                  }}
-                >
-                  Dark or light parchment
-                </div>
-              </div>
-              {setDark && (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    position: "relative",
-                    display: "flex",
-                    borderRadius: 999,
-                    width: 110,
-                    background: dark
-                      ? "rgba(12,20,34,0.80)"
-                      : "rgba(0,0,0,0.08)",
-                    border: dark
-                      ? "1px solid rgba(212,175,55,0.15)"
-                      : "1px solid rgba(139,106,16,0.20)",
-                    padding: 2,
-                    height: 28,
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 2,
-                      left: dark ? 2 : "calc(50% + 1px)",
-                      width: "calc(50% - 3px)",
-                      height: 24,
-                      borderRadius: 999,
-                      background:
-                        "linear-gradient(160deg,#D4AF37 0%,#8B6A10 100%)",
-                      boxShadow: "0 0 10px rgba(212,175,55,0.40)",
-                      transition: "left .25s ease",
-                    }}
-                  />
-                  <div
-                    className="sbtn"
-                    onClick={() => setDark(true)}
-                    style={{
-                      position: "relative",
-                      zIndex: 1,
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      letterSpacing: ".05em",
-                      color: dark ? "#0A0E1A" : "rgba(0,0,0,0.50)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Dark
-                  </div>
-                  <div
-                    className="sbtn"
-                    onClick={() => setDark(false)}
-                    style={{
-                      position: "relative",
-                      zIndex: 1,
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      letterSpacing: ".05em",
-                      color: !dark ? "#0A0E1A" : "rgba(212,175,55,0.45)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Light
-                  </div>
-                </div>
-              )}
             </div>
             {/* Reading-mode toggle (Mushaf · Study · Tajweed) was removed
                     2026-04-28 once Study mode adopted the framed-page look —
