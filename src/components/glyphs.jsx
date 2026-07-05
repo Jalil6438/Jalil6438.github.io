@@ -186,16 +186,16 @@ export const SessionGlyph = ({ id, size = 16, style }) => {
   return <G size={size} style={style} />;
 };
 
-// Premium daily-plan session medallion — the gold-on-navy WebP that gives each
-// prayer session its identity (matches the drawer/nav medallion family). If the
-// image fails to load it falls back to the line SessionGlyph so a row never
-// breaks. Decorative — aria-hidden; the adjacent time/label names the session.
+// Daily-plan session icon — a standalone gold glyph on transparent (no ring),
+// so each prayer session reads clearly at small sizes. Falls back to the line
+// SessionGlyph if the image is unavailable so a row never breaks. Decorative —
+// aria-hidden; the adjacent time/label names the session.
 export const SessionMedallion = ({ id, size = 36, color, style }) => {
   const [ok, setOk] = React.useState(true);
-  if (!ok) return <SessionGlyph id={id} size={Math.round(size * 0.5)} style={{ color }} />;
+  if (!ok) return <SessionGlyph id={id} size={Math.round(size * 0.72)} style={{ color }} />;
   return (
     <img
-      src={`/session-${id}.webp`}
+      src={`/session-${id}-glyph.webp`}
       alt=""
       aria-hidden="true"
       onError={() => setOk(false)}

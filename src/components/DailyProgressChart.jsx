@@ -31,11 +31,11 @@ function loadSessionLog() {
 // Same per-session palette as the Rings view so a bar's colours read the same
 // way: Fajr → Isha, bottom → top.
 const SESSIONS = [
-  { id: "fajr",    label: "Fajr",    color: "#60A5FA" },
-  { id: "dhuhr",   label: "Dhuhr",   color: "#F59E0B" },
-  { id: "asr",     label: "Asr",     color: "#FB923C" },
-  { id: "maghrib", label: "Maghrib", color: "#A78BFA" },
-  { id: "isha",    label: "Isha",    color: "#34D399" },
+  { id: "fajr",    label: "Fajr",    color: "#F0C040" },
+  { id: "dhuhr",   label: "Dhuhr",   color: "#F5883C" },
+  { id: "asr",     label: "Asr",     color: "#4ECDC4" },
+  { id: "maghrib", label: "Maghrib", color: "#B794F4" },
+  { id: "isha",    label: "Isha",    color: "#68D391" },
 ];
 const SESSION_IDS = SESSIONS.map(s => s.id);
 

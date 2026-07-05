@@ -315,24 +315,20 @@ export default function RihlahHome({
               const sess=SESSIONS.find(s=>s.id===row.id);
               const done=!!dailyChecks[row.id];
               const isActive=row.id===activeSess?.id&&!done;
+              const accent=sess?.color||"#4ADE80";
               return (
-                <div key={row.id}>
-                  <div className="sbtn" onClick={()=>toggleCheck(row.id)} style={{padding:"10px 8px",cursor:"pointer",borderRadius:10,background:done?`linear-gradient(90deg,${sess?.color||"#4ADE80"}22 0%,${sess?.color||"#4ADE80"}08 100%)`:"transparent",border:`1px solid ${done?(sess?.color||"#4ADE80")+"55":"transparent"}`,boxShadow:done?`inset 0 0 14px ${sess?.color||"#4ADE80"}18`:"none",transition:"all .2s"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,filter:`drop-shadow(0 0 ${done?10:6}px rgba(230,184,74,0.5))`,position:"relative"}}>
-                        {sess && <SessionMedallion id={sess.id} size={42} color={sess.color} />}
-                        {done&&<div style={{position:"absolute",bottom:-2,right:-2,width:14,height:14,borderRadius:"50%",background:sess?.color||"#4ADE80",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:800,boxShadow:`0 0 6px ${sess?.color||"#4ADE80"}80`}}><CheckGlyph size={9}/></div>}
-                      </div>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:13,fontWeight:600}}>
-                          <span style={{color:isActive?"#F0C040":done?(sess?.color||"#4ADE80"):"#E6B84A",textShadow:isActive?"0 0 10px rgba(240,192,64,0.30)":done?`0 0 10px ${sess?.color||"#4ADE80"}55`:"0 0 10px rgba(230,184,74,0.25)"}}>{sess?.time||row.id}</span>{" "}
-                          <span style={{fontWeight:400,color:done?"rgba(243,231,200,0.85)":"rgba(243,231,200,0.55)"}}>— {row.label}</span>
-                        </div>
-                        <div style={{fontSize:11,color:done?"rgba(243,231,200,0.55)":"rgba(243,231,200,0.30)",marginTop:2}}>{row.desc}</div>
-                      </div>
-                    </div>
+                <div key={row.id} className="sbtn" onClick={()=>toggleCheck(row.id)} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 12px",borderRadius:14,marginBottom:8,cursor:"pointer",background:done?`linear-gradient(90deg,${accent}2E 0%,${accent}0D 100%)`:`linear-gradient(90deg,${accent}18 0%,${accent}05 100%)`,border:`1px solid ${done?accent+"55":isActive?accent+"3A":accent+"20"}`,boxShadow:isActive?`inset 0 0 16px ${accent}1A,0 0 10px ${accent}14`:done?`inset 0 0 12px ${accent}14`:"none",transition:"all .2s"}}>
+                  <div style={{width:48,height:48,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,filter:`drop-shadow(0 0 ${done||isActive?9:6}px rgba(230,184,74,0.5))`,position:"relative"}}>
+                    {sess && <SessionMedallion id={sess.id} size={48} color={accent} />}
+                    {done&&<div style={{position:"absolute",bottom:-2,right:-2,width:14,height:14,borderRadius:"50%",background:accent,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:800,boxShadow:`0 0 6px ${accent}80`}}><CheckGlyph size={9}/></div>}
                   </div>
-                  {i<arr.length-1&&<div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.30) 50%,rgba(217,177,95,0) 100%)"}}/>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:600}}>
+                      <span style={{color:isActive?accent:done?accent:"#E6B84A",textShadow:isActive||done?`0 0 10px ${accent}55`:"0 0 10px rgba(230,184,74,0.25)"}}>{sess?.time||row.id}</span>{" "}
+                      <span style={{fontWeight:400,color:done?"rgba(243,231,200,0.85)":"rgba(243,231,200,0.60)"}}>— {row.label}</span>
+                    </div>
+                    <div style={{fontSize:11,color:done?"rgba(243,231,200,0.55)":"rgba(243,231,200,0.35)",marginTop:2}}>{row.desc}</div>
+                  </div>
                 </div>
               );
             });
@@ -347,8 +343,8 @@ export default function RihlahHome({
       <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{width:46,height:46,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,filter:"drop-shadow(0 0 8px rgba(230,184,74,0.45))"}}>
-              <SessionMedallion id={activeSess.id} size={46} color={activeSess.color} />
+            <div style={{width:48,height:48,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,filter:"drop-shadow(0 0 8px rgba(230,184,74,0.45))"}}>
+              <SessionMedallion id={activeSess.id} size={48} color={activeSess.color} />
             </div>
             <div>
               <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.9)",letterSpacing:".05em",textTransform:"uppercase"}}>{activeSess.time}</div>

@@ -4,7 +4,7 @@ export const SESSIONS = [
     title:"New Memorization",
     desc:"Your peak retention window. Memorize new ayahs right after salah while the mind is completely fresh.",
     steps:["Repeat each ayah 20 times until it feels natural","Do not proceed until you have perfected the previous ayah","Memorize every day — missing days weakens ambition"] },
-  { id:"dhuhr",   time:"Dhuhr",   arabic:"الظهر",  color:"#F6A623",
+  { id:"dhuhr",   time:"Dhuhr",   arabic:"الظهر",  color:"#F5883C",
     title:"5-Day Review",
     desc:"Review what you memorized over the last 5 days. The Sheikh says: review the previous five days before starting anything new.",
     steps:["Review what you memorized the previous five days","It escapes from hearts faster than the camel from its rope","Do not become sad if you lose memorization — this is the assembly stage"] },
