@@ -2167,7 +2167,7 @@ export default function RihlatAlHifz() {
 {/* ── Full-screen drawer pages — render below universal header so the
     profile row stays consistent across all drawer-reachable screens. ── */}
 <AppPageRouter
-  appPage={appPage} setAppPage={setAppPage} dark={dark} T={T}
+  appPage={appPage} setAppPage={setAppPage} dark={dark} setDark={setDark} T={T}
   completedCount={completedCount} streak={streak} sessionJuz={sessionJuz}
   goalLabel={goalLabel} pct={pct}
 />

@@ -29,7 +29,7 @@ export default function useReminders() {
         const targetMin=h*60+m;
         // Fire if within the past 60s window (don't fire for old times missed earlier)
         if(nowMin>=targetMin&&nowMin<targetMin+1){
-          try { new Notification("Rihlat al-Hifz",{body:SESSION_LABELS[id]||id,tag:`rihlat-${id}-${today}`}); } catch { /* ignore */ }
+          try { new Notification("Al-Hifz",{body:SESSION_LABELS[id]||id,tag:`rihlat-${id}-${today}`}); } catch { /* ignore */ }
           fired[id]=true;
           changed=true;
         }

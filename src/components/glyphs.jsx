@@ -16,6 +16,16 @@ const Svg = ({ size, style, children, sw = 1.8, fill = "none" }) => (
   </svg>
 );
 
+// Audio waveform — shared reciter/audio identity glyph. Matches the bars used in
+// the My Hifz "Select Reciter" sheet so every reciter list reads as one system.
+export const WaveGlyph = ({ size = 16, style }) => (
+  <Svg size={size} style={style} sw={2}>
+    <line x1="5" y1="9.5" x2="5" y2="14.5" />
+    <line x1="9.5" y1="5.5" x2="9.5" y2="18.5" />
+    <line x1="14" y1="8" x2="14" y2="16" />
+    <line x1="18.5" y1="10.5" x2="18.5" y2="13.5" />
+  </Svg>
+);
 export const CheckGlyph = ({ size = 16, style }) => (
   <Svg size={size} style={style} sw={2.4}><path d="M5 12.5l4.2 4.2L19 7" /></Svg>
 );
@@ -124,6 +134,7 @@ const fillSvg = (size, style, children) => (
 export const PlayGlyph = ({ size = 16, style }) => fillSvg(size, style, <path d="M7.5 5.4v13.2L18 12z" />);
 export const PauseGlyph = ({ size = 16, style }) => fillSvg(size, style, <><rect x="6.5" y="5.5" width="3.6" height="13" rx="1" /><rect x="13.9" y="5.5" width="3.6" height="13" rx="1" /></>);
 export const StopGlyph = ({ size = 16, style }) => fillSvg(size, style, <rect x="6" y="6" width="12" height="12" rx="2" />);
+export const PrevGlyph = ({ size = 16, style }) => fillSvg(size, style, <><rect x="5.7" y="5.5" width="2.8" height="13" rx="1" /><path d="M18 5.5v13l-8.5-6.5z" /></>);
 export const NextGlyph = ({ size = 16, style }) => fillSvg(size, style, <><path d="M6 5.5v13l8.5-6.5z" /><rect x="15.5" y="5.5" width="2.8" height="13" rx="1" /></>);
 export const RewindGlyph = ({ size = 16, style }) => fillSvg(size, style, <><path d="M11.5 6.5v11l-6.5-5.5z" /><path d="M19.5 6.5v11l-6.5-5.5z" /></>);
 export const ForwardGlyph = ({ size = 16, style }) => fillSvg(size, style, <><path d="M4.5 6.5v11l6.5-5.5z" /><path d="M12.5 6.5v11l6.5-5.5z" /></>);
@@ -173,6 +184,24 @@ const SESSION_GLYPHS = { fajr: FajrGlyph, dhuhr: DhuhrGlyph, asr: AsrGlyph, magh
 export const SessionGlyph = ({ id, size = 16, style }) => {
   const G = SESSION_GLYPHS[id] || DhuhrGlyph;
   return <G size={size} style={style} />;
+};
+
+// Premium daily-plan session medallion — the gold-on-navy WebP that gives each
+// prayer session its identity (matches the drawer/nav medallion family). If the
+// image fails to load it falls back to the line SessionGlyph so a row never
+// breaks. Decorative — aria-hidden; the adjacent time/label names the session.
+export const SessionMedallion = ({ id, size = 36, color, style }) => {
+  const [ok, setOk] = React.useState(true);
+  if (!ok) return <SessionGlyph id={id} size={Math.round(size * 0.5)} style={{ color }} />;
+  return (
+    <img
+      src={`/session-${id}.webp`}
+      alt=""
+      aria-hidden="true"
+      onError={() => setOk(false)}
+      style={{ width: size, height: size, objectFit: "contain", display: "block", ...style }}
+    />
+  );
 };
 
 // ── Bucket 3: milestone / plan-detail / empty-state glyphs ──

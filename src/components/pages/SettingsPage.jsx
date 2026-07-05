@@ -1,43 +1,106 @@
 import React, { useState } from "react";
 import AppPage from "./AppPage";
-import { UserGlyph, TrashGlyph, WarnGlyph } from "../glyphs";
+import { WarnGlyph } from "../glyphs";
 
-export default function SettingsPage({ dark, T, onBack }) {
+// Medallion row icon — shares the side-drawer icon family so Settings reads as
+// part of the same premium system. Decorative; the adjacent label names the row.
+function RowMedallion({ img }) {
+  const [ok, setOk] = useState(true);
+  const SIZE = 40;
+  if (!(img && ok)) return <span aria-hidden="true" style={{ width: SIZE, height: SIZE, flexShrink: 0, display: "block" }} />;
+  return (
+    <img
+      src={img}
+      alt=""
+      aria-hidden="true"
+      onError={() => setOk(false)}
+      style={{ width: SIZE, height: SIZE, flexShrink: 0, objectFit: "contain", display: "block", filter: "drop-shadow(0 0 5px rgba(230,184,74,0.55))" }}
+    />
+  );
+}
+
+export default function SettingsPage({ dark, T, onBack, setAppPage, setDark }) {
   const [showNameModal, setShowNameModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [editName, setEditName] = useState("");
   const username = (typeof localStorage !== "undefined" && localStorage.getItem("rihlat-username")) || "Abdul Jalil";
 
+  const SectionLabel = ({ children }) => (
+    <div style={{
+      fontSize: 9, letterSpacing: ".18em", textTransform: "uppercase", fontWeight: 700,
+      color: dark ? "rgba(217,177,95,0.55)" : "rgba(140,100,20,0.60)",
+      padding: "0 2px 8px", marginTop: 18,
+    }}>{children}</div>
+  );
+
+  const Row = ({ img, label, sublabel, onClick, right = "›" }) => (
+    <div className="sbtn" onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
+      background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
+      border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.10)"}`,
+      borderRadius: 12, marginBottom: 8,
+    }}>
+      <RowMedallion img={img} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, color: dark ? "#F3E7C8" : "#2D2A26", fontWeight: 600 }}>{label}</div>
+        {sublabel && <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355", marginTop: 2 }}>{sublabel}</div>}
+      </div>
+      <div style={{ fontSize: 13, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355" }}>{right}</div>
+    </div>
+  );
+
   return (
     <>
-      <AppPage dark={dark} title="Settings" subtitle={`Signed in as ${username} · Joined 2026`} onBack={onBack}>
-        {/* Name Change */}
-        <div className="sbtn" onClick={() => { setEditName(localStorage.getItem("rihlat-username") || ""); setShowNameModal(true); }} style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "14px 16px",
-          background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
-          border: `1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.10)"}`,
-          borderRadius: 12, marginBottom: 8,
-        }}>
-          <div style={{ display: "flex", color: dark ? "#E6B84A" : "#8B6A10" }}><UserGlyph size={20} /></div>
-          <div style={{ flex: 1, fontSize: 13, color: dark ? "#F3E7C8" : "#2D2A26", fontWeight: 600 }}>Name Change</div>
-          <div style={{ fontSize: 14, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355" }}>›</div>
-        </div>
+      <AppPage dark={dark} title="Settings" subtitle={`Signed in as ${username}`} onBack={onBack}>
+        <SectionLabel>Account</SectionLabel>
+        <Row
+          img="/settings-name-change.webp" label="Name Change" sublabel="Update your display name"
+          onClick={() => { setEditName(localStorage.getItem("rihlat-username") || ""); setShowNameModal(true); }}
+        />
 
-        {/* Reset Progress */}
+        <SectionLabel>Preferences</SectionLabel>
+        <Row
+          img="/menu-light-mode.webp" label={dark ? "Light Mode" : "Dark Mode"} sublabel="Switch appearance"
+          onClick={() => setDark && setDark(d => !d)}
+          right={null}
+        />
+        <Row
+          img="/menu-reminders.webp" label="Reminders" sublabel="Prayer-time review prompts"
+          onClick={() => setAppPage && setAppPage("reminders")}
+        />
+
+        <SectionLabel>Data</SectionLabel>
+        <Row
+          img="/menu-export-data.webp" label="Export Data" sublabel="Backup or restore your progress"
+          onClick={() => setAppPage && setAppPage("export")}
+        />
+
+        <SectionLabel>About</SectionLabel>
+        <Row
+          img="/menu-about.webp" label="About" sublabel="About Al-Hifz"
+          onClick={() => setAppPage && setAppPage("about")}
+        />
+        <Row
+          img="/menu-terms-privacy.webp" label="Terms & Privacy" sublabel="Legal and data handling"
+          onClick={() => setAppPage && setAppPage("terms")}
+        />
+
+        <SectionLabel>Danger Zone</SectionLabel>
         <div className="sbtn" onClick={() => setShowResetConfirm(true)} style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "14px 16px",
+          display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
           background: "rgba(229,83,75,0.08)",
           border: "1px solid rgba(229,83,75,0.30)",
-          borderRadius: 12, marginTop: 12,
+          borderRadius: 12, marginBottom: 8,
         }}>
-          <div style={{ display: "flex", color: "#E5534B" }}><TrashGlyph size={20} /></div>
-          <div style={{ flex: 1, fontSize: 13, color: "#E5534B", fontWeight: 700 }}>Reset All Progress</div>
+          <RowMedallion img="/settings-reset-progress.webp" />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, color: "#E5534B", fontWeight: 700 }}>Reset All Progress</div>
+            <div style={{ fontSize: 10, color: dark ? "rgba(229,83,75,0.65)" : "rgba(180,40,35,0.75)", marginTop: 2 }}>Erase all data on this device</div>
+          </div>
         </div>
 
         <div style={{ textAlign: "center", marginTop: 22, fontSize: 10, color: dark ? "rgba(243,231,200,0.35)" : "#8B7355" }}>
-          Rihlat Al-Hifz · Version 1.0 · 2026
+          Al-Hifz · Version 1.5 · 2026
         </div>
       </AppPage>
 

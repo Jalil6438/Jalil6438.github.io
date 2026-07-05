@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { HARAMAIN_SURAHS, HARAMAIN_MOSQUES } from "../data/haramain";
 import { RAMADAN_NIGHTS } from "../data/ramadan";
-import { CheckGlyph, StarGlyph, PlayGlyph, PauseGlyph, MicGlyph } from "../components/glyphs";
+import { CheckGlyph, StarGlyph, PlayGlyph, PauseGlyph, WaveGlyph } from "../components/glyphs";
 
 export default function MasjidaynTab({
   dark, T, masjidaynTab, setMasjidaynTab, activeStream,
@@ -27,21 +27,21 @@ export default function MasjidaynTab({
       const badgeLabel = isFull ? "Full Quran" : hasAudio ? "Partial" : "Prayer only";
       return (
         <div key={imam.id} style={{marginBottom:4}}>
-          <div className="sbtn" onClick={()=>setOpenImam(isSelected?null:imam.id)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,transition:"all .15s",
-            background:isSelected?(dark?`${mosqueColor}12`:`${mosqueColor}08`):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
-            border:`1px solid ${isSelected?mosqueColor+"50":(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
-            boxShadow:isSelected?`0 0 14px ${mosqueColor}15`:"none"}}>
-            <div style={{width:28,height:28,borderRadius:"50%",background:isSelected?`${mosqueColor}18`:(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?mosqueColor+"40":(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:isSelected?mosqueColor:(dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.55)")}}><MicGlyph size={14}/></div>
+          <div className="sbtn" onClick={()=>setOpenImam(isSelected?null:imam.id)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",borderRadius:10,transition:"all .15s",
+            background:isSelected?(dark?"rgba(230,184,74,0.10)":"rgba(180,140,40,0.08)"):(dark?"rgba(255,255,255,0.02)":"rgba(0,0,0,0.03)"),
+            border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.35)":"rgba(160,120,20,0.40)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,
+            boxShadow:isSelected?"0 0 14px rgba(230,184,74,0.08),inset 0 0 12px rgba(230,184,74,0.06)":"none"}}>
+            <div style={{width:22,height:22,borderRadius:"50%",background:isSelected?(dark?"rgba(230,184,74,0.12)":"rgba(180,140,40,0.10)"):(dark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.05)"),border:`1px solid ${isSelected?(dark?"rgba(230,184,74,0.25)":"rgba(160,120,20,0.30)"):(dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.10)")}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,color:isSelected?(dark?"#E6B84A":"#8C6410"):(dark?"rgba(230,184,74,0.55)":"rgba(140,100,20,0.55)")}}><WaveGlyph size={12}/></div>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:13,fontWeight:isSelected?700:400,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.65)":"rgba(40,30,10,0.65)")}}>{imam.name}</div>
+              <div style={{fontSize:12,fontWeight:isSelected?700:500,color:isSelected?(dark?"#F3E7C8":"#3D2E0A"):(dark?"rgba(243,231,200,0.70)":"rgba(40,30,10,0.70)"),overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{imam.name}</div>
               <div style={{display:"flex",gap:6,alignItems:"center",marginTop:2}}>
-                <span style={{fontFamily:"'Amiri',serif",fontSize:12,color:isSelected?`${mosqueColor}88`:(dark?"rgba(243,231,200,0.30)":"rgba(40,30,10,0.40)"),direction:"rtl"}}>{imam.arabic}</span>
-                <span style={{fontSize:8,padding:"1px 5px",borderRadius:10,background:`${badgeColor}15`,border:`1px solid ${badgeColor}40`,color:badgeColor}}>{badgeLabel}</span>
-                {imam.deceased&&<span style={{fontSize:7,color:T.dim}}>{imam.deceased}</span>}
-                {imam.retired&&!imam.deceased&&<span style={{fontSize:7,color:T.dim}}>{imam.retired}</span>}
+                <span style={{fontSize:8,padding:"1px 6px",borderRadius:6,background:`${badgeColor}14`,border:`1px solid ${badgeColor}38`,color:badgeColor,fontWeight:600,whiteSpace:"nowrap"}}>{badgeLabel}</span>
+                {imam.deceased&&<span style={{fontSize:8,color:T.dim}}>{imam.deceased}</span>}
+                {imam.retired&&!imam.deceased&&<span style={{fontSize:8,color:T.dim}}>{imam.retired}</span>}
               </div>
             </div>
-            {isSelected&&<div style={{display:"flex",color:mosqueColor,flexShrink:0}}><CheckGlyph size={15}/></div>}
+            <div style={{fontFamily:"'Amiri Quran','Amiri',serif",fontSize:15,direction:"rtl",color:isSelected?(dark?"rgba(230,184,74,0.85)":"rgba(140,100,20,0.90)"):(dark?"rgba(243,231,200,0.55)":"rgba(40,30,10,0.65)"),flexShrink:0,lineHeight:1,transform:"translateY(-1px)"}}>{imam.arabic}</div>
+            {isSelected&&<div style={{display:"flex",color:"#E6B84A",flexShrink:0,marginLeft:2}}><CheckGlyph size={13}/></div>}
           </div>
           {/* Surah grid when selected */}
           {isSelected&&hasAudio&&(
@@ -145,14 +145,16 @@ export default function MasjidaynTab({
                       {/* Imam list */}
                       <div style={{overflowY:"auto",padding:"0 14px 28px"}}>
                         {currentImams.length>0&&(
-                          <div style={{fontSize:9,color:mosqueColor,letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-                            <span>Current Imams</span><div style={{flex:1,height:1,background:`${mosqueColor}30`}}/>
+                          <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.50)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginBottom:6,display:"flex",alignItems:"center",gap:8}}>
+                            <span style={{display:"inline-flex",alignItems:"center",gap:6}}><WaveGlyph size={11}/><span>Current Imams</span></span>
+                            <div style={{flex:1,height:1,background:dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.06)"}}/>
                           </div>
                         )}
                         {renderImamButtons(currentImams, mosqueColor)}
                         {formerImams.length>0&&(
-                          <div style={{fontSize:9,color:T.dim,letterSpacing:".12em",textTransform:"uppercase",fontWeight:700,marginTop:14,marginBottom:6,display:"flex",alignItems:"center",gap:6}}>
-                            <span>Former Imams</span><div style={{flex:1,height:1,background:T.border}}/>
+                          <div style={{fontSize:9,color:dark?"rgba(217,177,95,0.50)":"rgba(140,100,20,0.50)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:700,marginTop:14,marginBottom:6,display:"flex",alignItems:"center",gap:8}}>
+                            <span style={{display:"inline-flex",alignItems:"center",gap:6}}><WaveGlyph size={11}/><span>Former Imams</span></span>
+                            <div style={{flex:1,height:1,background:dark?"rgba(217,177,95,0.12)":"rgba(0,0,0,0.06)"}}/>
                           </div>
                         )}
                         {renderImamButtons(formerImams, mosqueColor)}
@@ -311,7 +313,7 @@ export default function MasjidaynTab({
             <div className="sbtn" onClick={onBackToSettings} style={{display:"inline-block",padding:"6px 12px",background:dark?"rgba(255,255,255,0.04)":"#EADFC8",border:dark?"1px solid rgba(217,177,95,0.12)":"1px solid rgba(0,0,0,0.08)",borderRadius:8,fontSize:11,color:dark?"rgba(243,231,200,0.50)":"#6B645A",marginBottom:14}}>← Back</div>
           )}
           <div style={{textAlign:"center",marginBottom:20}}>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Rihlat Al-Hifz</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Al-Hifz</div>
             <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.60)":"#6B645A",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
             <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#6B645A",marginTop:4}}>Version 1.0 · 2026</div>
           </div>
@@ -325,7 +327,7 @@ export default function MasjidaynTab({
               "And We have certainly made the Qur'an easy for remembrance, so is there any who will remember?" — Al-Qamar 54:17
             </div>
             <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left"}}>
-              Rihlat Al-Hifz was born from a simple belief: that the path to memorizing the Qur'an should feel guided, personal, and connected to the living tradition of the Haramain.
+              Al-Hifz was born from a simple belief: that the path to memorizing the Qur'an should feel guided, personal, and connected to the living tradition of the Haramain.
             </div>
             <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.70)":"#2D2A26",lineHeight:1.9,textAlign:"left",marginTop:10}}>
               Too many memorization tools treat hifz as a checklist. But hifz is a journey — a rihlah. It is built one ayah at a time, one breath at a time, through repetition, reflection, and du'a. Every ayah you commit to memory is a conversation with your Creator that you carry with you for life.

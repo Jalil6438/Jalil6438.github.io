@@ -114,25 +114,26 @@ export default function AppSideDrawer({ open, onClose, dark, username, initials,
           </div>
         </div>
 
-        {/* Body — scroll if rows overflow */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 18px" }}>
-          <SectionLabel>Journey</SectionLabel>
+        {/* Body — core navigation; scroll if rows overflow */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 12px" }}>
+          <SectionLabel>Main</SectionLabel>
           <Row img="/menu-achievements.webp" label="Achievements" sublabel="Streaks, juz badges, hafiz" id="achievements"/>
           <Row img="/menu-stats-progress.webp" label="Stats & Progress" sublabel="History, daily score, totals" id="stats"/>
           <Row img="/menu-adjust-plan.webp" label="Adjust Plan" sublabel="Set goal timeline + memorization pace" id="plan"/>
-
-          <SectionLabel>App</SectionLabel>
           <Row img="/menu-memorization-reciter.webp" label="Memorization Reciter" sublabel="Audio for Fajr/Dhuhr/Asr/Maghrib/Isha sessions" id="hifzReciter"/>
-          <Row img="/menu-settings.webp" label="Settings" sublabel="Profile, reset" id="settings"/>
-          <Row img="/menu-light-mode.webp" label={dark ? "Light Mode" : "Dark Mode"} id="theme"/>
-          <Row img="/menu-reminders.webp" label="Reminders" id="reminders"/>
 
           <SectionLabel>Support</SectionLabel>
           <Row img="/menu-method.webp" label="The Method" sublabel="Shaykh Al-Qasim's approach" id="method"/>
           <Row img="/menu-help.webp" label="Help" id="help"/>
-          <Row img="/menu-about.webp" label="About" id="about"/>
-          <Row img="/menu-terms-privacy.webp" label="Terms & Privacy" id="terms"/>
-          <Row img="/menu-export-data.webp" label="Export Data" id="export"/>
+        </div>
+
+        {/* Settings — isolated at the bottom, apart from core navigation.
+            Appearance, reminders, data, about & terms now live inside it. */}
+        <div style={{
+          borderTop: dark ? "1px solid rgba(217,177,95,0.12)" : "1px solid rgba(139,106,16,0.14)",
+          padding: "8px 12px calc(env(safe-area-inset-bottom,10px) + 8px)",
+        }}>
+          <Row img="/menu-settings.webp" label="Settings" sublabel="Appearance, reminders, data, about" id="settings"/>
         </div>
 
         <style>{`

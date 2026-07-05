@@ -3,7 +3,7 @@
 // Mounts with slide-up animation. Tap mini to expand, tap chevron to collapse.
 
 import { useState, useRef, useEffect } from "react";
-import { PlayGlyph, PauseGlyph, NextGlyph, RewindGlyph, ForwardGlyph } from "./glyphs";
+import { PlayGlyph, PauseGlyph, PrevGlyph, NextGlyph, RewindGlyph, ForwardGlyph } from "./glyphs";
 
 function formatTime(s) {
   if (!s || !isFinite(s)) return "0:00";
@@ -127,7 +127,7 @@ export default function HaramainPlayer({
       {/* Controls */}
       <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-around", marginTop: 2, position: "relative" }}>
         <div className="sbtn" onClick={stop(onPrev)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: 4 }}>
-          <div style={{ fontSize: 18, color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A", lineHeight: 1 }}>⏮</div>
+          <div style={{ display: "flex", color: dark ? "rgba(243,231,200,0.75)" : "#3D2E0A" }}><PrevGlyph size={18} /></div>
           <div style={{ fontSize: 7, letterSpacing: ".08em", fontWeight: 700, color: dark ? "rgba(243,231,200,0.40)" : "#6B645A" }}>previous</div>
         </div>
         <div className="sbtn" onClick={stop(() => onSkip(-10))} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: 4 }}>

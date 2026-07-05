@@ -45,7 +45,7 @@ export default function RemindersPage({ dark, onBack }) {
 
   const sendTest = () => {
     if (permission !== "granted") return;
-    try { new Notification("Rihlat al-Hifz", { body: "Notifications are working — bismillah." }); } catch {}
+    try { new Notification("Al-Hifz", { body: "Notifications are working — bismillah." }); } catch {}
   };
 
   const enabledCount = DEFAULTS.filter(d => prefs.sessions[d.id]?.enabled).length;

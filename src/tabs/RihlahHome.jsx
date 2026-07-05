@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import RihlahProgressPath from "../components/RihlahProgressPath";
 import DailyProgressChart from "../components/DailyProgressChart";
-import { CheckGlyph, SessionGlyph, BookGlyph, CrescentGlyph } from "../components/glyphs";
+import { CheckGlyph, SessionMedallion, BookGlyph, CrescentGlyph, CalendarGlyph, BellGlyph } from "../components/glyphs";
 import MilestonesProgress from "../components/MilestonesProgress";
 import RingsProgress from "../components/RingsProgress";
 import JuzProgressRing from "../components/JuzProgressRing";
@@ -277,7 +277,7 @@ export default function RihlahHome({
             </div>
           </div>
           <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{flex:1,display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(240,192,64,0.15)":"1px solid rgba(0,0,0,0.08)",borderRadius:10}}>
-            <span style={{fontSize:16}}>⏱️</span>
+            <span style={{display:"flex",color:dark?"#EDE8DC":"#2D2A26"}}><CalendarGlyph size={16}/></span>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Plan</div>
               <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.30)":"#6B645A"}}>Hifz timeline</div>
@@ -319,8 +319,8 @@ export default function RihlahHome({
                 <div key={row.id}>
                   <div className="sbtn" onClick={()=>toggleCheck(row.id)} style={{padding:"10px 8px",cursor:"pointer",borderRadius:10,background:done?`linear-gradient(90deg,${sess?.color||"#4ADE80"}22 0%,${sess?.color||"#4ADE80"}08 100%)`:"transparent",border:`1px solid ${done?(sess?.color||"#4ADE80")+"55":"transparent"}`,boxShadow:done?`inset 0 0 14px ${sess?.color||"#4ADE80"}18`:"none",transition:"all .2s"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{width:30,height:30,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0,background:`radial-gradient(circle,${row.glow} 0%,transparent 70%)`,filter:`drop-shadow(0 0 ${done?10:6}px ${row.glow})`,position:"relative"}}>
-                        {sess && <SessionGlyph id={sess.id} size={17} style={{ color: sess.color }} />}
+                      <div style={{width:42,height:42,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,filter:`drop-shadow(0 0 ${done?10:6}px rgba(230,184,74,0.5))`,position:"relative"}}>
+                        {sess && <SessionMedallion id={sess.id} size={42} color={sess.color} />}
                         {done&&<div style={{position:"absolute",bottom:-2,right:-2,width:14,height:14,borderRadius:"50%",background:sess?.color||"#4ADE80",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:800,boxShadow:`0 0 6px ${sess?.color||"#4ADE80"}80`}}><CheckGlyph size={9}/></div>}
                       </div>
                       <div style={{flex:1,minWidth:0}}>
@@ -347,8 +347,8 @@ export default function RihlahHome({
       <div style={{background:dark?"linear-gradient(135deg,rgba(30,35,50,0.9) 0%,rgba(20,25,40,0.7) 100%)":"#EADFC8",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:22,boxShadow:dark?"0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)":"0 4px 16px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.5)",padding:"12px",marginBottom:8}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{width:36,height:36,borderRadius:12,background:`linear-gradient(135deg,${activeSess.color}88,${activeSess.color}44)`,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 4px 12px ${activeSess.color}40`}}>
-              <span style={{display:"flex",color:activeSess.color}}><SessionGlyph id={activeSess.id} size={18}/></span>
+            <div style={{width:46,height:46,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,filter:"drop-shadow(0 0 8px rgba(230,184,74,0.45))"}}>
+              <SessionMedallion id={activeSess.id} size={46} color={activeSess.color} />
             </div>
             <div>
               <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.9)",letterSpacing:".05em",textTransform:"uppercase"}}>{activeSess.time}</div>
@@ -401,7 +401,7 @@ export default function RihlahHome({
           if(dailyChecks?.fajr) return null;
           return (
             <div style={{background:dark?"rgba(229,83,75,0.08)":"rgba(229,83,75,0.06)",border:"1px solid rgba(229,83,75,0.25)",borderRadius:14,padding:"12px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:16,flexShrink:0}}>⏳</span>
+              <span style={{display:"flex",flexShrink:0,color:"#E5534B"}}><BellGlyph size={16}/></span>
               <span style={{fontSize:12,color:dark?"rgba(243,231,200,0.85)":"#2D2A26",fontWeight:500}}>{r.text}</span>
             </div>
           );
