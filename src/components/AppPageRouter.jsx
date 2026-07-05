@@ -6,6 +6,7 @@ import AboutPage from "./pages/AboutPage";
 import ExportPage from "./pages/ExportPage";
 import SettingsPage from "./pages/SettingsPage";
 import TermsPage from "./pages/TermsPage";
+import { buildBackup, readBackup, applyBackup } from "../backup/localBackup";
 
 // Full-screen drawer pages — rendered below the universal header so the profile
 // row stays consistent across all drawer-reachable screens. Pure presentational
@@ -26,10 +27,9 @@ export default function AppPageRouter({ appPage, setAppPage, dark, setDark, T, c
       {appPage==="terms"&&<TermsPage dark={dark} T={T} onBack={()=>setAppPage("settings")}/>}
       {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage("settings")} onExport={()=>{
         try{
-          const KEYS=["jalil-quran-v8","rihlat-username","rihlat-onboarded","rihlat-rep-target","rihlat-fontsize","rihlat-default-reading-mode","rihlat-translation-source","rihlat-tafsir-view","rihlat-plan-mode","rihlat-mushaf-bookmarks","rihlat-reflections","rihlat-daily-progress","rihlat-session-log","rihlat-gallery-view","rihlat-tajweed","jalil-recent-activity","jalil-badge-milestones","jalil-asr-cycle","jalil-quran-lastpage","jalil-wisdom-offset","jalil-hifz-reminder"];
-          const data={};
-          for(const k of KEYS){ const v=localStorage.getItem(k); if(v!==null) data[k]=v; }
-          const payload={app:"rihlat-al-hifz",version:1,exportedAt:new Date().toISOString(),data};
+          // Payload is built from the single shared key list in
+          // src/backup/localBackup.js, so export and restore can never drift.
+          const payload=buildBackup(localStorage,new Date().toISOString());
           const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
           const url=URL.createObjectURL(blob);
           const a=document.createElement("a");
@@ -42,44 +42,36 @@ export default function AppPageRouter({ appPage, setAppPage, dark, setDark, T, c
           URL.revokeObjectURL(url);
         }catch(e){ alert("Export failed: "+e.message); }
       }} onImport={(file)=>{
-        // Restore from a backup produced by onExport above. Validates fully
-        // before writing, confirms the overwrite, restores only the known
-        // export keys, rolls back on any write error (never a partial
-        // restore), then reloads so the app re-initialises from fresh state.
+        // Restore from a backup produced by onExport above. Envelope validation,
+        // key filtering, core-blob integrity checks, and the all-or-nothing write
+        // with rollback all live in the shared pure core (src/backup/localBackup.js).
+        // The DOM concerns — reading the file, confirming the overwrite, and
+        // reloading so the app re-initialises — stay here.
         if(!file) return;
-        const KEYS=["jalil-quran-v8","rihlat-username","rihlat-onboarded","rihlat-rep-target","rihlat-fontsize","rihlat-default-reading-mode","rihlat-translation-source","rihlat-tafsir-view","rihlat-plan-mode","rihlat-mushaf-bookmarks","rihlat-reflections","rihlat-daily-progress","rihlat-session-log","rihlat-gallery-view","rihlat-tajweed","jalil-recent-activity","jalil-badge-milestones","jalil-asr-cycle","jalil-quran-lastpage","jalil-wisdom-offset","jalil-hifz-reminder"];
         const reader=new FileReader();
         reader.onerror=()=>{ alert("Restore failed: couldn't read that file."); };
         reader.onload=()=>{
           let parsed;
           try{ parsed=JSON.parse(reader.result); }
           catch{ alert("Restore failed: that file isn't valid JSON."); return; }
-          // Validate the envelope.
-          if(!parsed||typeof parsed!=="object"||parsed.app!=="rihlat-al-hifz"||!parsed.data||typeof parsed.data!=="object"){
-            alert("Restore failed: this doesn't look like an Al-Hifz backup."); return;
-          }
-          // Collect only known keys with string values (localStorage stores strings).
-          const toRestore={};
-          for(const k of KEYS){ const v=parsed.data[k]; if(typeof v==="string") toRestore[k]=v; }
-          const keys=Object.keys(toRestore);
-          if(keys.length===0){ alert("Restore failed: the backup contains no restorable progress."); return; }
-          // Integrity check: the core progress blob, if present, must parse.
-          if(toRestore["jalil-quran-v8"]!==undefined){
-            try{ JSON.parse(toRestore["jalil-quran-v8"]); }
-            catch{ alert("Restore failed: the backup's core progress data is corrupted."); return; }
+          let backup;
+          try{ backup=readBackup(parsed); }
+          catch(err){
+            const code=err&&err.code;
+            alert(
+              code==="BAD_ENVELOPE" ? "Restore failed: this doesn't look like an Al-Hifz backup." :
+              code==="NO_KEYS" ? "Restore failed: the backup contains no restorable progress." :
+              code==="CORRUPT_CORE" ? "Restore failed: the backup's core progress data is corrupted." :
+              "Restore failed: this backup could not be read."
+            );
+            return;
           }
           // Confirm the destructive overwrite.
-          const when=parsed.exportedAt?new Date(parsed.exportedAt).toLocaleString():"an unknown date";
+          const when=backup.exportedAt?new Date(backup.exportedAt).toLocaleString():"an unknown date";
           if(!window.confirm(`Restore this backup from ${when}?\n\nThis will OVERWRITE the progress on this device and reload the app. This cannot be undone.`)) return;
-          // All-or-nothing write: snapshot current values, restore, roll back on failure.
-          const snapshot={};
-          for(const k of keys){ snapshot[k]=localStorage.getItem(k); }
-          try{
-            for(const k of keys){ localStorage.setItem(k,toRestore[k]); }
-          }catch(e){
-            for(const k of keys){ if(snapshot[k]===null) localStorage.removeItem(k); else localStorage.setItem(k,snapshot[k]); }
-            alert("Restore failed while writing — your existing data was left unchanged ("+e.message+")."); return;
-          }
+          // All-or-nothing write; rolls back and throws on any write error.
+          try{ applyBackup(localStorage,backup.data); }
+          catch(e){ alert("Restore failed while writing — your existing data was left unchanged ("+(e&&e.message?e.message:"unknown error")+")."); return; }
           // Re-initialise cleanly from the restored state.
           window.location.reload();
         };
