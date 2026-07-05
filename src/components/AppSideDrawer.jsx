@@ -6,7 +6,7 @@ import { FallbackGlyph } from "./glyphs";
 // Decorative only — aria-hidden, since the adjacent label names the item.
 function RowIcon({ img }) {
   const [ok, setOk] = React.useState(true);
-  const SIZE = 44;
+  const SIZE = 56;
   return (
     <span
       aria-hidden="true"
