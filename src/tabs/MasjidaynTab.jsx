@@ -210,6 +210,12 @@ export default function MasjidaynTab({
                 </a>
               </div>
 
+              {/* Ramadan video attribution — the recordings are Shaykh Badr Al-Turki's
+                  (see ramadan.js); full credit is also in the About > Credits section. */}
+              <div style={{padding:"6px 14px 0",textAlign:"center"}}>
+                <span style={{fontSize:9,color:dark?"rgba(243,231,200,0.42)":"#8B7355",letterSpacing:".02em"}}>Ramadan videos: Shaykh Badr Al-Turki</span>
+              </div>
+
               {/* Night selector */}
               <div style={{padding:"12px 14px 0"}}>
                 <div style={{display:"flex",gap:8,marginBottom:10}}>
