@@ -19,7 +19,10 @@ export default function UniversalHeader({ activeTab, appPage, dark, T, setShowAp
           </div>
           <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
             <div style={{display:"flex",alignItems:"center",gap:9}}>
-              <img src="/al-hifz-logo.webp" alt="" aria-hidden="true" style={{width:34,height:34,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 8px rgba(212,175,55,0.35))"}}/>
+              <div style={{width:64,height:64,position:"relative",flexShrink:0,filter:"brightness(1.15) drop-shadow(0 0 7px rgba(230,184,74,0.85))"}}>
+                <img src="/avatar-medallion.png" alt="" aria-hidden="true" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
+                <img src="/al-hifz-logo.webp" alt="Al-Hifz" style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:"54%",height:"54%",objectFit:"contain"}}/>
+              </div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:23,fontWeight:800,color:T.accent,letterSpacing:".02em",textShadow:"0 0 14px rgba(212,175,55,0.40)"}}>Al-Hifz</div>
             </div>
             <div style={{fontSize:10,color:T.sub,fontFamily:"'DM Sans',sans-serif",letterSpacing:".04em",textAlign:"center"}}>Your Journey to Memorizing the Qur'an</div>
