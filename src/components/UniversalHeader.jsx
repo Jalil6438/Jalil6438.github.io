@@ -30,8 +30,9 @@ export default function UniversalHeader({ activeTab, appPage, dark, T, setShowAp
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           {/* Avatar */}
           <div style={{position:"relative",flexShrink:0}}>
-            <div style={{width:40,height:40,borderRadius:"50%",background:dark?"linear-gradient(135deg,#0E1E3A,#162D50)":"#E0D5BC",display:"flex",alignItems:"center",justifyContent:"center",border:"2px solid rgba(212,175,55,0.45)",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
-              <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
+            <div style={{width:40,height:40,borderRadius:"50%",position:"relative",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 12px rgba(212,175,55,0.15)"}}>
+              <img src="/avatar-medallion.png" alt="" aria-hidden="true" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+              <span style={{position:"relative",zIndex:1,fontFamily:"'Playfair Display',serif",fontSize:12,fontWeight:700,color:"#E6B84A"}}>{initials}</span>
             </div>
           </div>
           {/* Name + next target */}
