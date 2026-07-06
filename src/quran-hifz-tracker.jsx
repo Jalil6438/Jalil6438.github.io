@@ -2152,6 +2152,9 @@ export default function RihlatAlHifz() {
   initials={(localStorage.getItem("rihlat-username")||"Abdul Jalil").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
   streak={streak}
   completedCount={completedCount}
+  goalLabel={goalLabel}
+  sessionVerses={sessionVerses}
+  sessionIdx={sessionIdx}
   onPick={(id)=>{
     if(id==="plan"){ setTabBeforeAdjust({activeTab,rihlahTab}); setActiveTab("rihlah"); setRihlahTab("adjust"); }
     else if(id==="achievements"){ setTabBeforeAdjust({activeTab,rihlahTab}); setActiveTab("rihlah"); setRihlahTab("achievements"); }
