@@ -100,7 +100,7 @@ export default function SettingsPage({ dark, T, onBack, setAppPage, setDark }) {
         </div>
 
         <div style={{ textAlign: "center", marginTop: 22, fontSize: 10, color: dark ? "rgba(243,231,200,0.35)" : "#8B7355" }}>
-          Al-Hifz · Version 1.5 · 2026
+          Al-Hifz · Version 1.5.1 · 2026
         </div>
       </AppPage>
 
