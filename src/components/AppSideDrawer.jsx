@@ -1,12 +1,13 @@
 import React from "react";
-import { FallbackGlyph } from "./glyphs";
+import { FallbackGlyph, GoalGlyph, StreakGlyph } from "./glyphs";
+import { SURAH_EN } from "../data/constants";
 
 // Medallion icon. If the WebP fails to load, fall back to a neutral SVG ring
 // (never an emoji) so a row keeps its alignment without drawing attention.
 // Decorative only — aria-hidden, since the adjacent label names the item.
 function RowIcon({ img }) {
   const [ok, setOk] = React.useState(true);
-  const SIZE = 56;
+  const SIZE = 44;
   return (
     <span
       aria-hidden="true"
@@ -37,7 +38,7 @@ function RowIcon({ img }) {
 // Wiring up real targets is left to the parent — this component just
 // renders a ready row list and surfaces an `onPick(id)` callback when
 // the user selects an entry.
-export default function AppSideDrawer({ open, onClose, dark, username, initials, streak = 0, completedCount = 0, onPick }) {
+export default function AppSideDrawer({ open, onClose, dark, username, initials, streak = 0, completedCount = 0, goalLabel, sessionVerses, sessionIdx, onPick }) {
   if (!open) return null;
 
   const Row = ({ img, label, sublabel, id }) => (
@@ -95,13 +96,19 @@ export default function AppSideDrawer({ open, onClose, dark, username, initials,
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
               width: 48, height: 48, borderRadius: "50%",
-              background: dark ? "linear-gradient(135deg,#0E1E3A,#162D50)" : "#E0D5BC",
+              position: "relative", overflow: "hidden",
               display: "flex", alignItems: "center", justifyContent: "center",
-              border: "2px solid rgba(212,175,55,0.45)",
+              background: "#0B1220",
               boxShadow: "0 0 12px rgba(212,175,55,0.15)",
               flexShrink: 0,
             }}>
-              <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 700, color: "#E6B84A" }}>
+              {/* Clean, centred ornate frame (dust-free crop of the avatar
+                  medallion) — shares the brand-medallion frame family. */}
+              <img src="/avatar-frame.webp" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>
+              {/* Dark inner disc guarantees the gold initials stay legible on
+                  the frame's centre in either theme. */}
+              <span aria-hidden="true" style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 30, height: 30, borderRadius: "50%", background: "radial-gradient(circle, rgba(6,10,18,0.72) 0%, rgba(6,10,18,0.35) 70%, transparent 100%)" }}/>
+              <span className="medallion-initials" style={{ position: "relative", zIndex: 1, fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 700, color: "#F2CD73", textShadow: "0 1px 2px rgba(0,0,0,0.9), 0 0 5px rgba(0,0,0,0.55)" }}>
                 {initials || "—"}
               </span>
             </div>
@@ -109,8 +116,26 @@ export default function AppSideDrawer({ open, onClose, dark, username, initials,
               <div style={{ fontSize: 15, fontWeight: 700, color: dark ? "#EDE8DC" : "#2D2A26", fontFamily: "'Playfair Display',serif" }}>
                 {username || "Hafiz"}
               </div>
+              {(() => {
+                const nv = sessionVerses && sessionVerses[sessionIdx];
+                if (nv) {
+                  const sn = nv.surah_number || parseInt(nv.verse_key?.split(":")[0] || "0", 10);
+                  const name = SURAH_EN[sn];
+                  if (name) return <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", marginTop: 2 }}>Next · Surah {name}</div>;
+                }
+                return null;
+              })()}
             </div>
             <div className="sbtn" onClick={onClose} style={{ fontSize: 22, color: dark ? "rgba(243,231,200,0.45)" : "rgba(0,0,0,0.45)", lineHeight: 1, padding: "0 6px", fontWeight: 300 }}>×</div>
+          </div>
+          {/* Goal + streak badges (moved here from the main header) */}
+          <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+            {[
+              { icon: <GoalGlyph size={9}/>, label: goalLabel, color: dark ? "#38BDF8" : "#1E6B9A", bg: dark ? "rgba(56,189,248,0.12)" : "rgba(56,189,248,0.08)", border: dark ? "rgba(56,189,248,0.25)" : "rgba(56,189,248,0.20)" },
+              { icon: <StreakGlyph size={9}/>, label: `${streak}-Day Streak`, color: dark ? "#F6A623" : "#B87A10", bg: dark ? "rgba(246,166,35,0.12)" : "rgba(246,166,35,0.08)", border: dark ? "rgba(246,166,35,0.25)" : "rgba(246,166,35,0.20)" },
+            ].filter(p => p.label).map((pill, i) => (
+              <div key={i} style={{ fontSize: 8, color: pill.color, background: pill.bg, padding: "2px 7px", borderRadius: 14, border: `1px solid ${pill.border}`, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>{pill.icon}{pill.label}</div>
+            ))}
           </div>
         </div>
 

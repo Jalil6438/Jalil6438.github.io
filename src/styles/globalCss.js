@@ -7,6 +7,7 @@ export default function buildGlobalCss(dark, T) {
         *{box-sizing:border-box;margin:0;padding:0;}
         .lm div,.lm span,.lm p,.lm label,.lm textarea,.lm input{color:#2D2A26 !important;}
         .lm .asr-title{color:#D4AF37 !important;text-shadow:none !important;}
+        .lm .medallion-initials{color:#F2CD73 !important;}
         .lm [style*="background: linear-gradient"][style*="#D4AF37"] span,.lm [style*="background: linear-gradient"][style*="#D4AF37"] div{color:#0A0E1A !important;}
         .lm .asr-row-divider{background:linear-gradient(90deg,rgba(139,106,16,0) 0%,rgba(139,106,16,0.15) 50%,rgba(139,106,16,0) 100%) !important;box-shadow:none !important;}
         ::-webkit-scrollbar{width:5px;}
