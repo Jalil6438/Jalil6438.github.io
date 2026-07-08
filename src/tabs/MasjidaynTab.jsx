@@ -94,12 +94,6 @@ export default function MasjidaynTab({
         return (
           <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}} className="fi">
 
-            {/* Header */}
-            <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"10px 14px",flexShrink:0,textAlign:"center"}}>
-              <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:T.accent,direction:"rtl",marginBottom:2}}>اللَّهُمَّ ارْزُقْنَا زِيَارَةَ بَيْتِكَ الْحَرَامِ</div>
-              <div style={{fontSize:9,color:T.sub,fontStyle:"italic"}}>"O Allah, grant us the visit to Your Sacred House"</div>
-            </div>
-
             {/* Scrollable content */}
             <div style={{flex:1,overflowY:"auto",padding:`0 0 ${scrollPadBottom}`}}>
 
@@ -344,12 +338,6 @@ export default function MasjidaynTab({
             </div>
             <div style={{fontSize:12,color:dark?"rgba(243,231,200,0.55)":"#6B645A",lineHeight:1.9,textAlign:"left",marginTop:10,fontStyle:"italic"}}>
               We ask Allah to accept this effort, to make it a means of benefit for the Ummah, and to place it on the scale of good deeds for everyone who contributed to making it possible — the scholars, the reciters, the developers behind the open APIs, and every person who opens this app with the intention of drawing closer to His Book.
-            </div>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:14,color:dark?"#E8C76A":"#D4AF37",direction:"rtl",marginTop:14}}>
-              اللَّهُمَّ اجْعَلْنَا مِنْ أَهْلِ الْقُرْآنِ
-            </div>
-            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.35)":"#6B645A",marginTop:4,fontStyle:"italic"}}>
-              O Allah, make us from the people of the Qur'an
             </div>
           </div>
 

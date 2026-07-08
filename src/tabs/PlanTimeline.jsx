@@ -1,8 +1,6 @@
 // "My Plan" view (rihlahTab === "timeline") — the hifz plan summary: goal,
-// pace, principles of memorization, and a daily-rotating verse. Pure
-// presentational; the Arabic verses are copied byte-for-byte from the original.
+// pace, and principles of memorization. Pure presentational.
 // The render gate stays in the parent (same pattern as RihlahHome).
-import { BookGlyph, CalendarGlyph } from "../components/glyphs";
 
 export default function PlanTimeline({ dark, setRihlahTab, rihlahScrollRef, userPlanMode, goalYears, goalMonths, goalLabel, dailyNew, timeline, pct, sessionJuz }) {
   return (
@@ -33,7 +31,7 @@ export default function PlanTimeline({ dark, setRihlahTab, rihlahScrollRef, user
             </div>
             <div style={{marginTop:12,position:"relative"}}>
               <div style={{display:"flex",justifyContent:"flex-end",marginBottom:5}}>
-                <div style={{fontSize:11,color:"rgba(230,184,74,0.55)",fontFamily:"'IBM Plex Mono',monospace"}}>{pct}% · Juz {sessionJuz||"\u2014"}</div>
+                <div style={{fontSize:11,color:"rgba(230,184,74,0.55)",fontFamily:"'IBM Plex Mono',monospace"}}>{pct}% · Juz {sessionJuz||"—"}</div>
               </div>
               {/* Gold dust glow behind bar */}
               <div style={{position:"absolute",top:"50%",left:`${Math.max(5,pct/2)}%`,width:`${Math.max(30,pct)}%`,height:60,transform:"translateY(-40%)",background:`radial-gradient(ellipse at center,rgba(212,175,55,${(0.06+pct*0.002).toFixed(3)}) 0%,transparent 70%)`,pointerEvents:"none",zIndex:0}}/>
@@ -47,13 +45,13 @@ export default function PlanTimeline({ dark, setRihlahTab, rihlahScrollRef, user
           <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Your Pace</div>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
-              <span style={{display:"flex",color:"#F3E7C8"}}><BookGlyph size={15}/></span>
-              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${dailyNew} ayahs / day`:"1 page / day"}</span>
+              <img src="/plan-ayahs-glyph.webp" alt="" aria-hidden="true" style={{width:28,height:28,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
+              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${dailyNew} ayahs per day`:"1 page per day"}</span>
             </div>
             <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.35) 50%,rgba(217,177,95,0) 100%)"}}/>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
-              <span style={{display:"flex",color:"#F3E7C8"}}><CalendarGlyph size={15}/></span>
-              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${timeline.juzPerMonth} juz / month`:"~1.5 juz / month"}</span>
+              <img src="/plan-juz-glyph.webp" alt="" aria-hidden="true" style={{width:28,height:28,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
+              <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${timeline.juzPerMonth} juz per month`:"~1.5 juz per month"}</span>
             </div>
           </div>
 
@@ -76,28 +74,6 @@ export default function PlanTimeline({ dark, setRihlahTab, rihlahScrollRef, user
             </div>
             <div style={{marginTop:12,fontSize:10,color:"rgba(217,177,95,0.30)",fontStyle:"italic"}}>Based on the methodology of Shaykh Abdul Muhsin al-Qasim</div>
           </div>
-
-          {/* ── QURAN VERSE (rotates daily) ── */}
-          {(()=>{
-            const verses=[
-              {ar:"\u0648\u064E\u0644\u064E\u0642\u064E\u062F\u0652 \u064A\u064E\u0633\u0651\u064E\u0631\u0652\u0646\u064E\u0627 \u0627\u0644\u0652\u0642\u064F\u0631\u0652\u0622\u0646\u064E \u0644\u0650\u0644\u0630\u0651\u0650\u0643\u0652\u0631\u0650",en:"\"And We have certainly made the Quran easy for remembrance\"",ref:"Al-Qamar 54:17"},
-              {ar:"\u0625\u0650\u0646\u0651\u064E\u0627 \u0646\u064E\u062D\u0652\u0646\u064F \u0646\u064E\u0632\u0651\u064E\u0644\u0652\u0646\u064E\u0627 \u0627\u0644\u0630\u0651\u0650\u0643\u0652\u0631\u064E \u0648\u064E\u0625\u0650\u0646\u0651\u064E\u0627 \u0644\u064E\u0647\u064F \u0644\u064E\u062D\u064E\u0627\u0641\u0650\u0638\u064F\u0648\u0646\u064E",en:"\"Indeed, it is We who sent down the reminder and We will be its guardian\"",ref:"Al-Hijr 15:9"},
-              {ar:"\u0641\u064E\u0627\u0630\u0652\u0643\u064F\u0631\u064F\u0648\u0646\u0650\u064A \u0623\u064E\u0630\u0652\u0643\u064F\u0631\u0652\u0643\u064F\u0645\u0652",en:"\"So remember Me; I will remember you\"",ref:"Al-Baqarah 2:152"},
-              {ar:"\u0631\u064E\u0628\u0651\u0650 \u0632\u0650\u062F\u0652\u0646\u0650\u064A \u0639\u0650\u0644\u0652\u0645\u064B\u0627",en:"\"My Lord, increase me in knowledge\"",ref:"Ta-Ha 20:114"},
-              {ar:"\u0648\u064E\u0631\u064E\u062A\u0651\u0650\u0644\u0650 \u0627\u0644\u0652\u0642\u064F\u0631\u0652\u0622\u0646\u064E \u062A\u064E\u0631\u0652\u062A\u0650\u064A\u0644\u064B\u0627",en:"\"And recite the Quran with measured recitation\"",ref:"Al-Muzzammil 73:4"},
-              {ar:"\u0648\u064E\u0627\u0635\u0652\u0628\u0650\u0631\u0652 \u0641\u064E\u0625\u0650\u0646\u0651\u064E \u0627\u0644\u0644\u0651\u064E\u0647\u064E \u0644\u064E\u0627 \u064A\u064F\u0636\u0650\u064A\u0639\u064F \u0623\u064E\u062C\u0652\u0631\u064E \u0627\u0644\u0652\u0645\u064F\u062D\u0652\u0633\u0650\u0646\u0650\u064A\u0646\u064E",en:"\"Be patient, for Allah does not let the reward of the good be lost\"",ref:"Hud 11:115"},
-              {ar:"\u0625\u0650\u0646\u0651\u064E \u0645\u064E\u0639\u064E \u0627\u0644\u0652\u0639\u064F\u0633\u0652\u0631\u0650 \u064A\u064F\u0633\u0652\u0631\u064B\u0627",en:"\"Indeed, with hardship comes ease\"",ref:"Ash-Sharh 94:6"},
-            ];
-            const dayIdx=Math.floor(Date.now()/3600000)%verses.length;
-            const v=verses[dayIdx];
-            return (
-          <div style={{padding:"18px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",textAlign:"center",marginBottom:18,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
-            <div style={{fontFamily:"'Amiri',serif",fontSize:22,color:"#E6B84A",direction:"rtl",marginBottom:8}}>{v.ar}</div>
-            <div style={{fontSize:12,color:"rgba(243,231,200,0.45)",fontStyle:"italic",marginBottom:3}}>{v.en}</div>
-            <div style={{fontSize:10,color:"rgba(243,231,200,0.22)"}}>{v.ref}</div>
-          </div>
-            );
-          })()}
 
         </div>
   );
