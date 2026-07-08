@@ -45,12 +45,12 @@ export default function PlanTimeline({ dark, setRihlahTab, rihlahScrollRef, user
           <div style={{padding:"16px",borderRadius:16,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(217,177,95,0.18)",marginBottom:14,boxShadow:"0 4px 16px rgba(0,0,0,0.22),0 0 10px rgba(217,177,95,0.06)"}}>
             <div style={{fontSize:11,color:"rgba(217,177,95,0.55)",fontWeight:600,letterSpacing:".08em",marginBottom:12}}>Your Pace</div>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
-              <img src="/plan-ayahs-glyph.webp" alt="" aria-hidden="true" style={{width:28,height:28,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
+              <img src="/plan-ayahs-glyph.webp" alt="" aria-hidden="true" style={{width:34,height:34,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
               <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${dailyNew} ayahs per day`:"1 page per day"}</span>
             </div>
             <div style={{height:1,background:"linear-gradient(90deg,rgba(217,177,95,0) 0%,rgba(232,200,120,0.35) 50%,rgba(217,177,95,0) 100%)"}}/>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0"}}>
-              <img src="/plan-juz-glyph.webp" alt="" aria-hidden="true" style={{width:28,height:28,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
+              <img src="/plan-juz-glyph.webp" alt="" aria-hidden="true" style={{width:34,height:34,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
               <span style={{fontSize:14,color:"#F3E7C8",fontWeight:600}}>{userPlanMode==="custom"?`${timeline.juzPerMonth} juz per month`:"~1.5 juz per month"}</span>
             </div>
           </div>

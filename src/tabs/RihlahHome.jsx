@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import RihlahProgressPath from "../components/RihlahProgressPath";
 import DailyProgressChart from "../components/DailyProgressChart";
-import { CheckGlyph, SessionMedallion, BookGlyph, CrescentGlyph, CalendarGlyph, BellGlyph } from "../components/glyphs";
+import { CheckGlyph, SessionMedallion, CrescentGlyph, BellGlyph } from "../components/glyphs";
 import MilestonesProgress from "../components/MilestonesProgress";
 import RingsProgress from "../components/RingsProgress";
 import JuzProgressRing from "../components/JuzProgressRing";
@@ -270,14 +270,14 @@ export default function RihlahHome({
         {/* ── Nav buttons ── */}
         <div style={{display:"flex",gap:8,marginBottom:14}}>
           <div className="sbtn" onClick={()=>setRihlahTab("juz")} style={{flex:1,display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(74,222,128,0.15)":"1px solid rgba(0,0,0,0.08)",borderRadius:10}}>
-            <span style={{display:"flex",color:dark?"#EDE8DC":"#2D2A26"}}><BookGlyph size={16}/></span>
+            <img src="/plan-ayahs-glyph.webp" alt="" aria-hidden="true" style={{width:34,height:34,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Memorization</div>
               <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.30)":"#6B645A"}}>Track progress</div>
             </div>
           </div>
           <div className="sbtn" onClick={()=>setRihlahTab("timeline")} style={{flex:1,display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:dark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.03)",border:dark?"1px solid rgba(240,192,64,0.15)":"1px solid rgba(0,0,0,0.08)",borderRadius:10}}>
-            <span style={{display:"flex",color:dark?"#EDE8DC":"#2D2A26"}}><CalendarGlyph size={16}/></span>
+            <img src="/plan-days-glyph.webp" alt="" aria-hidden="true" style={{width:34,height:34,objectFit:"contain",flexShrink:0,filter:"drop-shadow(0 0 5px rgba(230,184,74,0.4))"}}/>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:dark?"#EDE8DC":"#2D2A26"}}>My Plan</div>
               <div style={{fontSize:8,color:dark?"rgba(255,255,255,0.30)":"#6B645A"}}>Hifz timeline</div>

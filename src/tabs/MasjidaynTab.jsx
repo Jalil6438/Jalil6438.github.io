@@ -211,7 +211,13 @@ export default function MasjidaynTab({
                 </a>
               </div>
 
-              {/* Night selector button + Dua */}
+              {/* Ramadan video attribution — the recordings are Shaykh Badr Al-Turki's
+                  (see ramadan.js); full credit is also in the About > Credits section. */}
+              <div style={{padding:"6px 14px 0",textAlign:"center"}}>
+                <span style={{fontSize:9,color:dark?"rgba(243,231,200,0.42)":"#8B7355",letterSpacing:".02em"}}>Ramadan videos: Shaykh Badr Al-Turki</span>
+              </div>
+
+              {/* Night selector */}
               <div style={{padding:"12px 14px 0"}}>
                 <div style={{display:"flex",gap:8,marginBottom:10}}>
                   <div className="sbtn" onClick={()=>setShowNightPicker("first20")} style={{flex:1,padding:"12px 10px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,textAlign:"center"}}>
@@ -225,14 +231,6 @@ export default function MasjidaynTab({
                 </div>
                 <div style={{fontSize:10,color:T.dim,textAlign:"center",marginBottom:10}}>
                   Now playing: <span style={{color:"#E5534B",fontWeight:600}}>Night {sel} · {activeLabel}</span>
-                </div>
-
-                {/* Dua */}
-                <div style={{padding:"12px 16px",background:T.surface,border:"1px solid #E5534B20",borderRadius:8,textAlign:"center"}}>
-                  <div style={{fontFamily:"'Amiri',serif",fontSize:16,color:T.accent,direction:"rtl",marginBottom:4}}>
-                    اللَّهُمَّ بَلِّغْنَا رَمَضَانَ وَتَقَبَّلْ مِنَّا
-                  </div>
-                  <div style={{fontSize:10,color:T.sub,fontStyle:"italic"}}>"O Allah, allow us to reach Ramadan and accept it from us"</div>
                 </div>
               </div>
 
