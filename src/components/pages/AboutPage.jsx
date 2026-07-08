@@ -1,5 +1,6 @@
 import React from "react";
 import AppPage from "./AppPage";
+import { APP_VERSION_LABEL } from "../../releaseInfo";
 
 // About Al-Hifz — brand-aligned with the app header ("Al-Hifz · Your journey to
 // memorizing the Qur'an"). Header is rendered here (not via AppPage's title) so
@@ -64,7 +65,7 @@ export default function AboutPage({ dark, onBack }) {
       {/* Info card — centered, with generous room above the bottom nav */}
       <div style={{ marginTop: 28, paddingTop: 22, borderTop: `1px solid ${dark ? "rgba(217,177,95,0.15)" : "rgba(139,106,16,0.15)"}`, textAlign: "center", paddingBottom: 44 }}>
         <div style={{ ...label, marginBottom: 6 }}>Version</div>
-        <div style={value}>v1.5.1</div>
+        <div style={value}>{APP_VERSION_LABEL}</div>
         <div style={{ ...label, marginTop: 16, marginBottom: 6 }}>Created by</div>
         <div style={{ ...value, lineHeight: 1.55 }}>Abū ʿAbdir-Raḥmān<br />ʿAbdul-Jalīl</div>
         <div style={{ ...label, marginTop: 16, marginBottom: 6 }}>Contact</div>

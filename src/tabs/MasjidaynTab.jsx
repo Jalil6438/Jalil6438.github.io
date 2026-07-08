@@ -2,6 +2,7 @@ import { useState } from "react";
 import { HARAMAIN_SURAHS, HARAMAIN_MOSQUES } from "../data/haramain";
 import { RAMADAN_NIGHTS } from "../data/ramadan";
 import { CheckGlyph, StarGlyph, PlayGlyph, PauseGlyph, WaveGlyph } from "../components/glyphs";
+import { APP_VERSION, RELEASE_YEAR } from "../releaseInfo";
 
 export default function MasjidaynTab({
   dark, T, masjidaynTab, setMasjidaynTab, activeStream,
@@ -315,7 +316,7 @@ export default function MasjidaynTab({
           <div style={{textAlign:"center",marginBottom:20}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:dark?"#F6E27A":"#D4AF37",fontWeight:700,marginBottom:4}}>Al-Hifz</div>
             <div style={{fontFamily:"'Amiri',serif",fontSize:18,color:dark?"rgba(243,231,200,0.60)":"#6B645A",direction:"rtl",marginBottom:4}}>رحلة الحفظ</div>
-            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#6B645A",marginTop:4}}>Version 1.0 · 2026</div>
+            <div style={{fontSize:10,color:dark?"rgba(243,231,200,0.30)":"#6B645A",marginTop:4}}>Version {APP_VERSION} · {RELEASE_YEAR}</div>
           </div>
 
           {/* ── Purpose Statement ── */}

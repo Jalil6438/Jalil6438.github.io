@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import AppPage from "./AppPage";
 import { WarnGlyph } from "../glyphs";
+import { APP_NAME, APP_VERSION, RELEASE_YEAR } from "../../releaseInfo";
 
 // Medallion row icon — shares the side-drawer icon family so Settings reads as
 // part of the same premium system. Decorative; the adjacent label names the row.
@@ -100,7 +101,7 @@ export default function SettingsPage({ dark, T, onBack, setAppPage, setDark }) {
         </div>
 
         <div style={{ textAlign: "center", marginTop: 22, fontSize: 10, color: dark ? "rgba(243,231,200,0.35)" : "#8B7355" }}>
-          Al-Hifz · Version 1.5.1 · 2026
+          {APP_NAME} · Version {APP_VERSION} · {RELEASE_YEAR}
         </div>
       </AppPage>
 
