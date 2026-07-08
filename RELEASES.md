@@ -22,6 +22,22 @@ Release procedure (summary):
 
 ---
 
+## v1.5.2 - 2026-07 (IN PREPARATION — not yet deployed)
+
+v1.5.2 — Release safety and legacy UI cleanup
+
+- Production URL: https://al-hifz.noortechstudios.com (pending deploy)
+- Deployment URL: (pending — fill after promote; record rollback = current prod dpl_5WwtKZ3AivVHn7aq9vD5556dsYSo)
+- Branch: work/al-hifz-post-header-cleanup (release branch to be cut at release time)
+- Production base commit: 186d0bc5b42e1095b23ff9d4e386b84f4e2a3053 (release/al-hifz-v1.5.1-curated = live production)
+- Release commit: (pending — version-bump commit on top of 0ec7b69)
+- Scope: release-safety system (eebfbb8: /api/version, src/releaseInfo.js single version source, RELEASES.md, npm run release:check with exact-scope gate, build-info stamping) + approved UI cleanup (0ec7b69: PlanTimeline rotating ayah card removed, webp pace glyphs, "per day"/"per month" wording; MasjidaynTab top duʿāʾ header and About closing duʿāʾ removed) + version bump to v1.5.2
+- Excluded work: Ramadan-night duʿāʾ kept by design; reminders/web-push, Mushaf/QCF fonts, TermsPage, OAuth/QF removal, backup/export, vite.config, .claude, unrelated public assets
+- Codex audit result: release-safety slice approved (eebfbb8); UI cleanup approved (0ec7b69); version bump audit pending
+- Post-deploy version check: (pending — verify /api/version returns v1.5.2 and correct commit; first release where /api/version exists)
+
+---
+
 ## v1.5.1 - 2026-07
 
 - Production URL: https://al-hifz.noortechstudios.com (project: my-trackers.vercel.app)
