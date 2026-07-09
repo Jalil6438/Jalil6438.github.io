@@ -1,13 +1,13 @@
 import React from "react";
 import { FallbackGlyph, GoalGlyph, StreakGlyph } from "./glyphs";
-import { SURAH_EN } from "../data/constants";
+import { SURAH_EN, SIDEBAR_ICON_SIZE } from "../data/constants";
 
 // Medallion icon. If the WebP fails to load, fall back to a neutral SVG ring
 // (never an emoji) so a row keeps its alignment without drawing attention.
 // Decorative only — aria-hidden, since the adjacent label names the item.
 function RowIcon({ img }) {
   const [ok, setOk] = React.useState(true);
-  const SIZE = 44;
+  const SIZE = SIDEBAR_ICON_SIZE; // shared with QuranSideMenu so the two side menus stay in lockstep
   return (
     <span
       aria-hidden="true"

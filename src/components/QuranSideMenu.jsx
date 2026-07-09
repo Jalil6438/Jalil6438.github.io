@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { FallbackGlyph } from "./glyphs";
+import { SIDEBAR_ICON_SIZE } from "../data/constants";
 
 // Decorative medallion icon; if the image fails to load it falls back to a
 // neutral SVG ring (never an emoji) so a row keeps alignment without drawing
 // attention. aria-hidden — the row label already names the item.
-function RowIcon({ img, size = 56 }) {
+function RowIcon({ img, size = SIDEBAR_ICON_SIZE }) {
   const [ok, setOk] = useState(true);
   return (
     <span
@@ -70,8 +71,8 @@ function NavRow({ img, label, onClick, dark }) {
           src={img}
           alt=""
           style={{
-            width: 56,
-            height: 56,
+            width: SIDEBAR_ICON_SIZE,
+            height: SIDEBAR_ICON_SIZE,
             objectFit: "contain",
             flexShrink: 0,
             opacity: 0.95,
@@ -79,7 +80,7 @@ function NavRow({ img, label, onClick, dark }) {
           }}
         />
       ) : (
-        <span style={{ width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <span style={{ width: SIDEBAR_ICON_SIZE, height: SIDEBAR_ICON_SIZE, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <FallbackGlyph size={40} />
         </span>
       )}
@@ -302,7 +303,7 @@ export default function QuranSideMenu({ dark, setShowPickers, setShowQuranSurahM
               cursor: "pointer",
             }}
           >
-            <RowIcon img="/menu-settings.webp" size={56} />
+            <RowIcon img="/menu-settings.webp" size={SIDEBAR_ICON_SIZE} />
             <span style={{ flex: 1, minWidth: 0 }}>Settings</span>
           </div>
         </div>

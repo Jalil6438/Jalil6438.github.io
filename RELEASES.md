@@ -22,7 +22,23 @@ Release procedure (summary):
 
 ---
 
-## v1.5.2 - 2026-07 (IN PREPARATION — not yet deployed)
+## v1.5.3 - 2026-07
+
+v1.5.3 — Side-menu icon-size regression fix
+
+- Production URL: https://al-hifz.noortechstudios.com (pending deploy)
+- Deployment URL: (pending — fill after promote; rollback = current v1.5.2 production deployment)
+- Branch: release/al-hifz-v1.5.3
+- Production base commit: 939ca65 (release/al-hifz-v1.5.2 = live production)
+- Release commit: (pending — this commit)
+- Scope: restore the My-Hifz side-drawer icons to 56px so they match the Qur'an side menu, and unify BOTH menus on a single `SIDEBAR_ICON_SIZE` source in `src/data/constants.js` so they can never drift again. 6 files: src/data/constants.js (new shared constant), src/components/AppSideDrawer.jsx (44→shared, the actual fix), src/components/QuranSideMenu.jsx (source-only — reads the constant; rendered output unchanged, still 56), src/releaseInfo.js + package.json (version bump v1.5.2→v1.5.3), RELEASES.md (this entry)
+- Excluded work: everything else — no reminders/web-push, Mushaf/QCF fonts, TermsPage, OAuth/QF removal, backup/export, vite.config, .claude, or unrelated public assets
+- Codex audit result: (pending)
+- Post-deploy version check: (pending — verify /api/version returns v1.5.3)
+
+---
+
+## v1.5.2 - 2026-07 (DEPLOYED 2026-07-09 — deployment ID to be recorded)
 
 v1.5.2 — Release safety and legacy UI cleanup
 

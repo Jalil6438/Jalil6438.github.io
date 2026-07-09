@@ -1,5 +1,11 @@
 // ── DATA CONSTANTS — extracted from quran-hifz-tracker.jsx ──
 
+// Single source of truth for side-menu medallion icon size. Consumed by both
+// side menus — AppSideDrawer (My Hifz) and QuranSideMenu (Qur'an) — so the two
+// can never drift out of sync again (the v1.5.1 regression: one was hand-set to
+// 44 while the other stayed 56). Change here to resize every sidebar icon.
+export const SIDEBAR_ICON_SIZE = 56;
+
 // ── UNIFIED RECITERS — used across Hifz (per-ayah) and Quran (full surah) tabs ──
 // ── recitationId / qulSlug notes ──
 // Range playback picks the smoothest available source per reciter:
