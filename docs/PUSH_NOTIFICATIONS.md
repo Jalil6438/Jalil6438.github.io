@@ -37,28 +37,52 @@ Add for **Production** (and Preview if you want to test on previews):
 
 Redeploy after adding — env vars apply at deploy time.
 
-## 3. Configuring the scheduler (Vercel Cron)
+## 3. Configuring the scheduler (QStash primary + daily Vercel safety cron)
 
-`vercel.json` already declares:
+This project runs on the **Vercel Hobby plan, which only allows cron jobs that
+run at most once per day**. The scheduling architecture is therefore split:
+
+- **QStash (Upstash) is the primary recurring scheduler.** It calls the
+  dispatch endpoint every 15 minutes.
+- **Vercel Cron is a daily safety/maintenance invocation only** — it is NOT
+  the reminder scheduler. `vercel.json` declares:
 
 ```json
-"crons": [{ "path": "/api/cron/send-reminders", "schedule": "*/15 * * * *" }]
+"crons": [{ "path": "/api/cron/send-reminders", "schedule": "0 3 * * *" }]
 ```
 
-When `CRON_SECRET` is set, Vercel Cron automatically sends
-`Authorization: Bearer $CRON_SECRET` — no extra config. The endpoint fails
-closed: 503 with no secret configured, 401 on a bad bearer.
+That single daily run (03:00 UTC) exercises the pipeline end-to-end and
+performs the maintenance side-effects (expired/invalid subscription cleanup,
+delivery-log upkeep) even if QStash is ever misconfigured; any reminders due
+in its window are still deduped normally.
 
-**Plan limitation:** Hobby-tier cron runs at most daily. If this project is on
-Hobby, schedule Upstash QStash instead to call
-`https://<prod-domain>/api/cron/send-reminders` every 15 minutes with the same
-`Authorization: Bearer <CRON_SECRET>` header — the endpoint is deliberately
-trigger-agnostic.
+**QStash schedule (the real cadence)** — create one global schedule in the
+Upstash console (QStash → Schedules):
+
+- Destination: `https://<domain>/api/cron/send-reminders`
+- Method: `POST` (the endpoint accepts GET or POST; auth is what matters)
+- Cadence: `*/15 * * * *` (UTC — fine, because per-subscriber timezones are
+  resolved inside the endpoint from each stored `tz` offset)
+- Header forwarding: set `Upstash-Forward-Authorization` to
+  `Bearer <CRON_SECRET>` so the endpoint receives
+  `Authorization: Bearer <CRON_SECRET>`. Never paste the secret anywhere else.
+- Retries: QStash's default retries are safe — dispatch is idempotent via the
+  atomic per-day `SET NX EX` dedupe marker, so a retried or overlapping run
+  can never double-send.
+
+Vercel Cron (when `CRON_SECRET` is set) automatically sends the same
+`Authorization: Bearer $CRON_SECRET` header. The endpoint fails closed:
+503 with no secret configured, 401 on a bad bearer.
+
+**Preview QStash setup:** point a temporary QStash schedule at the preview
+URL (`https://<preview>.vercel.app/api/cron/send-reminders`) with the
+preview-scoped `CRON_SECRET`, and delete it when preview testing ends.
+**Production scheduling is not yet activated** — no production QStash
+schedule exists, and activating one is a separately authorized step.
 
 The 15-minute cadence + a 30-minute grace window means a reminder arrives
 within ~15 minutes after its configured time, exactly once per session per
-local day (enforced by an atomic `SET NX EX` marker, safe across overlapping
-cron runs).
+local day.
 
 ## 4. Enabling notifications on Android / installed PWA
 
@@ -135,8 +159,8 @@ The server-test notification opens the app home (`/`).
 | Environment | Behavior |
 | --- | --- |
 | **localhost (`npm run dev`)** | SW disabled in dev (`devOptions.enabled: false`) → no push. Use `npm run build && npm run preview` (localhost counts as a secure origin), but `/api/*` needs `vercel dev` or a deployed backend. |
-| **Vercel preview** | Full pipeline works if env vars are set for Preview. Preview URLs may have deployment protection — real-device tests are simpler against production. Cron entries only run for production; trigger previews manually with curl + bearer. |
-| **Production** | The reference environment: Vercel Cron active, env from Production scope. |
+| **Vercel preview** | Full pipeline works if env vars are set for Preview. Preview URLs may have deployment protection — real-device tests are simpler against production. Vercel cron entries only run for production; drive previews with a temporary QStash schedule (§3) or manually with curl + bearer. |
+| **Production** | The reference environment once activated: QStash recurring schedule (NOT yet created) + daily Vercel safety cron, env from Production scope. |
 | **Real devices** | Android/Chrome is the baseline. iOS requires an installed PWA (16.4+) and has stricter delivery behavior. Desktop browsers deliver only while the browser process runs. Do not call background reminders "done" until a real phone with the app closed has received one. |
 
 ## Known limitations (by design, documented per spec)
