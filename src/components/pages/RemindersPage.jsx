@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from "react";
 import AppPage from "./AppPage";
 import { CheckGlyph, BellGlyph } from "../glyphs";
-import { isPushSupported, isPushEnabled, enablePush, disablePush, syncPrefs } from "../../push/pushClient";
+import { isPushSupported, isPushEnabled, enablePush, disablePush, syncPrefs, sendServerTest } from "../../push/pushClient";
 
 export default function RemindersPage({ dark, onBack }) {
   const DEFAULTS = [
@@ -91,9 +91,33 @@ export default function RemindersPage({ dark, onBack }) {
     setPrefs(p => ({ ...p, sessions: { ...p.sessions, [id]: { ...p.sessions[id], time } } }));
   };
 
+  // Foreground-only test: constructs a Notification from the open page. This
+  // does NOT exercise background delivery — that's what the server test does.
   const sendTest = () => {
     if (permission !== "granted") return;
-    try { new Notification("Al-Hifz", { body: "Notifications are working — bismillah." }); } catch { /* ignore */ }
+    try { new Notification("Al-Hifz", { body: "In-app notifications are working — bismillah. (This is the foreground fallback, not background delivery.)" }); } catch { /* ignore */ }
+  };
+
+  // Real end-to-end test: the BACKEND sends a push through the push service
+  // and the service worker displays it — works with the app closed.
+  const [serverTestBusy, setServerTestBusy] = useState(false);
+  const runServerTest = async () => {
+    if (serverTestBusy) return;
+    setServerTestBusy(true);
+    setPushNote("");
+    try {
+      const r = await sendServerTest();
+      setPushNote(
+        r.ok ? "Server push sent — it should arrive within a few seconds, even if you close the app right now." :
+        r.reason === "rate-limited" ? "Please wait a minute between server tests." :
+        r.reason === "server-not-configured" ? "Background delivery isn't switched on for this server yet (VAPID keys not set)." :
+        r.reason === "expired" || r.reason === "not-subscribed" || r.reason === "no-subscription" ? "This device's subscription is gone — toggle Background delivery off and on again." :
+        "Server test failed — check your connection and try again."
+      );
+      if (r.reason === "expired") setPushOn(false);
+    } finally {
+      setServerTestBusy(false);
+    }
   };
 
   const enabledCount = DEFAULTS.filter(d => prefs.sessions[d.id]?.enabled).length;
@@ -172,6 +196,17 @@ export default function RemindersPage({ dark, onBack }) {
               }}/>
             </div>
           </div>
+          {pushOn && (
+            <div className="sbtn" onClick={runServerTest} style={{
+              marginTop: 10, padding: "8px 12px", borderRadius: 8, textAlign: "center",
+              fontSize: 11, fontWeight: 700, opacity: serverTestBusy ? 0.5 : 1,
+              background: dark ? "rgba(56,214,126,0.10)" : "rgba(20,140,60,0.08)",
+              color: dark ? "#34D399" : "#0E6B30",
+              border: `1px solid ${dark ? "rgba(56,214,126,0.30)" : "rgba(20,140,60,0.25)"}`,
+            }}>
+              {serverTestBusy ? "Sending…" : "Send a real test from the server"}
+            </div>
+          )}
           {pushNote && (
             <div style={{ fontSize: 10, color: dark ? "rgba(230,184,74,0.80)" : "#8B6A10", marginTop: 8, lineHeight: 1.5 }}>
               {pushNote}

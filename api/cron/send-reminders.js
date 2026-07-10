@@ -14,8 +14,9 @@
 
 import webpush from "web-push";
 import {
-  SUBS_KEY, LOG_KEY, LOG_CAP, SENT_TTL_SECONDS, SESSION_LABELS,
-  redis, redisConfigured, vapidConfigured, computeDueSessions, json,
+  SUBS_KEY, LOG_KEY, LOG_CAP, SENT_TTL_SECONDS,
+  redis, redisConfigured, vapidConfigured, computeDueSessions,
+  buildReminderPayload, isGonePushError, json,
 } from "../_push-lib.js";
 
 export default async function handler(req, res) {
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
   );
 
   const nowMs = Date.now();
-  const counts = { checked: 0, due: 0, sent: 0, duplicates: 0, cleaned: 0, errors: 0 };
+  const counts = { checked: 0, due: 0, sent: 0, duplicates: 0, cleaned: 0, errors: 0, disabled: 0, locked: 0 };
   const logEntries = [];
 
   try {
@@ -47,7 +48,12 @@ export default async function handler(req, res) {
 
     for (const { id, rec } of subs) {
       counts.checked++;
-      const due = computeDueSessions({ prefs: rec.prefs, tzOffsetMinutes: rec.tz, nowMs });
+      // Soft-disabled records are kept but never sent to.
+      if (rec.enabled === false) { counts.disabled++; continue; }
+      // Reminder-suppression window (e.g. the day is sealed) — skip entirely.
+      const lock = Number(rec.lockedUntil);
+      if (Number.isFinite(lock) && lock > 0 && nowMs < lock) { counts.locked++; continue; }
+      const due = computeDueSessions({ prefs: rec.prefs, tzOffsetMinutes: rec.tz, nowMs, lockedUntilMs: rec.lockedUntil });
       for (const { id: sid, dayKey } of due) {
         counts.due++;
         // Atomic once-per-local-day claim; duplicate prevention across
@@ -56,12 +62,7 @@ export default async function handler(req, res) {
         const [{ result: claimed }] = await redis([["SET", sentKey, "1", "EX", String(SENT_TTL_SECONDS), "NX"]]);
         if (claimed !== "OK") { counts.duplicates++; continue; }
 
-        const payload = JSON.stringify({
-          title: "Al-Hifz",
-          body: SESSION_LABELS[sid] || sid,
-          tag: `rihlat-${sid}-${dayKey}`,
-          session: sid,
-        });
+        const payload = JSON.stringify(buildReminderPayload(sid, dayKey));
         try {
           await webpush.sendNotification(
             { endpoint: rec.endpoint, keys: rec.keys },
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
           logEntries.push({ ts: nowMs, sub: id, session: sid, day: dayKey, ok: true });
         } catch (e) {
           const status = e?.statusCode;
-          if (status === 404 || status === 410) {
+          if (isGonePushError(status)) {
             // Subscription expired/revoked — server-side cleanup.
             await redis([["HDEL", SUBS_KEY, id]]);
             counts.cleaned++;

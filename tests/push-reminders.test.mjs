@@ -2,7 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   computeDueSessions, sanitizePrefs, validateSubscription, subIdFromEndpoint,
+  buildSubscriptionRecord, buildReminderPayload, isGonePushError,
 } from "../api/_push-lib.js";
+import { urlBase64ToUint8Array } from "../src/push/pushClient.js";
 
 // nowMs helpers are UTC-explicit; tz offsets are minutes east of UTC.
 const utc = (y, mo, d, h, mi) => Date.UTC(y, mo, d, h, mi);
@@ -86,4 +88,113 @@ test("subIdFromEndpoint is stable, opaque, and endpoint-specific", () => {
   assert.notEqual(a, b);
   assert.equal(a.length, 24);
   assert.ok(!a.includes("push.example"));
+});
+
+// ── Reminder-suppression window (lockedUntil) ──
+
+test("no reminders while a suppression window (lockedUntil) is active", () => {
+  const prefs = prefsWith({ fajr: { enabled: true, time: "06:00" } });
+  const nowMs = utc(2026, 6, 10, 6, 5); // fajr due at UTC tz
+  assert.equal(computeDueSessions({ prefs, tzOffsetMinutes: 0, nowMs }).length, 1);
+  assert.equal(computeDueSessions({ prefs, tzOffsetMinutes: 0, nowMs, lockedUntilMs: nowMs + 60000 }).length, 0);
+});
+
+test("expired or garbage suppression windows do not suppress", () => {
+  const prefs = prefsWith({ fajr: { enabled: true, time: "06:00" } });
+  const nowMs = utc(2026, 6, 10, 6, 5);
+  assert.equal(computeDueSessions({ prefs, tzOffsetMinutes: 0, nowMs, lockedUntilMs: nowMs - 1 }).length, 1);
+  assert.equal(computeDueSessions({ prefs, tzOffsetMinutes: 0, nowMs, lockedUntilMs: null }).length, 1);
+  assert.equal(computeDueSessions({ prefs, tzOffsetMinutes: 0, nowMs, lockedUntilMs: "soon" }).length, 1);
+});
+
+// ── Subscription record serialization/storage ──
+
+const SUB = { endpoint: "https://push.example/abc", keys: { p256dh: "P", auth: "A" } };
+
+test("buildSubscriptionRecord captures all required fields", () => {
+  const rec = buildSubscriptionRecord({
+    subscription: SUB,
+    prefs: { sessions: { fajr: { enabled: true, time: "06:00" } } },
+    tz: 180, did: "device-1", lockedUntil: Date.now() + 1000,
+  });
+  assert.equal(rec.endpoint, SUB.endpoint);
+  assert.deepEqual(rec.keys, { p256dh: "P", auth: "A" });
+  assert.equal(rec.enabled, true);
+  assert.equal(rec.tz, 180);
+  assert.equal(rec.did, "device-1");
+  assert.ok(Number.isFinite(rec.lockedUntil));
+  assert.ok(Number.isFinite(rec.updatedAt));
+  assert.deepEqual(Object.keys(rec.prefs.sessions), ["fajr"]);
+});
+
+test("record merge keeps prev prefs/tz/did/lock when the update omits them", () => {
+  const prev = buildSubscriptionRecord({
+    subscription: SUB, prefs: { sessions: { isha: { enabled: true, time: "21:00" } } },
+    tz: -300, did: "device-1", lockedUntil: 12345,
+  });
+  const updated = buildSubscriptionRecord({ subscription: SUB, prev });
+  assert.deepEqual(Object.keys(updated.prefs.sessions), ["isha"]);
+  assert.equal(updated.tz, -300);
+  assert.equal(updated.did, "device-1");
+  assert.equal(updated.lockedUntil, 12345);
+  assert.equal(updated.enabled, true);
+});
+
+test("enabled/disabled state round-trips and defaults to enabled", () => {
+  const rec = buildSubscriptionRecord({ subscription: SUB });
+  assert.equal(rec.enabled, true);
+  const off = buildSubscriptionRecord({ subscription: SUB, enabled: false, prev: rec });
+  assert.equal(off.enabled, false);
+  const kept = buildSubscriptionRecord({ subscription: SUB, prev: off });
+  assert.equal(kept.enabled, false); // omitting enabled preserves prev state
+});
+
+test("lockedUntil is clamped to at most 36h in the future", () => {
+  const rec = buildSubscriptionRecord({ subscription: SUB, lockedUntil: Date.now() + 999 * 60 * 60 * 1000 });
+  assert.ok(rec.lockedUntil <= Date.now() + 36 * 60 * 60 * 1000 + 1000);
+});
+
+test("oversize or non-string did is rejected, prev did retained", () => {
+  const prev = buildSubscriptionRecord({ subscription: SUB, did: "device-1" });
+  assert.equal(buildSubscriptionRecord({ subscription: SUB, did: "x".repeat(65), prev }).did, "device-1");
+  assert.equal(buildSubscriptionRecord({ subscription: SUB, did: 42, prev }).did, "device-1");
+  assert.equal(buildSubscriptionRecord({ subscription: SUB }).did, null);
+});
+
+// ── Push payload + notification click route ──
+
+test("reminder payload carries the session deep-link route and daily tag", () => {
+  const p = buildReminderPayload("fajr", "2026-07-10");
+  assert.equal(p.url, "/?session=fajr");
+  assert.equal(p.tag, "rihlat-fajr-2026-07-10");
+  assert.equal(p.session, "fajr");
+  assert.equal(p.title, "Al-Hifz");
+  assert.ok(p.body.length > 0);
+});
+
+test("payload route is generated for every session id", () => {
+  for (const sid of ["fajr", "dhuhr", "asr", "maghrib", "isha"]) {
+    assert.equal(buildReminderPayload(sid, "2026-07-10").url, `/?session=${sid}`);
+  }
+});
+
+// ── Expired-subscription classification ──
+
+test("only 404/410 classify as gone (cleanup); transient errors do not", () => {
+  assert.equal(isGonePushError(404), true);
+  assert.equal(isGonePushError(410), true);
+  for (const s of [400, 401, 413, 429, 500, 502, undefined, null]) {
+    assert.equal(isGonePushError(s), false);
+  }
+});
+
+// ── VAPID public key conversion ──
+
+test("urlBase64ToUint8Array decodes base64url with url-safe chars and padding", () => {
+  // "AQID" = bytes [1,2,3]
+  assert.deepEqual([...urlBase64ToUint8Array("AQID")], [1, 2, 3]);
+  // base64url alphabet: '-' -> '+', '_' -> '/'; 0xFB 0xEF 0xFF round-trips
+  assert.deepEqual([...urlBase64ToUint8Array("--__")], [251, 239, 255]);
+  // unpadded length-2 remainder
+  assert.deepEqual([...urlBase64ToUint8Array("AQ")], [1]);
 });

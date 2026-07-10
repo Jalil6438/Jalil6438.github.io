@@ -89,6 +89,18 @@ export default function RihlatAlHifz() {
   const [activeTab,setActiveTab_]=useState("rihlah");
   const scrollAllToTop=()=>{if(showOnboarding) return;setTimeout(()=>{document.querySelectorAll('.fi, [class*="fi"]').forEach(el=>el.scrollTop=0);document.querySelectorAll('div').forEach(el=>{const s=getComputedStyle(el);if(s.overflowY==='auto'||s.overflowY==='scroll')el.scrollTop=0;});window.scrollTo(0,0);},50);};
   const setActiveTab=(tab)=>{setActiveTab_(tab);};
+  // Reminder deep-link: a push-notification tap opens /?session=<id> (see
+  // public/push-sw.js + api/_push-lib.js buildReminderPayload). Land on
+  // My Hifz and strip the param so refreshes don't re-trigger.
+  useEffect(()=>{
+    try {
+      const sid=new URLSearchParams(window.location.search).get("session");
+      if(sid&&["fajr","dhuhr","asr","maghrib","isha"].includes(sid)){
+        setActiveTab_("myhifz");
+        window.history.replaceState(null,"",window.location.pathname);
+      }
+    } catch { /* ignore */ }
+  },[]);
   const [selectedJuz,setSelectedJuz]=useState(30);
   const [allVerses,setAllVerses]=useState([]);
   const [loading,setLoading]=useState(false);

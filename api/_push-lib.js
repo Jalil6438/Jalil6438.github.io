@@ -82,6 +82,53 @@ export function sanitizePrefs(prefs) {
   return out;
 }
 
+// Canonical subscription record. Merge semantics: `prev` (an existing record,
+// e.g. when a push service rotates the endpoint and the SW re-subscribes)
+// donates prefs/tz/identity/lock for any field the new request omits.
+// `enabled:false` keeps the record but the cron skips it (soft-disable);
+// a full unsubscribe deletes the record entirely.
+export function buildSubscriptionRecord({ subscription, prefs, tz, did, lockedUntil, enabled, prev }) {
+  const tzNum = Number(tz);
+  const lockNum = Number(lockedUntil);
+  return {
+    endpoint: subscription.endpoint,
+    keys: { p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
+    enabled: enabled === undefined ? (prev?.enabled ?? true) : Boolean(enabled),
+    prefs: prefs !== undefined ? sanitizePrefs(prefs) : (prev?.prefs ?? { sessions: {} }),
+    tz: Number.isFinite(tzNum) ? Math.max(-840, Math.min(840, tzNum)) : (prev?.tz ?? 0),
+    // Anonymous install id (localStorage alhifz_did) when the client has one —
+    // the only identity the app possesses; no accounts exist.
+    did: typeof did === "string" && did.length > 0 && did.length <= 64 ? did : (prev?.did ?? null),
+    // Reminder-suppression window (ms timestamp): while now < lockedUntil the
+    // cron sends nothing to this subscriber. Accepted from the client and
+    // clamped to 36h so a buggy client can't silence itself forever. (The
+    // in-app feature that reports this value ships separately; the scheduler
+    // honors it whenever present.)
+    lockedUntil: Number.isFinite(lockNum)
+      ? Math.min(lockNum, Date.now() + 36 * 60 * 60 * 1000)
+      : (prev?.lockedUntil ?? null),
+    updatedAt: Date.now(),
+  };
+}
+
+// Notification payload for a due session — carries the deep-link route the SW
+// opens on tap. Never contains user data beyond the session id itself.
+export function buildReminderPayload(sid, dayKey) {
+  return {
+    title: "Al-Hifz",
+    body: SESSION_LABELS[sid] || sid,
+    tag: `rihlat-${sid}-${dayKey}`,
+    session: sid,
+    url: `/?session=${encodeURIComponent(sid)}`,
+  };
+}
+
+// 404/410 from a push service = subscription permanently gone; safe to
+// delete server-side. Anything else (429, 5xx, network) is transient.
+export function isGonePushError(statusCode) {
+  return statusCode === 404 || statusCode === 410;
+}
+
 // ── Pure scheduling logic (unit-tested in tests/push-reminders.test.mjs) ──
 //
 // A subscriber stores tzOffsetMinutes = -new Date().getTimezoneOffset()
@@ -90,9 +137,18 @@ export function sanitizePrefs(prefs) {
 // [target, target + graceMinutes), including windows that wrap past midnight;
 // dayKey identifies the local calendar day the TARGET belongs to, so the
 // dedupe marker survives the wrap.
-export function computeDueSessions({ prefs, tzOffsetMinutes, nowMs, graceMinutes = GRACE_MINUTES }) {
+//
+// `lockedUntilMs` suppresses every reminder while set and in the future.
+// Known limitation (see docs/PUSH_NOTIFICATIONS.md): per-session COMPLETION
+// state lives only on the device, so a reminder for a session already
+// finished today still sends unless a suppression window is active; the
+// OS-level tag keeps repeats from stacking and the in-app view is always
+// correct.
+export function computeDueSessions({ prefs, tzOffsetMinutes, nowMs, graceMinutes = GRACE_MINUTES, lockedUntilMs = null }) {
   const sessions = prefs?.sessions;
   if (!sessions) return [];
+  const lock = Number(lockedUntilMs);
+  if (Number.isFinite(lock) && lock > 0 && nowMs < lock) return [];
   const tz = Number.isFinite(tzOffsetMinutes) ? Math.max(-840, Math.min(840, tzOffsetMinutes)) : 0;
   const shifted = new Date(nowMs + tz * 60000);
   const localMin = shifted.getUTCHours() * 60 + shifted.getUTCMinutes();

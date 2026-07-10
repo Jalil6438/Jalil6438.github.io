@@ -1,12 +1,17 @@
 import { useEffect } from "react";
+import { autoResync } from "../push/pushClient";
 
-// In-tab reminder scheduler. Reads rihlat-reminders prefs every 30s and fires a
-// Notification when the configured time is within the polling window AND hasn't
-// already fired today. "Fired today" is tracked in localStorage so toggling
-// sessions or refreshing doesn't re-fire. Background firing requires PWA install
-// — this only works while the tab is open, which the Reminders sheet copy makes
-// clear. Extracted verbatim from the root component; no state, no props.
+// In-tab reminder scheduler — the clearly-labeled FOREGROUND fallback, not
+// background delivery. Reads rihlat-reminders prefs every 30s and fires a
+// Notification when the configured time is within the polling window AND
+// hasn't already fired today. When background push is enabled the server is
+// the delivery mechanism and this timer stands down (see tick guard).
 export default function useReminders() {
+  // Subscription refresh on app open: if push is enabled, re-assert the
+  // subscription and re-sync prefs/timezone so the stored record never goes
+  // stale (endpoint rotation is also handled by the SW's
+  // pushsubscriptionchange handler while the app is closed).
+  useEffect(()=>{ autoResync().catch(()=>{}); },[]);
   useEffect(()=>{
     if(typeof Notification==="undefined") return;
     const SESSION_LABELS={fajr:"Fajr — memorize today's page",dhuhr:"Dhuhr — review last 5 days",asr:"Asr — revise older juz",maghrib:"Maghrib — listen to today's page",isha:"Isha — final review before sleep"};
