@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   computeDueSessions, sanitizePrefs, validateSubscription, subIdFromEndpoint,
-  buildSubscriptionRecord, buildReminderPayload, isGonePushError,
+  buildSubscriptionRecord, buildReminderPayload, isGonePushError, isAllowedPushEndpoint,
 } from "../api/_push-lib.js";
 import { urlBase64ToUint8Array } from "../src/push/pushClient.js";
 
@@ -197,4 +197,48 @@ test("urlBase64ToUint8Array decodes base64url with url-safe chars and padding", 
   assert.deepEqual([...urlBase64ToUint8Array("--__")], [251, 239, 255]);
   // unpadded length-2 remainder
   assert.deepEqual([...urlBase64ToUint8Array("AQ")], [1]);
+});
+
+// ── Strict push-service endpoint allowlist (audit fix WP-20260710-...-001) ──
+
+test("endpoints from every major browser push service are accepted", () => {
+  for (const ep of [
+    "https://fcm.googleapis.com/fcm/send/abc123",
+    "https://updates.push.services.mozilla.com/wpush/v2/xyz",
+    "https://web.push.apple.com/QOJx9y1",
+    "https://api.push.apple.com/3/device/abc",
+    "https://db5p.notify.windows.com/w/?token=abc",
+    "https://useast.push.samsungosp.com/v1/abc",
+  ]) {
+    assert.equal(isAllowedPushEndpoint(ep), true, ep);
+  }
+});
+
+test("arbitrary https URLs are rejected (SSRF/relay guard)", () => {
+  for (const ep of [
+    "https://evil.example/collect",
+    "https://internal-service.local/api",
+    "https://fcm.googleapis.com.evil.example/send",  // suffix spoof
+    "https://notify.windows.com.attacker.net/w",     // suffix spoof
+    "https://xfcm.googleapis.com/send",              // prefix spoof (not a subdomain)
+    "http://fcm.googleapis.com/fcm/send/abc",        // not https
+    "ftp://fcm.googleapis.com/x",
+    "not a url",
+    "",
+  ]) {
+    assert.equal(isAllowedPushEndpoint(ep), false, ep);
+  }
+});
+
+test("validateSubscription enforces the allowlist before storage/replace", () => {
+  const keys = { p256dh: "P", auth: "A" };
+  assert.equal(validateSubscription({ endpoint: "https://fcm.googleapis.com/fcm/send/a", keys }).ok, true);
+  const bad = validateSubscription({ endpoint: "https://evil.example/hook", keys });
+  assert.equal(bad.ok, undefined);
+  assert.match(bad.error, /unsupported push service/);
+});
+
+test("allowlist accepts subdomains of allowed hosts but never lookalikes", () => {
+  assert.equal(isAllowedPushEndpoint("https://region1.push.services.mozilla.com/v2/a"), true);
+  assert.equal(isAllowedPushEndpoint("https://push.services.mozilla.com.phish.io/a"), false);
 });

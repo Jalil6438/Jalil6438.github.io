@@ -133,9 +133,12 @@ if (status === "") {
 }
 
 // ---------- 3. no tracked .env files ----------
+// Placeholder-only templates (.env.example / .env.sample) are deliberately
+// tracked documentation; every other .env* variant stays prohibited.
+const isEnvTemplate = (f) => /(^|\/)\.env\.(example|sample)$/.test(f);
 const trackedEnv = sh("git ls-files")
   .split("\n")
-  .filter((f) => /(^|\/)\.env/.test(f));
+  .filter((f) => /(^|\/)\.env/.test(f) && !isEnvTemplate(f));
 trackedEnv.length === 0
   ? pass("no tracked .env files")
   : fail("no tracked .env files", trackedEnv.join(", "));
@@ -194,7 +197,7 @@ try {
 const FORBIDDEN = [
   { re: /^\.claude(\/|$)/, why: "Claude settings/skills" },
   { re: /^\.agents(\/|$)/, why: "agent scratch dirs" },
-  { re: /(^|\/)\.env/, why: "env files" },
+  { re: /(^|\/)\.env(?!\.(example|sample)$)/, why: "env files" },
   { re: /^package\.json$/, why: "package.json (allow explicitly when scoped)" },
   { re: /^package-lock\.json$/, why: "package-lock.json (allow explicitly when scoped)" },
   { re: /^vite\.config\.js$/, why: "vite config (allow explicitly when scoped)" },

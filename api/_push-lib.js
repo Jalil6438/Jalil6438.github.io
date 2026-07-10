@@ -53,14 +53,36 @@ export function subIdFromEndpoint(endpoint) {
   return createHash("sha256").update(endpoint).digest("base64url").slice(0, 24);
 }
 
+// Strict push-service allowlist (Hafsa audit WP-20260710-AH-REMINDERS-FIX-001,
+// finding 1). Subscription endpoints are attacker-suppliable strings; without
+// this, the backend would store and later POST (VAPID-signed, via
+// webpush.sendNotification) to ANY https URL — an SSRF/relay primitive.
+// Hostnames must exactly match, or be a subdomain of, a known browser push
+// service. Extend deliberately when a new browser matters.
+export const ALLOWED_PUSH_HOSTS = Object.freeze([
+  "fcm.googleapis.com",             // Chrome / Chromium / Brave / Opera
+  "updates.push.services.mozilla.com", // Firefox autopush
+  "push.services.mozilla.com",      // Firefox (regional variants are subdomains)
+  "web.push.apple.com",             // Safari / iOS web push
+  "push.apple.com",                 // Apple (api.push.apple.com etc.)
+  "notify.windows.com",             // Edge (WNS, e.g. *.notify.windows.com)
+  "push.samsungosp.com",            // Samsung Internet
+]);
+
+export function isAllowedPushEndpoint(endpoint) {
+  if (typeof endpoint !== "string" || endpoint.length === 0 || endpoint.length > 1024) return false;
+  let u;
+  try { u = new URL(endpoint); } catch { return false; }
+  if (u.protocol !== "https:" || !u.hostname) return false;
+  const host = u.hostname.toLowerCase();
+  return ALLOWED_PUSH_HOSTS.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+}
+
 // Validate the browser PushSubscription JSON. Returns {ok} or {error}.
 export function validateSubscription(sub) {
   if (!sub || typeof sub !== "object") return { error: "missing subscription" };
   const { endpoint, keys } = sub;
-  if (typeof endpoint !== "string" || endpoint.length > 1024) return { error: "bad endpoint" };
-  let u;
-  try { u = new URL(endpoint); } catch { return { error: "bad endpoint" }; }
-  if (u.protocol !== "https:") return { error: "endpoint must be https" };
+  if (!isAllowedPushEndpoint(endpoint)) return { error: "unsupported push service endpoint" };
   if (!keys || typeof keys.p256dh !== "string" || typeof keys.auth !== "string") return { error: "missing keys" };
   if (keys.p256dh.length > 256 || keys.auth.length > 256) return { error: "bad keys" };
   return { ok: true };

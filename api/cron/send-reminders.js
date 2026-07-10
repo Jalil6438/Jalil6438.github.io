@@ -16,7 +16,7 @@ import webpush from "web-push";
 import {
   SUBS_KEY, LOG_KEY, LOG_CAP, SENT_TTL_SECONDS,
   redis, redisConfigured, vapidConfigured, computeDueSessions,
-  buildReminderPayload, isGonePushError, json,
+  buildReminderPayload, isGonePushError, isAllowedPushEndpoint, json,
 } from "../_push-lib.js";
 
 export default async function handler(req, res) {
@@ -48,6 +48,15 @@ export default async function handler(req, res) {
 
     for (const { id, rec } of subs) {
       counts.checked++;
+      // Never hand a non-allowlisted endpoint to webpush.sendNotification —
+      // covers any record stored before strict endpoint validation existed.
+      // Deleted, not skipped: an invalid endpoint can never become valid.
+      if (!isAllowedPushEndpoint(rec.endpoint)) {
+        await redis([["HDEL", SUBS_KEY, id]]);
+        counts.cleaned++;
+        logEntries.push({ ts: nowMs, sub: id, session: null, ok: false, status: "invalid-endpoint", cleaned: true });
+        continue;
+      }
       // Soft-disabled records are kept but never sent to.
       if (rec.enabled === false) { counts.disabled++; continue; }
       // Reminder-suppression window (e.g. the day is sealed) — skip entirely.

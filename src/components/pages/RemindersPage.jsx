@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AppPage from "./AppPage";
 import { CheckGlyph, BellGlyph } from "../glyphs";
 import { isPushSupported, isPushEnabled, enablePush, disablePush, syncPrefs, sendServerTest } from "../../push/pushClient";
@@ -275,4 +275,3 @@ export default function RemindersPage({ dark, onBack }) {
     </AppPage>
   );
 }
-

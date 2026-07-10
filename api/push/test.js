@@ -9,7 +9,7 @@
 import webpush from "web-push";
 import {
   SUBS_KEY, LOG_KEY, LOG_CAP, redis, redisConfigured, vapidConfigured,
-  subIdFromEndpoint, isGonePushError, json,
+  subIdFromEndpoint, isGonePushError, isAllowedPushEndpoint, json,
 } from "../_push-lib.js";
 
 export default async function handler(req, res) {
@@ -24,6 +24,11 @@ export default async function handler(req, res) {
   if (!body || typeof body.endpoint !== "string" || !body.endpoint) {
     return json(res, 400, { error: "missing endpoint" });
   }
+  // Strict allowlist BEFORE any lookup or send — a test request must never
+  // become a vehicle for pushing to an arbitrary URL.
+  if (!isAllowedPushEndpoint(body.endpoint)) {
+    return json(res, 400, { error: "unsupported push service endpoint" });
+  }
 
   try {
     const id = subIdFromEndpoint(body.endpoint);
@@ -31,6 +36,11 @@ export default async function handler(req, res) {
     if (!raw) return json(res, 404, { ok: false, reason: "not-subscribed" });
     let rec;
     try { rec = JSON.parse(raw); } catch { return json(res, 500, { error: "corrupt record" }); }
+    // Stored record must also pass (covers pre-validation-era records).
+    if (!isAllowedPushEndpoint(rec.endpoint)) {
+      await redis([["HDEL", SUBS_KEY, id]]);
+      return json(res, 200, { ok: false, reason: "expired", cleaned: true });
+    }
 
     // One test per subscription per minute.
     const [{ result: claimed }] = await redis([["SET", `alhifz:push:testlimit:${id}`, "1", "EX", "60", "NX"]]);
