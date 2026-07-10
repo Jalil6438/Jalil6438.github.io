@@ -26,4 +26,19 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Server-side code (Vercel functions), build scripts, and node:test files
+    // run under Node, not the browser.
+    files: ['api/**/*.js', 'scripts/**/*.{js,mjs}', 'tests/**/*.mjs'],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
+    // Service-worker global scope (self, clients, registration).
+    files: ['public/push-sw.js'],
+    languageOptions: {
+      globals: { ...globals.serviceworker },
+    },
+  },
 ])

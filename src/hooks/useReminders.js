@@ -12,6 +12,9 @@ export default function useReminders() {
     const SESSION_LABELS={fajr:"Fajr — memorize today's page",dhuhr:"Dhuhr — review last 5 days",asr:"Asr — revise older juz",maghrib:"Maghrib — listen to today's page",isha:"Isha — final review before sleep"};
     const tick=()=>{
       if(Notification.permission!=="granted") return;
+      // When background push is enabled the server is the source of truth —
+      // skip the in-tab timer so the user doesn't get double notifications.
+      try { if(localStorage.getItem("rihlat-push-enabled")==="1") return; } catch { /* ignore */ }
       let prefs;
       try { prefs=JSON.parse(localStorage.getItem("rihlat-reminders")||"null"); } catch { return; }
       if(!prefs||!prefs.sessions) return;

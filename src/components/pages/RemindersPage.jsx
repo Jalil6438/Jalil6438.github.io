@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import AppPage from "./AppPage";
 import { CheckGlyph, BellGlyph } from "../glyphs";
+import { isPushSupported, isPushEnabled, enablePush, disablePush, syncPrefs } from "../../push/pushClient";
 
 export default function RemindersPage({ dark, onBack }) {
   const DEFAULTS = [
@@ -15,7 +16,7 @@ export default function RemindersPage({ dark, onBack }) {
     try {
       const saved = JSON.parse(localStorage.getItem("rihlat-reminders") || "null");
       if (saved && saved.sessions) return saved;
-    } catch {}
+    } catch { /* ignore */ }
     const sessions = {};
     DEFAULTS.forEach(d => { sessions[d.id] = { enabled: false, time: d.time }; });
     return { sessions };
@@ -24,16 +25,63 @@ export default function RemindersPage({ dark, onBack }) {
     typeof Notification !== "undefined" ? Notification.permission : "unsupported"
   );
 
+  // Background push state: "unsupported" | "off" | "busy" | "on", plus a
+  // one-line status note for failures (denied permission, server not set up).
+  const [pushOn, setPushOn] = useState(() => isPushEnabled());
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushNote, setPushNote] = useState("");
+  const pushSupported = isPushSupported();
+
   useEffect(() => {
-    try { localStorage.setItem("rihlat-reminders", JSON.stringify(prefs)); } catch {}
+    try { localStorage.setItem("rihlat-reminders", JSON.stringify(prefs)); } catch { /* ignore */ }
   }, [prefs]);
+
+  // While push is on, keep the backend copy of times/toggles current.
+  // Debounced so dragging a time input doesn't spam the API.
+  const syncTimer = useRef(null);
+  useEffect(() => {
+    if (!pushOn) return;
+    clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => { syncPrefs(prefs); }, 800);
+    return () => clearTimeout(syncTimer.current);
+  }, [prefs, pushOn]);
+
+  const togglePush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    setPushNote("");
+    try {
+      if (pushOn) {
+        const r = await disablePush();
+        setPushOn(false);
+        if (r.warning) setPushNote("Turned off on this device; server cleanup will finish next sync.");
+      } else {
+        const r = await enablePush(prefs);
+        if (r.ok) {
+          setPushOn(true);
+          setPermission("granted");
+        } else {
+          setPushOn(false);
+          setPushNote(
+            r.reason === "denied" ? "Notifications are blocked — re-enable them in your browser's site settings." :
+            r.reason === "dismissed" ? "Permission request was dismissed. Tap again to retry." :
+            r.reason === "server-not-configured" ? "Background delivery isn't switched on for this server yet. In-app reminders still work." :
+            r.reason === "unsupported" ? "This browser can't do background push. In-app reminders still work." :
+            "Couldn't enable background delivery. In-app reminders still work."
+          );
+        }
+      }
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const requestPermission = async () => {
     if (typeof Notification === "undefined") return;
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const toggleSession = (id) => {
@@ -45,7 +93,7 @@ export default function RemindersPage({ dark, onBack }) {
 
   const sendTest = () => {
     if (permission !== "granted") return;
-    try { new Notification("Al-Hifz", { body: "Notifications are working — bismillah." }); } catch {}
+    try { new Notification("Al-Hifz", { body: "Notifications are working — bismillah." }); } catch { /* ignore */ }
   };
 
   const enabledCount = DEFAULTS.filter(d => prefs.sessions[d.id]?.enabled).length;
@@ -92,6 +140,45 @@ export default function RemindersPage({ dark, onBack }) {
           }}>Test</div>
         )}
       </div>
+
+      {/* Background delivery card — real web push (works with the app closed)
+          once enabled; falls back to in-tab reminders otherwise. */}
+      {pushSupported && (
+        <div style={{
+          marginBottom: 16, padding: "12px 14px", borderRadius: 12,
+          background: pushOn ? (dark ? "rgba(56,214,126,0.08)" : "rgba(20,140,60,0.06)") : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
+          border: `1px solid ${pushOn ? (dark ? "rgba(56,214,126,0.30)" : "rgba(20,140,60,0.25)") : (dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)")}`,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: dark ? "#F3E7C8" : "#2D2A26" }}>
+                Background delivery
+              </div>
+              <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", marginTop: 2, lineHeight: 1.4 }}>
+                {pushOn ? "Reminders arrive even when the app is closed." : "Get reminders even when the app is closed."}
+              </div>
+            </div>
+            <div className="sbtn" onClick={togglePush} style={{
+              width: 40, height: 22, borderRadius: 999, position: "relative", opacity: pushBusy ? 0.5 : 1,
+              background: pushOn
+                ? (dark ? "linear-gradient(90deg,#38D67E,#6EE7A8)" : "linear-gradient(90deg,#148C3C,#4ADE80)")
+                : (dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.15)"),
+              cursor: "pointer", transition: "background .2s",
+            }}>
+              <div style={{
+                width: 18, height: 18, borderRadius: "50%", background: "#fff",
+                position: "absolute", top: 2, left: pushOn ? 20 : 2,
+                transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+              }}/>
+            </div>
+          </div>
+          {pushNote && (
+            <div style={{ fontSize: 10, color: dark ? "rgba(230,184,74,0.80)" : "#8B6A10", marginTop: 8, lineHeight: 1.5 }}>
+              {pushNote}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Per-session rows */}
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -146,8 +233,11 @@ export default function RemindersPage({ dark, onBack }) {
       </div>
 
       <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355", textAlign: "center", marginTop: 18, lineHeight: 1.6, fontStyle: "italic" }}>
-        Reminders fire only while the app is open in your browser. For background nudges, install the app to your home screen.
+        {pushOn
+          ? "Background delivery is on — reminders arrive even when the app is closed. Your reminder times and timezone are stored to schedule them; nothing else leaves this device."
+          : "Without background delivery, reminders fire only while the app is open. On iPhone/iPad, install the app to your home screen first to enable background delivery."}
       </div>
     </AppPage>
   );
 }
+

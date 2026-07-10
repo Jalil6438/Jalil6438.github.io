@@ -32,6 +32,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Background reminders: the generated SW pulls in the push +
+        // notificationclick handlers (public/push-sw.js) so pushes display
+        // even with no tab open.
+        importScripts: ['push-sw.js'],
         // SPA navigations fall back to the shell when offline (but never /api/*).
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//],
