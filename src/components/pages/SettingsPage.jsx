@@ -2,6 +2,22 @@ import React, { useState } from "react";
 import AppPage from "./AppPage";
 import { WarnGlyph } from "../glyphs";
 import { APP_NAME, APP_VERSION, RELEASE_YEAR } from "../../releaseInfo";
+import { disablePush } from "../../push/pushClient";
+
+// Wipe every local trace AND remove the server-side reminder subscription so a
+// reset device stops receiving pushes. disablePush is best-effort (it always
+// resolves and never throws); the race guard keeps a slow/stuck service worker
+// from blocking the wipe.
+async function resetAllData() {
+  try {
+    await Promise.race([
+      disablePush(),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
+  } catch { /* never let cleanup block the wipe */ }
+  try { localStorage.clear(); sessionStorage.clear(); } catch { /* ignore */ }
+  setTimeout(() => location.reload(), 50);
+}
 
 // Medallion row icon — shares the side-drawer icon family so Settings reads as
 // part of the same premium system. Decorative; the adjacent label names the row.
@@ -126,11 +142,11 @@ export default function SettingsPage({ dark, T, onBack, setAppPage, setDark }) {
             <div style={{ display: "flex", justifyContent: "center", color: "#E5534B", marginBottom: 8 }}><WarnGlyph size={34} /></div>
             <div style={{ fontSize: 16, fontWeight: 700, color: dark ? "#F3E7C8" : "#3D2E0A", marginBottom: 8 }}>Reset All Progress?</div>
             <div style={{ fontSize: 12, color: dark ? "rgba(243,231,200,0.60)" : "#6B645A", lineHeight: 1.6, marginBottom: 18 }}>
-              This will erase all your memorized juz, streaks, bookmarks, and settings. This cannot be undone.
+              This will erase all your memorized juz, streaks, bookmarks, and settings, and turn off reminders on this device. This cannot be undone.
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <div className="sbtn" onClick={() => setShowResetConfirm(false)} style={{ flex: 1, padding: "11px", borderRadius: 10, textAlign: "center", fontSize: 13, fontWeight: 600, color: T?.text || (dark ? "#F3E7C8" : "#2D2A26"), background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}` }}>Cancel</div>
-              <div className="sbtn" onClick={() => { localStorage.clear(); sessionStorage.clear(); setTimeout(() => location.reload(), 50); }} style={{ flex: 1, padding: "11px", borderRadius: 10, textAlign: "center", fontSize: 13, fontWeight: 700, color: "#fff", background: "#E5534B", border: "1px solid #E5534B" }}>Reset</div>
+              <div className="sbtn" onClick={resetAllData} style={{ flex: 1, padding: "11px", borderRadius: 10, textAlign: "center", fontSize: 13, fontWeight: 700, color: "#fff", background: "#E5534B", border: "1px solid #E5534B" }}>Reset</div>
             </div>
           </div>
         </div>
