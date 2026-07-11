@@ -47,19 +47,19 @@ Full write-site evidence is in the packet audit; keys are centralized in `src/ba
 ```
 DEVICE (localStorage)                         SERVER (Vercel fn + Upstash)                 THIRD PARTIES
 ─────────────────────                         ────────────────────────────                ─────────────
-progress/reflections/                                                                     
-bookmarks/settings ──(never transmitted)                                                  
-                                                                                          
+progress/reflections/
+bookmarks/settings ──(never transmitted)
+
 alhifz_did + open/install ───POST /api/stats──▶ counters + country + monthly/all-time    Upstash (store)
                                                  device-id sets                            Vercel edge (IP→country)
-                                                                                          
-[if reminders ON]                                                                         
+
+[if reminders ON]
 endpoint+keys+tz+times+did ─POST /api/push/subscribe─▶ alhifz:push:subs (keyed by         Upstash (store)
-                                                 sha256(endpoint))                        
-                                                        │                                 
+                                                 sha256(endpoint))
+                                                        │
                               Vercel Cron / QStash ─────▶ /api/cron/send-reminders ──────▶ FCM / Mozilla /
                                                  (dedupe, timezone)   VAPID-signed push    Apple / WNS / Samsung
-                                                                                          
+
 content fetches (verse text, audio, fonts) ──────────────────────────────────────────▶  quran.com + CDNs,
                                                  (direct from device; IP+UA+path seen)    jsDelivr, Google Fonts,
                                                                                           archive.org, YouTube embeds
