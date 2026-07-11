@@ -6,6 +6,6 @@
 // the two agree and that no page hardcodes its own version string.
 
 export const APP_NAME = "Al-Hifz";
-export const APP_VERSION = "1.5.3";
+export const APP_VERSION = "1.6.0";
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const RELEASE_YEAR = "2026";

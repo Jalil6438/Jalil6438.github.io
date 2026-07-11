@@ -22,6 +22,51 @@ Release procedure (summary):
 
 ---
 
+## v1.6.0 - 2026-07 (RELEASE BOUNDARY CLOSED — NOT YET PROMOTED TO PRODUCTION)
+
+v1.6.0 — Background reminder (web-push) backend
+
+- Status: version boundary closed on `work/al-hifz-v1.6.0-backend-reminders`;
+  Preview-validated on a real device. **Production still on v1.5.3 / 210ebee.**
+  This entry documents the release scope; the Deployment/rollback/post-deploy
+  fields stay blank until a future packet authorizes promotion.
+- Production URL: https://al-hifz.noortechstudios.com (unchanged — still v1.5.3)
+- Deployment URL: (not deployed to production — Preview only)
+- Branch: work/al-hifz-v1.6.0-backend-reminders (version bump on top of fdcbfdc)
+- Production base commit: 210ebee10e1b0d2cf85bf9e5aa3d7099e1b41d71 (v1.5.3 = live production)
+- Release commit: (version-bump commit — see git log tip of this branch)
+- Scope: background reminder delivery via Web Push (VAPID), server-driven so
+  notifications fire with no app tab open. Included:
+    * Reminder scheduler endpoint (`api/cron/send-reminders.js`) — timezone-aware
+      per-user reminder processing, triggered by Vercel Cron (`vercel.json`,
+      `0 3 * * *`, Hobby-plan-compatible) and QStash-compatible (bearer-auth trigger).
+    * Push subscription registration (`api/push/subscribe.js`) + VAPID public-key
+      endpoint (`api/push/key.js`) + shared push library (`api/_push-lib.js`).
+    * Service-worker push + notificationclick deep-link handler (`public/push-sw.js`),
+      pulled into the generated PWA SW via `workbox.importScripts` (`vite.config.js`).
+    * Client subscription + reminders UI (`src/push/pushClient.js`,
+      `src/hooks/useReminders.js`, `src/components/pages/RemindersPage.jsx`,
+      wired in `src/quran-hifz-tracker.jsx`).
+    * Duplicate-prevention / retryable-delivery correctness fixes (246ebdf, fdcbfdc).
+    * Tests: `tests/push-reminders.test.mjs`, `tests/reminder-dispatch.test.mjs`.
+    * Docs: `docs/PUSH_NOTIFICATIONS.md`; `.env.example` documents required env
+      var NAMES only (no secrets).
+- Preview device validation (completed on a fresh Preview, fdcbfdc):
+    * QStash scheduled delivery — PASS
+    * Closed-app Fajr notification (no tab open) — PASS
+    * Notification tap / deep-link into the app — PASS
+    * Duplicate prevention (no double-sends) — PASS
+- Excluded work: no production deploy, no production QStash retarget, no secret
+  rotation; Isha-lock/streak/Asr changes remain quarantined on the codex recovery
+  branch; no adhān/custom notification audio (deferred); no native iOS packaging in
+  this version boundary (tracked separately in the App Store readiness packet).
+- Codex/Hafsa audit result: reminder pipeline PASS-WITH-CONDITIONS (dedupe fix
+  fdcbfdc verified); version-bump audit pending.
+- Post-deploy version check: N/A — not promoted to production. Verified on Preview
+  that `/api/version` reports version v1.6.0 with the correct commit and environment.
+
+---
+
 ## v1.5.3 - 2026-07
 
 v1.5.3 — Side-menu icon-size regression fix
