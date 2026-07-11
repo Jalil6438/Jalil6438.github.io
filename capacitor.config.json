@@ -1,0 +1,15 @@
+{
+  "appId": "com.noortechstudios.alhifz",
+  "appName": "Al-Hifz",
+  "webDir": "dist",
+  "backgroundColor": "#060A07",
+  "ios": {
+    "backgroundColor": "#060A07",
+    "contentInset": "never",
+    "scrollEnabled": true,
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "server": {
+    "iosScheme": "capacitor"
+  }
+}

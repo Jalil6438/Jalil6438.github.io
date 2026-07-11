@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover lets the app's existing env(safe-area-inset-*) CSS
+         take effect on notched / home-indicator devices (iOS PWA + Capacitor
+         WKWebView). Without it, safe-area insets resolve to 0 and the tab bar
+         overlaps the home indicator. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Al-Hifz</title>
     <meta
       name="description"
