@@ -2,15 +2,53 @@
 // endpoint). Storage is Upstash Redis via REST, same convention as api/stats.js
 // — no SDK, graceful zeros when the datastore isn't configured.
 //
-// Redis layout:
+// Redis layout (every key is env-namespaced by nsKey below so Preview and
+// Production can never share data — e.g. prod:alhifz:push:subs):
 //   alhifz:push:subs                     HASH  subId -> JSON subscription record
 //   alhifz:push:sent:<subId>:<sid>:<day> STRING dedupe marker (SET NX EX 48h)
+//   alhifz:push:proc:<subId>:<sid>:<day> STRING processing lock (SET NX EX 120s)
+//   alhifz:push:testlimit:<subId>        STRING manual-test rate limit (EX 60s)
+//   alhifz:push:sublimit:<ip>            STRING subscribe rate limit (INCR + EX)
 //   alhifz:push:log                      LIST  newest-first delivery log, capped
 
 import { createHash } from "node:crypto";
 
-export const SUBS_KEY = "alhifz:push:subs";
-export const LOG_KEY = "alhifz:push:log";
+// ── Environment namespacing ──────────────────────────────────────────────
+// Vercel sets VERCEL_ENV to production|preview|development. Every Redis key is
+// prefixed with a short env token so a Preview (or local) deployment can never
+// read or write Production data. Missing/invalid VERCEL_ENV FAILS CLOSED
+// (throws) rather than silently defaulting to a shared/production keyspace; each
+// handler turns that throw into a safe non-write response. Tests and
+// `vercel dev` set VERCEL_ENV explicitly.
+export function envNamespace() {
+  switch (process.env.VERCEL_ENV) {
+    case "production": return "prod";
+    case "preview": return "preview";
+    case "development": return "dev";
+    default:
+      throw new Error(
+        `VERCEL_ENV must be production|preview|development (got ${
+          process.env.VERCEL_ENV === undefined ? "unset" : `"${process.env.VERCEL_ENV}"`
+        })`
+      );
+  }
+}
+
+// Namespaced Redis key. Resolved at CALL time (never module load) so the
+// namespace is per-request and tests can set VERCEL_ENV before use.
+export function nsKey(base) {
+  return `${envNamespace()}:${base}`;
+}
+
+// Key builders — single source of truth. Handlers AND tests import these so key
+// names (and their namespace) can never drift apart.
+export const subsKey = () => nsKey("alhifz:push:subs");
+export const logKey = () => nsKey("alhifz:push:log");
+export const sentKey = (subId, sid, dayKey) => nsKey(`alhifz:push:sent:${subId}:${sid}:${dayKey}`);
+export const procKey = (subId, sid, dayKey) => nsKey(`alhifz:push:proc:${subId}:${sid}:${dayKey}`);
+export const testLimitKey = (subId) => nsKey(`alhifz:push:testlimit:${subId}`);
+export const subLimitKey = (ip) => nsKey(`alhifz:push:sublimit:${ip}`);
+
 export const LOG_CAP = 500;
 // DELIVERED marker TTL: a reminder confirmed delivered is suppressed for the
 // rest of its local day and then re-arms tomorrow (dayKey rolls over).
@@ -25,6 +63,16 @@ export const PROC_TTL_SECONDS = 120;
 // A reminder fires if the cron lands within this many minutes after the
 // configured time — wide enough for a */15 cron cadence plus jitter.
 export const GRACE_MINUTES = 30;
+
+// Subscribe rate limit: at most SUB_RATE_LIMIT create/update/replace/toggle
+// requests per client IP per SUB_RATE_WINDOW_SECONDS (fixed window via
+// INCR + EXPIRE NX). Sized to absorb normal multi-open / multi-device /
+// shared-NAT traffic — autoResync re-subscribes on every app open — while
+// bounding mass fake-subscription and rapid-retry abuse. `unsubscribe` is
+// exempt (it only deletes). Shared IPs behind carrier/office NAT are the
+// tradeoff; a per-endpoint or proof-of-work layer could tighten it later.
+export const SUB_RATE_LIMIT = 30;
+export const SUB_RATE_WINDOW_SECONDS = 60;
 
 export const SESSION_LABELS = {
   fajr: "Fajr — memorize today's page",

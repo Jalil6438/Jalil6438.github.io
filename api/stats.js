@@ -5,9 +5,12 @@
  *      event "user"    -> a new reciter (counted once per device, client-side)
  *      event "install" -> a PWA install
  *
- * Backed by Upstash Redis (REST API — no SDK needed).
+ * Backed by Upstash Redis (REST API — no SDK needed). Every key is
+ * environment-namespaced (nsKey) so Preview and Production stats never mix.
  * Returns zeros and never errors if the datastore isn't configured yet.
  */
+
+import { nsKey, envNamespace } from "./_push-lib.js";
 
 const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
 const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -15,7 +18,7 @@ const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 function monthKey() {
   const d = new Date();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  return `alhifz:active:${d.getUTCFullYear()}-${m}`;
+  return nsKey(`alhifz:active:${d.getUTCFullYear()}-${m}`);
 }
 
 async function pipeline(commands) {
@@ -44,6 +47,14 @@ export default async function handler(req, res) {
       .json({ reciters: 0, countries: 0, activeThisMonth: 0, installs: 0, opens: 0, configured: false });
   }
 
+  // Fail closed if the environment namespace is missing/invalid — never write
+  // to a default or Production keyspace by accident. Safe no-op response.
+  try { envNamespace(); } catch {
+    return res
+      .status(200)
+      .json({ reciters: 0, countries: 0, activeThisMonth: 0, installs: 0, opens: 0, configured: false });
+  }
+
   try {
     if (req.method === "POST") {
       const event = String(req.body?.event || "");
@@ -53,10 +64,10 @@ export default async function handler(req, res) {
       const cmds = [];
 
       if (event === "open") {
-        cmds.push(["INCR", "alhifz:opens"]);
+        cmds.push(["INCR", nsKey("alhifz:opens")]);
         // Country (no PII — just the 2-letter code Vercel attaches at the edge).
         const country = req.headers["x-vercel-ip-country"];
-        if (country && country !== "XX") cmds.push(["SADD", "alhifz:countries", country]);
+        if (country && country !== "XX") cmds.push(["SADD", nsKey("alhifz:countries"), country]);
         // Monthly-active: this device, this calendar month. Retention: the
         // monthly set self-expires (~13 months) so device ids don't accumulate
         // indefinitely — the current month's count is unaffected.
@@ -65,11 +76,11 @@ export default async function handler(req, res) {
           cmds.push(["EXPIRE", monthKey(), 60 * 60 * 24 * 400]);
         }
         // All-time unique reciters — server-side set, self-healing (doesn't rely on a client-side flag).
-        if (id) cmds.push(["SADD", "alhifz:reciters", id]);
+        if (id) cmds.push(["SADD", nsKey("alhifz:reciters"), id]);
       } else if (event === "user") {
-        cmds.push(["INCR", "alhifz:users"]);
+        cmds.push(["INCR", nsKey("alhifz:users")]);
       } else if (event === "install") {
-        cmds.push(["INCR", "alhifz:installs"]);
+        cmds.push(["INCR", nsKey("alhifz:installs")]);
       } else {
         return res.status(400).json({ error: "unknown event" });
       }
@@ -79,11 +90,11 @@ export default async function handler(req, res) {
     }
 
     const out = await pipeline([
-      ["SCARD", "alhifz:reciters"],
-      ["SCARD", "alhifz:countries"],
+      ["SCARD", nsKey("alhifz:reciters")],
+      ["SCARD", nsKey("alhifz:countries")],
       ["SCARD", monthKey()],
-      ["GET", "alhifz:installs"],
-      ["GET", "alhifz:opens"],
+      ["GET", nsKey("alhifz:installs")],
+      ["GET", nsKey("alhifz:opens")],
     ]);
     const n = (i) => Number(out?.[i]?.result ?? 0) || 0;
     return res.status(200).json({

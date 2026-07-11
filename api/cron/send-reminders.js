@@ -14,15 +14,19 @@
 
 import webpush from "web-push";
 import {
-  SUBS_KEY, LOG_KEY, LOG_CAP, SENT_TTL_SECONDS, PROC_TTL_SECONDS,
+  subsKey, logKey, sentKey, procKey, LOG_CAP, SENT_TTL_SECONDS, PROC_TTL_SECONDS,
   redis, redisConfigured, vapidConfigured, computeDueSessions,
-  buildReminderPayload, isGonePushError, isAllowedPushEndpoint, json,
+  buildReminderPayload, isGonePushError, isAllowedPushEndpoint, json, envNamespace,
 } from "../_push-lib.js";
 
 export default async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
   if (!secret) return json(res, 503, { error: "cron not configured" });
   if (req.headers.authorization !== `Bearer ${secret}`) return json(res, 401, { error: "unauthorized" });
+
+  // Fail closed if the environment namespace is missing/invalid — never touch a
+  // default or Production keyspace by accident.
+  try { envNamespace(); } catch { return json(res, 503, { error: "environment not configured" }); }
 
   if (!redisConfigured() || !vapidConfigured()) {
     return json(res, 200, { ok: true, configured: false, sent: 0 });
@@ -39,7 +43,7 @@ export default async function handler(req, res) {
   const logEntries = [];
 
   try {
-    const [{ result: flat }] = await redis([["HGETALL", SUBS_KEY]]);
+    const [{ result: flat }] = await redis([["HGETALL", subsKey()]]);
     // Upstash returns HGETALL as a flat [field, value, ...] array.
     const subs = [];
     for (let i = 0; i + 1 < (flat || []).length; i += 2) {
@@ -52,7 +56,7 @@ export default async function handler(req, res) {
       // covers any record stored before strict endpoint validation existed.
       // Deleted, not skipped: an invalid endpoint can never become valid.
       if (!isAllowedPushEndpoint(rec.endpoint)) {
-        await redis([["HDEL", SUBS_KEY, id]]);
+        await redis([["HDEL", subsKey(), id]]);
         counts.cleaned++;
         logEntries.push({ ts: nowMs, sub: id, session: null, ok: false, status: "invalid-endpoint", cleaned: true });
         continue;
@@ -70,17 +74,17 @@ export default async function handler(req, res) {
         //   processing  = short-lived lock `proc:*` (SET NX EX) — one run only
         //   delivered   = long-lived marker `sent:*` written AFTER a good send
         //   failed      = no marker; lock released so the next run retries
-        const sentKey = `alhifz:push:sent:${id}:${sid}:${dayKey}`;
-        const procKey = `alhifz:push:proc:${id}:${sid}:${dayKey}`;
+        const sKey = sentKey(id, sid, dayKey);
+        const pKey = procKey(id, sid, dayKey);
 
         // (1) Claim the processing lock. Loser (another run in-flight, or a
         // still-cooling lock from a recent delivery) defers this run.
-        const [{ result: locked }] = await redis([["SET", procKey, "1", "EX", String(PROC_TTL_SECONDS), "NX"]]);
+        const [{ result: locked }] = await redis([["SET", pKey, "1", "EX", String(PROC_TTL_SECONDS), "NX"]]);
         if (locked !== "OK") { counts.duplicates++; continue; }
 
         // (2) Re-check the delivered marker UNDER the lock — closes the
         // check-then-act gap and suppresses an already-delivered reminder.
-        const [{ result: already }] = await redis([["GET", sentKey]]);
+        const [{ result: already }] = await redis([["GET", sKey]]);
         if (already) { counts.duplicates++; continue; }
 
         const payload = JSON.stringify(buildReminderPayload(sid, dayKey));
@@ -92,7 +96,7 @@ export default async function handler(req, res) {
           );
           // (3a) Delivered: write the long-lived marker; leave the processing
           // lock to expire (the marker now owns dedupe for the local day).
-          await redis([["SET", sentKey, "1", "EX", String(SENT_TTL_SECONDS)]]);
+          await redis([["SET", sKey, "1", "EX", String(SENT_TTL_SECONDS)]]);
           counts.sent++;
           logEntries.push({ ts: nowMs, sub: id, session: sid, day: dayKey, ok: true });
         } catch (e) {
@@ -100,13 +104,13 @@ export default async function handler(req, res) {
           if (isGonePushError(status)) {
             // (3b) Subscription expired/revoked — server-side cleanup. The
             // reminder is moot; the processing lock expires on its own.
-            await redis([["HDEL", SUBS_KEY, id]]);
+            await redis([["HDEL", subsKey(), id]]);
             counts.cleaned++;
             logEntries.push({ ts: nowMs, sub: id, session: sid, day: dayKey, ok: false, status, cleaned: true });
           } else {
             // (3c) Transient failure — release the lock NOW so the next
             // eligible run retries. NOT recorded as delivered.
-            await redis([["DEL", procKey]]);
+            await redis([["DEL", pKey]]);
             counts.errors++;
             logEntries.push({ ts: nowMs, sub: id, session: sid, day: dayKey, ok: false, status: status || "network" });
           }
@@ -115,9 +119,10 @@ export default async function handler(req, res) {
     }
 
     if (logEntries.length) {
+      const lKey = logKey();
       await redis([
-        ["LPUSH", LOG_KEY, ...logEntries.map((e) => JSON.stringify(e))],
-        ["LTRIM", LOG_KEY, "0", String(LOG_CAP - 1)],
+        ["LPUSH", lKey, ...logEntries.map((e) => JSON.stringify(e))],
+        ["LTRIM", lKey, "0", String(LOG_CAP - 1)],
       ]);
     }
     return json(res, 200, { ok: true, configured: true, ...counts });

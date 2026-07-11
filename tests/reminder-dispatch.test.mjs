@@ -10,9 +10,11 @@ import { test, beforeEach, after } from "node:test";
 import assert from "node:assert/strict";
 import webpush from "web-push";
 import handler from "../api/cron/send-reminders.js";
-import { SENT_TTL_SECONDS, PROC_TTL_SECONDS } from "../api/_push-lib.js";
+import {
+  SENT_TTL_SECONDS, PROC_TTL_SECONDS,
+  subsKey, logKey, sentKey, procKey, testLimitKey,
+} from "../api/_push-lib.js";
 
-const SUBS_KEY = "alhifz:push:subs";
 const SECRET = "unit-test-cron-secret";
 const AUTH = `Bearer ${SECRET}`;
 
@@ -75,6 +77,7 @@ let ctx;                 // { store, sends } refreshed per test
 function setSend(fn) { webpush.sendNotification = fn; }
 
 beforeEach(() => {
+  process.env.VERCEL_ENV = "development"; // namespaced keys resolve to dev:*
   process.env.CRON_SECRET = SECRET;
   process.env.UPSTASH_REDIS_REST_URL = "https://mock.invalid";
   process.env.UPSTASH_REDIS_REST_TOKEN = "tok";
@@ -114,12 +117,12 @@ function seedSub({ sessions, tz = 0, enabled = true, lockedUntil } = {}) {
     keys: { p256dh: "P", auth: "A" },
     enabled, tz, prefs: { sessions }, lockedUntil, updatedAt: ctx.store.clock.now,
   };
-  ctx.store.hset(SUBS_KEY, SUB_ID, JSON.stringify(rec));
+  ctx.store.hset(subsKey(), SUB_ID, JSON.stringify(rec));
   return rec;
 }
 const oneInWindow = () => ({ fajr: { enabled: true, time: hhmmAgo(2) } });
-const sentKeyFor = (sid, minsAgo) => `alhifz:push:sent:${SUB_ID}:${sid}:${dayKeyAgo(minsAgo)}`;
-const procKeyFor = (sid, minsAgo) => `alhifz:push:proc:${SUB_ID}:${sid}:${dayKeyAgo(minsAgo)}`;
+const sentKeyFor = (sid, minsAgo) => sentKey(SUB_ID, sid, dayKeyAgo(minsAgo));
+const procKeyFor = (sid, minsAgo) => procKey(SUB_ID, sid, dayKeyAgo(minsAgo));
 
 async function run(auth = AUTH) { const r = res(); await handler(req(auth), r); return r; }
 
@@ -193,13 +196,13 @@ test("an expired processing claim recovers on a later run", async () => {
 test("a manual-test rate-limit key does not affect scheduled dedupe", async () => {
   seedSub({ sessions: oneInWindow() });
   // The manual test path (api/push/test.js) uses a disjoint namespace.
-  ctx.store.strings.set(`alhifz:push:testlimit:${SUB_ID}`, { val: "1", expireAt: ctx.store.clock.now + 60000 });
-  ctx.store.lists.set("alhifz:push:log", [JSON.stringify({ ts: 1, sub: SUB_ID, session: "test", ok: true })]);
+  ctx.store.strings.set(testLimitKey(SUB_ID), { val: "1", expireAt: ctx.store.clock.now + 60000 });
+  ctx.store.lists.set(logKey(), [JSON.stringify({ ts: 1, sub: SUB_ID, session: "test", ok: true })]);
 
   const r = await run();
   assert.equal(r._b.sent, 1, "scheduled reminder still sends despite a prior manual test");
   assert.ok(ctx.store.has(sentKeyFor("fajr", 2)));
-  assert.ok(ctx.store.has(`alhifz:push:testlimit:${SUB_ID}`), "manual-test key untouched");
+  assert.ok(ctx.store.has(testLimitKey(SUB_ID)), "manual-test key untouched");
 });
 
 // ── 7. A different due session can still send after another is handled ──
@@ -223,7 +226,7 @@ test("a delivered marker for a different day does not block today", async () => 
   // Seed yesterday's delivered marker for the same session.
   const y = new Date(Date.now() - 2 * 60000 - 24 * 3600 * 1000);
   const yKey = `${y.getUTCFullYear()}-${String(y.getUTCMonth() + 1).padStart(2, "0")}-${String(y.getUTCDate()).padStart(2, "0")}`;
-  ctx.store.strings.set(`alhifz:push:sent:${SUB_ID}:fajr:${yKey}`, { val: "1", expireAt: ctx.store.clock.now + SENT_TTL_SECONDS * 1000 });
+  ctx.store.strings.set(sentKey(SUB_ID, "fajr", yKey), { val: "1", expireAt: ctx.store.clock.now + SENT_TTL_SECONDS * 1000 });
 
   const r = await run();
   assert.equal(r._b.sent, 1, "today's reminder is scoped to today's dayKey");
@@ -266,5 +269,5 @@ test("outside-window and disabled sessions do not send; 410 cleans up", async ()
   const r3 = await run();
   assert.equal(r3._b.cleaned, 1);
   assert.equal(r3._b.errors, 0);
-  assert.equal(ctx.store.getStr(SUBS_KEY) === null || !ctx.store.hashes.get(SUBS_KEY)?.has(SUB_ID), true, "subscription removed");
+  assert.equal(ctx.store.getStr(subsKey()) === null || !ctx.store.hashes.get(subsKey())?.has(SUB_ID), true, "subscription removed");
 });
