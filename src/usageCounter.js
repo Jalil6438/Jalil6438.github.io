@@ -1,7 +1,9 @@
 // Fire-and-forget usage counter -> /api/stats (Upstash-backed).
-// Completely safe: if the endpoint isn't configured/reachable, it silently no-ops
-// and never affects the app. No personal data — just an anonymous device id so
-// "reciting this month" counts people, not page refreshes.
+// If the endpoint isn't configured/reachable it silently no-ops and never
+// affects the app. No names, emails, or accounts — just a random per-device id
+// (alhifz_did) so "reciting this month" counts people, not page refreshes.
+// This IS anonymous aggregate analytics and is disclosed as such in the in-app
+// Privacy page (src/components/pages/TermsPage.jsx); keep the two in sync.
 
 function deviceId() {
   try {
