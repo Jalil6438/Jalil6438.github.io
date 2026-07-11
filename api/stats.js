@@ -47,7 +47,9 @@ export default async function handler(req, res) {
   try {
     if (req.method === "POST") {
       const event = String(req.body?.event || "");
-      const id = String(req.body?.id || "");
+      // Bound the device id so a hostile caller can't store oversized set
+      // members (the client id is a 36-char UUID; 64 leaves headroom).
+      const id = String(req.body?.id || "").slice(0, 64);
       const cmds = [];
 
       if (event === "open") {
@@ -55,8 +57,13 @@ export default async function handler(req, res) {
         // Country (no PII — just the 2-letter code Vercel attaches at the edge).
         const country = req.headers["x-vercel-ip-country"];
         if (country && country !== "XX") cmds.push(["SADD", "alhifz:countries", country]);
-        // Monthly-active: this device, this calendar month.
-        if (id) cmds.push(["SADD", monthKey(), id]);
+        // Monthly-active: this device, this calendar month. Retention: the
+        // monthly set self-expires (~13 months) so device ids don't accumulate
+        // indefinitely — the current month's count is unaffected.
+        if (id) {
+          cmds.push(["SADD", monthKey(), id]);
+          cmds.push(["EXPIRE", monthKey(), 60 * 60 * 24 * 400]);
+        }
         // All-time unique reciters — server-side set, self-healing (doesn't rely on a client-side flag).
         if (id) cmds.push(["SADD", "alhifz:reciters", id]);
       } else if (event === "user") {
