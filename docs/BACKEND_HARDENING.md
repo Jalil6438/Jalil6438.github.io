@@ -29,6 +29,13 @@ reminder behavior intact).
 All are **prod-safe and additive** unless noted. None is required to ship the
 privacy disclosure fix; they harden the backend for the native release.
 
+> **Status update (Backend Hardening Phase 1 — WP-...-001-CLEANUP follow-up):**
+> Items **#1 (subscribe rate limit)** and **#2 (env namespacing)** are now
+> IMPLEMENTED — per-IP rate limiting on `api/push/subscribe.js` (unsubscribe
+> exempt) and `VERCEL_ENV` key namespacing across all reminder + stats keys with
+> fail-closed behavior. See `docs/REDIS_ENV_NAMESPACING.md` for the rollout /
+> migration condition. Items #3–#7 remain open for a later slice.
+
 | # | Issue | Severity | Evidence | Fix | Notes |
 |---|---|---|---|---|---|
 | 1 | `/api/push/subscribe` is unauthenticated with no rate limit or cap → mass fake subscriptions can grow Upstash unbounded | **High** | `subscribe.js` (no limiter) | Per-IP token bucket (reuse the `SET … EX NX` pattern from `test.js:46`) and/or an `HLEN` ceiling before `HSET` | Additive |
