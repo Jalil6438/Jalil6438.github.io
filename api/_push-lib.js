@@ -12,7 +12,16 @@ import { createHash } from "node:crypto";
 export const SUBS_KEY = "alhifz:push:subs";
 export const LOG_KEY = "alhifz:push:log";
 export const LOG_CAP = 500;
+// DELIVERED marker TTL: a reminder confirmed delivered is suppressed for the
+// rest of its local day and then re-arms tomorrow (dayKey rolls over).
 export const SENT_TTL_SECONDS = 48 * 60 * 60;
+// PROCESSING-claim TTL: a short-lived lock one run holds while it attempts a
+// send, so concurrent/overlapping runs can't double-send. It is released on a
+// transient failure (immediate retry) and otherwise left to expire — sized
+// well above any single push round-trip and above the serverless function's
+// own max duration, so a live send can never outlive its own lock, while a
+// crashed run still recovers on the next cadence.
+export const PROC_TTL_SECONDS = 120;
 // A reminder fires if the cron lands within this many minutes after the
 // configured time — wide enough for a */15 cron cadence plus jitter.
 export const GRACE_MINUTES = 30;

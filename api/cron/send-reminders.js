@@ -14,7 +14,7 @@
 
 import webpush from "web-push";
 import {
-  SUBS_KEY, LOG_KEY, LOG_CAP, SENT_TTL_SECONDS,
+  SUBS_KEY, LOG_KEY, LOG_CAP, SENT_TTL_SECONDS, PROC_TTL_SECONDS,
   redis, redisConfigured, vapidConfigured, computeDueSessions,
   buildReminderPayload, isGonePushError, isAllowedPushEndpoint, json,
 } from "../_push-lib.js";
@@ -65,11 +65,23 @@ export default async function handler(req, res) {
       const due = computeDueSessions({ prefs: rec.prefs, tzOffsetMinutes: rec.tz, nowMs, lockedUntilMs: rec.lockedUntil });
       for (const { id: sid, dayKey } of due) {
         counts.due++;
-        // Atomic once-per-local-day claim; duplicate prevention across
-        // overlapping or retried cron runs.
+        // Two-phase dedupe so a FAILED push stays retryable while concurrent
+        // or overlapping runs still can't double-send. Three explicit states:
+        //   processing  = short-lived lock `proc:*` (SET NX EX) — one run only
+        //   delivered   = long-lived marker `sent:*` written AFTER a good send
+        //   failed      = no marker; lock released so the next run retries
         const sentKey = `alhifz:push:sent:${id}:${sid}:${dayKey}`;
-        const [{ result: claimed }] = await redis([["SET", sentKey, "1", "EX", String(SENT_TTL_SECONDS), "NX"]]);
-        if (claimed !== "OK") { counts.duplicates++; continue; }
+        const procKey = `alhifz:push:proc:${id}:${sid}:${dayKey}`;
+
+        // (1) Claim the processing lock. Loser (another run in-flight, or a
+        // still-cooling lock from a recent delivery) defers this run.
+        const [{ result: locked }] = await redis([["SET", procKey, "1", "EX", String(PROC_TTL_SECONDS), "NX"]]);
+        if (locked !== "OK") { counts.duplicates++; continue; }
+
+        // (2) Re-check the delivered marker UNDER the lock — closes the
+        // check-then-act gap and suppresses an already-delivered reminder.
+        const [{ result: already }] = await redis([["GET", sentKey]]);
+        if (already) { counts.duplicates++; continue; }
 
         const payload = JSON.stringify(buildReminderPayload(sid, dayKey));
         try {
@@ -78,16 +90,23 @@ export default async function handler(req, res) {
             payload,
             { TTL: 60 * 60 }
           );
+          // (3a) Delivered: write the long-lived marker; leave the processing
+          // lock to expire (the marker now owns dedupe for the local day).
+          await redis([["SET", sentKey, "1", "EX", String(SENT_TTL_SECONDS)]]);
           counts.sent++;
           logEntries.push({ ts: nowMs, sub: id, session: sid, day: dayKey, ok: true });
         } catch (e) {
           const status = e?.statusCode;
           if (isGonePushError(status)) {
-            // Subscription expired/revoked — server-side cleanup.
+            // (3b) Subscription expired/revoked — server-side cleanup. The
+            // reminder is moot; the processing lock expires on its own.
             await redis([["HDEL", SUBS_KEY, id]]);
             counts.cleaned++;
             logEntries.push({ ts: nowMs, sub: id, session: sid, day: dayKey, ok: false, status, cleaned: true });
           } else {
+            // (3c) Transient failure — release the lock NOW so the next
+            // eligible run retries. NOT recorded as delivered.
+            await redis([["DEL", procKey]]);
             counts.errors++;
             logEntries.push({ ts: nowMs, sub: id, session: sid, day: dayKey, ok: false, status: status || "network" });
           }
