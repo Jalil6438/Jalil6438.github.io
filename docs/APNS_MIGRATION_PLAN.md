@@ -161,3 +161,68 @@ No new scheduling infrastructure.
    switch in `src/push/pushClient.js`; deep-link listener.
 4. Test on a real device via TestFlight (sandbox), then production.
 5. Verify dedupe across a person holding both a web and an ios subscription.
+
+---
+
+## 15. Security & privacy requirements (Phase 7)
+
+These are binding requirements on the native-push work, layered on top of the
+functional plan above. They mirror the existing web-push posture
+(`docs/BACKEND_HARDENING.md`, `docs/PRIVACY.md`).
+
+### Credential handling (least privilege)
+- APNs auth uses a **token key (`.p8`) + Key ID + Team ID**, stored **only** in
+  the push backend's server-side environment (Vercel env, marked Sensitive).
+  **Never** in the client bundle, the repo, `ios/`, `capacitor.config.json`, or
+  any report. The client never sees APNs credentials — it only receives its own
+  device token from the OS.
+- One key signs both sandbox and production; scope the environment via
+  `APNS_ENV`, not by shipping a second key.
+- If a key is suspected leaked: revoke in the Apple console and issue a new one;
+  device tokens are unaffected.
+
+### Token lifecycle
+- **Registration:** OS-issued APNs device token, forwarded to `/api/push/subscribe`
+  with `platform:"ios"`. Store keyed by `sha256("ios:"+token)`.
+- **Rotation:** re-`register()` on every app open; rotate `old→new` via the
+  existing `replace` action so a device never has two live records.
+- **Invalidation:** APNs `410 Unregistered` → `HDEL` the record (same path as the
+  web 404/410 pruning). Add the deferred stale-record sweep so tokens for
+  uninstalled apps don't live forever.
+
+### Transport & environment separation
+- All traffic HTTPS/TLS: client→backend, backend→APNs (HTTP/2 over TLS).
+- `api.sandbox.push.apple.com` vs `api.push.apple.com` selected by `APNS_ENV`;
+  never send a sandbox token to prod or vice-versa. Combine with the Redis
+  `VERCEL_ENV` namespacing (backlog #2) so preview device tokens can't reach
+  production subscribers.
+
+### Identity minimization
+- Associate a token with a person only via the existing anonymous `alhifz_did`
+  (no account, no name). **Preferably drop `did` from the record entirely**
+  (minimization backlog #1) so the APNs token — like the web endpoint — is not
+  linked to the analytics identity.
+- Payload minimization: send only `title`, `body`, and the `route` needed for the
+  deep link. No progress data, no personal content in the push body.
+
+### Deep-link validation
+- The `route` in the payload must be **validated against an allowlist** of in-app
+  routes before navigation (e.g. `^/\?session=\d+$` / known `appPage` ids). Never
+  `eval`/open arbitrary URLs from a notification. The `alhifz://` scheme handler
+  (declared in `Info.plist`) must reject unknown hosts/paths.
+
+### Duplicate prevention across PWA + native
+- Keep the two-phase Redis dedupe unchanged; transport-prefixed record ids make a
+  web record and an ios record independent (correct — different physical devices).
+- A single physical device must not hold both a live web-push and APNs record for
+  the same person; rotation/replace on registration prevents double-delivery.
+
+### Deletion / unsubscribe
+- Native disable = OS unregister + server `HDEL` (mirror `disablePush`).
+- Reset All Progress must remove the native subscription too (the web path already
+  does this as of this packet).
+
+### No credentials in this packet
+- This is a **plan only**. No `.p8`, Key ID, Team ID, certificate, or device token
+  is created, committed, or pasted. Native APNs integration is a separate,
+  explicitly-authorized packet requiring the Mac build.
