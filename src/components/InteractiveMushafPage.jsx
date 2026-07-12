@@ -6,9 +6,7 @@
 // the call site. Distinct from the read-only MushafPage (different metrics +
 // tap handling), so it is its own component.
 
-const SHORT_METRIC_PAGES = new Set([
-  46, 55, 57, 76, 83, 100, 101, 161, 175, 242, 245, 246, 379, 590,
-]);
+import { QURAN_LINE_HEIGHT } from "../data/constants";
 
 export default function InteractiveMushafPage({ mushafVerses, tajweedFont, loadedFonts, mushafPage, dark, mushafPagesData, mushafLayoutData, bismillahGlyphs, glyphVerseKeys, setSelectedAyah, setDrawerView }) {
                   // Group verses by surah for proper header centering
@@ -226,9 +224,7 @@ export default function InteractiveMushafPage({ mushafVerses, tajweedFont, loade
                                 marginInline: "auto",
                                 fontFamily: `'p${mushafPage}-${fontEd}',serif`,
                                 fontSize: "clamp(22px,5.5vw,32px)",
-                                lineHeight: SHORT_METRIC_PAGES.has(mushafPage)
-                                  ? 1.095
-                                  : undefined,
+                                lineHeight: QURAN_LINE_HEIGHT,
                                 color: dark ? "#E8DFC0" : "#2D2A26",
                                 padding: "2px 0",
                                 whiteSpace: "nowrap",
