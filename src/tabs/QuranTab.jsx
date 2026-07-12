@@ -8,12 +8,11 @@ import QuranHeader from "../components/QuranHeader";
 import QuranSideMenu from "../components/QuranSideMenu";
 import QuranSettingsSheet from "../components/QuranSettingsSheet";
 
-// Per-page glyph fonts (p1-v2.woff2 ... p604-v2.woff2) have inconsistent
-// hhea metrics. The 16 pages below ship with ascent/descent 2809/-1301
-// (vertical span 4110) instead of the standard 3000/-1500 (span 4500),
-// rendering ~9% shorter per line — visible as a bottom gap when stacked
-// 15 lines high. Force lineHeight: 1.095 on these pages to compensate
-// (4500/4110 = 1.0949). Identified by fontTools scan of all 604 fonts.
+// Muṣḥaf ayah-line spacing is centralized in QURAN_LINE_HEIGHT (see
+// src/data/constants.js) and applied uniformly by InteractiveMushafPage.
+// The KFGQPC v2 per-page fonts ship inconsistent vertical metrics, so ONE
+// fixed line-height — never a per-page override — keeps every page at the
+// same comfortable spacing. Do not reintroduce a page-number exception list.
 import { SURAH_AR, JUZ_META } from "../data/quran-metadata";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { hizbLabel } from "../utils";

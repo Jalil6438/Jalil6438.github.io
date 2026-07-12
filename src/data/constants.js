@@ -12,16 +12,15 @@ export const SIDEBAR_ICON_SIZE = 56;
 // so the two can never drift.
 //
 // Why a fixed value instead of the font's own `line-height: normal`: the KFGQPC
-// v2 per-page fonts do NOT share vertical metrics. 16 pages (46, 55, 57, 76, 83,
-// 100, 101, 161, 175, 242, 245, 246, 379, 590 …) ship shorter hhea/OS-2 metrics
-// (span 4110 vs the standard 4500) and, with USE_TYPO_METRICS off, the browser
-// derives `normal` from each font's own (inconsistent) metrics — so those pages
-// render tighter than the rest. An earlier fix hard-coded `line-height: 1.095`
-// on just those pages, which crushed them instead (the visible compression on
-// 46/55/57/76/83…). A single fixed unitless value makes every page render at the
+// v2 per-page fonts do NOT share vertical metrics — some pages ship shorter
+// hhea/OS-2 metrics, and with USE_TYPO_METRICS off the browser derives `normal`
+// from each font's own (inconsistent) metrics, so those pages render tighter
+// than the rest. A single fixed unitless value makes every page render at the
 // same comfortable pitch regardless of its font's metrics. 2.16 reproduces the
 // reference spacing of Page 47 (a standard-metric page) on the live renderer.
 // Pages taller than the viewport SCROLL; they are never compressed to fit.
+// Do NOT reintroduce a per-page line-height override or page-number list — that
+// approach shipped once and crushed the affected pages.
 export const QURAN_LINE_HEIGHT = 2.16;
 
 // ── UNIFIED RECITERS — used across Hifz (per-ayah) and Quran (full surah) tabs ──
