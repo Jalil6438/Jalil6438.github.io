@@ -34,6 +34,10 @@ export default function MushafPage({
   fallbackStartSurah = null,
 }) {
   if (!pageLines || !pageLayout) return null;
+  // Pages 1 (Al-Fātiḥah) and 2 (Al-Baqarah's opening) are the only pages that
+  // don't fill 15 lines; keep their natural spacing rather than stretching
+  // their few short ayahs with the uniform line-height. See QURAN_LINE_HEIGHT.
+  const isFullPage = pageLayout.length >= 15;
   const firstSurahName = pageLayout.find((e) => e.type === "surah_name");
   let currentSurah = firstSurahName ? firstSurahName.sn - 1 : fallbackStartSurah;
   let ayahIdx = -1;
@@ -75,7 +79,7 @@ export default function MushafPage({
       );
     }
     return (
-      <div key={i} style={{ direction: "rtl", display: "flex", justifyContent: isCenter ? "center" : "space-between", alignItems: "center", maxWidth: "min(540px,90vw)", marginInline: "auto", fontFamily: `'p${pageNum}-v2',serif`, fontSize: "clamp(20px,5vw,29px)", lineHeight: QURAN_LINE_HEIGHT, color: dark ? "#E8DFC0" : "#2D2A26", padding: "2px 0", whiteSpace: "nowrap", gap: isCenter ? "0.25em" : "0.10em" }}>
+      <div key={i} style={{ direction: "rtl", display: "flex", justifyContent: isCenter ? "center" : "space-between", alignItems: "center", maxWidth: "min(540px,90vw)", marginInline: "auto", fontFamily: `'p${pageNum}-v2',serif`, fontSize: "clamp(20px,5vw,29px)", lineHeight: isFullPage ? QURAN_LINE_HEIGHT : undefined, color: dark ? "#E8DFC0" : "#2D2A26", padding: "2px 0", whiteSpace: "nowrap", gap: isCenter ? "0.25em" : "0.10em" }}>
         {lineText.split(" ").map((w, wi) => (<span key={wi}>{w}</span>))}
       </div>
     );

@@ -21,6 +21,9 @@ export const SIDEBAR_ICON_SIZE = 56;
 // Pages taller than the viewport SCROLL; they are never compressed to fit.
 // Do NOT reintroduce a per-page line-height override or page-number list — that
 // approach shipped once and crushed the affected pages.
+// This value assumes a full 15-line page. The renderers apply it only to full
+// pages; the two short pages (1 Al-Fātiḥah, 2 Al-Baqarah opening) keep the
+// font's natural spacing so their few ayahs aren't over-spaced.
 export const QURAN_LINE_HEIGHT = 2.16;
 
 // ── UNIFIED RECITERS — used across Hifz (per-ayah) and Quran (full surah) tabs ──

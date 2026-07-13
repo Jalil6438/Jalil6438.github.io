@@ -65,6 +65,13 @@ export default function InteractiveMushafPage({ mushafVerses, tajweedFont, loade
                         if (!pageLines || !pageLayout) {
                           return null;
                         }
+                        // The uniform QURAN_LINE_HEIGHT assumes a full 15-line
+                        // mushaf page. Pages 1 (Al-Fātiḥah) and 2 (Al-Baqarah's
+                        // opening) are the only pages that don't fill 15 lines —
+                        // forcing the tall line-height there over-spaces their
+                        // few short ayahs, so those keep the font's natural
+                        // spacing (their pre-uniform behavior).
+                        const isFullPage = pageLayout.length >= 15;
                         // Tap mapping uses glyphVerseKeys — a flat per-glyph
                         // verse_key array we built from code_v2 against our
                         // pageContentMap. Independent of the API's mushaf
@@ -224,7 +231,9 @@ export default function InteractiveMushafPage({ mushafVerses, tajweedFont, loade
                                 marginInline: "auto",
                                 fontFamily: `'p${mushafPage}-${fontEd}',serif`,
                                 fontSize: "clamp(22px,5.5vw,32px)",
-                                lineHeight: QURAN_LINE_HEIGHT,
+                                lineHeight: isFullPage
+                                  ? QURAN_LINE_HEIGHT
+                                  : undefined,
                                 color: dark ? "#E8DFC0" : "#2D2A26",
                                 padding: "2px 0",
                                 whiteSpace: "nowrap",
