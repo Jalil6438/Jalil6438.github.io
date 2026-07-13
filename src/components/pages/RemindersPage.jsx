@@ -122,6 +122,16 @@ export default function RemindersPage({ dark, onBack }) {
 
   const enabledCount = DEFAULTS.filter(d => prefs.sessions[d.id]?.enabled).length;
 
+  // Production gate: the two reminder test controls below ("Test" and
+  // "Send a real test from the server") are QA/tester affordances, not end-user
+  // features. Hide them on the production domain; keep them on preview/localhost
+  // so the team can still verify delivery. Affects ONLY visibility of these
+  // buttons — no reminder scheduling, delivery, subscription, timezone, or
+  // duplicate-prevention logic is touched.
+  const isProduction =
+    typeof window !== "undefined" &&
+    window.location.hostname.endsWith("noortechstudios.com");
+
   return (
     <AppPage dark={dark} title="Reminders" subtitle={`${enabledCount} of 5 enabled`} onBack={onBack}>
       {/* Permission banner */}
@@ -155,7 +165,7 @@ export default function RemindersPage({ dark, onBack }) {
             border: `1px solid ${dark ? "rgba(212,175,55,0.40)" : "rgba(139,106,16,0.30)"}`,
           }}>Allow</div>
         )}
-        {permission === "granted" && (
+        {permission === "granted" && !isProduction && (
           <div className="sbtn" onClick={sendTest} style={{
             padding: "7px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
             background: dark ? "rgba(56,214,126,0.10)" : "rgba(20,140,60,0.08)",
@@ -196,7 +206,7 @@ export default function RemindersPage({ dark, onBack }) {
               }}/>
             </div>
           </div>
-          {pushOn && (
+          {pushOn && !isProduction && (
             <div className="sbtn" onClick={runServerTest} style={{
               marginTop: 10, padding: "8px 12px", borderRadius: 8, textAlign: "center",
               fontSize: 11, fontWeight: 700, opacity: serverTestBusy ? 0.5 : 1,
