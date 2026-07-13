@@ -91,13 +91,6 @@ export default function RemindersPage({ dark, onBack }) {
     setPrefs(p => ({ ...p, sessions: { ...p.sessions, [id]: { ...p.sessions[id], time } } }));
   };
 
-  // Foreground-only test: constructs a Notification from the open page. This
-  // does NOT exercise background delivery — that's what the server test does.
-  const sendTest = () => {
-    if (permission !== "granted") return;
-    try { new Notification("Al-Hifz", { body: "In-app notifications are working — bismillah. (This is the foreground fallback, not background delivery.)" }); } catch { /* ignore */ }
-  };
-
   // Real end-to-end test: the BACKEND sends a push through the push service
   // and the service worker displays it — works with the app closed.
   const [serverTestBusy, setServerTestBusy] = useState(false);
@@ -122,36 +115,44 @@ export default function RemindersPage({ dark, onBack }) {
 
   const enabledCount = DEFAULTS.filter(d => prefs.sessions[d.id]?.enabled).length;
 
-  // Production gate: the two reminder test controls below ("Test" and
-  // "Send a real test from the server") are QA/tester affordances, not end-user
-  // features. Hide them on the production domain; keep them on preview/localhost
-  // so the team can still verify delivery. Affects ONLY visibility of these
-  // buttons — no reminder scheduling, delivery, subscription, timezone, or
-  // duplicate-prevention logic is touched.
-  const isProduction =
-    typeof window !== "undefined" &&
-    window.location.hostname.endsWith("noortechstudios.com");
+  // Master notifications switch. A web app cannot revoke the browser
+  // notification permission from JS, so "off" is an app-level flag: the in-app
+  // scheduler skips it (see useReminders) and background delivery is turned off,
+  // so no reminders arrive either way. Defaults on for anyone who already
+  // granted permission (undefined !== false).
+  const masterOn = prefs.enabled !== false;
+  const bannerActive = permission === "granted" && masterOn;
+  const notificationsOff = permission === "granted" && !masterOn;
+  const toggleMaster = async () => {
+    if (!masterOn) { setPrefs(p => ({ ...p, enabled: true })); return; }
+    // Turning off: also stop background delivery so nothing arrives closed-app.
+    setPrefs(p => ({ ...p, enabled: false }));
+    if (pushOn) {
+      try { await disablePush(); } catch { /* ignore */ }
+      setPushOn(false);
+    }
+  };
 
   return (
-    <AppPage dark={dark} title="Reminders" subtitle={`${enabledCount} of 5 enabled`} onBack={onBack}>
+    <AppPage dark={dark} title="Reminders" subtitle={notificationsOff ? "Off" : `${enabledCount} of 5 enabled`} onBack={onBack}>
       {/* Permission banner */}
       <div style={{
         marginBottom: 16, padding: "12px 14px", borderRadius: 12,
-        background: permission === "granted"
+        background: bannerActive
           ? (dark ? "rgba(56,214,126,0.08)" : "rgba(20,140,60,0.06)")
           : (dark ? "rgba(212,175,55,0.06)" : "rgba(180,140,40,0.05)"),
-        border: `1px solid ${permission === "granted"
+        border: `1px solid ${bannerActive
           ? (dark ? "rgba(56,214,126,0.30)" : "rgba(20,140,60,0.25)")
           : (dark ? "rgba(212,175,55,0.20)" : "rgba(139,106,16,0.18)")}`,
         display: "flex", alignItems: "center", gap: 10,
       }}>
-        <div style={{ display: "flex", color: permission === "granted" ? (dark ? "#38D67E" : "#148C3C") : (dark ? "#E6B84A" : "#8B6A10") }}>{permission === "granted" ? <CheckGlyph size={18} /> : <BellGlyph size={18} />}</div>
+        <div style={{ display: "flex", color: bannerActive ? (dark ? "#38D67E" : "#148C3C") : (dark ? "#E6B84A" : "#8B6A10") }}>{bannerActive ? <CheckGlyph size={18} /> : <BellGlyph size={18} />}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: dark ? "#F3E7C8" : "#2D2A26" }}>
-            {permission === "granted" ? "Notifications enabled" : permission === "denied" ? "Notifications blocked" : permission === "unsupported" ? "Notifications not supported" : "Allow notifications"}
+            {permission === "granted" ? (masterOn ? "Notifications on" : "Notifications off") : permission === "denied" ? "Notifications blocked" : permission === "unsupported" ? "Notifications not supported" : "Allow notifications"}
           </div>
           <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.55)" : "#6B645A", marginTop: 2, lineHeight: 1.4 }}>
-            {permission === "granted" ? "Reminders will fire while the app is open." :
+            {permission === "granted" ? (masterOn ? "Reminders will fire at your set times." : "Off — you won't receive any reminders.") :
              permission === "denied" ? "Re-enable in your browser site settings." :
              permission === "unsupported" ? "This browser doesn't expose notifications." :
              "Browser will ask for permission."}
@@ -165,19 +166,27 @@ export default function RemindersPage({ dark, onBack }) {
             border: `1px solid ${dark ? "rgba(212,175,55,0.40)" : "rgba(139,106,16,0.30)"}`,
           }}>Allow</div>
         )}
-        {permission === "granted" && !isProduction && (
-          <div className="sbtn" onClick={sendTest} style={{
-            padding: "7px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
-            background: dark ? "rgba(56,214,126,0.10)" : "rgba(20,140,60,0.08)",
-            color: dark ? "#34D399" : "#0E6B30",
-            border: `1px solid ${dark ? "rgba(56,214,126,0.30)" : "rgba(20,140,60,0.25)"}`,
-          }}>Test</div>
+        {permission === "granted" && (
+          <div className="sbtn" onClick={toggleMaster} aria-label="Toggle notifications" style={{
+            width: 40, height: 22, borderRadius: 999, position: "relative", flexShrink: 0,
+            background: masterOn
+              ? (dark ? "linear-gradient(90deg,#38D67E,#6EE7A8)" : "linear-gradient(90deg,#148C3C,#4ADE80)")
+              : (dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.15)"),
+            cursor: "pointer", transition: "background .2s",
+          }}>
+            <div style={{
+              width: 18, height: 18, borderRadius: "50%", background: "#fff",
+              position: "absolute", top: 2, left: masterOn ? 20 : 2,
+              transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+            }}/>
+          </div>
         )}
       </div>
 
       {/* Background delivery card — real web push (works with the app closed)
-          once enabled; falls back to in-tab reminders otherwise. */}
-      {pushSupported && (
+          once enabled; falls back to in-tab reminders otherwise. Hidden when the
+          master notifications switch is off. */}
+      {pushSupported && !notificationsOff && (
         <div style={{
           marginBottom: 16, padding: "12px 14px", borderRadius: 12,
           background: pushOn ? (dark ? "rgba(56,214,126,0.08)" : "rgba(20,140,60,0.06)") : (dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"),
@@ -206,7 +215,7 @@ export default function RemindersPage({ dark, onBack }) {
               }}/>
             </div>
           </div>
-          {pushOn && !isProduction && (
+          {pushOn && (
             <div className="sbtn" onClick={runServerTest} style={{
               marginTop: 10, padding: "8px 12px", borderRadius: 8, textAlign: "center",
               fontSize: 11, fontWeight: 700, opacity: serverTestBusy ? 0.5 : 1,
@@ -225,7 +234,8 @@ export default function RemindersPage({ dark, onBack }) {
         </div>
       )}
 
-      {/* Per-session rows */}
+      {/* Per-session rows — hidden when the master notifications switch is off. */}
+      {!notificationsOff && (
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {DEFAULTS.map(d => {
           const s = prefs.sessions[d.id] || { enabled: false, time: d.time };
@@ -276,12 +286,15 @@ export default function RemindersPage({ dark, onBack }) {
           );
         })}
       </div>
+      )}
 
+      {!notificationsOff && (
       <div style={{ fontSize: 10, color: dark ? "rgba(243,231,200,0.40)" : "#8B7355", textAlign: "center", marginTop: 18, lineHeight: 1.6, fontStyle: "italic" }}>
         {pushOn
           ? "Background delivery is on — reminders arrive even when the app is closed. Your reminder times and timezone are stored to schedule them; nothing else leaves this device."
           : "Without background delivery, reminders fire only while the app is open. On iPhone/iPad, install the app to your home screen first to enable background delivery."}
       </div>
+      )}
     </AppPage>
   );
 }

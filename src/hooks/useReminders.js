@@ -23,6 +23,9 @@ export default function useReminders() {
       let prefs;
       try { prefs=JSON.parse(localStorage.getItem("rihlat-reminders")||"null"); } catch { return; }
       if(!prefs||!prefs.sessions) return;
+      // Master notifications switch (Reminders page). undefined = on for anyone
+      // who set reminders up before the switch existed; explicit false = muted.
+      if(prefs.enabled===false) return;
       const now=new Date();
       const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
       let fired;
