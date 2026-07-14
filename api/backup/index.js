@@ -17,6 +17,7 @@ import {
   authorize,
   sendError,
   parseBody,
+  readIfMatch,
   validateIncoming,
   putBackupRecord,
   backupStatusBody,
@@ -34,17 +35,35 @@ export default async function handler(req, res) {
       const body = parseBody(req);
       if (!body) throw backupError(ERR.BAD_ENVELOPE, "body must be a JSON object");
 
+      const expectedRevision = readIfMatch(req);
+
       // Validate BEFORE reading the existing record, let alone writing. An
       // envelope that fails here never touches storage, so a malformed or empty
       // upload cannot displace a good backup even momentarily.
+      //
+      // `env` is a NEWLY CONSTRUCTED envelope built from the allowlist — the
+      // request body itself is discarded and never reaches the store.
       const env = await validateIncoming(body, store.now());
 
       const existing = await store.getRecord(ref);
-      const { record, created, idempotent } = putBackupRecord(existing, env, store.now());
+      const { record, created, idempotent } = putBackupRecord(
+        existing, env, store.now(), expectedRevision,
+      );
 
-      // Written even when idempotent — the content is unchanged (no revision
-      // bump, no restore point consumed) but the retention clock is refreshed.
-      await store.putRecord(ref, record);
+      // COMPARE-AND-SET against the revision we actually read. `putBackupRecord`
+      // already checked the CLIENT's expectation; this checks OURS — another
+      // request may have landed between our read above and this write, and in a
+      // serverless runtime that interleaving is real. Written even when
+      // idempotent: the content is unchanged (no revision bump, no restore point
+      // consumed) but the retention clock is refreshed.
+      const seen = existing ? existing.revision : null;
+      const cas = await store.casPutRecord(ref, seen, record);
+      if (!cas.ok) {
+        throw Object.assign(
+          backupError(ERR.REVISION_CONFLICT, "the backup changed while this write was in flight"),
+          { revision: cas.revision },
+        );
+      }
 
       return json(res, created ? 201 : 200, { ...backupStatusBody(record), created, idempotent });
     }

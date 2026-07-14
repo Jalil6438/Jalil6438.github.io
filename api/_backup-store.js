@@ -91,7 +91,41 @@ function createMemoryAdapter() {
       return structuredClone(entry.record);
     },
 
-    async putRecord(ref, record) {
+    // ── THE ONLY WRITE PATH: compare-and-set ────────────────────────────
+    //
+    // `expectedRevision` is the revision the caller READ. If the stored record
+    // has moved on since (a concurrent writer landed), the write is REFUSED and
+    // the caller gets the current revision back.
+    //
+    // Why this and not a plain put: the handler does read → decide → write, and
+    // in a serverless runtime those are separated by `await` points that another
+    // request can interleave through. A plain put makes that race silent
+    // last-write-wins — one of two devices syncing at the same moment simply
+    // loses its memorization, with no error and no restore point. The conditional
+    // write turns an invisible data loss into a 409 the client can resolve.
+    //
+    // `expectedRevision === null` means "I expect no record to exist" (create).
+    //
+    // Atomic here because there is no `await` between the read and the write —
+    // JS runs this to completion. A durable adapter MUST provide the same
+    // guarantee at the datastore level, not in JS:
+    //
+    //   Redis     Lua via EVAL (or WATCH/MULTI/EXEC): read the revision field,
+    //             compare, HSET only on match — one round trip, one atom.
+    //   Postgres  UPDATE backups SET … WHERE ref = $1 AND revision = $2;
+    //             zero rows affected == conflict. Or SELECT … FOR UPDATE.
+    //
+    // Failing to honour this contract in a durable adapter reintroduces exactly
+    // the race this exists to close, so it is asserted by test at the seam.
+    async casPutRecord(ref, expectedRevision, record) {
+      const entry = records.get(ref);
+      const live = alive(entry) ? entry.record : null;
+      const currentRevision = live ? live.revision : null;
+
+      if (currentRevision !== expectedRevision) {
+        return { ok: false, revision: currentRevision };
+      }
+
       // Every successful write refreshes the retention clock, including a no-op
       // re-put of identical content. Retention is "untouched for RETENTION_DAYS",
       // not "unchanged for RETENTION_DAYS" — a user who keeps syncing a finished
@@ -101,6 +135,7 @@ function createMemoryAdapter() {
         record: structuredClone(record),
         expiresAt: now() + RETENTION_MS,
       });
+      return { ok: true, revision: record.revision };
     },
 
     // When this backup will be deleted if untouched. Surfaced by the data-export

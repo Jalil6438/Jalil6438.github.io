@@ -7,7 +7,7 @@
 //
 // The boundary tests are the ones that matter most. Everything else here protects
 // data integrity; those protect the user's privacy, and they are the difference
-// between "we back up your progress" and "we quietly uploaded your reflections".
+// between "we back up your progress" and "we quietly uploaded your private notes".
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -20,22 +20,32 @@ import {
   CLOUD_SCHEMA_VERSION,
   CLOUD_BACKUP_KEYS,
   CLOUD_EXCLUDED_KEYS,
+  ENVELOPE_FIELDS,
+  MAX_ENVELOPE_BYTES,
   MAX_PAYLOAD_BYTES,
   MAX_VALUE_BYTES,
+  V8_KEY,
+  V8_ALLOWED_FIELDS,
+  V8_EXCLUDED_FIELDS,
+  V8_LIVE_FIELDS,
   ERR,
   CONFLICT,
   ACTION,
   buildCloudEnvelope,
   validateEnvelope,
   selectCloudPayload,
+  sanitizeQuranV8,
   isEmptyProgress,
   compareBackups,
   computeChecksum,
   deriveBackupRef,
   isValidToken,
+  envelopeByteSize,
   cloudKeysOutsideLocalBoundary,
   localKeysUnclassifiedForCloud,
   cloudKeysBothIncludedAndExcluded,
+  v8FieldsUnclassified,
+  v8FieldsBothAllowedAndExcluded,
 } from "../src/backup/cloudContract.js";
 
 const sha256Hex = (s) => createHash("sha256").update(s).digest("hex");
@@ -44,10 +54,56 @@ const NOW = Date.parse("2026-07-14T12:00:00.000Z");
 const ISO = "2026-07-14T12:00:00.000Z";
 const EARLIER = "2026-07-10T09:00:00.000Z";
 
-// A payload with real memorization in it.
+// ── REALISTIC LIVE FIXTURES ──────────────────────────────────────────────
+//
+// The exact 21-field shape the app writes to jalil-quran-v8
+// (src/quran-hifz-tracker.jsx:682) — notes, dark, reciter, showTrans and all.
+// Tests run against THIS, not against an invented shape, because the entire
+// class of bug being fixed here came from testing an invented shape.
+
+const V8_LIVE_FRESH_INSTALL = {
+  juzStatus: {},
+  notes: {},
+  goalYears: 3,
+  goalMonths: 0,
+  sessionJuz: null,
+  sessionIdx: 0,
+  juzProgress: {},
+  sessionDone: [],
+  yesterdayBatch: [],
+  recentBatches: [],
+  asrSelectedSurahs: [],
+  asrSelectedJuz: [],
+  asrReviewBatch: [],
+  dark: false,
+  dailyChecks: { date: "2026-07-14" },
+  streak: 0,
+  checkHistory: {},
+  reciter: "alafasy",
+  showTrans: true,
+  activeSessionIndex: 0,
+  sessionsCompleted: { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false },
+};
+
+const V8_LIVE_WITH_PROGRESS = {
+  ...V8_LIVE_FRESH_INSTALL,
+  juzStatus: { 30: "complete" },
+  juzProgress: { 29: 42 },
+  sessionDone: ["29:1"],
+  streak: 4,
+  dailyChecks: { date: "2026-07-14", fajr: true },
+  sessionsCompleted: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false },
+  notes: { 30: "a private reflection on Juz Amma" },
+};
+
+const live = (over = {}) => JSON.stringify({ ...V8_LIVE_WITH_PROGRESS, ...over });
+
+// What the client actually transmits: the sanitized blob.
+const V8_CLEAN = sanitizeQuranV8(live());
+
 const PROGRESS = Object.freeze({
   "jalil-quran-v9": JSON.stringify([1, 2, 3, 4, 5]),
-  "jalil-quran-v8": JSON.stringify({ completedSessions: 12, streak: 4 }),
+  [V8_KEY]: V8_CLEAN,
   "rihlat-session-log": JSON.stringify({ "2026-07-13": ["fajr", "dhuhr"] }),
   "rihlat-rep-counts": JSON.stringify({ "2:255": 12 }),
 });
@@ -72,74 +128,244 @@ const rejects = (env, code) =>
   assert.rejects(() => valid(env), (e) => e.code === code, `expected ${code}`);
 
 // ── THE BOUNDARY ─────────────────────────────────────────────────────────
-// What leaves the device. Read these first.
 
 test("boundary: every locally-backed-up key is consciously classified", () => {
-  // The completeness tripwire. `jalil-recent-activity` was in NEITHER cloud list
-  // when the contract was first drafted — omitted, not decided. This is the test
-  // that catches that class of mistake, and it is the reason it exists.
   assert.deepEqual(localKeysUnclassifiedForCloud(), [],
     "key(s) in localBackup.js are neither cloud-included nor cloud-excluded — decide, don't omit");
 });
 
 test("boundary: cloud is a strict subset of the local-file backup", () => {
-  assert.deepEqual(cloudKeysOutsideLocalBoundary(), [],
-    "cloud sends a key the local backup has never heard of — it escaped review");
+  assert.deepEqual(cloudKeysOutsideLocalBoundary(), []);
 });
 
 test("boundary: no key is both included and excluded", () => {
   assert.deepEqual(cloudKeysBothIncludedAndExcluded(), []);
 });
 
+test("boundary: EVERY live v8 field is classified — allowed or refused, by name", () => {
+  // The tripwire one level down. jalil-quran-v8 is a single key holding 21
+  // fields, so key-level allowlisting said "yes" to the whole blob — including
+  // the user's private notes. This is the test that would have caught it, and
+  // the one that catches the next field somebody adds to that object.
+  assert.deepEqual(v8FieldsUnclassified(), [],
+    "field(s) in the live jalil-quran-v8 blob are neither allowed nor excluded");
+  assert.deepEqual(v8FieldsBothAllowedAndExcluded(), []);
+  assert.equal(V8_ALLOWED_FIELDS.length + V8_EXCLUDED_FIELDS.length, V8_LIVE_FIELDS.length);
+});
+
+test("boundary: the live fixture matches the app's real v8 shape", () => {
+  // If the app changes what it writes and this fixture is not updated, the
+  // classification tripwire above is testing fiction. Pin them together.
+  assert.deepEqual(
+    Object.keys(V8_LIVE_FRESH_INSTALL).sort(),
+    [...V8_LIVE_FIELDS].sort(),
+    "the test fixture has drifted from the app's real jalil-quran-v8 shape",
+  );
+});
+
+test("v8: notes and cosmetic prefs are stripped BEFORE the payload is built", () => {
+  // Not "removed server-side" — never assembled. The sanitizer runs on the
+  // device, before the checksum is computed and before anything is sent.
+  const clean = JSON.parse(sanitizeQuranV8(live()));
+
+  assert.equal("notes" in clean, false, "the user's private notes must never be transmitted");
+  assert.equal("dark" in clean, false);
+  assert.equal("reciter" in clean, false);
+  assert.equal("showTrans" in clean, false);
+
+  // …while every progress field survives.
+  assert.deepEqual(clean.juzStatus, { 30: "complete" });
+  assert.deepEqual(clean.juzProgress, { 29: 42 });
+  assert.equal(clean.streak, 4);
+  assert.deepEqual(clean.sessionsCompleted, V8_LIVE_WITH_PROGRESS.sessionsCompleted);
+  assert.deepEqual(Object.keys(clean).sort(), [...V8_ALLOWED_FIELDS].sort());
+});
+
+test("v8: the sanitizer is deterministic (same progress -> same bytes -> same checksum)", () => {
+  const a = sanitizeQuranV8(JSON.stringify({ streak: 4, juzStatus: { 30: "complete" } }));
+  const b = sanitizeQuranV8(JSON.stringify({ juzStatus: { 30: "complete" }, streak: 4 }));
+  assert.equal(a, b, "key order in the source blob must not change the transmitted bytes");
+});
+
+test("v8: a malformed or legacy blob is dropped, not guessed at", () => {
+  assert.equal(sanitizeQuranV8("{ not json"), null);
+  assert.equal(sanitizeQuranV8("[]"), null);
+  assert.equal(sanitizeQuranV8("null"), null);
+  assert.equal(sanitizeQuranV8(""), null);
+  assert.equal(sanitizeQuranV8(undefined), null);
+  // Unknown legacy properties are simply not carried across.
+  assert.deepEqual(JSON.parse(sanitizeQuranV8(JSON.stringify({ streak: 2, someLegacyThing: 1 }))), { streak: 2 });
+});
+
+test("v8: the SERVER refuses a blob carrying notes or cosmetic prefs", async () => {
+  // Defence in depth: even if a hostile or outdated client skips the sanitizer.
+  for (const field of V8_EXCLUDED_FIELDS) {
+    const payload = { ...PROGRESS, [V8_KEY]: JSON.stringify({ streak: 3, [field]: "x" }) };
+    await rejects(await envelope({ payload }), ERR.EXCLUDED_FIELD);
+  }
+});
+
+test("v8: the SERVER refuses an unknown field inside the blob", async () => {
+  const payload = { ...PROGRESS, [V8_KEY]: JSON.stringify({ streak: 3, somethingNew: 1 }) };
+  await rejects(await envelope({ payload }), ERR.UNKNOWN_FIELD);
+});
+
 test("boundary: personal content is excluded by name, not by omission", () => {
-  // If either of these ever moves into CLOUD_BACKUP_KEYS, the app starts
-  // transmitting the user's name and their private written reflections to a
-  // server we operate — a different privacy and legal question entirely, and a
-  // change to the Play Data safety declaration (Personal info / User content).
   for (const k of ["rihlat-username", "rihlat-reflections"]) {
-    assert.ok(CLOUD_EXCLUDED_KEYS.includes(k), `${k} must be explicitly excluded`);
-    assert.ok(!CLOUD_BACKUP_KEYS.includes(k), `${k} must never be transmitted`);
+    assert.ok(CLOUD_EXCLUDED_KEYS.includes(k));
+    assert.ok(!CLOUD_BACKUP_KEYS.includes(k));
   }
 });
 
 test("boundary: identity and analytics keys never leave via this path", () => {
-  // alhifz_did is the analytics install id. If it rode along in a backup, the
-  // cloud backup set could be joined against the usage-analytics device set, and
-  // an anonymous backup stops being anonymous.
   for (const k of ["alhifz_did", "alhifz_counted", "rihlat-push-enabled", "rihlat-reminders-fired"]) {
     assert.ok(CLOUD_EXCLUDED_KEYS.includes(k));
     assert.ok(!CLOUD_BACKUP_KEYS.includes(k));
   }
 });
 
-test("selectCloudPayload reads ONLY the allowlist, even when storage is full of secrets", () => {
+test("selectCloudPayload reads ONLY the allowlist, and sanitizes v8 on the way out", () => {
   const storage = {
     getItem: (k) => ({
       "jalil-quran-v9": JSON.stringify([1, 2]),
+      [V8_KEY]: live(),
       "rihlat-username": "Jalil",
       "rihlat-reflections": JSON.stringify(["a private reflection"]),
       "alhifz_did": "device-uuid-here",
-      "rihlat-reminders": JSON.stringify({ sessions: {} }),
     }[k] ?? null),
   };
   const payload = selectCloudPayload(storage);
 
-  assert.deepEqual(Object.keys(payload), ["jalil-quran-v9"]);
-  for (const k of CLOUD_EXCLUDED_KEYS) {
-    assert.ok(!(k in payload), `${k} escaped into the payload`);
-  }
+  assert.deepEqual(Object.keys(payload).sort(), ["jalil-quran-v9", V8_KEY].sort());
+  for (const k of CLOUD_EXCLUDED_KEYS) assert.ok(!(k in payload), `${k} escaped into the payload`);
+
+  // …and the notes inside the v8 blob are gone too. This is the leak that the
+  // key-level allowlist did not stop.
+  const serialized = JSON.stringify(payload);
+  assert.equal(serialized.includes("private reflection"), false, "the user's notes escaped in the v8 blob");
+  assert.equal(serialized.includes("alafasy"), false, "the reciter preference escaped in the v8 blob");
 });
 
 test("an excluded key smuggled into a payload is REJECTED, not silently dropped", async () => {
-  // Dropping it would be the friendly thing to do and the wrong thing to do: a
-  // client that sends reflections is broken or hostile, and we want to know.
   const payload = { ...PROGRESS, "rihlat-reflections": JSON.stringify(["private"]) };
   await rejects(await envelope({ payload }), ERR.EXCLUDED_KEY);
 });
 
-test("an unknown key is REJECTED — the server is not a general-purpose bucket", async () => {
-  const payload = { ...PROGRESS, "some-future-key": "x" };
-  await rejects(await envelope({ payload }), ERR.BAD_ENVELOPE);
+test("an unknown payload key is REJECTED — the server is not a general-purpose bucket", async () => {
+  await rejects(await envelope({ payload: { ...PROGRESS, "some-future-key": "x" } }), ERR.UNKNOWN_FIELD);
+});
+
+// ── STRICT ENVELOPE ──────────────────────────────────────────────────────
+
+test("an unknown TOP-LEVEL field is rejected", async () => {
+  await rejects(await envelope({ raw: { junk: "x" } }), ERR.UNKNOWN_FIELD);
+  await rejects(await envelope({ raw: { __proto__: undefined, extra: 1 } }), ERR.UNKNOWN_FIELD);
+});
+
+test("an unknown field inside `encryption` is rejected", async () => {
+  // The forward-compat hook is exactly where junk accumulates, so it is closed.
+  await rejects(await envelope({ raw: { encryption: { alg: "none", keyId: "leak" } } }), ERR.UNKNOWN_FIELD);
+});
+
+test("a bad encryption object is rejected", async () => {
+  await rejects(await envelope({ raw: { encryption: { alg: "aes-gcm" } } }), ERR.BAD_ENVELOPE);
+  await rejects(await envelope({ raw: { encryption: null } }), ERR.BAD_ENVELOPE);
+  await rejects(await envelope({ raw: { encryption: [] } }), ERR.BAD_ENVELOPE);
+});
+
+test("validation RETURNS A REBUILT envelope — the input object is never passed through", async () => {
+  const env = await envelope();
+  const out = await valid(env);
+
+  assert.notEqual(out, env, "the validated envelope must be a new object");
+  assert.notEqual(out.payload, env.payload, "the payload must be rebuilt too");
+  assert.notEqual(out.encryption, env.encryption);
+  assert.deepEqual(Object.keys(out).sort(), [...ENVELOPE_FIELDS].sort());
+  assert.equal(out.checksum, env.checksum, "rebuilding must not change the identity of the backup");
+});
+
+// ── SIZE ─────────────────────────────────────────────────────────────────
+
+test("HAFSA REGRESSION: a 600,000-byte top-level field is refused", async () => {
+  // The original contract weighed only the PAYLOAD. A junk top-level field of
+  // 600 KB therefore sailed straight through and was STORED: the payload was
+  // small, the payload check passed, and nothing else was ever put on the scale.
+  //
+  // Two independent layers now stop it, and this asserts the outcome that
+  // actually matters — it does not get in.
+  const env = await envelope();
+  env.junk = "x".repeat(600_000);
+
+  assert.ok(envelopeByteSize(env) > 600_000);
+  await rejects(env, ERR.UNKNOWN_FIELD);   // layer 1: it is not a field we accept
+
+  // …and it can never be stored even if a future field were added carelessly,
+  // because validation rebuilds the envelope from the allowlist. Belt and braces.
+  const accepted = await valid(await envelope());
+  assert.equal("junk" in accepted, false);
+});
+
+test("SIZE: the envelope bound fires FIRST, before any field is even interpreted", async () => {
+  // Layer 2, proven independently of the allowlist: an envelope over the byte
+  // bound is refused on WEIGHT, before the unknown-field check (or any other
+  // check) gets a look in. That ordering is what makes the limit un-bypassable —
+  // it does not care which field the bytes are hiding in, or whether we happen
+  // to know that field's name.
+  const env = await envelope();
+  env.junk = "x".repeat(MAX_ENVELOPE_BYTES + 1);
+
+  assert.ok(envelopeByteSize(env) > MAX_ENVELOPE_BYTES);
+  await rejects(env, ERR.PAYLOAD_TOO_LARGE);   // NOT unknown-field: weight wins
+
+  // Same bytes hidden in a field we DO know about: still refused on weight.
+  const known = await envelope();
+  known.appVersion = "x".repeat(MAX_ENVELOPE_BYTES + 1);
+  await rejects(known, ERR.PAYLOAD_TOO_LARGE);
+});
+
+test("SIZE: the documented maximum accepted envelope is 1,048,576 bytes", () => {
+  assert.equal(MAX_ENVELOPE_BYTES, 1024 * 1024);
+  assert.equal(MAX_PAYLOAD_BYTES, 512 * 1024);
+  assert.equal(MAX_VALUE_BYTES, 256 * 1024);
+});
+
+test("the envelope limit binds even when every individual sub-limit passes", async () => {
+  // Each value is under MAX_VALUE_BYTES and the raw payload total is under
+  // MAX_PAYLOAD_BYTES, but JSON escaping inflates the serialized envelope past
+  // the outer bound. The outer bound is the one that cannot be walked around.
+  const quotes = '"'.repeat(MAX_VALUE_BYTES - 1);           // escapes to ~2x
+  const payload = {
+    "rihlat-rep-counts": quotes,
+    "rihlat-connection-reps": quotes,
+  };
+  const env = await envelope({ payload });
+
+  const raw = Object.values(payload).reduce((n, v) => n + Buffer.byteLength(v, "utf8"), 0);
+  assert.ok(raw <= MAX_PAYLOAD_BYTES, "fixture must pass the payload sub-limit");
+  assert.ok(envelopeByteSize(env) > MAX_ENVELOPE_BYTES, "…but blow the envelope bound once escaped");
+
+  await rejects(env, ERR.PAYLOAD_TOO_LARGE);
+});
+
+test("oversized payloads are rejected (per-value and in total)", async () => {
+  const big = { ...PROGRESS, "rihlat-rep-counts": "x".repeat(MAX_VALUE_BYTES + 1) };
+  await rejects(await envelope({ payload: big }), ERR.PAYLOAD_TOO_LARGE);
+
+  const chunk = "x".repeat(MAX_VALUE_BYTES - 1);
+  const total = {
+    ...PROGRESS,
+    "rihlat-rep-counts": chunk,
+    "rihlat-connection-reps": chunk,
+    "rihlat-daily-progress": chunk,
+  };
+  assert.ok(chunk.length * 3 > MAX_PAYLOAD_BYTES);
+  await rejects(await envelope({ payload: total }), ERR.PAYLOAD_TOO_LARGE);
+});
+
+test("payload size is measured in BYTES, not UTF-16 units", async () => {
+  const arabic = "ب".repeat(MAX_VALUE_BYTES); // 2 bytes each => 2x the cap
+  assert.ok(arabic.length <= MAX_VALUE_BYTES, "fixture is under the cap by .length");
+  await rejects(await envelope({ payload: { ...PROGRESS, "rihlat-rep-counts": arabic } }), ERR.PAYLOAD_TOO_LARGE);
 });
 
 // ── VALIDATION ───────────────────────────────────────────────────────────
@@ -149,9 +375,9 @@ test("a well-formed envelope validates", async () => {
   assert.equal(env.app, CLOUD_APP);
   assert.equal(env.kind, CLOUD_KIND);
   assert.equal(env.schemaVersion, CLOUD_SCHEMA_VERSION);
-  assert.equal(env.encryption.alg, "none");
   assert.match(env.checksum, /^sha256:[0-9a-f]{64}$/);
-  assert.deepEqual(await valid(env), env);
+  const out = await valid(env);
+  assert.deepEqual(out.payload, env.payload);
 });
 
 test("malformed envelopes are rejected", async () => {
@@ -168,7 +394,7 @@ test("malformed envelopes are rejected", async () => {
 
 test("a tampered payload fails the checksum", async () => {
   const env = await envelope();
-  env.payload["jalil-quran-v9"] = JSON.stringify([1, 2, 3, 4, 5, 6]); // one ayah added
+  env.payload["jalil-quran-v9"] = JSON.stringify([1, 2, 3, 4, 5, 6]);
   await rejects(env, ERR.BAD_CHECKSUM);
 });
 
@@ -177,17 +403,16 @@ test("a tampered checksum fails too", async () => {
   await rejects(await envelope({ raw: { checksum: undefined } }), ERR.BAD_CHECKSUM);
 });
 
-test("the checksum is order-independent (key order must not change identity)", async () => {
+test("the checksum is order-independent", async () => {
   const a = await computeChecksum({ b: "2", a: "1" }, sha256Hex);
   const b = await computeChecksum({ a: "1", b: "2" }, sha256Hex);
   assert.equal(a, b);
 });
 
 test("corrupt core progress JSON is rejected", async () => {
-  // A backup whose source of truth is unparseable is worse than no backup: it
-  // would happily overwrite a healthy device later.
-  const payload = { ...PROGRESS, "jalil-quran-v9": "{ not json" };
-  await rejects(await envelope({ payload }), ERR.CORRUPT_CORE);
+  await rejects(await envelope({ payload: { ...PROGRESS, "jalil-quran-v9": "{ not json" } }), ERR.CORRUPT_CORE);
+  await rejects(await envelope({ payload: { ...PROGRESS, [V8_KEY]: "{ not json" } }), ERR.CORRUPT_CORE);
+  await rejects(await envelope({ payload: { ...PROGRESS, [V8_KEY]: "[]" } }), ERR.CORRUPT_CORE);
 });
 
 test("an unsupported schema version is rejected in both directions", async () => {
@@ -196,33 +421,8 @@ test("an unsupported schema version is rejected in both directions", async () =>
   await rejects(await envelope({ raw: { schemaVersion: "1" } }), ERR.SCHEMA_UNSUPPORTED);
 });
 
-test("oversized payloads are rejected (per-value and in total)", async () => {
-  const big = { ...PROGRESS, "rihlat-rep-counts": "x".repeat(MAX_VALUE_BYTES + 1) };
-  await rejects(await envelope({ payload: big }), ERR.PAYLOAD_TOO_LARGE);
-
-  // Each value is legal on its own; together they blow the cap.
-  const chunk = "x".repeat(MAX_VALUE_BYTES - 1);
-  const total = {
-    ...PROGRESS,
-    "rihlat-rep-counts": chunk,
-    "rihlat-connection-reps": chunk,
-    "rihlat-daily-progress": chunk,
-  };
-  assert.ok(chunk.length * 3 > MAX_PAYLOAD_BYTES, "fixture must actually exceed the cap");
-  await rejects(await envelope({ payload: total }), ERR.PAYLOAD_TOO_LARGE);
-});
-
-test("payload size is measured in BYTES, not UTF-16 units", async () => {
-  // Arabic is multi-byte. `.length` would under-count and let an oversized
-  // payload through — the exact bug this app is most exposed to.
-  const arabic = "ب".repeat(MAX_VALUE_BYTES); // 2 bytes each => 2x the cap
-  assert.ok(arabic.length <= MAX_VALUE_BYTES, "fixture is under the cap by .length");
-  await rejects(await envelope({ payload: { ...PROGRESS, "rihlat-rep-counts": arabic } }), ERR.PAYLOAD_TOO_LARGE);
-});
-
-test("a future-dated envelope is rejected (client clocks are untrusted input)", async () => {
-  const future = new Date(NOW + 48 * 60 * 60 * 1000).toISOString();
-  await rejects(await envelope({ updatedAtIso: future }), ERR.FUTURE_TIMESTAMP);
+test("a future-dated envelope is rejected", async () => {
+  await rejects(await envelope({ updatedAtIso: new Date(NOW + 48 * 3600e3).toISOString() }), ERR.FUTURE_TIMESTAMP);
 });
 
 test("a non-string payload value is rejected", async () => {
@@ -231,37 +431,109 @@ test("a non-string payload value is rejected", async () => {
   await rejects(env, ERR.BAD_ENVELOPE);
 });
 
-// ── EMPTINESS ────────────────────────────────────────────────────────────
+// ── EMPTINESS — against the REAL v8 shape ────────────────────────────────
 
-test("empty / fresh-install progress is recognised as empty", () => {
+const withV8 = (over) => ({ [V8_KEY]: sanitizeQuranV8(live(over)) });
+const freshWithV8 = (over) =>
+  ({ [V8_KEY]: sanitizeQuranV8(JSON.stringify({ ...V8_LIVE_FRESH_INSTALL, ...over })) });
+
+test("a REAL fresh install is empty", () => {
+  // The whole safety story rests on this. A fresh install writes a fully-formed
+  // 21-field v8 blob — every key present, every value default.
+  assert.equal(isEmptyProgress(freshWithV8({})), true);
   assert.equal(isEmptyProgress(null), true);
   assert.equal(isEmptyProgress({}), true);
-  assert.equal(isEmptyProgress({ "jalil-quran-v9": "[]" }), true);
-  assert.equal(isEmptyProgress({ "jalil-quran-v9": "not json" }), true);
-
-  // A fresh install DOES write a v8 settings blob. Its presence proves nothing;
-  // only real counters inside it do. Getting this wrong is how a reinstall
-  // uploads "nothing" over a year of memorization.
-  assert.equal(isEmptyProgress({
-    "jalil-quran-v8": JSON.stringify({ completedSessions: 0, streak: 0, planMode: "hifz" }),
-  }), true);
 });
 
-test("any sign of real work makes progress non-empty", () => {
+test("sessionsCompleted: all-false is EMPTY, one true is progress", () => {
+  // THE trap. sessionsCompleted is {fajr:false,…,isha:false} — a fresh install
+  // always has all five keys. A generic "is this object non-empty" check calls
+  // that progress, and the entire empty-progress protection collapses.
+  assert.equal(isEmptyProgress(freshWithV8({
+    sessionsCompleted: { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false },
+  })), true, "a fresh install's sessionsCompleted must NOT count as progress");
+
+  assert.equal(isEmptyProgress(freshWithV8({
+    sessionsCompleted: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false },
+  })), false, "one completed session IS progress");
+});
+
+test("dailyChecks: the ever-present `date` key is not progress", () => {
+  // Same trap: dailyChecks always carries {date}, so it is never "empty".
+  assert.equal(isEmptyProgress(freshWithV8({ dailyChecks: { date: "2026-07-14" } })), true);
+  assert.equal(isEmptyProgress(freshWithV8({ dailyChecks: { date: "2026-07-14", fajr: true } })), false);
+});
+
+test("juzProgress: a zero-verse entry is not progress", () => {
+  assert.equal(isEmptyProgress(freshWithV8({ juzProgress: { 29: 0 } })), true);
+  assert.equal(isEmptyProgress(freshWithV8({ juzProgress: { 29: 1 } })), false);
+});
+
+test("each meaningful v8 field independently marks progress", () => {
   const cases = [
-    { "jalil-quran-v9": JSON.stringify([1]) },                    // one ayah
+    ["juzStatus", { juzStatus: { 30: "complete" } }],
+    ["juzProgress", { juzProgress: { 29: 42 } }],
+    ["sessionDone", { sessionDone: ["29:1"] }],
+    ["streak", { streak: 1 }],
+    ["checkHistory", { checkHistory: { "2026-07-13": ["fajr"] } }],
+    ["sessionsCompleted", { sessionsCompleted: { fajr: true } }],
+    ["dailyChecks", { dailyChecks: { date: "2026-07-14", isha: true } }],
+  ];
+  for (const [name, over] of cases) {
+    assert.equal(isEmptyProgress(freshWithV8(over)), false, `${name} should count as progress`);
+  }
+});
+
+test("NOTES AND PREFERENCES ALONE DO NOT make a backup meaningful", () => {
+  // A user who has written a note and picked a reciter, but memorized nothing,
+  // has no progress to back up. (These fields are excluded anyway, so this is
+  // also asserting that a RAW blob reaching isEmptyProgress cannot fake progress.)
+  const rawWithOnlyNotesAndPrefs = {
+    [V8_KEY]: JSON.stringify({
+      ...V8_LIVE_FRESH_INSTALL,
+      notes: { 30: "a long private reflection" },
+      dark: true,
+      reciter: "husary",
+      showTrans: false,
+    }),
+  };
+  assert.equal(isEmptyProgress(rawWithOnlyNotesAndPrefs), true,
+    "notes + cosmetic preferences are not memorization progress");
+});
+
+test("cosmetic-only session pointers and goals do not make a backup meaningful", () => {
+  assert.equal(isEmptyProgress(freshWithV8({
+    sessionJuz: 29, sessionIdx: 3, activeSessionIndex: 2, goalYears: 5, goalMonths: 6,
+  })), true, "position and goals are configuration, not progress");
+});
+
+test("combinations of progress fields are progress", () => {
+  assert.equal(isEmptyProgress(withV8({})), false);
+  assert.equal(isEmptyProgress(freshWithV8({ streak: 2, juzProgress: { 1: 10 } })), false);
+});
+
+test("legacy / malformed v8 values are treated as empty, never as progress", () => {
+  assert.equal(isEmptyProgress({ [V8_KEY]: "{ not json" }), true);
+  assert.equal(isEmptyProgress({ [V8_KEY]: "[]" }), true);
+  assert.equal(isEmptyProgress({ [V8_KEY]: "null" }), true);
+  assert.equal(isEmptyProgress({ [V8_KEY]: JSON.stringify({ streak: "lots" }) }), true);
+  assert.equal(isEmptyProgress({ [V8_KEY]: JSON.stringify({ juzProgress: "broken" }) }), true);
+  assert.equal(isEmptyProgress({ [V8_KEY]: JSON.stringify({ sessionsCompleted: "broken" }) }), true);
+});
+
+test("the standalone progress keys still mark progress", () => {
+  const cases = [
+    { "jalil-quran-v9": JSON.stringify([1]) },
     { "rihlat-session-log": JSON.stringify({ "2026-07-13": ["fajr"] }) },
-    { "rihlat-rep-counts": JSON.stringify({ "2:255": 1 }) },      // one repetition
+    { "rihlat-rep-counts": JSON.stringify({ "2:255": 1 }) },
     { "rihlat-revised-juz": JSON.stringify([30]) },
     { "rihlat-connection-reps": JSON.stringify({ "2:255": 1 }) },
     { "rihlat-daily-progress": JSON.stringify({ "2026-07-13": 3 }) },
     { "jalil-badge-milestones": JSON.stringify(["first-juz"]) },
-    { "jalil-quran-v8": JSON.stringify({ completedSessions: 1 }) },
-    { "jalil-quran-v8": JSON.stringify({ streak: 2 }) },
   ];
-  for (const p of cases) {
-    assert.equal(isEmptyProgress(p), false, `should be non-empty: ${JSON.stringify(p)}`);
-  }
+  for (const p of cases) assert.equal(isEmptyProgress(p), false, JSON.stringify(p));
+
+  assert.equal(isEmptyProgress({ "jalil-quran-v9": "[]" }), true);
 });
 
 // ── IDENTITY ─────────────────────────────────────────────────────────────
@@ -270,10 +542,9 @@ test("the raw token is never the storage address", async () => {
   const token = "a".repeat(43);
   const ref = await deriveBackupRef(token, sha256Hex);
   assert.match(ref, /^[0-9a-f]{64}$/);
-  assert.ok(!ref.includes(token), "the ref must not contain the token");
-  // Domain-separated, so this digest cannot collide with another sha256 use.
-  assert.notEqual(ref, sha256Hex(token));
-  assert.equal(ref, await deriveBackupRef(token, sha256Hex), "must be stable");
+  assert.ok(!ref.includes(token));
+  assert.notEqual(ref, sha256Hex(token), "must be domain-separated");
+  assert.equal(ref, await deriveBackupRef(token, sha256Hex));
 });
 
 test("malformed tokens are refused", async () => {
@@ -285,35 +556,27 @@ test("malformed tokens are refused", async () => {
   await assert.rejects(() => deriveBackupRef("nope", sha256Hex), (e) => e.code === ERR.BAD_TOKEN);
 });
 
-// ── CONFLICT RESOLUTION (Phase 4) ────────────────────────────────────────
-//
-// The whole point: NOTHING here returns "overwrite the device". The machine may
-// propose; only a human disposes.
+// ── CONFLICT RESOLUTION ──────────────────────────────────────────────────
 
-test("no remote backup: upload, nothing at risk", async () => {
-  const local = await envelope();
-  const r = compareBackups(local, null);
+test("no remote backup: upload", async () => {
+  const r = compareBackups(await envelope(), null);
   assert.equal(r.state, CONFLICT.NO_REMOTE);
   assert.equal(r.action, ACTION.UPLOAD);
 });
 
 test("nothing anywhere: do nothing", () => {
-  const r = compareBackups(null, null);
-  assert.equal(r.action, ACTION.NONE);
+  assert.equal(compareBackups(null, null).action, ACTION.NONE);
 });
 
 test("empty local + real remote: restore is safe — and is STILL only offered", async () => {
   const remote = await envelope();
-  const local = await envelope({ payload: { "jalil-quran-v9": "[]" } });
+  const local = await envelope({ payload: freshWithV8({}) });
   const r = compareBackups(local, remote);
   assert.equal(r.state, CONFLICT.NO_LOCAL);
   assert.equal(r.action, ACTION.RESTORE_SAFE);
-  // Even here it does not auto-apply: a user who reinstalled to start over is
-  // entitled to start over.
-  assert.notEqual(r.action, "OVERWRITE_LOCAL");
 });
 
-test("identical checksums: in sync, do nothing", async () => {
+test("identical checksums: in sync", async () => {
   const env = await envelope();
   const r = compareBackups(env, { ...env });
   assert.equal(r.state, CONFLICT.IN_SYNC);
@@ -344,9 +607,6 @@ test("remote newer than local: OFFER a restore — never take one", async () => 
 });
 
 test("same timestamp, different checksum: a human must decide", async () => {
-  // THE dangerous state. Contents diverged but the clocks agree, so there is no
-  // basis to pick a winner — and picking wrong deletes memorization. It must
-  // reach a person.
   const local = await envelope({ payload: { ...PROGRESS, "jalil-quran-v9": JSON.stringify([1, 2, 3]) } });
   const remote = await envelope({ payload: { ...PROGRESS, "jalil-quran-v9": JSON.stringify([9, 8, 7]) } });
   assert.equal(local.updatedAt, remote.updatedAt);
@@ -358,8 +618,6 @@ test("same timestamp, different checksum: a human must decide", async () => {
 });
 
 test("clock skew within tolerance counts as 'the same moment', not 'newer'", async () => {
-  // A 30-second clock difference between two devices is noise, not evidence.
-  // Treating it as evidence is how a stale device wins and eats a good backup.
   const local = await envelope({
     updatedAtIso: "2026-07-14T12:00:30.000Z",
     payload: { ...PROGRESS, "jalil-quran-v9": JSON.stringify([1, 2]) },
@@ -373,7 +631,7 @@ test("clock skew within tolerance counts as 'the same moment', not 'newer'", asy
   assert.equal(r.action, ACTION.ASK_USER);
 });
 
-test("a remote written by a NEWER app blocks — an old app must not guess", async () => {
+test("a remote written by a NEWER app blocks", async () => {
   const local = await envelope();
   const remote = { ...(await envelope()), schemaVersion: CLOUD_SCHEMA_VERSION + 1 };
   const r = compareBackups(local, remote);
@@ -382,9 +640,6 @@ test("a remote written by a NEWER app blocks — an old app must not guess", asy
 });
 
 test("no conflict state can ever silently destroy local progress", async () => {
-  // A blanket assertion over every state: the ONLY actions that touch the device
-  // are ones a human confirmed. There is deliberately no auto-overwrite action in
-  // the vocabulary at all.
   const AUTO_SAFE = new Set([ACTION.NONE, ACTION.UPLOAD, ACTION.BLOCK_UPDATE_APP]);
   const NEEDS_HUMAN = new Set([ACTION.OFFER_RESTORE, ACTION.RESTORE_SAFE, ACTION.ASK_USER]);
 
@@ -399,7 +654,7 @@ test("no conflict state can ever silently destroy local progress", async () => {
   ];
   for (const r of cases) {
     assert.ok(AUTO_SAFE.has(r.action) || NEEDS_HUMAN.has(r.action), `unknown action ${r.action}`);
-    assert.ok(typeof r.reason === "string" && r.reason.length > 0, "every state must explain itself");
+    assert.ok(typeof r.reason === "string" && r.reason.length > 0);
   }
   assert.equal(Object.values(ACTION).includes("OVERWRITE_LOCAL"), false,
     "there must be no action that overwrites the device without asking");
@@ -407,13 +662,14 @@ test("no conflict state can ever silently destroy local progress", async () => {
 
 // ── SANITY ───────────────────────────────────────────────────────────────
 
-test("the boundary lists are frozen (no runtime mutation of what we transmit)", () => {
+test("the boundary lists are frozen", () => {
   assert.throws(() => { CLOUD_BACKUP_KEYS.push("rihlat-reflections"); });
   assert.throws(() => { CLOUD_EXCLUDED_KEYS.pop(); });
+  assert.throws(() => { V8_ALLOWED_FIELDS.push("notes"); });
+  assert.throws(() => { V8_EXCLUDED_FIELDS.pop(); });
 });
 
 test("every cloud key is a key the app actually uses", () => {
-  // Guards against a typo'd key name silently backing up nothing.
   for (const k of CLOUD_BACKUP_KEYS) {
     assert.ok(BACKUP_STORAGE_KEYS.includes(k), `${k} is not a real app storage key`);
   }

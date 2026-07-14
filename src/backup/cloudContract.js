@@ -13,14 +13,22 @@
 // browser (SubtleCrypto). Injecting the hasher is what lets one contract serve
 // a sync runtime and an async one — `computeChecksum` awaits either.
 //
+// ── EVERYTHING HERE IS AN ALLOWLIST ───────────────────────────────────────
+// Top-level envelope fields, the encryption object, payload keys, AND the
+// fields inside the jalil-quran-v8 blob are each closed sets. Anything not
+// named is REJECTED, never ignored and never stored. A validated envelope is
+// REBUILT from the allowlist rather than passed through, so a field that
+// somehow evades a check still cannot reach storage — it has no seat on the
+// object that gets written.
+//
 // ── RELATIONSHIP TO THE LOCAL FILE BACKUP ─────────────────────────────────
 // The local backup (localBackup.js) writes a file to the USER'S OWN DEVICE, so
 // it deliberately carries the user's display name and written reflections.
 // A cloud backup transmits to a SERVER WE OPERATE, which is a different privacy
 // and legal question entirely. The cloud boundary is therefore a strict SUBSET
 // of the local one: progress, the dated history that cannot be reconstructed,
-// and the two settings that change what the progress numbers MEAN. Nothing
-// else. See docs/PROGRESS_BACKUP_ARCHITECTURE.md for the per-field rationale.
+// and the settings that change what the progress numbers MEAN. Nothing else.
+// See docs/PROGRESS_BACKUP_ARCHITECTURE.md for the per-field rationale.
 //
 // ── IDENTITY ──────────────────────────────────────────────────────────────
 // There are no accounts. A backup is addressed by an unguessable capability
@@ -48,7 +56,7 @@ export const CLOUD_MIN_SCHEMA_VERSION = 1;
 // memorization that cannot be reconstructed from anything else.
 const CLOUD_PROGRESS_KEYS = [
   "jalil-quran-v9",         // ayah-level completion array — the source of truth
-  "jalil-quran-v8",         // juz/session/goal/streak/Asr state blob
+  "jalil-quran-v8",         // juz/session/streak/Asr state blob — SANITIZED, see below
   "rihlat-session-log",     // per-day 5-session completion log (streaks, charts)
   "rihlat-revised-juz",     // Asr revision coverage per juz
   "jalil-asr-cycle",        // Asr rotation pointer
@@ -82,21 +90,13 @@ export const CLOUD_BACKUP_KEYS = Object.freeze([
 
 // Carried by the LOCAL file backup but deliberately NEVER transmitted. Named
 // explicitly (not merely omitted) so the exclusion is a tested, reviewable
-// assertion rather than an accident of list-copying. Two groups:
-//
-//   personal content — the user's name and their written reflections. Sending
-//     these would turn a progress backup into user-content hosting, and would
-//     move the Play "Data safety" declaration into Personal info + User content.
-//   cosmetic / device-local — nothing about them is progress, and several are
-//     meaningless or wrong on a different device.
+// assertion rather than an accident of list-copying.
 export const CLOUD_EXCLUDED_KEYS = Object.freeze([
   // personal content
   "rihlat-username",
   "rihlat-reflections",
   // derived display feed — {type,text,ts}, capped at 7 entries, rebuilt as the
-  // user works. The strings are app-generated ("Completed page 3"), not user
-  // content, and none of it is memorization: restoring it would only repopulate
-  // a widget. Excluded under data minimization.
+  // user works. App-generated strings, not user content, and not memorization.
   "jalil-recent-activity",
   // cosmetic display preferences
   "rihlat-fontsize",
@@ -123,16 +123,95 @@ export const CLOUD_EXCLUDED_KEYS = Object.freeze([
   "rihlat-reminders-fired",
 ]);
 
+// ── THE jalil-quran-v8 BLOB — A BOUNDARY INSIDE A KEY ─────────────────────
+//
+// v8 is a single localStorage key holding a 21-field state object
+// (src/quran-hifz-tracker.jsx:682). Backing it up VERBATIM — as this contract
+// originally did — would have transmitted the user's private per-juz NOTES
+// along with their dark-mode, reciter, and translation-visibility preferences,
+// because they happen to live in the same blob as the progress counters.
+//
+// Key-level allowlisting is therefore not sufficient. The v8 value gets its own
+// FIELD-level allowlist, and the client re-serializes the blob from that
+// allowlist before it is ever hashed or sent. Notes never enter the payload;
+// they are not stripped server-side, they are never assembled client-side.
+export const V8_KEY = "jalil-quran-v8";
+
+// The 17 fields that carry memorization progress, and why each is necessary.
+export const V8_ALLOWED_FIELDS = Object.freeze([
+  // completion
+  "juzStatus",           // {juz|sNN: "complete"} — juz/surah completion; the v9 backfill source
+  "juzProgress",         // {juz: versesDone} — per-juz position
+  "sessionsCompleted",   // {fajr..isha: bool} — which of today's 5 sessions are done
+  // streaks + dated history (unreconstructable once the day passes)
+  "streak",              // consecutive-day counter
+  "dailyChecks",         // {date, sessionId: bool} — today's checkmarks
+  "checkHistory",        // historical daily checks
+  // the current session (see NOTE below — these travel together or not at all)
+  "sessionJuz",          // juz the active session is on
+  "sessionIdx",          // batch index within that juz
+  "sessionDone",         // batch keys completed in the active session
+  "activeSessionIndex",  // which of the 5 daily sessions is active
+  // review scheduling — feeds Dhuhr ("last 5 days") and the Asr rotation
+  "yesterdayBatch",      // yesterday's Fajr batch
+  "recentBatches",       // last 5 days of Fajr batches
+  "asrSelectedSurahs",   // Asr revision selection
+  "asrSelectedJuz",
+  "asrReviewBatch",      // the batch currently under Asr review
+  // methodology — changes what the progress numbers MEAN
+  "goalYears",           // memorization goal horizon; drives every pace/target figure
+  "goalMonths",
+]);
+
+// NOTE on the session group: `sessionDone` is a list of batch keys that is only
+// interpretable RELATIVE to `sessionJuz`/`sessionIdx`. Restoring it without them
+// would restore a meaningless array. They travel together, or the field is worse
+// than useless.
+
+// Named, not merely omitted — the same discipline as CLOUD_EXCLUDED_KEYS, and
+// for the same reason. These are the fields that live in the progress blob and
+// must never leave the device through it.
+export const V8_EXCLUDED_FIELDS = Object.freeze([
+  "notes",      // USER-WRITTEN per-juz notes. Free-form personal text. Never.
+  "dark",       // dark-mode preference — cosmetic
+  "reciter",    // audio reciter preference — cosmetic
+  "showTrans",  // translation visibility — cosmetic
+]);
+
+// ── ENVELOPE FIELD ALLOWLIST ──────────────────────────────────────────────
+// The complete set of top-level keys an envelope may carry. Anything else is
+// rejected. This is what stops an oversized or hostile field riding along in a
+// property nobody validates.
+export const ENVELOPE_FIELDS = Object.freeze([
+  "app", "kind", "schemaVersion", "backupId", "writerId", "appVersion",
+  "platform", "createdAt", "updatedAt", "encryption", "payload", "checksum",
+]);
+
+// The encryption object is a closed set too — it is the forward-compat hook for
+// end-to-end encryption, and a hook is exactly where junk accumulates.
+const ENCRYPTION_FIELDS = Object.freeze(["alg"]);
+
 // Core blobs that must parse before a backup is trusted enough to be stored or
 // restored. Mirrors localBackup.js's CORE_JSON_KEYS.
 const CORE_JSON_KEYS = ["jalil-quran-v8", "jalil-quran-v9"];
 
 // ── LIMITS ────────────────────────────────────────────────────────────────
-// A full 6,236-ayah completion set plus rep counts lands well under 400 KiB.
-// 512 KiB is generous headroom while still bounding what one anonymous caller
-// can park on the server.
-export const MAX_PAYLOAD_BYTES = 512 * 1024;
-export const MAX_VALUE_BYTES = 256 * 1024;
+//
+// THE OUTER BOUND is the serialized envelope: 1 MiB. Nothing can bypass it,
+// because it is measured on the whole object rather than on the one field we
+// remembered to check. The original contract capped only the payload, which let
+// a 600 KB top-level junk field sail through — the payload was small, so the
+// payload check passed, and nothing else was ever weighed.
+//
+// The payload sub-limits still bind first for any realistic backup:
+//   - a full 6,236-ayah completion set plus rep counts lands under ~400 KiB
+//   - which serializes (JSON escaping included) to well under 1 MiB
+// A pathological all-quotes payload could escape to ~2x its raw size; that is
+// what the envelope bound is for, and being refused is the correct outcome.
+export const MAX_ENVELOPE_BYTES = 1024 * 1024;  // 1,048,576 — hard maximum accepted request
+export const MAX_PAYLOAD_BYTES = 512 * 1024;    //   524,288 — sum of raw payload values
+export const MAX_VALUE_BYTES = 256 * 1024;      //   262,144 — any single payload value
+
 // Client clocks are attacker-controlled and also just wrong. A timestamp more
 // than this far in the future is rejected outright; conflict resolution treats
 // times within SKEW as "the same moment".
@@ -149,20 +228,41 @@ export const PLATFORMS = Object.freeze(["web", "ios", "android"]);
 // and a user-facing string; nothing else is ever leaked to the caller.
 export const ERR = Object.freeze({
   BAD_ENVELOPE: "BAD_ENVELOPE",
+  UNKNOWN_FIELD: "UNKNOWN_FIELD",
   SCHEMA_UNSUPPORTED: "SCHEMA_UNSUPPORTED",
   BAD_CHECKSUM: "BAD_CHECKSUM",
   CORRUPT_CORE: "CORRUPT_CORE",
   EMPTY_PROGRESS: "EMPTY_PROGRESS",
   PAYLOAD_TOO_LARGE: "PAYLOAD_TOO_LARGE",
   EXCLUDED_KEY: "EXCLUDED_KEY",
+  EXCLUDED_FIELD: "EXCLUDED_FIELD",
   BAD_TOKEN: "BAD_TOKEN",
   FUTURE_TIMESTAMP: "FUTURE_TIMESTAMP",
+  REVISION_CONFLICT: "REVISION_CONFLICT",
 });
 
 export function backupError(code, message) {
   const e = new Error(message || code);
   e.code = code;
   return e;
+}
+
+// ── BYTES ─────────────────────────────────────────────────────────────────
+
+// Correct for multi-byte UTF-8 (Arabic content). `.length` counts UTF-16 units
+// and would under-count, letting an oversized payload through.
+function byteLength(s) {
+  return new TextEncoder().encode(s).length;
+}
+
+// The size of the envelope AS IT WOULD BE STORED/TRANSMITTED.
+export function envelopeByteSize(env) {
+  try {
+    return byteLength(JSON.stringify(env));
+  } catch {
+    // Circular or non-serializable: not an envelope at all.
+    return Infinity;
+  }
 }
 
 // ── CANONICAL FORM + CHECKSUM ─────────────────────────────────────────────
@@ -196,15 +296,71 @@ export function isValidToken(token) {
   return typeof token === "string" && TOKEN_RE.test(token);
 }
 
+// ── v8 SANITIZER (client side) ────────────────────────────────────────────
+
+// Rebuild the v8 blob from the field allowlist. Returns a canonical JSON string
+// (keys sorted, so two devices with the same progress produce the same bytes and
+// therefore the same checksum), or null if the blob is missing/unparseable/not
+// an object — a malformed legacy blob is dropped rather than guessed at.
+//
+// This runs on the DEVICE, before hashing. Notes are not stripped from a payload;
+// they are never put into one.
+export function sanitizeQuranV8(rawJson) {
+  if (typeof rawJson !== "string" || rawJson === "") return null;
+  let parsed;
+  try { parsed = JSON.parse(rawJson); } catch { return null; }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+
+  const out = {};
+  for (const field of [...V8_ALLOWED_FIELDS].sort()) {
+    if (Object.prototype.hasOwnProperty.call(parsed, field) && parsed[field] !== undefined) {
+      out[field] = parsed[field];
+    }
+  }
+  return JSON.stringify(out);
+}
+
+// Server-side gate: the v8 value that arrived must contain ONLY allowlisted
+// fields. An excluded field is a distinct, louder error than an unknown one —
+// "you sent us the user's notes" and "you sent us a field we don't know" are
+// different bugs and deserve different names.
+function assertQuranV8Fields(rawJson) {
+  let parsed;
+  try { parsed = JSON.parse(rawJson); }
+  catch { throw backupError(ERR.CORRUPT_CORE, `core progress data is corrupted: ${V8_KEY}`); }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw backupError(ERR.CORRUPT_CORE, `core progress data is corrupted: ${V8_KEY}`);
+  }
+
+  for (const field of Object.keys(parsed)) {
+    if (V8_EXCLUDED_FIELDS.includes(field)) {
+      throw backupError(ERR.EXCLUDED_FIELD, `field not permitted in ${V8_KEY}: ${field}`);
+    }
+    if (!V8_ALLOWED_FIELDS.includes(field)) {
+      throw backupError(ERR.UNKNOWN_FIELD, `unknown field in ${V8_KEY}: ${field}`);
+    }
+  }
+  return parsed;
+}
+
 // ── BUILD ─────────────────────────────────────────────────────────────────
 
 // Select the cloud-eligible subset of a raw localStorage snapshot. Reads only
-// the allowlist and keeps only the keys actually present.
+// the allowlist, keeps only keys actually present, and passes the v8 blob
+// through the field-level sanitizer.
 export function selectCloudPayload(storage) {
   const payload = {};
   for (const k of CLOUD_BACKUP_KEYS) {
     const v = storage.getItem(k);
-    if (typeof v === "string") payload[k] = v;
+    if (typeof v !== "string") continue;
+
+    if (k === V8_KEY) {
+      const clean = sanitizeQuranV8(v);
+      if (clean !== null) payload[k] = clean;
+      continue;
+    }
+    payload[k] = v;
   }
   return payload;
 }
@@ -248,22 +404,28 @@ export async function buildCloudEnvelope({
 const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
 const ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
 
-function byteLength(s) {
-  // Correct for multi-byte UTF-8 (Arabic content) — `.length` counts UTF-16
-  // units and would under-count, letting an oversized payload through.
-  return new TextEncoder().encode(s).length;
-}
-
 // Structural + integrity validation of an envelope from an untrusted source
 // (the network, or a stored record we are about to hand back). Writes nothing
 // and touches no storage, so it is structurally incapable of causing damage.
-// Returns the envelope on success; throws a coded error otherwise.
+//
+// Returns a NEWLY CONSTRUCTED envelope assembled from the allowlist — the input
+// object itself is never returned and never stored. Throws a coded error on any
+// rejection.
 //
 // `nowMs` is required so future-dated timestamps can be rejected.
 export async function validateEnvelope(env, { sha256Hex, nowMs }) {
   if (!env || typeof env !== "object" || Array.isArray(env)) {
     throw backupError(ERR.BAD_ENVELOPE, "not an object");
   }
+
+  // SIZE FIRST, on the WHOLE envelope, before we interpret a single field. This
+  // is the check that cannot be walked around: it does not care which field the
+  // bytes are hiding in.
+  const size = envelopeByteSize(env);
+  if (size > MAX_ENVELOPE_BYTES) {
+    throw backupError(ERR.PAYLOAD_TOO_LARGE, `envelope too large: ${size} bytes`);
+  }
+
   if (env.app !== CLOUD_APP || env.kind !== CLOUD_KIND) {
     throw backupError(ERR.BAD_ENVELOPE, "not an Al-Hifz cloud backup");
   }
@@ -275,6 +437,13 @@ export async function validateEnvelope(env, { sha256Hex, nowMs }) {
     throw backupError(ERR.SCHEMA_UNSUPPORTED, `unsupported schemaVersion: ${v}`);
   }
 
+  // STRICT: no unknown top-level fields.
+  for (const field of Object.keys(env)) {
+    if (!ENVELOPE_FIELDS.includes(field)) {
+      throw backupError(ERR.UNKNOWN_FIELD, `unknown envelope field: ${field}`);
+    }
+  }
+
   if (!ID_RE.test(env.backupId || "")) throw backupError(ERR.BAD_ENVELOPE, "bad backupId");
   if (!ID_RE.test(env.writerId || "")) throw backupError(ERR.BAD_ENVELOPE, "bad writerId");
   if (typeof env.appVersion !== "string" || env.appVersion.length > 32) {
@@ -283,9 +452,18 @@ export async function validateEnvelope(env, { sha256Hex, nowMs }) {
   if (!PLATFORMS.includes(env.platform)) throw backupError(ERR.BAD_ENVELOPE, "bad platform");
   if (!ISO_RE.test(env.createdAt || "")) throw backupError(ERR.BAD_ENVELOPE, "bad createdAt");
   if (!ISO_RE.test(env.updatedAt || "")) throw backupError(ERR.BAD_ENVELOPE, "bad updatedAt");
-  if (!env.encryption || env.encryption.alg !== "none") {
-    throw backupError(ERR.BAD_ENVELOPE, "unsupported encryption");
+
+  // STRICT: the encryption object is a closed set.
+  const enc = env.encryption;
+  if (!enc || typeof enc !== "object" || Array.isArray(enc)) {
+    throw backupError(ERR.BAD_ENVELOPE, "bad encryption");
   }
+  for (const field of Object.keys(enc)) {
+    if (!ENCRYPTION_FIELDS.includes(field)) {
+      throw backupError(ERR.UNKNOWN_FIELD, `unknown encryption field: ${field}`);
+    }
+  }
+  if (enc.alg !== "none") throw backupError(ERR.BAD_ENVELOPE, "unsupported encryption");
 
   const updatedMs = Date.parse(env.updatedAt);
   if (!Number.isFinite(updatedMs)) throw backupError(ERR.BAD_ENVELOPE, "bad updatedAt");
@@ -304,13 +482,17 @@ export async function validateEnvelope(env, { sha256Hex, nowMs }) {
   let total = 0;
   for (const [k, val] of Object.entries(payload)) {
     if (CLOUD_EXCLUDED_KEYS.includes(k)) throw backupError(ERR.EXCLUDED_KEY, `key not permitted: ${k}`);
-    if (!CLOUD_BACKUP_KEYS.includes(k)) throw backupError(ERR.BAD_ENVELOPE, `unknown key: ${k}`);
+    if (!CLOUD_BACKUP_KEYS.includes(k)) throw backupError(ERR.UNKNOWN_FIELD, `unknown payload key: ${k}`);
     if (typeof val !== "string") throw backupError(ERR.BAD_ENVELOPE, `non-string value: ${k}`);
     const n = byteLength(val);
     if (n > MAX_VALUE_BYTES) throw backupError(ERR.PAYLOAD_TOO_LARGE, `value too large: ${k}`);
     total += n;
   }
   if (total > MAX_PAYLOAD_BYTES) throw backupError(ERR.PAYLOAD_TOO_LARGE, "payload too large");
+
+  // The boundary INSIDE the v8 blob. This is where notes/dark/reciter/showTrans
+  // are refused; key-level allowlisting alone would have shipped all four.
+  if (payload[V8_KEY] !== undefined) assertQuranV8Fields(payload[V8_KEY]);
 
   // Core blobs must parse. A backup whose source of truth is corrupt is worse
   // than no backup: it will happily overwrite a healthy device later.
@@ -322,16 +504,49 @@ export async function validateEnvelope(env, { sha256Hex, nowMs }) {
   }
 
   // Integrity last: cheap structural checks first, hashing only once the shape
-  // is known good.
+  // is known good. Hashed over the payload EXACTLY as it arrived, so the digest
+  // still describes the bytes the client signed.
   const expect = await computeChecksum(payload, sha256Hex);
   if (typeof env.checksum !== "string" || env.checksum !== expect) {
     throw backupError(ERR.BAD_CHECKSUM, "checksum mismatch");
   }
 
-  return env;
+  // REBUILD. Nothing that was not explicitly validated above gets a seat on the
+  // object that goes to storage. Every field is copied by name; the payload is
+  // reassembled key by key. The input object is discarded.
+  const cleanPayload = {};
+  for (const k of CLOUD_BACKUP_KEYS) {
+    if (typeof payload[k] === "string") cleanPayload[k] = payload[k];
+  }
+
+  return {
+    app: env.app,
+    kind: env.kind,
+    schemaVersion: env.schemaVersion,
+    backupId: env.backupId,
+    writerId: env.writerId,
+    appVersion: env.appVersion,
+    platform: env.platform,
+    createdAt: env.createdAt,
+    updatedAt: env.updatedAt,
+    encryption: { alg: enc.alg },
+    payload: cleanPayload,
+    checksum: env.checksum,
+  };
 }
 
 // ── EMPTINESS ─────────────────────────────────────────────────────────────
+
+const parseJson = (raw) => {
+  if (typeof raw !== "string" || raw === "") return null;
+  try { return JSON.parse(raw); } catch { return null; }
+};
+
+const isNonEmptyCollection = (v) => {
+  if (Array.isArray(v)) return v.length > 0;
+  if (v && typeof v === "object") return Object.keys(v).length > 0;
+  return false;
+};
 
 // Is this payload "a fresh install with nothing in it"?
 //
@@ -342,40 +557,74 @@ export async function validateEnvelope(env, { sha256Hex, nowMs }) {
 // device holding it is the one case where restoring over it is unambiguously
 // safe.
 //
-// Deliberately conservative: ANY sign of real work — a single completed ayah, a
-// single logged session, a single repetition — makes a payload non-empty.
+// ── WHY THIS IS FIELD-AWARE AND NOT A GENERIC "IS IT EMPTY" CHECK ─────────
+// The v8 fields do not answer to a generic emptiness test, and a generic test
+// gets this DANGEROUSLY backwards in both directions:
+//
+//   sessionsCompleted is {fajr:false,…,isha:false} — a FRESH INSTALL always has
+//     all five keys. "Object.keys().length > 0" would call a brand-new device
+//     "non-empty", defeating the entire protection above.
+//   dailyChecks always carries a `date` key for the same reason.
+//   juzProgress is {juz: versesDone} — a key whose value is 0 is not progress.
+//
+// So each field is interrogated for what it actually MEANS. Deliberately
+// conservative in the other direction: ANY sign of real work — one completed
+// ayah, one finished session, one repetition — makes a payload non-empty.
 export function isEmptyProgress(payload) {
   if (!payload || typeof payload !== "object") return true;
 
-  const parse = (k) => {
-    const raw = payload[k];
-    if (typeof raw !== "string" || raw === "") return null;
-    try { return JSON.parse(raw); } catch { return null; }
-  };
-  const nonEmpty = (v) => {
-    if (Array.isArray(v)) return v.length > 0;
-    if (v && typeof v === "object") return Object.keys(v).length > 0;
-    return false;
-  };
+  // Standalone progress keys: presence of any content is real work.
+  if (isNonEmptyCollection(parseJson(payload["jalil-quran-v9"]))) return false;        // completed ayahs
+  if (isNonEmptyCollection(parseJson(payload["rihlat-session-log"]))) return false;    // any logged session
+  if (isNonEmptyCollection(parseJson(payload["rihlat-rep-counts"]))) return false;     // any repetition
+  if (isNonEmptyCollection(parseJson(payload["rihlat-connection-reps"]))) return false;
+  if (isNonEmptyCollection(parseJson(payload["rihlat-revised-juz"]))) return false;    // any revision
+  if (isNonEmptyCollection(parseJson(payload["rihlat-daily-progress"]))) return false; // any dated delta
+  if (isNonEmptyCollection(parseJson(payload["jalil-badge-milestones"]))) return false;
 
-  if (nonEmpty(parse("jalil-quran-v9"))) return false;        // completed ayahs
-  if (nonEmpty(parse("rihlat-session-log"))) return false;    // any logged session
-  if (nonEmpty(parse("rihlat-rep-counts"))) return false;     // any repetition
-  if (nonEmpty(parse("rihlat-connection-reps"))) return false;
-  if (nonEmpty(parse("rihlat-revised-juz"))) return false;    // any revision
-  if (nonEmpty(parse("rihlat-daily-progress"))) return false; // any dated delta
-  if (nonEmpty(parse("jalil-badge-milestones"))) return false;
+  // The v8 blob: settings-bearing, so its mere presence proves nothing.
+  const v8 = parseJson(payload[V8_KEY]);
+  if (!v8 || typeof v8 !== "object" || Array.isArray(v8)) return true;
 
-  // jalil-quran-v8 is a settings-bearing blob, so its mere presence proves
-  // nothing — a brand-new install writes one. Only real counters inside it do.
-  const v8 = parse("jalil-quran-v8");
-  if (v8 && typeof v8 === "object") {
-    for (const field of ["completedSessions", "streak", "totalAyahs", "memorized"]) {
-      const n = Number(v8[field]);
+  // sessionsCompleted {fajr..isha: bool} — real only if a session is actually DONE.
+  const sc = v8.sessionsCompleted;
+  if (sc && typeof sc === "object" && Object.values(sc).some((done) => done === true)) return false;
+
+  // juzProgress {juz: versesDone} — real only if some juz has verses done.
+  const jp = v8.juzProgress;
+  if (jp && typeof jp === "object") {
+    for (const verses of Object.values(jp)) {
+      const n = Number(verses);
       if (Number.isFinite(n) && n > 0) return false;
     }
   }
 
+  // juzStatus {juz|sNN: "complete"} — any recorded status is real work.
+  if (isNonEmptyCollection(v8.juzStatus)) return false;
+
+  // sessionDone — batch keys finished in the active session.
+  if (isNonEmptyCollection(v8.sessionDone)) return false;
+
+  // streak — a positive counter.
+  const streak = Number(v8.streak);
+  if (Number.isFinite(streak) && streak > 0) return false;
+
+  // dailyChecks {date, sessionId: bool} — `date` is bookkeeping and is ALWAYS
+  // present; only an actual checked session counts.
+  const dc = v8.dailyChecks;
+  if (dc && typeof dc === "object") {
+    for (const [field, checked] of Object.entries(dc)) {
+      if (field !== "date" && checked === true) return false;
+    }
+  }
+
+  // checkHistory — any retained history is real.
+  if (isNonEmptyCollection(v8.checkHistory)) return false;
+
+  // Everything else in v8 (goals, session pointers, Asr selections, and the
+  // excluded notes/dark/reciter/showTrans if a caller passed a raw blob) is
+  // configuration or position, NOT progress. A device holding only those has
+  // done no memorization, and is empty.
   return true;
 }
 
@@ -472,16 +721,10 @@ export function compareBackups(local, remote) {
 
 // ── TRIPWIRES ─────────────────────────────────────────────────────────────
 //
-// Three invariants, all asserted in tests/cloud-backup-contract.test.mjs. They
+// Four invariants, all asserted in tests/cloud-backup-contract.test.mjs. They
 // exist because the ONLY thing standing between "we transmit progress" and "we
-// transmit the user's written reflections" is a hand-maintained list, and a
+// transmit the user's private notes" is a hand-maintained list, and a
 // hand-maintained list is exactly the thing that rots.
-//
-// The second one is not hypothetical: `jalil-recent-activity` was in NEITHER
-// cloud list when this contract was first drafted — silently omitted rather than
-// deliberately excluded, which is the precise failure the "name every exclusion"
-// rule was supposed to prevent. A one-directional check did not catch it. This
-// one does.
 
 // 1. The cloud boundary must be a SUBSET of the local-file boundary. A key here
 //    that the local backup has never heard of has escaped review entirely.
@@ -498,8 +741,30 @@ export function localKeysUnclassifiedForCloud() {
   );
 }
 
-// 3. DISJOINTNESS. A key cannot be both sent and refused. If the two lists ever
-//    overlap, one of them is lying about what leaves the device.
+// 3. DISJOINTNESS. A key cannot be both sent and refused.
 export function cloudKeysBothIncludedAndExcluded() {
   return CLOUD_BACKUP_KEYS.filter((k) => CLOUD_EXCLUDED_KEYS.includes(k));
+}
+
+// 4. The same completeness rule, one level DOWN — inside the v8 blob. The app
+//    writes 21 fields into that key (quran-hifz-tracker.jsx:682); every one of
+//    them must be allowed or excluded by name. This is the tripwire that would
+//    have caught `notes` being backed up verbatim, and it is the one that will
+//    catch the next field somebody adds to that object.
+export const V8_LIVE_FIELDS = Object.freeze([
+  "juzStatus", "notes", "goalYears", "goalMonths", "sessionJuz", "sessionIdx",
+  "juzProgress", "sessionDone", "yesterdayBatch", "recentBatches",
+  "asrSelectedSurahs", "asrSelectedJuz", "asrReviewBatch", "dark", "dailyChecks",
+  "streak", "checkHistory", "reciter", "showTrans", "activeSessionIndex",
+  "sessionsCompleted",
+]);
+
+export function v8FieldsUnclassified() {
+  return V8_LIVE_FIELDS.filter(
+    (f) => !V8_ALLOWED_FIELDS.includes(f) && !V8_EXCLUDED_FIELDS.includes(f),
+  );
+}
+
+export function v8FieldsBothAllowedAndExcluded() {
+  return V8_ALLOWED_FIELDS.filter((f) => V8_EXCLUDED_FIELDS.includes(f));
 }

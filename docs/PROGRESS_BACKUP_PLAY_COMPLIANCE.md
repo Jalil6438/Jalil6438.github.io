@@ -44,7 +44,7 @@ contains no analytics of any kind, by design.
 |---|---|---|---|
 | **App activity → Other actions** | **YES — Collected** | The progress payload (ayah completion, sessions, reps, revision, streaks, badges, milestones) | Best-supported fit. Definition: *"Any other user activity or actions in-app not listed here."* |
 | **Device or other IDs** | **YES — Collected** | The capability token + `writerId` | Play's definition covers identifiers relating to *"an individual device, browser or **app**"*, and gives **Firebase installation ID** — an app-generated random app-scoped ID — as an example. Our token is the same species. |
-| **App activity → Other user-generated content** | **NO** | — | **Only because we exclude `rihlat-reflections` and `rihlat-username`.** If either is ever added to the cloud boundary, this type activates and the declaration must change. This is the compliance consequence of the boundary in Architecture §5. |
+| **App activity → Other user-generated content** | **NO** — *now truthfully* | — | See the correction below. Holds **only** because we exclude `rihlat-reflections`, `rihlat-username`, **and the `notes` field inside `jalil-quran-v8`**. If any of the three is ever added to the cloud boundary, this type activates and the declaration must change. |
 | **Personal info → Name** | **NO** | — | `rihlat-username` is excluded. Same conditional as above. |
 | **Personal info → User IDs** | **Judgment** | — | See Ambiguity A2. Defensible to declare *in addition* to Device IDs. Over-declaring is not penalized; under-declaring is. |
 | **Personal info → Political or religious beliefs** | **UNRESOLVED — see D1 / A1** | Possibly the entire payload | The decision that matters most. |
@@ -52,6 +52,32 @@ contains no analytics of any kind, by design.
 | **Location / country** | **NO** | — | Deliberately not collected on this path. |
 | **Security: encrypted in transit** | **YES** | HTTPS/TLS | Vercel is HTTPS-only. Truthfully declarable. |
 | **Security: users can request deletion** | **YES** | `DELETE /api/backup` + a web deletion page | See §4. |
+
+## 2a. CORRECTION — the previous draft of this table was FALSE
+
+The first revision of this document declared **"User-generated content: NO"**. That was
+**wrong**, and it is worth stating plainly rather than quietly fixing, because it is the exact
+failure this document warns about in §1.
+
+The `notes` field — the user's own free-form written per-juz notes — lives **inside** the
+`jalil-quran-v8` blob, which was on the backup allowlist as a single key. Key-level
+allowlisting said "yes" to the whole blob. So the implementation *was* transmitting user-
+generated content to our server while this document declared that it did not.
+
+> **A Data safety declaration is only as true as the field-level boundary underneath it.**
+> An allowlist of *keys* tells you nothing about what is *inside* those keys. Had this shipped,
+> we would have filed an inaccurate declaration — the precise thing Google enforces with
+> *"blocked updates or removal from Google Play"* — and we would have done it while believing
+> the paperwork was correct.
+
+**Fixed** (Architecture §5.2): `jalil-quran-v8` now has a field-level allowlist. `notes`,
+`dark`, `reciter`, and `showTrans` are refused by name; the client strips them **before the
+payload is built**; the server independently rejects any blob carrying them; and a tripwire
+test over the app's real 21-field blob fails if a new field is ever added without being
+classified.
+
+The mapping in §2 is now true of the implementation, and is pinned by tests
+(`no excluded key, and no v8 note or preference, ever reaches storage`).
 
 ## 3. THE BLOCKING DECISION — is memorization progress a "religious belief"? (D1 / A1)
 
@@ -74,6 +100,13 @@ practice.
 
 **This is a legal and product judgment with real consequences, and it must not be made by an
 engineer or by an AI.** It is escalated to Jalil, unresolved, deliberately.
+
+**What changed since the last revision:** excluding the `notes` field (§2a) materially
+*reduces* the exposure. A user's free-form written reflections on a passage of the Qur'an are a
+far stronger Art. 9 trigger than a completion count — the first is religious expression, the
+second is arguably just an activity log. Removing notes from the wire moves the question from
+"we are storing religious writing" to "we are storing which verses someone has memorized",
+which is a materially easier call. **It does not settle it.**
 
 **Engineering note (not a decision):** adopting E2E encryption (Architecture D3) would make
 the server structurally unable to read the payload, which is the most robust answer to this
@@ -139,12 +172,32 @@ The boundary in Architecture §5 **is** the minimization argument, and it is enf
 rather than by good intentions:
 
 - 13 keys transmitted, each with a documented "why it is necessary" and "what is lost without it".
-- 20 keys refused **by name**, including the user's name, their private reflections, all
-  cosmetic preferences, and every analytics/identity key.
-- Unknown and excluded keys are **rejected**, not silently dropped.
-- **No analytics riders. No IP-derived geolocation. No device fingerprinting. No crash data.**
-  The backup path collects nothing beyond the progress payload.
+- 20 keys refused **by name**, including the user's name, their private reflections, the
+  activity feed, all cosmetic preferences, and every analytics/identity key.
+- **Field-level** minimization inside `jalil-quran-v8`: 17 progress fields retained, 4 refused
+  by name (`notes`, `dark`, `reciter`, `showTrans`). Minimization that stops at the key
+  boundary is not minimization — see §2a.
+- Unknown and excluded keys **and fields** are **rejected**, not silently dropped, and a
+  validated envelope is **rebuilt from the allowlist** before storage.
+- **No analytics riders. No IP-derived geolocation. No device fingerprinting. No crash data.
+  No free-form user text of any kind.** The backup path collects nothing beyond the progress
+  payload.
 - `writerId ≠ alhifz_did`, so the backup set cannot be joined to the analytics device set.
+
+### 6a. Identifiers collected, and why
+
+| Identifier | Collected? | Purpose | Retention |
+|---|---|---|---|
+| **Capability token** (client-generated, random) | Yes — but the server stores only `sha256(domain:token)` | The *only* way to address a backup. There are no accounts. | For the life of the backup (400 days from last touch) |
+| **`writerId`** (random, backup-only) | Yes, in the envelope | Identifies which device wrote a given restore point, so a user can tell two devices apart in a restore-point list | With the backup |
+| **`alhifz_did`** (analytics install id) | **NEVER on this path** | — | — |
+| **IP address** | **Not stored.** HMAC-SHA256 under a server-side pepper; only the digest is used, as a rate-limit bucket key | Abuse limiting only | **≤ 1 hour** (counter TTL). Never attached to a backup record; never logged |
+
+**On the IP:** a bare `sha256(ip)` would *not* be pseudonymization — the IPv4 space is 2³², so
+the digests can simply be enumerated back to addresses. The pepper is what makes the digest
+unreproducible without server-side knowledge, and it never leaves the server. Declared here
+because a rate-limit key is exactly the kind of place an identifier gets left lying around and
+then forgotten at declaration time.
 
 ## 7. Retention
 
@@ -152,7 +205,9 @@ rather than by good intentions:
 invented policy.) What Play *does* require is that the **privacy policy state** the retention
 and deletion policy.
 
-- **Ours: 400 days from last touch**, justified in Architecture §10.
+- **Ours: 400 days from last touch**, justified in Architecture §13.
+- **Rate-limit counters: ≤ 1 hour** (TTL), holding a pseudonymized IP bucket and no backup
+  content.
 - **The 90-day auto-deletion option is deliberately NOT adopted.** Play offers a deletion
   badge for auto-deleting within 90 days; for a *backup* feature that is actively
   user-hostile — it would silently destroy the very thing the user asked us to keep. We take
@@ -218,7 +273,8 @@ real upload**.
 | **B5** | Deletion: in-app delete **+ public web deletion page**. | ⚠️ **Backend done & tested** (`DELETE /api/backup`); **web page NOT built**; UI not built |
 | **B6** | Target audience declared 13+/adults; listing assets not child-directed. | ⬜ Product decision |
 | **B7** | Opt-in only. If backup ever becomes automatic/default-on, **Prominent Disclosure & Consent triggers** and this becomes a blocker. | ✅ Satisfied by design — **must stay that way** |
-| **B8** | Durable adapter + subprocessor named and disclosed in the privacy policy. | ⬜ Next packet (Architecture D4) |
+| **B8** | Durable adapter + subprocessor named and disclosed in the privacy policy. Must honour the CAS contract and set `BACKUP_IP_PEPPER`. | ⬜ Next packet (Architecture D4, D5) |
+| **B9** | **No free-form user content on the wire** — required for the *User-generated content: NO* declaration in §2 to be true. | ✅ **Fixed this revision** (§2a); pinned by tests |
 
 ## 12. Unresolved ambiguities (no official source settles these)
 
