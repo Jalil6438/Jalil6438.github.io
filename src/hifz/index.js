@@ -4,3 +4,11 @@ export { buildConnSurahGroups, buildConnectionPairs } from "./buildConnectionPai
 export { buildClosers, SECTION_SPLIT_LINE_THRESHOLD } from "./buildClosers.js";
 export { buildPageBatch, capToMadinahPage } from "./buildSessionBatch.js";
 export { filterActivePlusFresh } from "./filterMushafPage.js";
+// Connection-phase key builders + validator — the single source of truth shared
+// with the backup schema (src/backup/progressSchema.js).
+export {
+  pairKey, closerKey, closerSectionKey,
+  legacyIndexPairKey, legacyAllKey,
+  parseConnectionKey, isConnectionKey,
+  CONNECTION_KEY_FAMILIES, CLOSER_SECTIONS,
+} from "./connectionKeys.js";

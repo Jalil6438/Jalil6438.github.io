@@ -1,4 +1,6 @@
 import { SURAH_EN, SURAH_AYAH_COUNTS } from "../data/constants.js";
+// Keys are built through the shared module the backup validator reads them with.
+import { closerKey, closerSectionKey } from "./connectionKeys.js";
 
 // ── Connection phase (الربط) — surah "closer" logic for the al-Qasim method ──
 // Pure. Extracted verbatim from MyHifzTab.
@@ -69,7 +71,7 @@ export function buildClosers({
         if (n < 8) {
           return [
             {
-              key: `closer-${g.surahNum}`,
+              key: closerKey(g.surahNum),
               label: `All ${n} ayahs of ${surahName} together`,
               ayahs: verses,
               ready: allAyahsDone && surahPairsDone,
@@ -105,7 +107,7 @@ export function buildClosers({
 
       return [
         {
-          key: `closer-${g.surahNum}-s1`,
+          key: closerSectionKey(g.surahNum, "s1"),
           label: `All ${sec1.length} ayahs of section 1 together`,
           ayahs: sec1,
           ready: sec1AyahsDone && sec1PairsDone,
@@ -113,7 +115,7 @@ export function buildClosers({
           closesSurah: false, // first section — never the surah's end
         },
         {
-          key: `closer-${g.surahNum}-s2`,
+          key: closerSectionKey(g.surahNum, "s2"),
           label: `All ${sec2.length} ayahs of section 2 together`,
           ayahs: sec2,
           ready: sec2AyahsDone && sec2PairsDone && bridgeDone,
@@ -121,7 +123,7 @@ export function buildClosers({
           closesSurah: groupClosesSurah,
         },
         {
-          key: `closer-${g.surahNum}-page`,
+          key: closerSectionKey(g.surahNum, "page"),
           label: `All ${n} ayahs of ${surahName} together`,
           ayahs: verses,
           ready: allAyahsDone && surahPairsDone,

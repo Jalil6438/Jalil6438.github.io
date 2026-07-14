@@ -22,6 +22,8 @@ import {
   buildPageBatch,
   capToMadinahPage,
   filterActivePlusFresh,
+  legacyIndexPairKey,
+  legacyAllKey,
 } from "../hifz";
 
 export default function MyHifzTab(props) {
@@ -449,8 +451,9 @@ export default function MyHifzTab(props) {
     // Check connection phase complete
     if (allRepsDone && pageAyahs.length >= 2) {
       const pairs = [];
-      for (let i = 0; i < pageAyahs.length - 1; i++) pairs.push(`pair-${aStart + i}-${aStart + i + 1}`);
-      const allKey = `all-${aStart}`;
+      // LEGACY index-keyed forms — read-only; see connectionKeys.js.
+      for (let i = 0; i < pageAyahs.length - 1; i++) pairs.push(legacyIndexPairKey(aStart + i, aStart + i + 1));
+      const allKey = legacyAllKey(aStart);
       const allConnDone = [...pairs, allKey].every(k => (connectionReps[k] || 0) >= 10);
       if (allConnDone && connLoggedRef.current !== pageKey) {
         connLoggedRef.current = pageKey;

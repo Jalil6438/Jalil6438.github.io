@@ -287,26 +287,43 @@ function assertQuranV8Fields(rawJson) {
 // primitives that passed a type/range/length/pattern check. Nothing is copied
 // verbatim out of localStorage any more.
 //
-// A key whose stored value fails its schema is DROPPED (never retained): a
-// decade-old localStorage may hold legacy junk, and one corrupt key must not
-// cost the user their ayah-completion record. The SERVER is stricter — it
-// rejects the whole envelope — because by then the data has been through here,
-// and anything still malformed is a broken or hostile client.
+// ── PRESENT-BUT-INVALID PROGRESS IS A FAILURE, NOT AN OMISSION ────────────
+// This function used to swallow schema errors and drop the offending key. It was
+// the most dangerous line in the packet.
+//
+// Because the connection-key schema was itself wrong (it was copied from a stale
+// comment, not from the generators), EVERY user's `rihlat-connection-reps` failed
+// validation — and this function quietly dropped the entire record, assembled a
+// backup without it, and let the server return `201 Created`. The user would have
+// been told their progress was safely backed up while their entire connection
+// phase was missing from it.
+//
+// A backup that silently omits what you asked it to protect is worse than no
+// backup, because you stop worrying. So a key that is PRESENT but does not
+// validate now throws, carrying `.key` so a UI can say exactly which record is
+// broken. An ABSENT key is still simply skipped — there is nothing to lose.
+//
+// The cost of this strictness is real and accepted: a schema that is wrong about
+// real user data now BLOCKS that user's backup instead of silently mangling it.
+// That is the correct direction to fail. A blocked backup is a bug report; a
+// silently lossy one is a disaster you find out about after the phone is gone.
 export function selectCloudPayload(storage) {
   const payload = {};
   for (const k of CLOUD_BACKUP_KEYS) {
     const raw = storage.getItem(k);
-    if (typeof raw !== "string") continue;
+    if (typeof raw !== "string" || raw === "") continue;   // absent: nothing to back up
 
-    if (k === V8_KEY) {
-      // The v8 sanitizer drops excluded/unknown FIELDS as well as malformed ones.
-      const clean = sanitizeQuranV8(raw);
-      if (clean !== null && clean !== "{}") payload[k] = clean;
-      continue;
+    try {
+      // The v8 sanitizer additionally drops excluded/unknown FIELDS — deliberate
+      // exclusion, not discarded progress — and throws on a malformed one.
+      const clean = k === V8_KEY ? sanitizeQuranV8(raw) : validatePayloadValue(k, raw);
+      if (clean !== null) payload[k] = clean;
+    } catch (e) {
+      const err = backupError(ERR.BAD_VALUE, `${k} could not be validated: ${e.message}`);
+      err.key = k;
+      err.source = "local";
+      throw err;
     }
-
-    try { payload[k] = validatePayloadValue(k, raw); }
-    catch { /* malformed/legacy value: drop this key, keep the rest */ }
   }
   return payload;
 }

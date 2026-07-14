@@ -142,10 +142,14 @@ test("HAFSA: free-form text hidden inside checkHistory is REJECTED", () => {
   bad(() => validateAgainst(V8_FIELD_SCHEMAS.checkHistory, diary),
     "prose smuggled into checkHistory must not validate");
 
-  // …and the client sanitizer DROPS it rather than transmitting it.
-  const clean = JSON.parse(sanitizeQuranV8(JSON.stringify({ streak: 3, checkHistory: diary })));
-  assert.equal("checkHistory" in clean, false, "malformed checkHistory must be dropped, never retained");
-  assert.equal(clean.streak, 3, "…while the valid fields survive");
+  // …and the client sanitizer REFUSES to build a payload from it. It does not
+  // drop the field and carry on: that would hand the user a "backup complete"
+  // for a backup that had quietly shed part of their record.
+  assert.throws(
+    () => sanitizeQuranV8(JSON.stringify({ streak: 3, checkHistory: diary })),
+    SchemaError,
+    "prose in checkHistory must fail the backup, not vanish from it",
+  );
 });
 
 test("checkHistory accepts ONLY {date: {session: boolean}}", () => {
@@ -204,7 +208,7 @@ test("no schema anywhere admits an unbounded string", () => {
 
 test("unknown nested object keys are rejected, never silently retained", () => {
   bad(() => validateAgainst(V8_FIELD_SCHEMAS.sessionsCompleted, { fajr: true, tahajjud: true }));
-  bad(() => validateAgainst(V8_FIELD_SCHEMAS.dailyChecks, { date: "2026-07-14", mood: "tired" }));
+  bad(() => validateAgainst(V8_FIELD_SCHEMAS.dailyChecks, { date: "Tue Jul 14 2026", mood: "tired" }));
   bad(() => validateAgainst(PAYLOAD_SCHEMAS["rihlat-journey-start"].schema,
     { ts: 1, ayahs: 1, juz: 1, surahs: 1, secret: "x" }));
 });
@@ -374,7 +378,7 @@ const LIVE_V8 = {
   asrSelectedJuz: [30],
   asrReviewBatch: [{ verse_key: "2:255", text_uthmani: "…arabic…" }],
   dark: true,
-  dailyChecks: { date: "2026-07-14", fajr: true },
+  dailyChecks: { date: "Tue Jul 14 2026", fajr: true },
   streak: 4,
   checkHistory: { "2026-07-13": { fajr: true } },
   reciter: "alafasy",
@@ -417,23 +421,34 @@ test("the sanitizer is deterministic and canonical", () => {
   assert.equal(a, '{"juzStatus":{"30":"complete"},"streak":4}');
 });
 
-test("the sanitizer drops a corrupt field but keeps the good ones", () => {
-  const clean = JSON.parse(sanitizeQuranV8(JSON.stringify({
+test("the sanitizer FAILS LOUDLY on a corrupt field — it does not quietly drop progress", () => {
+  // It used to catch per-field and drop the offender. That was actively harmful:
+  // because the connection-key and juzStatus schemas were themselves wrong, real
+  // progress was being discarded while the user was told "backup complete".
+  assert.throws(() => sanitizeQuranV8(JSON.stringify({
     streak: 9,
-    juzProgress: "this is not a map",           // legacy junk
-    checkHistory: { bad: "prose" },             // malformed
+    juzProgress: "this is not a map",
     juzStatus: { 30: "complete" },
-  })));
+  })), SchemaError, "a present-but-invalid progress field must throw");
 
-  assert.deepEqual(clean, { streak: 9, juzStatus: { 30: "complete" } });
-  assert.equal("juzProgress" in clean, false);
-  assert.equal("checkHistory" in clean, false);
+  assert.throws(() => sanitizeQuranV8(JSON.stringify({
+    checkHistory: { "2026-07-13": { fajr: "a diary entry" } },
+  })), SchemaError);
 });
 
-test("a malformed or legacy blob is dropped, not guessed at", () => {
-  assert.equal(sanitizeQuranV8("{ not json"), null);
-  assert.equal(sanitizeQuranV8("[]"), null);
-  assert.equal(sanitizeQuranV8("null"), null);
+test("excluded and unknown fields are still dropped — that is exclusion, not lost progress", () => {
+  const clean = JSON.parse(sanitizeQuranV8(JSON.stringify({
+    streak: 9,
+    notes: { 1: "private" },        // excluded by name
+    someLegacyThing: 1,             // unknown
+  })));
+  assert.deepEqual(clean, { streak: 9 });
+});
+
+test("an unusable blob throws; an absent one is simply nothing", () => {
+  assert.throws(() => sanitizeQuranV8("{ not json"), SchemaError);
+  assert.throws(() => sanitizeQuranV8("[]"), SchemaError);
+  assert.throws(() => sanitizeQuranV8("null"), SchemaError);
   assert.equal(sanitizeQuranV8(""), null);
   assert.equal(sanitizeQuranV8(undefined), null);
 });

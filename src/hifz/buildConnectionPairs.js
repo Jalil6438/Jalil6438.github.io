@@ -1,6 +1,11 @@
 // ── Connection phase (الربط) — pair logic for the al-Qasim hifz method ──
 // Pure functions: depend only on the batch + rep state, no React/DOM.
 // Extracted verbatim from MyHifzTab so the methodology has a testable home.
+//
+// Keys are built through ./connectionKeys.js — the same module the backup
+// validator recognises them with, so the two cannot drift apart.
+
+import { pairKey } from "./connectionKeys.js";
 
 // Group the batch's verses by surah, preserving first-seen surah order. Each
 // surah is memorized as its own unit, so connection pairs/closers never cross
@@ -37,7 +42,7 @@ export function buildConnectionPairs({ connSurahGroups, isFajr, repCounts, repTa
         (repCounts[v1.verse_key] || 0) >= repTarget &&
         (repCounts[v2.verse_key] || 0) >= repTarget;
       arr.push({
-        key: `pair-${v1.verse_key}-${v2.verse_key}`,
+        key: pairKey(v1.verse_key, v2.verse_key),
         label: `Ayah ${a1} + ${a2}`,
         ayahs: [v1, v2],
         ready: bothDone,

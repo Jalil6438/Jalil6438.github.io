@@ -67,7 +67,7 @@ const V8_LIVE = {
   asrSelectedJuz: [],
   asrReviewBatch: [{ verse_key: "2:255", text_uthmani: "…arabic…" }],
   dark: true,
-  dailyChecks: { date: "2026-07-14", fajr: true },
+  dailyChecks: { date: "Tue Jul 14 2026", fajr: true },
   streak: 4,
   checkHistory: {},
   reciter: "alafasy",
@@ -95,7 +95,7 @@ const FRESH_INSTALL_PAYLOAD = {
   [V8_KEY]: sanitizeQuranV8(JSON.stringify({
     ...V8_LIVE,
     juzStatus: {}, juzProgress: {}, sessionDone: [], streak: 0, checkHistory: {},
-    dailyChecks: { date: "2026-07-14" },
+    dailyChecks: { date: "Tue Jul 14 2026" },
     sessionsCompleted: { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false },
   })),
 };

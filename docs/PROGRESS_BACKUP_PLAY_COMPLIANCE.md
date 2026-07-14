@@ -113,6 +113,28 @@ hidden inside an ALLOWED field is refused at the door"*, *"no excluded key, and 
 preference, ever reaches storage"*, and *"what is STORED is composed only of validated
 primitives"*.
 
+### 2b. Minimization must not become silent data loss
+
+Tightening a schema has a failure mode of its own, and this packet hit it. The
+connection-key formats in the validator were a **hand-written approximation copied from a stale
+code comment**, not read off the generators — so real keys (`pair-2:255-2:256`, `closer-2-s1`,
+`all-12`) failed validation. The client sanitizer then **quietly dropped the entire connection
+record**, assembled a backup without it, and the server returned `201 Created`.
+
+Two more of the same kind were found alongside it: `juzStatus` (four real statuses, not one) and
+`dailyChecks.date` (`"Tue Jul 14 2026"`, not ISO — so *every* real `dailyChecks` was dropped).
+
+The user would have been told their progress was safely backed up while parts of their record
+were missing from it. **That is a data-protection failure as much as a correctness one:** a
+data-access export (§4) that omits data we chose not to store correctly is not an honest answer
+to "what do you have on me."
+
+Fixed structurally, not by patching three regexes: the module that *builds* a key now *validates*
+it (`src/hifz/connectionKeys.js`), `juzStatus` is imported from `STATUS_CFG`, and — critically —
+**present-but-invalid progress now FAILS the backup rather than vanishing from it**
+(`ERR.BAD_VALUE`, naming the broken record). A blocked backup is a bug report; a silently lossy
+one is a disaster found after the phone is gone.
+
 ## 3. THE BLOCKING DECISION — is memorization progress a "religious belief"? (D1 / A1)
 
 Play's taxonomy has *Personal info → Political or religious beliefs*, defined in full as:

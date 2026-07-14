@@ -29,6 +29,25 @@
 // has nowhere to survive: every string in every schema below is an enum, a
 // bounded key pattern, or a bounded value pattern. There is no `{kind:"string"}`.
 
+// ── IMPORTS FROM THE LIVE APP, NOT COPIES OF IT ───────────────────────────
+//
+// Both of these were previously hand-written approximations in this file, and
+// both were WRONG in a way that silently deleted real progress:
+//
+//   isConnectionKey  the connection-key formats were copied from a stale code
+//                    comment (`// "pair-0-1":count, "all":count`) instead of read
+//                    off the generators. The real keys are `pair-2:255-2:256`,
+//                    `closer-2-s1`, `all-12` — so essentially ALL real connection
+//                    progress failed validation and was dropped.
+//   STATUS_CFG       juzStatus was assumed to be only "complete". The app has
+//                    four statuses (complete / in_progress / needs_revision /
+//                    not_started), so any juz not fully memorized was dropped.
+//
+// A hand-written approximation of another module's output is a bug with a delay
+// fuse. Import the definition; never restate it.
+import { isConnectionKey } from "../hifz/connectionKeys.js";
+import { STATUS_CFG } from "../data/constants.js";
+
 // ── THE APP'S PERSISTED SHAPE (source of truth) ───────────────────────────
 //
 // Exactly the fields `quran-hifz-tracker.jsx` writes into `jalil-quran-v8`,
@@ -74,7 +93,11 @@ export function serializeQuranV8(state) {
 //   enum   { values }                      one of a fixed set
 //   text   { re, maxLen }                  string matching a pattern (never free-form)
 //   arr    { of, maxLength }               homogeneous, length-bounded
-//   map    { keyRe, of, maxKeys }          dynamic keys, pattern- and count-bounded
+//   map    { keyRe, of, maxKeys }          dynamic keys, count-bounded. `keyRe` is a
+//                                          RegExp OR a predicate — the predicate form
+//                                          is how a key format OWNED BY ANOTHER MODULE
+//                                          is validated by that module rather than by
+//                                          a copy of it here.
 //   obj    { fields }                      FIXED keys only; unknown keys rejected
 //   nullable { of }                        null, or the inner schema
 
@@ -97,14 +120,22 @@ const rawText = (re, maxLen) => ({ kind: "rawText", re, maxLen });
 // ── SHARED PATTERNS + BOUNDS ──────────────────────────────────────────────
 
 const VERSE_KEY = /^\d{1,3}:\d{1,3}$/;              // "2:255"
-const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;             // local ISO day
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;             // DATEKEY() — local ISO day
 const JUZ_KEY = /^(?:[1-9]|[12]\d|30)$/;            // "1".."30"
 const JUZ_OR_SURAH_KEY = /^(?:\d{1,2}|s\d{1,3})$/;  // "30" (juz) or "s114" (surah)
 const BATCH_KEY = /^\d{1,2}-\d{1,4}$/;              // sessionDone: `${juz}-${bStart}`
 const MILESTONE_KEY = /^[a-z][a-z0-9-]{0,31}$/;     // "mem-30", "streak-7", "maintain"
-const CONNECTION_KEY = /^(?:all|pair-\d{1,4}-\d{1,4})$/;
 const PLAN_MODE = /^[a-z][a-z-]{0,31}$/;            // "shaykh" (see note below)
 const SESSION_ID = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+
+// dailyChecks.date is written with TODAY() === new Date().toDateString(), i.e.
+// "Tue Jul 14 2026" — NOT an ISO day. checkHistory's keys ARE ISO (DATEKEY()).
+// The two live side by side in the same blob and are genuinely different formats;
+// assuming otherwise made every real dailyChecks fail validation and get dropped.
+const TO_DATE_STRING = /^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4}$/;
+
+// juzStatus values are the app's four statuses, imported rather than restated.
+const JUZ_STATUS_VALUES = Object.keys(STATUS_CFG);   // complete | in_progress | needs_revision | not_started
 
 const TOTAL_AYAHS = 6236;
 const MAX_TS = 4102444800000;                       // 2100-01-01; a timestamp, not a clock
@@ -118,7 +149,7 @@ const sessionMap = (of) => map(new RegExp(`^(?:${SESSION_ID.join("|")})$`), of, 
 // `date` is bookkeeping and is always present; it is not progress (see
 // isEmptyProgress).
 const dailyChecksSchema = obj({
-  date: text(DATE_KEY, 10),
+  date: text(TO_DATE_STRING, 15),          // "Tue Jul 14 2026" — see TO_DATE_STRING
   ...Object.fromEntries(SESSION_ID.map((id) => [id, bool()])),
 });
 
@@ -127,7 +158,7 @@ const dailyChecksSchema = obj({
 // RETAINED — 14 fields, each with a schema. Everything the restore needs.
 export const V8_FIELD_SCHEMAS = Object.freeze({
   // completion
-  juzStatus: map(JUZ_OR_SURAH_KEY, enom("complete"), 144),     // 30 juz + 114 surahs
+  juzStatus: map(JUZ_OR_SURAH_KEY, enom(...JUZ_STATUS_VALUES), 144),   // 30 juz + 114 surahs
   juzProgress: map(JUZ_KEY, int(0, 2000), 30),                 // verses done per juz
   sessionsCompleted: obj(Object.fromEntries(SESSION_ID.map((id) => [id, bool()]))),
 
@@ -214,7 +245,12 @@ export const PAYLOAD_SCHEMAS = Object.freeze({
   },
 
   "rihlat-rep-counts": { json: true, schema: map(VERSE_KEY, int(0, MAX_REPS), TOTAL_AYAHS) },
-  "rihlat-connection-reps": { json: true, schema: map(CONNECTION_KEY, int(0, MAX_REPS), 20000) },
+  // Keys are recognised by the hifz module that BUILDS them (isConnectionKey),
+  // not by a copy of its format kept here. Families: pair-2:255-2:256, closer-2,
+  // closer-2-s1|-s2|-page, plus the legacy index forms (all-12, pair-0-1) that
+  // real user data still holds. Cap: every adjacent pair in the muṣḥaf (~6,235)
+  // plus four closers per surah (456), with headroom for legacy entries.
+  "rihlat-connection-reps": { json: true, schema: map(isConnectionKey, int(0, MAX_REPS), 8000) },
 
   "rihlat-daily-progress": {
     json: true,
@@ -302,9 +338,15 @@ export function validateAgainst(schema, value, path = "", depth = 0) {
       if (!value || typeof value !== "object" || Array.isArray(value)) fail(path, "expected object");
       const keys = Object.keys(value);
       if (keys.length > schema.maxKeys) fail(path, `more than ${schema.maxKeys} keys`);
+      // `keyRe` is a RegExp, or a predicate owned by the module that BUILDS the
+      // keys (isConnectionKey). The predicate form is what stops this file from
+      // keeping its own stale copy of somebody else's format.
+      const keyOk = typeof schema.keyRe === "function"
+        ? schema.keyRe
+        : (k) => schema.keyRe.test(k);
       const out = {};
       for (const k of keys) {
-        if (!schema.keyRe.test(k)) fail(`${path}.${k}`, "key does not match the permitted format");
+        if (!keyOk(k)) fail(`${path}.${k}`, "key does not match the permitted format");
         out[k] = validateAgainst(schema.of, value[k], `${path}.${k}`, depth + 1);
       }
       return out;
@@ -372,33 +414,40 @@ export function canonicalStringify(value) {
 // Runs on the DEVICE, before the checksum is computed. Notes are not stripped
 // from a payload; they are never assembled into one.
 //
-// Field-by-field TOLERANT, blob-level STRICT-ish: a field whose content fails
-// its schema is DROPPED rather than taking the whole backup down with it —
-// localStorage is a decade-old store that may hold legacy junk, and one corrupt
-// field must not cost the user their ayah-completion record. What is dropped is
-// never silently *retained*, which is the property that matters.
+// ── IT FAILS LOUDLY. IT DOES NOT QUIETLY DROP PROGRESS. ───────────────────
+// An earlier version caught schema errors per-field and dropped the offending
+// field, on the theory that one corrupt legacy value should not block a backup.
+// That theory is wrong, and it was actively harmful: because the connection-key
+// and juzStatus schemas were themselves incorrect, real progress was being
+// discarded — and the user was handed a cheerful "backup complete".
 //
-// The SERVER does not extend this courtesy: it rejects the whole envelope on any
-// schema violation (see cloudContract.validateEnvelope), because by then the data
-// has already been through this sanitizer and anything still malformed is a
-// broken or hostile client, not a legacy artifact.
+// A backup that silently omits the thing you asked it to protect is worse than
+// no backup, because you stop worrying. So: a field that is PRESENT but does not
+// validate throws. The caller surfaces which record is broken; nobody is told
+// their memorization is safe when it is not.
 //
-// Returns a canonical JSON string, or null if the blob is unusable.
+// Excluded and unknown fields are still dropped — that is deliberate exclusion,
+// not discarded progress.
+//
+// Returns a canonical JSON string. Throws SchemaError if the blob is present but
+// unusable, or if any backed-up field fails its schema.
 export function sanitizeQuranV8(rawJson) {
   if (typeof rawJson !== "string" || rawJson === "") return null;
+
   let parsed;
-  try { parsed = JSON.parse(rawJson); } catch { return null; }
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  try { parsed = JSON.parse(rawJson); }
+  catch { throw new SchemaError(V8_KEY, "not valid JSON"); }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new SchemaError(V8_KEY, "expected an object");
+  }
 
   const out = {};
   for (const field of V8_BACKUP_FIELDS) {
     if (!Object.prototype.hasOwnProperty.call(parsed, field)) continue;
     if (parsed[field] === undefined) continue;
-    try {
-      out[field] = validateAgainst(V8_FIELD_SCHEMAS[field], parsed[field], field);
-    } catch {
-      // Malformed/legacy content for this field: drop it. Never retain it.
-    }
+    // Not caught. A present-but-invalid progress field is a failure, not a shrug.
+    out[field] = validateAgainst(V8_FIELD_SCHEMAS[field], parsed[field], `${V8_KEY}.${field}`);
   }
   return canonicalStringify(out);
 }

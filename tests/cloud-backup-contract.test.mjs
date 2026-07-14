@@ -77,7 +77,7 @@ const V8_LIVE_FRESH_INSTALL = {
   asrSelectedJuz: [],
   asrReviewBatch: [],
   dark: false,
-  dailyChecks: { date: "2026-07-14" },
+  dailyChecks: { date: "Tue Jul 14 2026" },
   streak: 0,
   checkHistory: {},
   reciter: "alafasy",
@@ -92,7 +92,7 @@ const V8_LIVE_WITH_PROGRESS = {
   juzProgress: { 29: 42 },
   sessionDone: ["29-0"],
   streak: 4,
-  dailyChecks: { date: "2026-07-14", fajr: true },
+  dailyChecks: { date: "Tue Jul 14 2026", fajr: true },
   sessionsCompleted: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false },
   notes: { 30: "a private reflection on Juz Amma" },
 };
@@ -418,8 +418,8 @@ test("sessionsCompleted: all-false is EMPTY, one true is progress", () => {
 
 test("dailyChecks: the ever-present `date` key is not progress", () => {
   // Same trap: dailyChecks always carries {date}, so it is never "empty".
-  assert.equal(isEmptyProgress(freshWithV8({ dailyChecks: { date: "2026-07-14" } })), true);
-  assert.equal(isEmptyProgress(freshWithV8({ dailyChecks: { date: "2026-07-14", fajr: true } })), false);
+  assert.equal(isEmptyProgress(freshWithV8({ dailyChecks: { date: "Tue Jul 14 2026" } })), true);
+  assert.equal(isEmptyProgress(freshWithV8({ dailyChecks: { date: "Tue Jul 14 2026", fajr: true } })), false);
 });
 
 test("juzProgress: a zero-verse entry is not progress", () => {
@@ -435,7 +435,7 @@ test("each meaningful v8 field independently marks progress", () => {
     ["streak", { streak: 1 }],
     ["checkHistory", { checkHistory: { "2026-07-13": { fajr: true } } }],
     ["sessionsCompleted", { sessionsCompleted: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false } }],
-    ["dailyChecks", { dailyChecks: { date: "2026-07-14", isha: true } }],
+    ["dailyChecks", { dailyChecks: { date: "Tue Jul 14 2026", isha: true } }],
   ];
   for (const [name, over] of cases) {
     assert.equal(isEmptyProgress(freshWithV8(over)), false, `${name} should count as progress`);

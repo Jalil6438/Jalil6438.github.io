@@ -70,6 +70,7 @@ Everything else is defence in depth behind these two.
 
 | File | Role |
 |---|---|
+| `src/hifz/connectionKeys.js` | **Connection-key builders + validator.** The module that BUILDS a key is the module that VALIDATES it — see §5.4a. Used by `buildConnectionPairs`, `buildClosers`, `MyHifzTab`, and the backup schema. |
 | `src/backup/progressSchema.js` | **The shared source of truth.** Which fields the app persists, how it serializes them, and what every backed-up value is allowed to *contain*. **Imported by `quran-hifz-tracker.jsx` itself** — see §5.5. |
 | `src/backup/cloudContract.js` | **The contract.** What leaves the device, what a valid envelope is, how two backups compare. Pure: hasher and clock injected. |
 | `api/_backup-store.js` | **The persistence seam.** In-memory adapter only. Fails closed on Production. Compare-and-set is the *only* write path. |
@@ -201,6 +202,73 @@ not cost the user their ayah-completion record). The server **rejects the whole 
 because by then the data has already been through the sanitizer, and anything still malformed is
 a broken or hostile client, not a legacy artifact. Neither ever *retains* malformed content.
 
+### 5.4a The connection-key families — imported, never restated
+
+`rihlat-connection-reps` is keyed by the connection phase (الربط). The backup validator
+originally carried a **hand-written approximation** of those key formats, copied from a stale
+code comment (`// "pair-0-1":count, "all":count`) instead of read off the generators. The real
+keys look nothing like that. **Result: essentially all real connection progress failed
+validation — and the client sanitizer then quietly dropped the entire record and reported a
+successful backup.**
+
+The supported families, each an exact shape with bounded numbers (`src/hifz/connectionKeys.js`):
+
+| Family | Example | Built by | Status |
+|---|---|---|---|
+| `pair` | `pair-2:255-2:256` | `buildConnectionPairs.js` → `pairKey()` | **Current** |
+| `closer` | `closer-2` | `buildClosers.js` → `closerKey()` | **Current** |
+| `closer-section` | `closer-2-s1`, `closer-2-s2`, `closer-2-page` | `buildClosers.js` → `closerSectionKey()` | **Current** |
+| `legacy-index-pair` | `pair-0-1` | `MyHifzTab.jsx:452` (read-only) → `legacyIndexPairKey()` | **Legacy** — real user data |
+| `legacy-all` | `all-12` | `MyHifzTab.jsx:453` (read-only) → `legacyAllKey()` | **Legacy** — real user data |
+| `legacy-all-bare` | `all` | no current generator | **Legacy** — see residual risks |
+
+Numbers are range-checked, not merely shaped: surah 1–114, ayah 1–286, legacy index ≤ 6236.
+Values are integers 0–100000; the map is capped at 8000 keys. Anything else — a prose key, a
+string value, an object value — is refused.
+
+**The design rule:** the module that *builds* a key is the module that *validates* it. The
+schema's `map` accepts a **predicate** (`isConnectionKey`) as well as a regex, precisely so the
+backup layer never keeps its own copy of another module's output format. `buildConnectionPairs`,
+`buildClosers`, and `MyHifzTab` all construct keys through `connectionKeys.js`, and a test feeds
+the **real builders' output** through the **real validator**.
+
+**Two more of the same bug, found while fixing this one:**
+
+- **`juzStatus`** was assumed to be only `"complete"`. The app has **four** statuses
+  (`STATUS_CFG`: `complete`, `in_progress`, `needs_revision`, `not_started`), so any juz not
+  fully memorized was being dropped. Now imported from `constants.js`, not restated.
+- **`dailyChecks.date`** is written with `TODAY()` = `new Date().toDateString()` →
+  **`"Tue Jul 14 2026"`**, *not* an ISO day. (`checkHistory`'s keys *are* ISO, via `DATEKEY()` —
+  the two genuinely differ inside the same blob.) The schema demanded ISO, so **every real
+  `dailyChecks` failed and was dropped.**
+
+Each of the three was the same mistake: **a hand-written approximation of another module's
+output format.** That is a bug with a delay fuse, and it is why the fix is structural — import
+the definition, never restate it — rather than three corrected regexes.
+
+### 5.4b Present-but-invalid progress FAILS the backup — it is never silently omitted
+
+`selectCloudPayload()` used to catch schema errors and drop the offending key, on the theory
+that one corrupt legacy value should not block an entire backup.
+
+**That theory is wrong, and combined with the bugs above it was actively harmful.** The
+connection record failed validation for every user, was silently dropped, a backup was assembled
+without it, and the server returned `201 Created`. The user would have been told their progress
+was safely backed up **while their entire connection phase was missing from it.**
+
+> **A backup that silently omits the thing you asked it to protect is worse than no backup,
+> because you stop worrying.**
+
+So a key that is **present but does not validate** now throws (`ERR.BAD_VALUE`, carrying `.key`
+so a UI can name the broken record). An **absent** key is still simply skipped — there is nothing
+to lose. Excluded and unknown *fields* inside v8 are still dropped: that is deliberate exclusion,
+not discarded progress.
+
+**The cost is real and accepted:** a schema that is wrong about real user data now **blocks**
+that user's backup instead of silently mangling it. That is the correct direction to fail. A
+blocked backup is a bug report; a silently lossy one is a disaster discovered after the phone is
+gone.
+
 ### 5.5 The shared serializer — a tripwire that is not self-referential
 
 The previous revision's v8 tripwire compared the backup's hand-written field list against the
@@ -221,6 +289,7 @@ Drift is caught by a chain in which every link fails loudly:
 | It is classified as backed-up | The **schema tripwire** — it has no value schema |
 | A field is renamed or removed | The source check (both directions) |
 | Someone writes `jalil-quran-v8` directly, bypassing the serializer | A test asserts no hardcoded `setItem("jalil-quran-v8", …)` exists anywhere in the tracker |
+| A connection-key format changes | The builders and the validator are the same module; a test feeds the **real builders' output** (`buildConnectionPairs`/`buildClosers`) through the **real validator** |
 
 **Residual limitation, stated honestly:** the source check is a regex over the real source file.
 It is *evidence-based* (it reads what the app actually does, not a copy of it) and it is backed
@@ -409,6 +478,7 @@ persisted.
 | **Arbitrary data parked on the server** | Closed allowlists at four levels (top-level, encryption, payload keys, v8 fields). Envelope **rebuilt** from the allowlist before storage. | — |
 | **User's private notes exfiltrated via a progress key** | v8 field-level allowlist: sanitized client-side *before hashing*, re-checked server-side, and pinned by a tripwire that reads the app's real serializer. | — |
 | **Free-form text smuggled INSIDE an allowed field** (e.g. `checkHistory`) | Value schemas: exact types, key patterns, ranges, collection caps, nesting bound. No unbounded string exists in the DSL. Values are rebuilt from validated primitives; non-canonical input is refused. | — |
+| **Real progress silently omitted from a "successful" backup** | A present-but-invalid key now FAILS the backup (`ERR.BAD_VALUE` + `.key`) instead of being dropped. Key formats are validated by the module that builds them, so the validator cannot be wrong about the app's own output. | A schema wrong about real data now BLOCKS that user's backup — loud, not lossy. Accepted. |
 | **A new progress field silently joining the backup** | The app and the backup share ONE field list (`progressSchema.js`), and a source check reads the tracker's real serializer call site. See §5.5 for the residual limitation. | A second, novel persistence path would need its own guard. |
 | **Concurrent devices clobbering each other** | `If-Match` + adapter compare-and-set. A stale writer gets 409, never a silent overwrite. | — |
 | **Corrupted backup overwrites a good device** | Checksum + core-JSON parse on the way in, **re-validated on the way out** of `/restore` — integrity checked at the last possible moment before the data could do damage. | — |
@@ -472,6 +542,22 @@ nothing; treating it as proof is how a stale device wins and eats a good backup.
 | **Rate-limit counters** | ≤ 1 hour (TTL) | Pseudonymized (HMAC+pepper) IP and ref buckets. No backup content. |
 | **User deletion** | `DELETE /api/backup` — erases `current` **and every restore point**, immediately, never rate-limited | Idempotent: deleting an already-deleted backup is a success. |
 | **User access** | `GET /api/backup/export` — every byte held, plus the expiry date | An honest answer to "what do you have on me" includes when it goes away. |
+
+## 13a. Residual risks (schema vs. real data)
+
+- **`legacy-all-bare` (`all`)** is accepted on the strength of the app's own comment
+  (`quran-hifz-tracker.jsx:62`), with **no generator found** in the current source. Kept because
+  the risk is asymmetric: if the form never existed, accepting it costs nothing (no key can match
+  it); if it *did*, refusing it now hard-fails a real user's backup. Flagged rather than assumed.
+- **Strictness is now load-bearing.** Because a present-but-invalid value blocks the backup
+  (§5.4b), a schema that is wrong about some real user's data will *block that user* rather than
+  silently mangle it. Three such errors have already been found and fixed (connection keys,
+  `juzStatus`, `dailyChecks.date`) — each by reading the generator instead of a comment. There may
+  be more in data shapes I have not observed, and the first frontend packet should treat a
+  `BAD_VALUE` from `selectCloudPayload` as a **schema bug to report**, not a user error.
+- **`rihlat-plan-mode`** is a bounded lowercase slug rather than a hard enum: the app writes only
+  `"shaykh"` today, but the mode set is product-owned and a hard enum would make adding a mode a
+  data-loss event. No prose or markup can pass.
 
 ## 14. Open decisions (need Jalil)
 
