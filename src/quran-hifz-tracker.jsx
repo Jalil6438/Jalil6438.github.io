@@ -5,6 +5,7 @@ import { SESSIONS, getSessionWisdom } from "./data/sessions";
 import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
 import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage } from "./utils";
+import { missingVerseKeys, recoverMissingVerses, insertVerseInOrder } from "./quran/pageVerseRecovery";
 import HlsPlayer from "./components/HlsPlayer";
 import { SealGlyph, StarGlyph, CrescentGlyph, BookGlyph, KaabaGlyph, StreakGlyph } from "./components/glyphs";
 import AsrSessionView from "./components/AsrSessionView";
@@ -343,10 +344,42 @@ export default function RihlatAlHifz() {
         const vs = textData.verses || [];
         // Backfill any verses that our authoritative map says belong on this
         // page but that quran.com's by_page omitted (e.g. p575 missing 74:18).
+        //
+        // TWO STAGES, and the order matters.
+        //
+        // 1. QCF RECOVERY. The omitted verse is nearly always present on the
+        //    ADJACENT endpoint page, still reporting this page in both
+        //    verse.page_number and word.page_number — the API's grouping
+        //    disagreeing with the API's own field. Re-fetching it there with
+        //    words=true recovers the authentic per-page QCF glyphs, including the
+        //    real end-of-ayah ornament.
+        //
+        // 2. TEXT-ONLY FALLBACK (what this code used to do for everything). It
+        //    fetches with words=false, so the verse arrives with no code_v2 and
+        //    AyahDrawer draws a SYNTHETIC ornament. That was the ornament bug: the
+        //    text was recovered, the glyphs were not. It stays, but only as the
+        //    last resort for a verse neither neighbour can prove.
         if (verseToPage) {
           const expected = Object.keys(verseToPage).filter(vk => verseToPage[vk] === mushafPage);
-          const have = new Set(vs.map(v => v.verse_key));
-          const missing = expected.filter(vk => !have.has(vk));
+          let missing = missingVerseKeys(expected, vs);
+
+          if (missing.length) {
+            const recovered = await recoverMissingVerses({
+              mushafPage,
+              missing,
+              shouldCancel: () => cancelled,
+              fetchPageVerses: async (pn) => {
+                const r = await fetch(`https://api.quran.com/api/v4/verses/by_page/${pn}?words=true&word_fields=text_uthmani,line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,page_number,juz_number&per_page=50`);
+                if (!r.ok) return null;
+                const d = await r.json();
+                return d.verses || [];
+              },
+            });
+            if (cancelled) return;
+            recovered.forEach(v => insertVerseInOrder(vs, v));
+            missing = missingVerseKeys(expected, vs);
+          }
+
           if (missing.length) {
             const surahsNeeded = [...new Set(missing.map(vk => Number(vk.split(":")[0])))];
             const fetched = {};
@@ -358,15 +391,11 @@ export default function RihlatAlHifz() {
                 (d.verses||[]).forEach(v => { fetched[v.verse_key] = v; });
               } catch {}
             }));
+            if (cancelled) return;
             missing.forEach(vk => {
               const v = fetched[vk];
               if (!v) return;
-              const [s, a] = vk.split(":").map(Number);
-              const insertAt = vs.findIndex(x => {
-                const [xs, xa] = x.verse_key.split(":").map(Number);
-                return xs > s || (xs === s && xa > a);
-              });
-              if (insertAt === -1) vs.push(v); else vs.splice(insertAt, 0, v);
+              insertVerseInOrder(vs, v);
             });
           }
         }
