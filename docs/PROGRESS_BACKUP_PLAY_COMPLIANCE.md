@@ -11,6 +11,20 @@ from memory. URLs cited inline; quotes are verbatim where the wording is load-be
 > Production. Nothing here is currently owed to Google. Everything here is owed **before the
 > first byte of real user data is uploaded.**
 
+## 0. Deployment state (verified)
+
+| | |
+|---|---|
+| **Production version** | **v1.6.0** |
+| **Production commit** | **`2be12b9a4d1eea82faa10fe276eeb7f5558dddb8`** |
+| **Production branch** | **`work/al-hifz-v1.6.0-backend-reminders`** |
+| **Backup foundation** | **LOCAL ONLY** — never pushed, merged, previewed, or deployed |
+
+**Production remains on the base commit `2be12b9`.** No backup code is deployed, so **no Data
+safety declaration is currently inaccurate** — the app collects exactly what it collected
+before. (An earlier revision of this doc cited v1.5.3 @ `210ebee` as Production; that was
+stale.)
+
 ---
 
 ## 1. The threshold question: is this "collected" data?
@@ -72,12 +86,32 @@ generated content to our server while this document declared that it did not.
 
 **Fixed** (Architecture §5.2): `jalil-quran-v8` now has a field-level allowlist. `notes`,
 `dark`, `reciter`, and `showTrans` are refused by name; the client strips them **before the
-payload is built**; the server independently rejects any blob carrying them; and a tripwire
-test over the app's real 21-field blob fails if a new field is ever added without being
-classified.
+payload is built**; the server independently rejects any blob carrying them.
 
-The mapping in §2 is now true of the implementation, and is pinned by tests
-(`no excluded key, and no v8 note or preference, ever reaches storage`).
+**And then the same lesson, one level deeper (this revision).** A field-level allowlist
+constrains *names*, not *contents*. `checkHistory` is an allowed field with dynamic keys, so a
+name-only allowlist would have transmitted:
+
+```jsonc
+"checkHistory": { "2026-07-14": { "fajr": "Today I struggled, and thought about my father." } }
+```
+
+…because the field is *called* `checkHistory`, and that was the entire check. **The
+*User-generated content: NO* declaration would have been false again, by a different route.**
+
+Every transmitted value now has an explicit schema (Architecture §5.4): exact type, permitted
+nested keys, key-name patterns, numeric ranges, collection caps, nesting bound. **The schema DSL
+contains no unbounded string** — every string is an enum or a bounded pattern — and a test walks
+every schema to assert it. Values are rebuilt from validated primitives before storage.
+
+Three more v8 fields were **excluded because they could not be safely modelled**:
+`asrReviewBatch` (materialized Qur'an-API verse objects), and `recentBatches` / `yesterdayBatch`
+(vestigial — nothing in the app writes them; legacy data of unknown shape).
+
+The mapping in §2 is now true of the implementation, and is pinned by tests: *"free-form text
+hidden inside an ALLOWED field is refused at the door"*, *"no excluded key, and no v8 note or
+preference, ever reaches storage"*, and *"what is STORED is composed only of validated
+primitives"*.
 
 ## 3. THE BLOCKING DECISION — is memorization progress a "religious belief"? (D1 / A1)
 
@@ -174,14 +208,19 @@ rather than by good intentions:
 - 13 keys transmitted, each with a documented "why it is necessary" and "what is lost without it".
 - 20 keys refused **by name**, including the user's name, their private reflections, the
   activity feed, all cosmetic preferences, and every analytics/identity key.
-- **Field-level** minimization inside `jalil-quran-v8`: 17 progress fields retained, 4 refused
-  by name (`notes`, `dark`, `reciter`, `showTrans`). Minimization that stops at the key
-  boundary is not minimization — see §2a.
-- Unknown and excluded keys **and fields** are **rejected**, not silently dropped, and a
-  validated envelope is **rebuilt from the allowlist** before storage.
+- **Field-level** minimization inside `jalil-quran-v8`: 14 progress fields retained, 7 refused
+  by name (`notes`, `dark`, `reciter`, `showTrans`, plus `asrReviewBatch`, `recentBatches`,
+  `yesterdayBatch` — excluded because they cannot be safely modelled). Minimization that stops
+  at the key boundary is not minimization — see §2a.
+- **Value-level** minimization: every transmitted value is bound by an explicit schema (type,
+  shape, nested keys, ranges, key patterns, collection caps, nesting depth). **No unbounded
+  string exists in the schema DSL**, so free-form text has nowhere to survive — asserted
+  structurally by a test that walks every schema.
+- Unknown and excluded keys **and fields** are **rejected**, not silently dropped; values are
+  **rebuilt from validated primitives**; a non-canonical value is refused rather than silently
+  rewritten.
 - **No analytics riders. No IP-derived geolocation. No device fingerprinting. No crash data.
-  No free-form user text of any kind.** The backup path collects nothing beyond the progress
-  payload.
+  No free-form user text of any kind — and now it is enforced by schema, not by intention.**
 - `writerId ≠ alhifz_did`, so the backup set cannot be joined to the analytics device set.
 
 ### 6a. Identifiers collected, and why
@@ -274,7 +313,7 @@ real upload**.
 | **B6** | Target audience declared 13+/adults; listing assets not child-directed. | ⬜ Product decision |
 | **B7** | Opt-in only. If backup ever becomes automatic/default-on, **Prominent Disclosure & Consent triggers** and this becomes a blocker. | ✅ Satisfied by design — **must stay that way** |
 | **B8** | Durable adapter + subprocessor named and disclosed in the privacy policy. Must honour the CAS contract and set `BACKUP_IP_PEPPER`. | ⬜ Next packet (Architecture D4, D5) |
-| **B9** | **No free-form user content on the wire** — required for the *User-generated content: NO* declaration in §2 to be true. | ✅ **Fixed this revision** (§2a); pinned by tests |
+| **B9** | **No free-form user content on the wire** — required for the *User-generated content: NO* declaration in §2 to be true. Needs BOTH a field-level allowlist (notes) **and** value-level schemas (text smuggled inside an allowed field). | ✅ **Fixed** (§2a); pinned by tests at both levels |
 
 ## 12. Unresolved ambiguities (no official source settles these)
 

@@ -25,9 +25,10 @@ import {
   MAX_PAYLOAD_BYTES,
   MAX_VALUE_BYTES,
   V8_KEY,
-  V8_ALLOWED_FIELDS,
+  V8_BACKUP_FIELDS,
   V8_EXCLUDED_FIELDS,
-  V8_LIVE_FIELDS,
+  V8_PERSISTED_FIELDS,
+  canonicalStringify,
   ERR,
   CONFLICT,
   ACTION,
@@ -44,8 +45,8 @@ import {
   cloudKeysOutsideLocalBoundary,
   localKeysUnclassifiedForCloud,
   cloudKeysBothIncludedAndExcluded,
-  v8FieldsUnclassified,
-  v8FieldsBothAllowedAndExcluded,
+  cloudKeysWithoutValueSchema,
+  valueSchemasWithoutCloudKey,
 } from "../src/backup/cloudContract.js";
 
 const sha256Hex = (s) => createHash("sha256").update(s).digest("hex");
@@ -89,7 +90,7 @@ const V8_LIVE_WITH_PROGRESS = {
   ...V8_LIVE_FRESH_INSTALL,
   juzStatus: { 30: "complete" },
   juzProgress: { 29: 42 },
-  sessionDone: ["29:1"],
+  sessionDone: ["29-0"],
   streak: 4,
   dailyChecks: { date: "2026-07-14", fajr: true },
   sessionsCompleted: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false },
@@ -98,14 +99,23 @@ const V8_LIVE_WITH_PROGRESS = {
 
 const live = (over = {}) => JSON.stringify({ ...V8_LIVE_WITH_PROGRESS, ...over });
 
-// What the client actually transmits: the sanitized blob.
+// What the client actually transmits: the sanitized, schema-validated blob.
 const V8_CLEAN = sanitizeQuranV8(live());
 
+// Payload values are CANONICAL — rebuilt from validated primitives, keys sorted.
+// The server refuses anything else (ERR.NOT_CANONICAL), so a test fixture that
+// is merely "valid JSON" is not a valid backup.
+const v9 = (n) => canonicalStringify(
+  Array.from({ length: n }, (_, i) => `${Math.floor(i / 100) + 1}:${(i % 100) + 1}`),
+);
+
 const PROGRESS = Object.freeze({
-  "jalil-quran-v9": JSON.stringify([1, 2, 3, 4, 5]),
+  "jalil-quran-v9": v9(5),
   [V8_KEY]: V8_CLEAN,
-  "rihlat-session-log": JSON.stringify({ "2026-07-13": ["fajr", "dhuhr"] }),
-  "rihlat-rep-counts": JSON.stringify({ "2:255": 12 }),
+  "rihlat-session-log": canonicalStringify({
+    "2026-07-13": { fajr: { ts: 1752000000000, score: 1 }, dhuhr: { ts: 1752003600000, score: 1 } },
+  }),
+  "rihlat-rep-counts": canonicalStringify({ "2:255": 12 }),
 });
 
 async function envelope(over = {}) {
@@ -142,72 +152,20 @@ test("boundary: no key is both included and excluded", () => {
   assert.deepEqual(cloudKeysBothIncludedAndExcluded(), []);
 });
 
-test("boundary: EVERY live v8 field is classified — allowed or refused, by name", () => {
-  // The tripwire one level down. jalil-quran-v8 is a single key holding 21
-  // fields, so key-level allowlisting said "yes" to the whole blob — including
-  // the user's private notes. This is the test that would have caught it, and
-  // the one that catches the next field somebody adds to that object.
-  assert.deepEqual(v8FieldsUnclassified(), [],
-    "field(s) in the live jalil-quran-v8 blob are neither allowed nor excluded");
-  assert.deepEqual(v8FieldsBothAllowedAndExcluded(), []);
-  assert.equal(V8_ALLOWED_FIELDS.length + V8_EXCLUDED_FIELDS.length, V8_LIVE_FIELDS.length);
+test("boundary: every transmitted key has a VALUE schema", () => {
+  // A key whose NAME is allowed but whose CONTENTS are unconstrained is the hole
+  // this revision closes. (The v8 field-level tripwires live next to the list the
+  // app itself serializes from — tests/progress-schema.test.mjs.)
+  assert.deepEqual(cloudKeysWithoutValueSchema(), []);
+  assert.deepEqual(valueSchemasWithoutCloudKey(), []);
 });
 
-test("boundary: the live fixture matches the app's real v8 shape", () => {
-  // If the app changes what it writes and this fixture is not updated, the
-  // classification tripwire above is testing fiction. Pin them together.
+test("boundary: the fresh-install fixture matches the app's real 21-field v8 shape", () => {
   assert.deepEqual(
     Object.keys(V8_LIVE_FRESH_INSTALL).sort(),
-    [...V8_LIVE_FIELDS].sort(),
+    [...V8_PERSISTED_FIELDS].sort(),
     "the test fixture has drifted from the app's real jalil-quran-v8 shape",
   );
-});
-
-test("v8: notes and cosmetic prefs are stripped BEFORE the payload is built", () => {
-  // Not "removed server-side" — never assembled. The sanitizer runs on the
-  // device, before the checksum is computed and before anything is sent.
-  const clean = JSON.parse(sanitizeQuranV8(live()));
-
-  assert.equal("notes" in clean, false, "the user's private notes must never be transmitted");
-  assert.equal("dark" in clean, false);
-  assert.equal("reciter" in clean, false);
-  assert.equal("showTrans" in clean, false);
-
-  // …while every progress field survives.
-  assert.deepEqual(clean.juzStatus, { 30: "complete" });
-  assert.deepEqual(clean.juzProgress, { 29: 42 });
-  assert.equal(clean.streak, 4);
-  assert.deepEqual(clean.sessionsCompleted, V8_LIVE_WITH_PROGRESS.sessionsCompleted);
-  assert.deepEqual(Object.keys(clean).sort(), [...V8_ALLOWED_FIELDS].sort());
-});
-
-test("v8: the sanitizer is deterministic (same progress -> same bytes -> same checksum)", () => {
-  const a = sanitizeQuranV8(JSON.stringify({ streak: 4, juzStatus: { 30: "complete" } }));
-  const b = sanitizeQuranV8(JSON.stringify({ juzStatus: { 30: "complete" }, streak: 4 }));
-  assert.equal(a, b, "key order in the source blob must not change the transmitted bytes");
-});
-
-test("v8: a malformed or legacy blob is dropped, not guessed at", () => {
-  assert.equal(sanitizeQuranV8("{ not json"), null);
-  assert.equal(sanitizeQuranV8("[]"), null);
-  assert.equal(sanitizeQuranV8("null"), null);
-  assert.equal(sanitizeQuranV8(""), null);
-  assert.equal(sanitizeQuranV8(undefined), null);
-  // Unknown legacy properties are simply not carried across.
-  assert.deepEqual(JSON.parse(sanitizeQuranV8(JSON.stringify({ streak: 2, someLegacyThing: 1 }))), { streak: 2 });
-});
-
-test("v8: the SERVER refuses a blob carrying notes or cosmetic prefs", async () => {
-  // Defence in depth: even if a hostile or outdated client skips the sanitizer.
-  for (const field of V8_EXCLUDED_FIELDS) {
-    const payload = { ...PROGRESS, [V8_KEY]: JSON.stringify({ streak: 3, [field]: "x" }) };
-    await rejects(await envelope({ payload }), ERR.EXCLUDED_FIELD);
-  }
-});
-
-test("v8: the SERVER refuses an unknown field inside the blob", async () => {
-  const payload = { ...PROGRESS, [V8_KEY]: JSON.stringify({ streak: 3, somethingNew: 1 }) };
-  await rejects(await envelope({ payload }), ERR.UNKNOWN_FIELD);
 });
 
 test("boundary: personal content is excluded by name, not by omission", () => {
@@ -227,7 +185,7 @@ test("boundary: identity and analytics keys never leave via this path", () => {
 test("selectCloudPayload reads ONLY the allowlist, and sanitizes v8 on the way out", () => {
   const storage = {
     getItem: (k) => ({
-      "jalil-quran-v9": JSON.stringify([1, 2]),
+      "jalil-quran-v9": v9(2),
       [V8_KEY]: live(),
       "rihlat-username": "Jalil",
       "rihlat-reflections": JSON.stringify(["a private reflection"]),
@@ -394,7 +352,7 @@ test("malformed envelopes are rejected", async () => {
 
 test("a tampered payload fails the checksum", async () => {
   const env = await envelope();
-  env.payload["jalil-quran-v9"] = JSON.stringify([1, 2, 3, 4, 5, 6]);
+  env.payload["jalil-quran-v9"] = v9(6);   // schema-valid, but not what was signed
   await rejects(env, ERR.BAD_CHECKSUM);
 });
 
@@ -473,10 +431,10 @@ test("each meaningful v8 field independently marks progress", () => {
   const cases = [
     ["juzStatus", { juzStatus: { 30: "complete" } }],
     ["juzProgress", { juzProgress: { 29: 42 } }],
-    ["sessionDone", { sessionDone: ["29:1"] }],
+    ["sessionDone", { sessionDone: ["29-0"] }],
     ["streak", { streak: 1 }],
-    ["checkHistory", { checkHistory: { "2026-07-13": ["fajr"] } }],
-    ["sessionsCompleted", { sessionsCompleted: { fajr: true } }],
+    ["checkHistory", { checkHistory: { "2026-07-13": { fajr: true } } }],
+    ["sessionsCompleted", { sessionsCompleted: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false } }],
     ["dailyChecks", { dailyChecks: { date: "2026-07-14", isha: true } }],
   ];
   for (const [name, over] of cases) {
@@ -523,10 +481,10 @@ test("legacy / malformed v8 values are treated as empty, never as progress", () 
 
 test("the standalone progress keys still mark progress", () => {
   const cases = [
-    { "jalil-quran-v9": JSON.stringify([1]) },
-    { "rihlat-session-log": JSON.stringify({ "2026-07-13": ["fajr"] }) },
+    { "jalil-quran-v9": v9(1) },
+    { "rihlat-session-log": JSON.stringify({ "2026-07-13": { fajr: { ts: 1, score: 1 } } }) },
     { "rihlat-rep-counts": JSON.stringify({ "2:255": 1 }) },
-    { "rihlat-revised-juz": JSON.stringify([30]) },
+    { "rihlat-revised-juz": JSON.stringify({ 30: { pages: [604] } }) },
     { "rihlat-connection-reps": JSON.stringify({ "2:255": 1 }) },
     { "rihlat-daily-progress": JSON.stringify({ "2026-07-13": 3 }) },
     { "jalil-badge-milestones": JSON.stringify(["first-juz"]) },
@@ -607,8 +565,8 @@ test("remote newer than local: OFFER a restore — never take one", async () => 
 });
 
 test("same timestamp, different checksum: a human must decide", async () => {
-  const local = await envelope({ payload: { ...PROGRESS, "jalil-quran-v9": JSON.stringify([1, 2, 3]) } });
-  const remote = await envelope({ payload: { ...PROGRESS, "jalil-quran-v9": JSON.stringify([9, 8, 7]) } });
+  const local = await envelope({ payload: { ...PROGRESS, "jalil-quran-v9": v9(3) } });
+  const remote = await envelope({ payload: { ...PROGRESS, "jalil-quran-v9": v9(7) } });
   assert.equal(local.updatedAt, remote.updatedAt);
   assert.notEqual(local.checksum, remote.checksum);
 
@@ -620,11 +578,11 @@ test("same timestamp, different checksum: a human must decide", async () => {
 test("clock skew within tolerance counts as 'the same moment', not 'newer'", async () => {
   const local = await envelope({
     updatedAtIso: "2026-07-14T12:00:30.000Z",
-    payload: { ...PROGRESS, "jalil-quran-v9": JSON.stringify([1, 2]) },
+    payload: { ...PROGRESS, "jalil-quran-v9": v9(2) },
   });
   const remote = await envelope({
     updatedAtIso: "2026-07-14T12:00:00.000Z",
-    payload: { ...PROGRESS, "jalil-quran-v9": JSON.stringify([3, 4]) },
+    payload: { ...PROGRESS, "jalil-quran-v9": v9(4) },
   });
   const r = compareBackups(local, remote);
   assert.equal(r.state, CONFLICT.DIVERGED);

@@ -2,8 +2,25 @@
 
 **Status:** FOUNDATION PACKET — backend only, not wired to any UI, not deployable to Production.
 **Branch:** `work/al-hifz-progress-backup-foundation` (base `2be12b9`)
-**Revision:** post-Hafsa audit (WP-20260714-AH-BACKUP-FOUNDATION-001).
+**Revision:** post-Hafsa re-audit (WP-20260714-AH-BACKUP-FOUNDATION-001).
 **Companion:** `docs/PROGRESS_BACKUP_PLAY_COMPLIANCE.md` (Play / Data safety gate)
+
+## Deployment state (verified)
+
+| | |
+|---|---|
+| **Production version** | **v1.6.0** |
+| **Production commit** | **`2be12b9a4d1eea82faa10fe276eeb7f5558dddb8`** |
+| **Production branch** | **`work/al-hifz-v1.6.0-backend-reminders`** |
+| **This work** | `550525e` → `e4eb491` → this revision — **LOCAL ONLY** |
+| **Deployed?** | **No.** Never pushed, never merged, never previewed, never deployed. |
+
+**Production remains on the base commit `2be12b9`. The backup foundation is not in it, and
+not in any deployed artifact.** Every commit on this branch exists only in the local worktree
+`C:\Users\Mark\Code\al-hifz-progress-backup`.
+
+> An earlier revision of this document stated Production was on v1.5.3 @ `210ebee`. That was
+> stale. Corrected above.
 
 ---
 
@@ -53,6 +70,7 @@ Everything else is defence in depth behind these two.
 
 | File | Role |
 |---|---|
+| `src/backup/progressSchema.js` | **The shared source of truth.** Which fields the app persists, how it serializes them, and what every backed-up value is allowed to *contain*. **Imported by `quran-hifz-tracker.jsx` itself** — see §5.5. |
 | `src/backup/cloudContract.js` | **The contract.** What leaves the device, what a valid envelope is, how two backups compare. Pure: hasher and clock injected. |
 | `api/_backup-store.js` | **The persistence seam.** In-memory adapter only. Fails closed on Production. Compare-and-set is the *only* write path. |
 | `api/_backup-lib.js` | **The server core.** Record ops, rate limits, IP pseudonymization, HTTP mapping, shared `authorize` → `sendError` plumbing. |
@@ -112,37 +130,38 @@ progress list, so it went; nobody looked inside it. That is the entire failure, 
 the v8 value now gets its own **field-level allowlist**, enforced in three places: the client
 sanitizer, the server validator, and a tripwire test.
 
-**Retained — 17 fields, and why each is necessary:**
+**Retained — 14 fields.** Each has a *value schema* (§5.4), not merely an allowed name:
 
-| Field | Why |
-|---|---|
-| `juzStatus` | Juz/surah completion map; the source the v9 ayah backfill reads |
-| `juzProgress` | Verses done per juz — position within each juz |
-| `sessionsCompleted` | Which of today's five sessions are done |
-| `streak` | Consecutive-day counter |
-| `dailyChecks` | Today's session checkmarks |
-| `checkHistory` | Historical daily checks — dated, unreconstructable |
-| `sessionJuz`, `sessionIdx`, `sessionDone`, `activeSessionIndex` | The active session. **These travel together or not at all:** `sessionDone` is a list of batch keys that is only interpretable *relative to* `sessionJuz`/`sessionIdx`. Restoring it alone would restore a meaningless array. |
-| `yesterdayBatch`, `recentBatches` | Feed the Dhuhr "last 5 days" review — dated, unreconstructable |
-| `asrSelectedSurahs`, `asrSelectedJuz`, `asrReviewBatch` | Asr revision state |
-| `goalYears`, `goalMonths` | **Methodology** — the goal horizon drives every pace and target figure the app shows |
+| Field | Schema | Why necessary |
+|---|---|---|
+| `juzStatus` | map(juz\|`sNN` → `"complete"`), ≤144 keys | Juz/surah completion; the source the v9 ayah backfill reads |
+| `juzProgress` | map(juz 1–30 → int 0–2000), ≤30 | Verses done per juz |
+| `sessionsCompleted` | obj(fajr…isha → bool) | Which of today's five sessions are done |
+| `streak` | int 0–100000 | Consecutive-day counter |
+| `dailyChecks` | obj(date, fajr…isha → bool) | Today's session checkmarks |
+| `checkHistory` | map(date → map(session → bool)), ≤3660 days | Dated history — unreconstructable |
+| `sessionJuz` | nullable int 1–30 | The active session. **These four travel together or not at all:** `sessionDone` is only interpretable *relative to* `sessionJuz`/`sessionIdx`; alone it restores a meaningless array. |
+| `sessionIdx` | int 0–2000 | ″ |
+| `sessionDone` | array(`^\d{1,2}-\d{1,4}$`), ≤500 | ″ |
+| `activeSessionIndex` | int 0–4 | ″ |
+| `asrSelectedSurahs` | array(int 1–114), ≤114 | Asr revision **selection** (the pool) |
+| `asrSelectedJuz` | array(int 1–30), ≤30 | ″ |
+| `goalYears` | int 0–50 | **Methodology** — the goal horizon drives every pace/target figure shown |
+| `goalMonths` | int 0–600 | ″ |
 
-**Refused — 4 fields, by name:**
+**Refused — 7 fields, by name, each with the reason recorded in code:**
 
 | Field | Why refused |
 |---|---|
-| `notes` | **The user's own written per-juz notes.** Free-form personal text. Transmitting these would turn a progress backup into user-content hosting and would move the Play declaration into *User-generated content*. Not needed to restore a single ayah. |
-| `dark` | Dark-mode preference — cosmetic |
-| `reciter` | Audio reciter preference — cosmetic |
-| `showTrans` | Translation visibility — cosmetic |
+| `notes` | **The user's own written per-juz notes.** Free-form personal text. Transmitting these would turn a progress backup into user-content hosting and move the Play declaration into *User-generated content*. Not needed to restore a single ayah. |
+| `dark`, `reciter`, `showTrans` | Cosmetic preferences. |
+| `asrReviewBatch` | **Cannot be safely modelled.** Holds materialized verse **objects** straight from the Qur'an API — unbounded shape, carries scripture text. It is *transient* review state, fully rebuildable from `asrSelectedJuz` + `asrSelectedSurahs` + `jalil-asr-cycle`. Nothing to gain by modelling it; a large surface to lose by shipping it. |
+| `recentBatches`, `yesterdayBatch` | **Cannot be safely modelled, and are VESTIGIAL.** No code path in the app writes them — the setters are only ever called when *restoring* the blob (`quran-hifz-tracker.jsx:628-629`). Whatever a user holds is legacy data of unknown shape. Display-only; no memorization is lost by dropping them. |
 
-`sanitizeQuranV8()` runs **on the device, before the checksum is computed**. Notes are not
-stripped from a payload; they are never assembled into one. The server independently refuses
-any v8 blob carrying an excluded or unknown field (`400 EXCLUDED_FIELD` / `UNKNOWN_FIELD`),
-so an outdated or hostile client cannot post them either.
-
-The sanitizer emits **canonical (key-sorted) JSON**, so two devices with identical progress
-produce identical bytes and therefore an identical checksum.
+> **Correction.** A previous revision of this document claimed `recentBatches`/`yesterdayBatch`
+> "feed the Dhuhr review — dated, unreconstructable". That was inferred from a comment, not from
+> the code. The code shows they are never written. They are now excluded, and the claim is
+> withdrawn.
 
 ### 5.3 Refused keys (20)
 
@@ -152,25 +171,82 @@ stored server-side against the push endpoint — re-sending would duplicate the 
 second linkage for no restore benefit), and every identity/analytics key (`alhifz_did`,
 `alhifz_counted`, `rihlat-push-enabled`, `rihlat-reminders-fired`).
 
-### 5.4 The four tripwires
+### 5.4 Value schemas — because a field NAME constrains nothing
 
-The only thing standing between "we transmit progress" and "we transmit the user's private
-notes" is a hand-maintained list — and hand-maintained lists rot. Asserted in
-`tests/cloud-backup-contract.test.mjs`:
+A name-only allowlist happily transmits:
+
+```jsonc
+"checkHistory": { "2026-07-14": { "fajr": "Today I struggled, and thought about my father." } }
+```
+
+…because the field is *called* `checkHistory`, and that was the entire check. The `notes` leak
+was this lesson at the key level; this is the same lesson one level further down.
+
+Every transmitted value is now validated against an explicit schema in `progressSchema.js`:
+exact type, allowed object shape, permitted nested keys, numeric ranges, key-name patterns,
+maximum collection length, maximum key count, and a hard nesting bound. **There is no
+`{kind:"string"}` in the DSL** — every string is an enum, or a pattern with a tight maximum
+length — which is asserted structurally by a test that walks every schema. Free-form text has
+nowhere to survive.
+
+Accepted values are **rebuilt from validated primitives** and re-serialized canonically (keys
+sorted at every level). The server refuses a value that is structurally valid but **not
+canonical** (`400 NOT_CANONICAL`) rather than silently rewriting it: rewriting would change the
+bytes the client checksummed, and accepting as-is would mean storing something other than the
+rebuilt value. Refusing keeps *what we store* and *what the client signed* the same object.
+
+**Client vs server strictness.** The client sanitizer **drops** a field whose stored value fails
+its schema (localStorage is a decade-old store that may hold legacy junk; one corrupt field must
+not cost the user their ayah-completion record). The server **rejects the whole envelope**,
+because by then the data has already been through the sanitizer, and anything still malformed is
+a broken or hostile client, not a legacy artifact. Neither ever *retains* malformed content.
+
+### 5.5 The shared serializer — a tripwire that is not self-referential
+
+The previous revision's v8 tripwire compared the backup's hand-written field list against the
+backup's hand-written test fixture. **That is the backup layer checking itself against itself.**
+It could not have detected a new field added to the tracker, which is the one thing it existed
+to detect.
+
+Now there is one source of truth. `src/backup/progressSchema.js` owns `V8_PERSISTED_FIELDS` and
+`serializeQuranV8()`, and **`quran-hifz-tracker.jsx` persists through it** — the hand-written
+`JSON.stringify({...21 fields})` at the persistence effect is gone.
+
+Drift is caught by a chain in which every link fails loudly:
+
+| Change | What fails |
+|---|---|
+| A new field is added to the tracker's persisted state | The **source check** — a test reads the real `serializeQuranV8({…})` call site in `quran-hifz-tracker.jsx` and diffs its argument list against `V8_PERSISTED_FIELDS` |
+| It is added to `V8_PERSISTED_FIELDS` | The **classification tripwire** — it is neither backed up nor excluded |
+| It is classified as backed-up | The **schema tripwire** — it has no value schema |
+| A field is renamed or removed | The source check (both directions) |
+| Someone writes `jalil-quran-v8` directly, bypassing the serializer | A test asserts no hardcoded `setItem("jalil-quran-v8", …)` exists anywhere in the tracker |
+
+**Residual limitation, stated honestly:** the source check is a regex over the real source file.
+It is *evidence-based* (it reads what the app actually does, not a copy of it) and it is backed
+by shared code rather than replacing it — but a sufficiently creative new persistence path
+(e.g. a second module writing the v8 key) would need its own guard. The bypass check above
+closes the obvious one. **The claim is not "future fields are impossible to miss"; it is
+"the app and the backup read one list, and four independent tests fail if they diverge."**
+
+### 5.6 The key-level tripwires
+
+Asserted in `tests/cloud-backup-contract.test.mjs`:
 
 1. **Subset** — every cloud key is a key the local backup already knows about.
-2. **Completeness (keys)** — every key the local backup knows about is *consciously
-   classified*: transmitted, or explicitly refused. Silence is not a decision.
+2. **Completeness** — every key the local backup knows about is *consciously classified*:
+   transmitted, or explicitly refused. Silence is not a decision.
 3. **Disjointness** — no key is both transmitted and refused.
-4. **Completeness (v8 fields)** — every one of the 21 fields the app writes into the v8 blob
-   is allowed or excluded **by name**. *This is the tripwire that would have caught `notes`.*
+4. **Every transmitted key has a VALUE schema** — a key whose *name* is allowed but whose
+   *contents* are unconstrained is exactly the hole §5.4 closes.
+5. **No orphan schemas** — a schema for a key we do not transmit means a rename got half done.
 
 Invariants 2 and 4 are not hypothetical. `jalil-recent-activity` (a key) and `notes` (a field)
-were each in **neither** list — silently omitted rather than deliberately excluded. Both are
-now classified, and both classes of omission now fail a test.
+were each in **neither** list at some point — silently omitted rather than deliberately
+excluded. Both are now classified, and both classes of omission fail a test.
 
-An excluded or unknown key/field is **rejected**, never quietly dropped: a client sending
-notes is broken or hostile, and we want that loud.
+An excluded or unknown key/field is **rejected**, never quietly dropped: a client sending notes
+is broken or hostile, and we want that loud.
 
 ## 6. The envelope (schema v1) — a closed set
 
@@ -331,7 +407,9 @@ persisted.
 | **Storage-exhaustion flood** | Per-ref + per-IP limits, fail closed. Envelope, payload, and per-value caps. Empty payloads refused. | Shared NAT shares an IP bucket. Tunable; documented. |
 | **Oversized field smuggling** | Whole-envelope byte bound, weighed **first**. | — |
 | **Arbitrary data parked on the server** | Closed allowlists at four levels (top-level, encryption, payload keys, v8 fields). Envelope **rebuilt** from the allowlist before storage. | — |
-| **User's private notes exfiltrated via a progress key** | v8 field-level allowlist: sanitized client-side *before hashing*, re-checked server-side, and pinned by a tripwire test over the app's real 21-field blob. | — |
+| **User's private notes exfiltrated via a progress key** | v8 field-level allowlist: sanitized client-side *before hashing*, re-checked server-side, and pinned by a tripwire that reads the app's real serializer. | — |
+| **Free-form text smuggled INSIDE an allowed field** (e.g. `checkHistory`) | Value schemas: exact types, key patterns, ranges, collection caps, nesting bound. No unbounded string exists in the DSL. Values are rebuilt from validated primitives; non-canonical input is refused. | — |
+| **A new progress field silently joining the backup** | The app and the backup share ONE field list (`progressSchema.js`), and a source check reads the tracker's real serializer call site. See §5.5 for the residual limitation. | A second, novel persistence path would need its own guard. |
 | **Concurrent devices clobbering each other** | `If-Match` + adapter compare-and-set. A stale writer gets 409, never a silent overwrite. | — |
 | **Corrupted backup overwrites a good device** | Checksum + core-JSON parse on the way in, **re-validated on the way out** of `/restore` — integrity checked at the last possible moment before the data could do damage. | — |
 | **Empty progress destroys a real backup** | `EMPTY_PROGRESS` refusal, computed against the **real** v8 shape (§11). Tested with a newer-timestamped fresh install. | — |

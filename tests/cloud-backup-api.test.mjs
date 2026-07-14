@@ -35,6 +35,8 @@ import {
 import {
   buildCloudEnvelope,
   sanitizeQuranV8,
+  canonicalStringify,
+  validatePayloadValue,
   CLOUD_EXCLUDED_KEYS,
   V8_KEY,
   V8_EXCLUDED_FIELDS,
@@ -58,12 +60,12 @@ const V8_LIVE = {
   sessionJuz: 29,
   sessionIdx: 0,
   juzProgress: { 29: 42 },
-  sessionDone: [],
-  yesterdayBatch: [],
-  recentBatches: [],
+  sessionDone: ["29-0"],
+  yesterdayBatch: [{ verse_key: "2:255", text: "…arabic…" }],
+  recentBatches: [[{ verse_key: "2:255" }]],
   asrSelectedSurahs: [],
   asrSelectedJuz: [],
-  asrReviewBatch: [],
+  asrReviewBatch: [{ verse_key: "2:255", text_uthmani: "…arabic…" }],
   dark: true,
   dailyChecks: { date: "2026-07-14", fajr: true },
   streak: 4,
@@ -74,10 +76,17 @@ const V8_LIVE = {
   sessionsCompleted: { fajr: true, dhuhr: false, asr: false, maghrib: false, isha: false },
 };
 
+// Payload values are CANONICAL — rebuilt from validated primitives, keys sorted.
+// The server refuses anything else (ERR.NOT_CANONICAL), so a fixture that is
+// merely "valid JSON" is not a valid backup.
+const ayahs = (n) => canonicalStringify(
+  Array.from({ length: n }, (_, i) => `${Math.floor(i / 100) + 1}:${(i % 100) + 1}`),
+);
+
 const PROGRESS = Object.freeze({
-  "jalil-quran-v9": JSON.stringify([1, 2, 3]),
+  "jalil-quran-v9": ayahs(3),
   [V8_KEY]: sanitizeQuranV8(JSON.stringify(V8_LIVE)),
-  "rihlat-session-log": JSON.stringify({ "2026-07-13": ["fajr"] }),
+  "rihlat-session-log": canonicalStringify({ "2026-07-13": { fajr: { ts: 1752000000000, score: 1 } } }),
 });
 
 // Fresh install: every v8 key present, every value default.
@@ -90,8 +99,6 @@ const FRESH_INSTALL_PAYLOAD = {
     sessionsCompleted: { fajr: false, dhuhr: false, asr: false, maghrib: false, isha: false },
   })),
 };
-
-const ayahs = (n) => JSON.stringify(Array.from({ length: n }, (_, i) => i + 1));
 
 async function envelope(over = {}) {
   const env = await buildCloudEnvelope({
@@ -318,11 +325,61 @@ test("no excluded key, and no v8 note or preference, ever reaches storage", asyn
   for (const k of CLOUD_EXCLUDED_KEYS) {
     assert.equal(stored.includes(k), false, `${k} reached storage`);
   }
-  for (const f of V8_EXCLUDED_FIELDS) {
+  for (const f of Object.keys(V8_EXCLUDED_FIELDS)) {
     assert.equal(stored.includes(`"${f}"`), false, `v8 field ${f} reached storage`);
   }
   assert.equal(stored.includes("private reflection"), false, "the user's notes reached storage");
   assert.equal(stored.includes("alafasy"), false, "the reciter preference reached storage");
+});
+
+test("free-form text hidden inside an ALLOWED field is refused at the door", async () => {
+  // The whole point of value schemas. `checkHistory` is an allowed field with
+  // dynamic keys, so a name-only allowlist waves a diary entry straight through.
+  const diary = sanitizeQuranV8(JSON.stringify({ ...V8_LIVE, streak: 4 }));
+  const smuggled = JSON.parse(diary);
+  smuggled.checkHistory = { "2026-07-14": { fajr: "Today I thought about my father." } };
+
+  const r = await put(await envelope({
+    payload: { ...PROGRESS, [V8_KEY]: canonicalStringify(smuggled) },
+  }));
+
+  assert.equal(r._s, 400);
+  assert.equal(r._b.error, ERR.BAD_VALUE);
+  assert.equal(store.size(), 0, "prose must not be sitting in the store");
+});
+
+test("arbitrary nested data inside jalil-quran-v9 is refused at the door", async () => {
+  const r = await put(await envelope({
+    payload: {
+      ...PROGRESS,
+      "jalil-quran-v9": canonicalStringify([{ verse: "2:255", note: "a private thought" }]),
+    },
+  }));
+  assert.equal(r._s, 400);
+  assert.equal(r._b.error, ERR.BAD_VALUE);
+});
+
+test("a structurally valid but NON-CANONICAL value is refused, not silently rewritten", async () => {
+  // Rewriting it would change the bytes the client checksummed; accepting it
+  // as-is would mean storing something other than the rebuilt value. Refusing
+  // keeps "what we store" and "what the client signed" the same object.
+  const unsorted = '{"2:1":3,"1:1":5}';                       // keys out of order
+  const r = await put(await envelope({ payload: { ...PROGRESS, "rihlat-rep-counts": unsorted } }));
+
+  assert.equal(r._s, 400);
+  assert.equal(r._b.error, ERR.NOT_CANONICAL);
+  assert.equal(store.size(), 0);
+});
+
+test("what is STORED is composed only of validated primitives", async () => {
+  await put(await envelope());
+  const record = await store.getRecord(await refForToken(TOKEN));
+
+  // Every payload value round-trips through the schema unchanged: the stored
+  // string IS the rebuilt canonical form, not the caller's bytes.
+  for (const [k, raw] of Object.entries(record.current.payload)) {
+    assert.equal(validatePayloadValue(k, raw), raw, `${k} is not a validated canonical value`);
+  }
 });
 
 test("a v8 blob carrying notes is refused at the door", async () => {
@@ -708,8 +765,9 @@ test("the export carries no notes, no preferences, and no raw IP", async () => {
 
   assert.equal(body.includes("private reflection"), false);
   assert.equal(body.includes("alafasy"), false);
+  assert.equal(body.includes("arabic"), false, "materialized verse text reached the wire");
   assert.equal(body.includes(IP), false);
-  for (const f of V8_EXCLUDED_FIELDS) assert.equal(body.includes(`"${f}"`), false);
+  for (const f of Object.keys(V8_EXCLUDED_FIELDS)) assert.equal(body.includes(`"${f}"`), false);
 });
 
 // ── RATE LIMITS ──────────────────────────────────────────────────────────

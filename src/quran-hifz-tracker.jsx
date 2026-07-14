@@ -5,6 +5,7 @@ import { SESSIONS, getSessionWisdom } from "./data/sessions";
 import { SURAH_AR, JUZ_OPENERS, JUZ_META, JUZ_SURAHS } from "./data/quran-metadata";
 import { LIVE_STREAMS, RAMADAN_NIGHTS_MAKKAH, RAMADAN_NIGHTS_MADINAH, MAKKAH_IMAMS, MADINAH_IMAMS, HARAMAIN_SURAHS } from "./data/haramain";
 import { mushafImageUrl, audioUrl, audioUrlFallback, toArabicDigits, calcTimeline, loadCompletedAyahs, saveCompletedAyahs, expandRangeToKeys, getJuzKeys, cropMushafImage } from "./utils";
+import { V8_KEY, serializeQuranV8 } from "./backup/progressSchema";
 import HlsPlayer from "./components/HlsPlayer";
 import { SealGlyph, StarGlyph, CrescentGlyph, BookGlyph, KaabaGlyph, StreakGlyph } from "./components/glyphs";
 import AsrSessionView from "./components/AsrSessionView";
@@ -679,7 +680,11 @@ export default function RihlatAlHifz() {
 
   useEffect(()=>{
     if(!loaded) return;
-    try { localStorage.setItem("jalil-quran-v8",JSON.stringify({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
+    // Serialized through the shared contract (src/backup/progressSchema.js), which
+    // owns the field list. Same bytes as the hand-written literal this replaced —
+    // but now the backup layer reads the SAME list, so a field added here cannot
+    // slip past the backup boundary unclassified. Do not inline JSON.stringify again.
+    try { localStorage.setItem(V8_KEY,serializeQuranV8({juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,activeSessionIndex,sessionsCompleted})); } catch {}
   },[juzStatus,notes,goalYears,goalMonths,sessionJuz,sessionIdx,juzProgress,sessionDone,yesterdayBatch,recentBatches,asrSelectedSurahs,asrSelectedJuz,asrReviewBatch,dark,dailyChecks,streak,checkHistory,reciter,showTrans,loaded,activeSessionIndex,sessionsCompleted]);
 
   // Reset sessionDone when Juz changes so stale batch keys don't show completion screen
