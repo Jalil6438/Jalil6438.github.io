@@ -19,52 +19,82 @@
 //
 // Reads the live quran.com API. Every page is fetched ONCE and cached, so the
 // neighbour lookups cost nothing extra and the scan is ~604 requests.
+//
+// ── THIS IS A GATE, NOT A REPORT ──────────────────────────────────────────
+// The scan CERTIFIES the repair: it exits 0 only when every one of the 6,236
+// ayahs reaches the authentic QCF path, and exits 1 on ANY defect — a surviving
+// synthetic ornament, an unrecoverable ayah, coverage below the expected total,
+// a missing or duplicated end glyph, or a page that failed to fetch. A scan that
+// printed a defect and still exited 0 would be worse than no scan at all: it
+// would certify a broken muṣḥaf to anyone reading the exit code.
+//
+// ── TEST SEAM ─────────────────────────────────────────────────────────────
+// certifyScan() and runScan() are exported pure/injectable so the gate itself is
+// under test (tests/scan-qcf-certification.test.mjs). Setting QCF_SCAN_FIXTURE to
+// a module path drives THIS script off a synthetic muṣḥaf instead of the network,
+// which is how we prove a bad result really does exit nonzero. Fixture mode is
+// loudly labelled and can never masquerade as a live certification.
 
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { resolve } from "node:path";
 import {
   missingVerseKeys,
   recoverMissingVerses,
   isRecoverableVerse,
 } from "../src/quran/pageVerseRecovery.js";
 
-const VERSE_TO_PAGE = JSON.parse(
-  readFileSync(fileURLToPath(new URL("../public/verse-to-page.json", import.meta.url)), "utf8"),
-);
+const TOTAL_PAGES = 604;
 
 const API = (pn) =>
   `https://api.quran.com/api/v4/verses/by_page/${pn}?words=true&word_fields=text_uthmani,line_number,code_v2,char_type_name,page_number&fields=text_uthmani,verse_key,page_number,juz_number&per_page=50`;
 
 const CONCURRENCY = 6;
-const cache = new Map();
 
-async function fetchPage(pn) {
-  if (cache.has(pn)) return cache.get(pn);
-  for (let attempt = 0; attempt < 4; attempt++) {
-    try {
-      const r = await fetch(API(pn));
-      if (r.status === 429 || r.status >= 500) {
+// ── the live fetcher ──────────────────────────────────────────────────────
+// Returns the page's verses, or null if the page could not be fetched at all.
+// null is a FAILURE, not an empty page: it must never be mistaken for "this page
+// legitimately has no problems".
+export function liveFetcher() {
+  const cache = new Map();
+  return async function fetchPage(pn) {
+    if (cache.has(pn)) return cache.get(pn);
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        const r = await fetch(API(pn));
+        if (r.status === 429 || r.status >= 500) {
+          await new Promise((res) => setTimeout(res, 400 * (attempt + 1)));
+          continue;
+        }
+        if (!r.ok) break;
+        const d = await r.json();
+        const verses = d.verses || [];
+        cache.set(pn, verses);
+        return verses;
+      } catch {
         await new Promise((res) => setTimeout(res, 400 * (attempt + 1)));
-        continue;
       }
-      if (!r.ok) break;
-      const d = await r.json();
-      const verses = d.verses || [];
-      cache.set(pn, verses);
-      return verses;
-    } catch {
-      await new Promise((res) => setTimeout(res, 400 * (attempt + 1)));
     }
-  }
-  cache.set(pn, null);
-  return null;
+    cache.set(pn, null);
+    return null;
+  };
 }
 
 // Expected verse keys per page, from OUR authoritative KFGQPC v2 layout.
-const expectedByPage = new Map();
-for (const [vk, pn] of Object.entries(VERSE_TO_PAGE)) {
-  if (!expectedByPage.has(pn)) expectedByPage.set(pn, []);
-  expectedByPage.get(pn).push(vk);
+export function expectedByPageFromMap(verseToPage) {
+  const byPage = new Map();
+  for (const [vk, pn] of Object.entries(verseToPage)) {
+    if (!byPage.has(pn)) byPage.set(pn, []);
+    byPage.get(pn).push(vk);
+  }
+  return byPage;
+}
+
+export function loadExpectedByPage() {
+  const json = JSON.parse(
+    readFileSync(fileURLToPath(new URL("../public/verse-to-page.json", import.meta.url)), "utf8"),
+  );
+  return expectedByPageFromMap(json);
 }
 
 const renderedWords = (v) =>
@@ -76,17 +106,40 @@ const renderedWords = (v) =>
 const usesQcf = (v) => renderedWords(v).some((w) => w.code_v2);
 const endGlyphs = (v) => renderedWords(v).filter((w) => w.char_type_name === "end").length;
 
-async function main() {
-  console.log("[scan] fetching 604 pages…");
-  const pages = [...Array(604)].map((_, i) => i + 1);
+// ── THE CERTIFICATION ─────────────────────────────────────────────────────
+//
+// Pure. Every defect the scan can observe fails the gate — there is no defect it
+// can see and shrug at. Returns the reasons too, so a FAIL says WHY.
+export function certifyScan(stats, unrecoverable = []) {
+  const ok =
+    stats.pageFetchFailures === 0 &&
+    stats.afterQcf === stats.totalExpected &&
+    stats.afterSynthetic === 0 &&
+    unrecoverable.length === 0 &&
+    stats.missingEndGlyph === 0 &&
+    stats.duplicateEndGlyph === 0;
 
-  for (let i = 0; i < pages.length; i += CONCURRENCY) {
-    await Promise.all(pages.slice(i, i + CONCURRENCY).map(fetchPage));
-    if ((i / CONCURRENCY) % 20 === 0) process.stdout.write(".");
-  }
-  console.log("\n[scan] analysing…");
+  const failures = [];
+  if (stats.pageFetchFailures !== 0)
+    failures.push(`${stats.pageFetchFailures} page(s) failed to fetch — the scan is incomplete`);
+  if (stats.afterQcf !== stats.totalExpected)
+    failures.push(
+      `authentic QCF coverage ${stats.afterQcf} != ${stats.totalExpected} expected ayahs`,
+    );
+  if (stats.afterSynthetic !== 0)
+    failures.push(`${stats.afterSynthetic} ayah(s) still render the SYNTHETIC fallback ornament`);
+  if (unrecoverable.length !== 0)
+    failures.push(`${unrecoverable.length} ayah(s) unrecoverable: ${unrecoverable.join(", ")}`);
+  if (stats.missingEndGlyph !== 0)
+    failures.push(`${stats.missingEndGlyph} ayah(s) have NO end-of-ayah glyph`);
+  if (stats.duplicateEndGlyph !== 0)
+    failures.push(`${stats.duplicateEndGlyph} ayah(s) have a DUPLICATE end-of-ayah glyph`);
 
-  const stats = {
+  return { ok, failures };
+}
+
+export function emptyStats() {
+  return {
     totalExpected: 0,
     beforeQcf: 0, beforeSynthetic: 0,
     afterQcf: 0, afterSynthetic: 0,
@@ -94,12 +147,21 @@ async function main() {
     missingEndGlyph: 0, duplicateEndGlyph: 0,
     pageFetchFailures: 0,
   };
+}
+
+// ── THE SCAN ──────────────────────────────────────────────────────────────
+//
+// `fetchPage(pageNumber)` -> verses[] | null (null = fetch failure). Injected, so
+// the scan runs against the live API in production use and against a synthetic
+// muṣḥaf under test, with the SAME code path deciding pass or fail.
+export async function runScan({ fetchPage, expectedByPage, pages }) {
+  const stats = emptyStats();
   const recoveredKeys = [];
   const unrecoverable = [];
 
   for (const pn of pages) {
     const primary = await fetchPage(pn);
-    if (primary === null) { stats.pageFetchFailures++; continue; }
+    if (!Array.isArray(primary)) { stats.pageFetchFailures++; continue; }
 
     const expected = expectedByPage.get(pn) || [];
     stats.totalExpected += expected.length;
@@ -116,9 +178,8 @@ async function main() {
 
     // AFTER: run the real recovery against the real (cached) neighbour pages.
     const missing = missingVerseKeys(expected, primary);
-    let recovered = [];
     if (missing.length) {
-      recovered = await recoverMissingVerses({
+      const recovered = await recoverMissingVerses({
         mushafPage: pn,
         missing,
         fetchPageVerses: fetchPage,
@@ -126,8 +187,11 @@ async function main() {
       for (const v of recovered) {
         recoveredKeys.push(v.verse_key);
         const prev = await fetchPage(pn - 1);
-        const fromPrev = Array.isArray(prev)
-          && prev.some((x) => x.verse_key === v.verse_key && isRecoverableVerse(x, pn, new Set([v.verse_key])));
+        const fromPrev =
+          Array.isArray(prev) &&
+          prev.some(
+            (x) => x.verse_key === v.verse_key && isRecoverableVerse(x, pn, new Set([v.verse_key])),
+          );
         if (fromPrev) stats.recoveredPrev++; else stats.recoveredNext++;
         byKey.set(v.verse_key, v);
       }
@@ -149,9 +213,13 @@ async function main() {
     }
   }
 
+  return { stats, recoveredKeys, unrecoverable };
+}
+
+export function printReport({ stats, recoveredKeys, unrecoverable }, { fixture = null } = {}) {
   const line = (k, v) => console.log(`  ${k.padEnd(34)} ${v}`);
   console.log("\n════ FULL-MUṢḤAF QCF ENDING SCAN ════");
-  line("pages scanned", 604 - stats.pageFetchFailures);
+  line("pages scanned", TOTAL_PAGES - stats.pageFetchFailures);
   line("page fetch failures", stats.pageFetchFailures);
   line("ayahs expected (our layout)", stats.totalExpected);
   console.log("\n  BEFORE (words=false backfill)");
@@ -173,13 +241,54 @@ async function main() {
     console.log(`\n  recovered keys (${recoveredKeys.length}):`);
     console.log("   ", recoveredKeys.join(", "));
   }
-  if (unrecoverable.length) {
-    console.log(`\n  unrecoverable (${unrecoverable.length}):`);
-    console.log("   ", unrecoverable.join(", "));
+
+  const { ok, failures } = certifyScan(stats, unrecoverable);
+
+  if (!ok) {
+    console.log("\n  ── WHY THIS SCAN FAILED ──");
+    for (const f of failures) console.log(`  ✗ ${f}`);
   }
 
-  const ok = stats.missingEndGlyph === 0 && stats.duplicateEndGlyph === 0 && stats.pageFetchFailures === 0;
-  console.log(`\n${ok ? "PASS" : "CHECK"} — ${stats.afterQcf}/${stats.totalExpected} ayahs on the authentic QCF path\n`);
+  const suffix = fixture ? "  [FIXTURE — NOT a live certification]" : "";
+  console.log(
+    `\n${ok ? "PASS" : "FAIL"} — ${stats.afterQcf}/${stats.totalExpected} ayahs on the authentic QCF path${suffix}\n`,
+  );
+
+  return ok;
 }
 
-main();
+// ── entry point ───────────────────────────────────────────────────────────
+async function main() {
+  const fixture = process.env.QCF_SCAN_FIXTURE || null;
+
+  let fetchPage, expectedByPage;
+  if (fixture) {
+    // Test seam. Loudly labelled: a fixture run can never be mistaken for, or
+    // quoted as, a certification of the live muṣḥaf.
+    console.log(`[scan] ⚠ FIXTURE MODE — synthetic muṣḥaf from ${fixture}`);
+    console.log("[scan] ⚠ This exercises the GATE, not the Qur'an. Not a live certification.");
+    const mod = await import(pathToFileURL(resolve(fixture)).href);
+    fetchPage = mod.fetchPage;
+    expectedByPage = mod.expectedByPage();
+  } else {
+    console.log("[scan] fetching 604 pages…");
+    fetchPage = liveFetcher();
+    expectedByPage = loadExpectedByPage();
+    const pages = [...Array(TOTAL_PAGES)].map((_, i) => i + 1);
+    for (let i = 0; i < pages.length; i += CONCURRENCY) {
+      await Promise.all(pages.slice(i, i + CONCURRENCY).map(fetchPage));
+      if ((i / CONCURRENCY) % 20 === 0) process.stdout.write(".");
+    }
+    console.log("\n[scan] analysing…");
+  }
+
+  const pages = [...Array(TOTAL_PAGES)].map((_, i) => i + 1);
+  const result = await runScan({ fetchPage, expectedByPage, pages });
+
+  const ok = printReport(result, { fixture });
+  if (!ok) process.exitCode = 1;
+}
+
+const invokedDirectly =
+  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) main();
