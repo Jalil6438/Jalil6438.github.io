@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   computeDueSessions, sanitizePrefs, validateSubscription, subIdFromEndpoint,
   buildSubscriptionRecord, buildReminderPayload, isGonePushError, isAllowedPushEndpoint,
+  classifyPushDeliveryFailure, PUSH_DELIVERY_RESULT,
 } from "../api/_push-lib.js";
 import { urlBase64ToUint8Array } from "../src/push/pushClient.js";
 
@@ -185,6 +186,42 @@ test("only 404/410 classify as gone (cleanup); transient errors do not", () => {
   for (const s of [400, 401, 413, 429, 500, 502, undefined, null]) {
     assert.equal(isGonePushError(s), false);
   }
+});
+
+test("delivery failures classify into bounded non-sensitive results", () => {
+  const cases = [
+    [404, PUSH_DELIVERY_RESULT.DEAD_REMOVED],
+    [410, PUSH_DELIVERY_RESULT.DEAD_REMOVED],
+    [401, PUSH_DELIVERY_RESULT.INVALID_CONFIGURATION],
+    [403, PUSH_DELIVERY_RESULT.INVALID_CONFIGURATION],
+    [429, PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE],
+    [500, PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE],
+    [504, PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE],
+    [400, PUSH_DELIVERY_RESULT.UNEXPECTED_FAILURE],
+  ];
+  for (const [statusCode, expected] of cases) {
+    const error = Object.assign(new Error("provider body must not escape"), {
+      statusCode,
+      endpoint: "sensitive-endpoint",
+      headers: { authorization: "sensitive-authorization" },
+    });
+    const result = classifyPushDeliveryFailure(error);
+    assert.deepEqual(result, { result: expected, status: statusCode });
+    const serialized = JSON.stringify(result);
+    assert.equal(serialized.includes("provider body"), false);
+    assert.equal(serialized.includes("sensitive"), false);
+  }
+});
+
+test("timeouts are temporary while unknown exceptions remain unexpected", () => {
+  assert.deepEqual(
+    classifyPushDeliveryFailure(Object.assign(new Error("timeout detail"), { code: "ETIMEDOUT" })),
+    { result: PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE },
+  );
+  assert.deepEqual(
+    classifyPushDeliveryFailure(new Error("unknown provider body")),
+    { result: PUSH_DELIVERY_RESULT.UNEXPECTED_FAILURE },
+  );
 });
 
 // ── VAPID public key conversion ──

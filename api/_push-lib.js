@@ -76,6 +76,15 @@ export const SUB_RATE_LIMIT = 30;
 export const SUB_DELETE_RATE_LIMIT = 60;
 export const SUB_RATE_WINDOW_SECONDS = 60;
 export const SUB_BODY_MAX_BYTES = 16 * 1024;
+export const DELIVERY_RUN_LOG_CAP = 100;
+
+export const PUSH_DELIVERY_RESULT = Object.freeze({
+  DELIVERED: "delivered",
+  DEAD_REMOVED: "dead-subscription-removed",
+  TEMPORARY_FAILURE: "temporary-failure",
+  INVALID_CONFIGURATION: "invalid-configuration",
+  UNEXPECTED_FAILURE: "unexpected-provider-failure",
+});
 
 export const SESSION_LABELS = {
   fajr: "Fajr — memorize today's page",
@@ -238,6 +247,37 @@ export function buildReminderPayload(sid, dayKey) {
 // delete server-side. Anything else (429, 5xx, network) is transient.
 export function isGonePushError(statusCode) {
   return statusCode === 404 || statusCode === 410;
+}
+
+// Convert provider exceptions into a bounded, non-sensitive internal result.
+// Never copy the exception message, response body, headers, endpoint, or keys.
+export function classifyPushDeliveryFailure(error) {
+  const rawStatus = Number(error?.statusCode);
+  const status = Number.isInteger(rawStatus) && rawStatus >= 100 && rawStatus <= 599
+    ? rawStatus
+    : null;
+
+  if (isGonePushError(status)) {
+    return { result: PUSH_DELIVERY_RESULT.DEAD_REMOVED, status };
+  }
+  if (status === 401 || status === 403) {
+    return { result: PUSH_DELIVERY_RESULT.INVALID_CONFIGURATION, status };
+  }
+  if (status === 408 || status === 425 || status === 429 || (status >= 500 && status <= 599)) {
+    return { result: PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE, status };
+  }
+
+  const code = typeof error?.code === "string" ? error.code.toUpperCase() : "";
+  const temporaryCodes = new Set([
+    "ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EAI_AGAIN",
+    "ENETUNREACH", "UND_ERR_CONNECT_TIMEOUT",
+  ]);
+  if (error?.name === "AbortError" || temporaryCodes.has(code)) {
+    return { result: PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE };
+  }
+  return status === null
+    ? { result: PUSH_DELIVERY_RESULT.UNEXPECTED_FAILURE }
+    : { result: PUSH_DELIVERY_RESULT.UNEXPECTED_FAILURE, status };
 }
 
 // ── Pure scheduling logic (unit-tested in tests/push-reminders.test.mjs) ──

@@ -11,7 +11,8 @@ import assert from "node:assert/strict";
 import webpush from "web-push";
 import handler from "../api/cron/send-reminders.js";
 import {
-  SENT_TTL_SECONDS, PROC_TTL_SECONDS,
+  SENT_TTL_SECONDS, PROC_TTL_SECONDS, DELIVERY_RUN_LOG_CAP,
+  PUSH_DELIVERY_RESULT,
   subsKey, logKey, sentKey, procKey, testLimitKey,
 } from "../api/_push-lib.js";
 
@@ -24,6 +25,8 @@ function makeStore() {
   const strings = new Map();                    // key -> { val, expireAt|null }
   const hashes = new Map();                     // key -> Map<field,val>
   const lists = new Map();                      // key -> string[]
+  const calls = [];                             // Redis commands for scope assertions
+  const failDeleteIds = new Set();
   const alive = (e) => e && (e.expireAt == null || e.expireAt > clock.now);
   const getStr = (k) => { const e = strings.get(k); if (e && !alive(e)) { strings.delete(k); return null; } return e ? e.val : null; };
 
@@ -36,7 +39,12 @@ function makeStore() {
         for (const [f, v] of h) { flat.push(f, v); }
         return flat;
       }
-      case "HDEL": { const h = hashes.get(args[0]); if (!h) return 0; return h.delete(args[1]) ? 1 : 0; }
+      case "HDEL": {
+        if (failDeleteIds.has(args[1])) throw new Error("mock cleanup unavailable");
+        const h = hashes.get(args[0]);
+        if (!h) return 0;
+        return h.delete(args[1]) ? 1 : 0;
+      }
       case "GET": return getStr(args[0]);
       case "DEL": { let n = 0; for (const k of args) { if (strings.delete(k)) n++; } return n; }
       case "SET": {
@@ -58,12 +66,13 @@ function makeStore() {
 
   const fetchImpl = async (_url, opts) => {
     const cmds = JSON.parse(opts.body);
+    calls.push(...cmds);
     const out = cmds.map((c) => ({ result: exec(c) }));
     return { ok: true, json: async () => out };
   };
 
   return {
-    clock, strings, hashes, lists, fetchImpl, getStr,
+    clock, strings, hashes, lists, calls, failDeleteIds, fetchImpl, getStr,
     hset(key, field, val) { const h = hashes.get(key) || new Map(); h.set(field, val); hashes.set(key, h); },
     has(key) { return this.getStr(key) !== null; },
   };
@@ -111,13 +120,13 @@ function dayKeyAgo(minsAgo) {
 }
 const SUB_ID = "sub-unit-1";
 const ENDPOINT = "https://fcm.googleapis.com/fcm/send/UNIT_TOKEN";
-function seedSub({ sessions, tz = 0, enabled = true, lockedUntil } = {}) {
+function seedSub({ id = SUB_ID, endpoint = ENDPOINT, sessions, tz = 0, enabled = true, lockedUntil } = {}) {
   const rec = {
-    endpoint: ENDPOINT,
+    endpoint,
     keys: { p256dh: "P", auth: "A" },
     enabled, tz, prefs: { sessions }, lockedUntil, updatedAt: ctx.store.clock.now,
   };
-  ctx.store.hset(subsKey(), SUB_ID, JSON.stringify(rec));
+  ctx.store.hset(subsKey(), id, JSON.stringify(rec));
   return rec;
 }
 const oneInWindow = () => ({ fajr: { enabled: true, time: hhmmAgo(2) } });
@@ -270,4 +279,203 @@ test("outside-window and disabled sessions do not send; 410 cleans up", async ()
   assert.equal(r3._b.cleaned, 1);
   assert.equal(r3._b.errors, 0);
   assert.equal(ctx.store.getStr(subsKey()) === null || !ctx.store.hashes.get(subsKey())?.has(SUB_ID), true, "subscription removed");
+});
+
+test("404 removes only the dead subscription", async () => {
+  seedSub({ sessions: oneInWindow() });
+  setSend(async () => {
+    ctx.sends.count += 1;
+    throw Object.assign(new Error("provider response body"), { statusCode: 404 });
+  });
+  const result = await run();
+  assert.equal(result._b.cleaned, 1);
+  assert.equal(result._b.errors, 0);
+  assert.equal(ctx.store.hashes.get(subsKey())?.has(SUB_ID), false);
+});
+
+test("429 preserves the subscription and releases it for a later retry", async () => {
+  seedSub({ sessions: oneInWindow() });
+  setSend(async () => {
+    ctx.sends.count += 1;
+    throw Object.assign(new Error("rate response body"), { statusCode: 429 });
+  });
+  const result = await run();
+  assert.equal(result._b.cleaned, 0);
+  assert.equal(result._b.errors, 1);
+  assert.equal(ctx.store.hashes.get(subsKey())?.has(SUB_ID), true);
+  assert.equal(ctx.store.has(procKeyFor("fajr", 2)), false);
+  const entry = JSON.parse(ctx.store.lists.get(logKey())[0]);
+  assert.equal(entry.result, PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE);
+  assert.equal(entry.status, 429);
+});
+
+test("network timeout preserves the subscription", async () => {
+  seedSub({ sessions: oneInWindow() });
+  setSend(async () => {
+    ctx.sends.count += 1;
+    throw Object.assign(new Error("network detail"), { code: "ETIMEDOUT" });
+  });
+  const result = await run();
+  assert.equal(result._b.cleaned, 0);
+  assert.equal(result._b.errors, 1);
+  assert.equal(ctx.store.hashes.get(subsKey())?.has(SUB_ID), true);
+  const entry = JSON.parse(ctx.store.lists.get(logKey())[0]);
+  assert.equal(entry.result, PUSH_DELIVERY_RESULT.TEMPORARY_FAILURE);
+  assert.equal(Object.hasOwn(entry, "status"), false);
+});
+
+test("one provider failure does not stop the rest of the batch", async () => {
+  const failedEndpoint = "https://fcm.googleapis.com/fcm/send/UNIT_FAIL";
+  const goodEndpoint = "https://fcm.googleapis.com/fcm/send/UNIT_OK";
+  seedSub({ id: "sub-unit-fail", endpoint: failedEndpoint, sessions: oneInWindow() });
+  seedSub({ id: "sub-unit-ok", endpoint: goodEndpoint, sessions: oneInWindow() });
+  setSend(async (subscription) => {
+    ctx.sends.count += 1;
+    if (subscription.endpoint === failedEndpoint) {
+      throw Object.assign(new Error("temporary"), { statusCode: 500 });
+    }
+    return { statusCode: 201 };
+  });
+  const result = await run();
+  assert.equal(result._b.checked, 2);
+  assert.equal(result._b.sent, 1);
+  assert.equal(result._b.errors, 1);
+  assert.equal(ctx.sends.count, 2);
+  assert.equal(ctx.store.hashes.get(subsKey())?.has("sub-unit-fail"), true);
+  assert.equal(ctx.store.hashes.get(subsKey())?.has("sub-unit-ok"), true);
+});
+
+test("dead cleanup deletes the correct record and leaves successful peers intact", async () => {
+  const deadEndpoint = "https://fcm.googleapis.com/fcm/send/UNIT_DEAD";
+  const liveEndpoint = "https://fcm.googleapis.com/fcm/send/UNIT_LIVE";
+  seedSub({ id: "sub-unit-dead", endpoint: deadEndpoint, sessions: oneInWindow() });
+  seedSub({ id: "sub-unit-live", endpoint: liveEndpoint, sessions: oneInWindow() });
+  setSend(async (subscription) => {
+    ctx.sends.count += 1;
+    if (subscription.endpoint === deadEndpoint) {
+      throw Object.assign(new Error("gone"), { statusCode: 410 });
+    }
+    return { statusCode: 201 };
+  });
+  const result = await run();
+  const hash = ctx.store.hashes.get(subsKey());
+  assert.equal(result._b.cleaned, 1);
+  assert.equal(result._b.sent, 1);
+  assert.equal(hash.has("sub-unit-dead"), false);
+  assert.equal(hash.has("sub-unit-live"), true);
+  const deletedIds = ctx.store.calls.filter(([op]) => op === "HDEL").map((command) => command[2]);
+  assert.deepEqual(deletedIds, ["sub-unit-dead"]);
+});
+
+test("cleanup storage failure is isolated and does not stop the batch", async () => {
+  const deadEndpoint = "https://fcm.googleapis.com/fcm/send/UNIT_DELETE_FAIL";
+  const liveEndpoint = "https://fcm.googleapis.com/fcm/send/UNIT_AFTER_FAIL";
+  seedSub({ id: "sub-delete-fail", endpoint: deadEndpoint, sessions: oneInWindow() });
+  seedSub({ id: "sub-after-fail", endpoint: liveEndpoint, sessions: oneInWindow() });
+  ctx.store.failDeleteIds.add("sub-delete-fail");
+  setSend(async (subscription) => {
+    ctx.sends.count += 1;
+    if (subscription.endpoint === deadEndpoint) {
+      throw Object.assign(new Error("gone"), { statusCode: 410 });
+    }
+    return { statusCode: 201 };
+  });
+  const result = await run();
+  assert.equal(result._s, 200);
+  assert.equal(result._b.sent, 1);
+  assert.equal(result._b.errors, 1);
+  assert.equal(result._b.cleaned, 0);
+  assert.equal(ctx.store.hashes.get(subsKey()).has("sub-delete-fail"), true);
+  assert.equal(ctx.store.hashes.get(subsKey()).has("sub-after-fail"), true);
+});
+
+test("a dead subscription is attempted only once even when multiple sessions are due", async () => {
+  seedSub({
+    sessions: {
+      fajr: { enabled: true, time: hhmmAgo(2) },
+      dhuhr: { enabled: true, time: hhmmAgo(3) },
+    },
+  });
+  setSend(async () => {
+    ctx.sends.count += 1;
+    throw Object.assign(new Error("gone"), { statusCode: 410 });
+  });
+  const result = await run();
+  assert.equal(result._b.cleaned, 1);
+  assert.equal(ctx.sends.count, 1);
+});
+
+test("repeated cleanup is safe and does not resend to the removed endpoint", async () => {
+  seedSub({ sessions: oneInWindow() });
+  setSend(async () => {
+    ctx.sends.count += 1;
+    throw Object.assign(new Error("gone"), { statusCode: 404 });
+  });
+  const first = await run();
+  const second = await run();
+  assert.equal(first._b.cleaned, 1);
+  assert.equal(second._b.checked, 0);
+  assert.equal(ctx.sends.count, 1);
+});
+
+test("Preview cleanup cannot delete an identical Production subscription id", async () => {
+  process.env.VERCEL_ENV = "production";
+  seedSub({ sessions: oneInWindow() });
+  const productionKey = subsKey();
+  process.env.VERCEL_ENV = "preview";
+  seedSub({ sessions: oneInWindow() });
+  const previewKey = subsKey();
+  setSend(async () => {
+    ctx.sends.count += 1;
+    throw Object.assign(new Error("gone"), { statusCode: 410 });
+  });
+  const result = await run();
+  assert.equal(result._b.cleaned, 1);
+  assert.equal(ctx.store.hashes.get(previewKey)?.has(SUB_ID), false);
+  assert.equal(ctx.store.hashes.get(productionKey)?.has(SUB_ID), true);
+  assert.notEqual(previewKey, productionKey);
+});
+
+test("provider secrets and response bodies never enter responses, logs, or console", async () => {
+  seedSub({ sessions: oneInWindow() });
+  const sensitive = `${ENDPOINT}|private-vapid-value|authorization-value|provider-body`;
+  setSend(async () => {
+    throw Object.assign(new Error(sensitive), {
+      statusCode: 500,
+      body: sensitive,
+      headers: { authorization: sensitive },
+    });
+  });
+  const consoleLines = [];
+  const originalError = console.error;
+  console.error = (...args) => consoleLines.push(args.join(" "));
+  try {
+    const result = await run();
+    const evidence = JSON.stringify({
+      response: result._b,
+      logs: ctx.store.lists.get(logKey()) || [],
+      consoleLines,
+    });
+    assert.equal(evidence.includes(sensitive), false);
+    assert.equal(evidence.includes(ENDPOINT), false);
+    assert.equal(result._b.errors, 1);
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test("per-run delivery logs are bounded while batch counters remain complete", async () => {
+  const total = DELIVERY_RUN_LOG_CAP + 5;
+  for (let index = 0; index < total; index += 1) {
+    seedSub({
+      id: `sub-${String(index).padStart(3, "0")}`,
+      endpoint: `https://fcm.googleapis.com/fcm/send/UNIT_${index}`,
+      sessions: oneInWindow(),
+    });
+  }
+  const result = await run();
+  assert.equal(result._b.checked, total);
+  assert.equal(result._b.sent, total);
+  assert.equal(result._b.logsDropped, 5);
+  assert.equal(ctx.store.lists.get(logKey()).length, DELIVERY_RUN_LOG_CAP);
 });

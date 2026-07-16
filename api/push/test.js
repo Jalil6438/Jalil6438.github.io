@@ -9,7 +9,8 @@
 import webpush from "web-push";
 import {
   subsKey, logKey, testLimitKey, LOG_CAP, redis, redisConfigured, vapidConfigured,
-  subIdFromEndpoint, isGonePushError, isAllowedPushEndpoint, json, envNamespace,
+  subIdFromEndpoint, classifyPushDeliveryFailure, PUSH_DELIVERY_RESULT,
+  isAllowedPushEndpoint, json, envNamespace,
 } from "../_push-lib.js";
 
 export default async function handler(req, res) {
@@ -68,17 +69,22 @@ export default async function handler(req, res) {
         ["LTRIM", logKey(), "0", String(LOG_CAP - 1)],
       ]);
       return json(res, 200, { ok: true, delivered: true });
-    } catch (e) {
-      const status = e?.statusCode;
-      if (isGonePushError(status)) {
-        await redis([["HDEL", subsKey(), id]]);
-        return json(res, 200, { ok: false, reason: "expired", cleaned: true });
+    } catch (error) {
+      const failure = classifyPushDeliveryFailure(error);
+      if (failure.result === PUSH_DELIVERY_RESULT.DEAD_REMOVED) {
+        try {
+          await redis([["HDEL", subsKey(), id]]);
+          return json(res, 200, { ok: false, reason: "expired", cleaned: true });
+        } catch {
+          console.error("[push/test] cleanup unavailable");
+          return json(res, 200, { ok: false, reason: "send-failed" });
+        }
       }
-      console.error("[push/test]", status || e?.message || e);
+      console.error(`[push/test] ${failure.result}`);
       return json(res, 200, { ok: false, reason: "send-failed" });
     }
-  } catch (e) {
-    console.error("[push/test]", e?.message || e);
+  } catch {
+    console.error("[push/test] storage unavailable");
     return json(res, 500, { error: "storage error" });
   }
 }
