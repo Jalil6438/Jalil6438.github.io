@@ -37,6 +37,11 @@ function harness(hooks = {}) {
   return { store, platform: createRecoveryPlatform({ store, now: () => clock.now, hooks }) };
 }
 
+async function restoreInput(platform, localEnvelope, snapshotId, operationId, decision = "safe") {
+  const plan = await platform.planRestore(ref, localEnvelope, snapshotId);
+  return { operationId, localEnvelope, snapshotId, planProof: plan.proof, decision };
+}
+
 test("atomic backup stages, verifies, completes, and updates latest only at the end", async () => {
   const h = harness();
   const result = await h.platform.backup(ref, await envelope());
@@ -121,12 +126,9 @@ test("restore planning is non-destructive and prepared restore carries rollback 
   const plan = await h.platform.planRestore(ref, local, remote.snapshot.snapshotId);
   assert.equal(plan.kind, "SAFE_FULL_RESTORE");
   assert.deepEqual(local, before);
-  const prepared = await h.platform.beginRestore(ref, {
-    operationId: "restore_operation_001",
-    localEnvelope: local,
-    snapshotId: remote.snapshot.snapshotId,
-    decision: "safe",
-  });
+  const prepared = await h.platform.beginRestore(ref, await restoreInput(
+    h.platform, local, remote.snapshot.snapshotId, "restore_operation_001",
+  ));
   assert.equal(prepared.operation.state, RESTORE_STATE.PREPARED);
   assert.equal(prepared.operation.rollbackEnvelope.checksum, local.checksum);
   assert.equal(prepared.operation.resultEnvelope.checksum, remote.snapshot.payloadHash);
@@ -136,7 +138,7 @@ test("restore begin and confirmation are idempotent and confirmation checks relo
   const h = harness();
   const remote = await h.platform.backup(ref, await envelope({ ayahs: ["2:1", "2:2"] }));
   const local = await envelope({ ayahs: [] });
-  const input = { operationId: "restore_operation_002", localEnvelope: local, snapshotId: remote.snapshot.snapshotId, decision: "safe" };
+  const input = await restoreInput(h.platform, local, remote.snapshot.snapshotId, "restore_operation_002");
   const first = await h.platform.beginRestore(ref, input);
   const duplicate = await h.platform.beginRestore(ref, input);
   assert.equal(duplicate.idempotent, true);
@@ -152,9 +154,9 @@ test("failed client application can roll back to the pre-restore checkpoint", as
   const h = harness();
   const remote = await h.platform.backup(ref, await envelope({ ayahs: ["2:1", "2:2"] }));
   const local = await envelope({ ayahs: [] });
-  await h.platform.beginRestore(ref, {
-    operationId: "restore_operation_003", localEnvelope: local, snapshotId: remote.snapshot.snapshotId, decision: "safe",
-  });
+  await h.platform.beginRestore(ref, await restoreInput(
+    h.platform, local, remote.snapshot.snapshotId, "restore_operation_003",
+  ));
   const rolled = await h.platform.rollbackRestore(ref, "restore_operation_003");
   const repeated = await h.platform.rollbackRestore(ref, "restore_operation_003");
   assert.equal(rolled.operation.state, RESTORE_STATE.ROLLED_BACK);
@@ -171,7 +173,7 @@ test("process loss after restore preparation is idempotently recoverable", async
     now: () => clock.now,
     hooks: { afterPrepare: () => { throw new Error("restore process loss"); } },
   });
-  const input = { operationId: "restore_operation_004", localEnvelope: local, snapshotId: remote.snapshot.snapshotId, decision: "safe" };
+  const input = await restoreInput(h.platform, local, remote.snapshot.snapshotId, "restore_operation_004");
   await assert.rejects(() => crashing.beginRestore(ref, input), /process loss/);
   const recovered = await h.platform.beginRestore(ref, input);
   assert.equal(recovered.idempotent, true);
@@ -190,12 +192,9 @@ test("history pressure and retention cleanup never remove latest or active resto
     })));
   }
   const empty = await envelope({ ayahs: [] });
-  await h.platform.beginRestore(ref, {
-    operationId: "restore_operation_005",
-    localEnvelope: empty,
-    snapshotId: snapshots[0].snapshot.snapshotId,
-    decision: "accept-remote",
-  });
+  await h.platform.beginRestore(ref, await restoreInput(
+    h.platform, empty, snapshots[0].snapshot.snapshotId, "restore_operation_005", "accept-remote",
+  ));
   clock.now += 1000;
   const latest = await h.platform.backup(ref, await envelope({
     ayahs: ["2:1", "2:2", "2:3", "2:4", "2:5"],

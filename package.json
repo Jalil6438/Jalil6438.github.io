@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "release:check": "node scripts/release-check.mjs",
+    "recovery:preview-check": "node scripts/recovery-preview-check.mjs",
     "cap:sync": "npm run build && cap sync ios",
     "cap:copy": "npm run build && cap copy ios",
     "cap:open": "cap open ios"

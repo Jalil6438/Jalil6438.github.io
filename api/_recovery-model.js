@@ -11,6 +11,7 @@ export const RECOVERY_RECORD_VERSION = 1;
 export const RECOVERY_SNAPSHOT_CAP = 4;
 export const RECOVERY_OPERATION_CAP = 3;
 export const RECOVERY_CONFLICT_CAP = 20;
+export const RECOVERY_PLAN_TTL_MS = 10 * 60 * 1000;
 
 export const SNAPSHOT_STATE = Object.freeze({
   PREPARING: "PREPARING",
@@ -93,7 +94,53 @@ export function summarizeEnvelope(envelope) {
     counts[key] = count;
     totalRecords += count;
   }
-  return { payloadKeys: Object.keys(payload).length, totalRecords, counts };
+  const completedAyahs = recordCount(parseValue(payload["jalil-quran-v9"]));
+  const reviewedJuz = recordCount(parseValue(payload["rihlat-revised-juz"]));
+  const sessionDays = recordCount(parseValue(payload["rihlat-session-log"]));
+  const quranState = parseValue(payload["jalil-quran-v8"]);
+  const streak = Number.isInteger(quranState?.streak) ? quranState.streak : 0;
+  const sessionProgress = Number.isInteger(quranState?.sessionIdx) ? quranState.sessionIdx : 0;
+  return {
+    payloadKeys: Object.keys(payload).length,
+    totalRecords,
+    counts,
+    progress: { completedAyahs, reviewedJuz, sessionDays, streak, sessionProgress },
+  };
+}
+
+export function createRestorePlanProof({ ref, stateRevision, snapshotId, localChecksum, nowMs = Date.now() }) {
+  if (!/^[a-f0-9]{64}$/.test(ref || "") || !Number.isInteger(stateRevision) || stateRevision < 0
+    || !ID_RE.test(snapshotId || "") || !/^sha256:[a-f0-9]{64}$/.test(localChecksum || "")) {
+    throw recoveryError("RECOVERY_REQUEST_INVALID", "restore plan input is invalid");
+  }
+  const expiresAt = nowMs + RECOVERY_PLAN_TTL_MS;
+  const planId = `rp_${hashHex(`${ref}|${stateRevision}|${snapshotId}|${localChecksum}|${expiresAt}`).slice(0, 40)}`;
+  return { planId, stateRevision, snapshotId, localChecksum, expiresAt };
+}
+
+export function verifyRestorePlanProof(proof, expected) {
+  if (!proof || typeof proof !== "object" || Array.isArray(proof)
+    || !Number.isInteger(proof.stateRevision) || proof.stateRevision < 0
+    || !ID_RE.test(proof.snapshotId || "")
+    || !/^sha256:[a-f0-9]{64}$/.test(proof.localChecksum || "")
+    || !Number.isFinite(proof.expiresAt)) {
+    throw recoveryError("RESTORE_PLAN_STALE", "restore plan is no longer current");
+  }
+  const canonical = createRestorePlanProof({
+    ref: expected.ref,
+    stateRevision: proof.stateRevision,
+    snapshotId: proof.snapshotId,
+    localChecksum: proof.localChecksum,
+    nowMs: proof.expiresAt - RECOVERY_PLAN_TTL_MS,
+  });
+  if (proof.expiresAt <= expected.nowMs
+    || proof.stateRevision !== expected.stateRevision
+    || proof.snapshotId !== expected.snapshotId
+    || proof.localChecksum !== expected.localChecksum
+    || proof.planId !== canonical.planId) {
+    throw recoveryError("RESTORE_PLAN_STALE", "restore plan is no longer current");
+  }
+  return canonical;
 }
 
 export function makeSnapshot({ backupRef, envelope, previousSnapshotId = null, nowMs = Date.now() }) {
@@ -148,6 +195,7 @@ const migrations = new Map([
         ? snapshot.sourceDeviceRef
         : hashHex(`alhifz-recovery-device-migration-v1:${snapshot.sourceDeviceRef || deviceId}`).slice(0, 32),
       payloadSchemaVersion: snapshot.payloadSchemaVersion || snapshot.envelope?.schemaVersion,
+      summary: summarizeEnvelope(snapshot.envelope),
       sanitizedReason: snapshot.sanitizedReason || null,
     };
   }],

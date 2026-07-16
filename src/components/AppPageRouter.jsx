@@ -6,6 +6,7 @@ import AboutPage from "./pages/AboutPage";
 import ExportPage from "./pages/ExportPage";
 import SettingsPage from "./pages/SettingsPage";
 import TermsPage from "./pages/TermsPage";
+import RecoveryPage from "./pages/RecoveryPage";
 import { buildBackup, readBackup, applyBackup } from "../backup/localBackup";
 
 // Full-screen drawer pages — rendered below the universal header so the profile
@@ -25,7 +26,8 @@ export default function AppPageRouter({ appPage, setAppPage, dark, setDark, T, c
       {appPage==="about"&&<AboutPage dark={dark} onBack={()=>setAppPage("settings")}/>}
       {appPage==="settings"&&<SettingsPage dark={dark} setDark={setDark} T={T} setAppPage={setAppPage} onBack={()=>setAppPage(null)}/>}
       {appPage==="terms"&&<TermsPage dark={dark} T={T} onBack={()=>setAppPage("settings")}/>}
-      {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage("settings")} onExport={()=>{
+      {appPage==="recovery"&&<RecoveryPage dark={dark} onBack={()=>setAppPage("settings")}/>}
+      {appPage==="export"&&<ExportPage dark={dark} onBack={()=>setAppPage("settings")} onRecovery={()=>setAppPage("recovery")} onExport={()=>{
         try{
           // Payload is built from the single shared key list in
           // src/backup/localBackup.js, so export and restore can never drift.

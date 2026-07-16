@@ -9,9 +9,11 @@ import {
   RESTORE_STATE,
   SNAPSHOT_STATE,
   buildRestorePlan,
+  createRestorePlanProof,
   makeSnapshot,
   recoveryError,
   safeSnapshotMeta,
+  verifyRestorePlanProof,
   verifySnapshot,
 } from "./_recovery-model.js";
 import { getRecoveryStore } from "./_recovery-store.js";
@@ -185,8 +187,7 @@ export function createRecoveryPlatform({ store = getRecoveryStore(), now = Date.
     };
   }
 
-  async function planRestore(ref, localEnvelope, snapshotId) {
-    const state = await load(ref);
+  async function evaluatePlan(state, localEnvelope, snapshotId) {
     const stored = state.snapshots.find((snapshot) => snapshot.snapshotId === snapshotId);
     if (!stored) return { kind: "SNAPSHOT_NOT_FOUND", safeToExecute: false, conflicts: [] };
     if (![SNAPSHOT_STATE.COMPLETE, SNAPSHOT_STATE.SUPERSEDED].includes(stored.completionState)) {
@@ -204,21 +205,46 @@ export function createRecoveryPlatform({ store = getRecoveryStore(), now = Date.
     }
     const local = await validateEnvelope(localEnvelope, { nowMs: now(), sha256Hex });
     const plan = await buildRestorePlan(local, snapshot, { sha256Hex });
-    return { ...plan, snapshotId, migrationRequired };
+    return { ...plan, snapshotId, migrationRequired, localEnvelope: local };
   }
 
-  async function beginRestore(ref, { operationId, localEnvelope, snapshotId, decision = "safe" }) {
+  async function planRestore(ref, localEnvelope, snapshotId) {
+    const state = await load(ref);
+    const plan = await evaluatePlan(state, localEnvelope, snapshotId);
+    if (!plan.localEnvelope) return plan;
+    const proof = createRestorePlanProof({
+      ref,
+      stateRevision: state.revision,
+      snapshotId,
+      localChecksum: plan.localEnvelope.checksum,
+      nowMs: now(),
+    });
+    const safePlan = { ...plan };
+    delete safePlan.mergedEnvelope;
+    delete safePlan.localEnvelope;
+    return { ...safePlan, proof };
+  }
+
+  async function beginRestore(ref, { operationId, localEnvelope, snapshotId, planProof, decision = "safe" }) {
     if (!OPERATION_ID_RE.test(operationId || "")) throw recoveryError("RECOVERY_REQUEST_INVALID", "invalid restore operation id");
     let state = await load(ref);
     const existing = state.restoreOperations.find((operation) => operation.operationId === operationId);
     if (existing) return { operation: safeOperation(existing, true), idempotent: true };
 
-    const plan = await planRestore(ref, localEnvelope, snapshotId);
+    const local = await validateEnvelope(localEnvelope, { nowMs: now(), sha256Hex });
+    const plan = await evaluatePlan(state, local, snapshotId);
     const stored = state.snapshots.find((snapshot) => snapshot.snapshotId === snapshotId);
     if (!stored) throw recoveryError("SNAPSHOT_NOT_FOUND", "snapshot not found");
     if (![SNAPSHOT_STATE.COMPLETE, SNAPSHOT_STATE.SUPERSEDED].includes(stored.completionState)) {
       throw recoveryError("SNAPSHOT_INCOMPLETE", "snapshot is not complete");
     }
+    verifyRestorePlanProof(planProof, {
+      ref,
+      stateRevision: state.revision,
+      snapshotId,
+      localChecksum: local.checksum,
+      nowMs: now(),
+    });
     const snapshot = await verifySnapshot(stored, { nowMs: now(), sha256Hex });
     let resultEnvelope;
     const explicitRemoteKinds = new Set([
@@ -234,7 +260,7 @@ export function createRecoveryPlatform({ store = getRecoveryStore(), now = Date.
     } else {
       throw recoveryError("RESTORE_CHOICE_REQUIRED", "restore requires an explicit safe choice");
     }
-    const checkpointEnvelope = await validateEnvelope(localEnvelope, { nowMs: now(), sha256Hex });
+    const checkpointEnvelope = local;
     const validatedResult = await validateEnvelope(resultEnvelope, { nowMs: now(), sha256Hex });
     const createdAt = now();
     const operation = {
@@ -344,5 +370,9 @@ export function createRecoveryPlatform({ store = getRecoveryStore(), now = Date.
     };
   }
 
-  return { backup, planRestore, beginRestore, confirmRestore, rollbackRestore, cleanup, health, load };
+  async function deleteRecovery(ref) {
+    return { deleted: await store.delete(ref) };
+  }
+
+  return { backup, planRestore, beginRestore, confirmRestore, rollbackRestore, cleanup, health, deleteRecovery, load };
 }

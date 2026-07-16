@@ -79,8 +79,57 @@ test("restore planning is read-only and returns a safe empty-local plan", async 
   } });
   assert.equal(plan.statusCode, 200);
   assert.equal(plan.body.plan.kind, "SAFE_FULL_RESTORE");
+  assert.ok(plan.body.plan.proof.planId);
   const health = await call({ method: "GET" });
   assert.equal(health.body.health.snapshotCount, 1);
+});
+
+test("route requires the current plan proof and keeps duplicate restore idempotent", async () => {
+  const created = await call({ body: { action: "backup", envelope: await envelope(["2:1", "2:2"]) } });
+  const local = await envelope([]);
+  const planned = await call({ body: { action: "plan", localEnvelope: local, snapshotId: created.body.snapshot.snapshotId } });
+  let result = await call({ body: {
+    action: "restore-begin",
+    operationId: "restore_route_001",
+    localEnvelope: local,
+    snapshotId: created.body.snapshot.snapshotId,
+    planProof: { ...planned.body.plan.proof, planId: "rp_tampered" },
+    decision: "safe",
+  } });
+  assert.equal(result.statusCode, 409);
+  assert.equal(result.body.error, "RESTORE_PLAN_STALE");
+  const request = {
+    action: "restore-begin",
+    operationId: "restore_route_001",
+    localEnvelope: local,
+    snapshotId: created.body.snapshot.snapshotId,
+    planProof: planned.body.plan.proof,
+    decision: "safe",
+  };
+  result = await call({ body: request });
+  assert.equal(result.statusCode, 200);
+  assert.equal(result.body.idempotent, false);
+  const duplicate = await call({ body: request });
+  assert.equal(duplicate.body.idempotent, true);
+});
+
+test("client environment fields cannot override the server namespace", async () => {
+  const created = await call({ body: { action: "backup", environment: "production", envelope: await envelope() } });
+  assert.equal(created.statusCode, 200);
+  const health = await call({ method: "GET" });
+  assert.equal(health.body.health.environment, "development");
+});
+
+test("authorized record deletion removes only the caller's recovery record and is idempotent", async () => {
+  await call({ body: { action: "backup", envelope: await envelope() } });
+  const removed = await call({ body: { action: "delete-record" } });
+  assert.equal(removed.statusCode, 200);
+  assert.equal(removed.body.deleted, true);
+  const repeated = await call({ body: { action: "delete-record" } });
+  assert.equal(repeated.statusCode, 200);
+  assert.equal(repeated.body.deleted, false);
+  const health = await call({ method: "GET" });
+  assert.equal(health.body.health.snapshotCount, 0);
 });
 
 test("missing feature flag fails before authorization or storage", async () => {

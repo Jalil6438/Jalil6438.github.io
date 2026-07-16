@@ -62,6 +62,15 @@ test("concurrent CAS permits exactly one writer", async () => {
   assert.equal((await store.get(REF)).revision, 2);
 });
 
+test("record deletion is complete and idempotent", async () => {
+  const store = createRecoveryMemoryStore({ namespace: "test" });
+  await store.cas(REF, 0, state(1));
+  assert.equal(await store.delete(REF), true);
+  assert.equal(await store.delete(REF), false);
+  assert.equal(await store.get(REF), null);
+  assert.equal(await store.getExpiry(REF), null);
+});
+
 test("test, Preview, and Production occupy separate namespaces", async () => {
   const testStore = createRecoveryMemoryStore({ namespace: "test" });
   const previewStore = createRecoveryMemoryStore({ namespace: "preview" });

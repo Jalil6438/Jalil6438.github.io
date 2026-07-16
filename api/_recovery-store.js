@@ -66,6 +66,12 @@ export function createRecoveryMemoryStore({ namespace = recoveryEnvironment(), n
       return { ok: true, revision: state.revision };
     },
     async getExpiry(ref) { const recordKey = key(ref); return live(recordKey) ? expiries.get(recordKey) : null; },
+    async delete(ref) {
+      const recordKey = key(ref);
+      const existed = records.delete(recordKey);
+      expiries.delete(recordKey);
+      return existed;
+    },
     __records: records,
   };
 }
@@ -114,6 +120,13 @@ export function createRecoveryRedisStore({ url, token, namespace = recoveryEnvir
       const ttl = await execute(["PTTL", key(ref)]);
       if (!Number.isInteger(ttl) || ttl < -2 || ttl === -1) throw recoveryError("RECOVERY_STORE_INVALID", "recovery storage returned invalid data");
       return ttl === -2 ? null : now() + ttl;
+    },
+    async delete(ref) {
+      const removed = await execute(["DEL", key(ref)]);
+      if (!Number.isInteger(removed) || removed < 0 || removed > 1) {
+        throw recoveryError("RECOVERY_STORE_INVALID", "recovery storage returned invalid data");
+      }
+      return removed === 1;
     },
   };
 }

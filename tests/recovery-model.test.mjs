@@ -49,7 +49,12 @@ test("canonical snapshot creation carries complete bounded integrity metadata", 
   assert.equal(snapshot.schemaVersion, RECOVERY_SCHEMA_VERSION);
   assert.equal(snapshot.payloadHash, env.checksum);
   assert.equal(snapshot.sourceDeviceRef.length, 32);
-  assert.deepEqual(snapshot.summary, { payloadKeys: 1, totalRecords: 2, counts: { "jalil-quran-v9": 2 } });
+  assert.deepEqual(snapshot.summary, {
+    payloadKeys: 1,
+    totalRecords: 2,
+    counts: { "jalil-quran-v9": 2 },
+    progress: { completedAyahs: 2, reviewedJuz: 0, sessionDays: 0, streak: 0, sessionProgress: 0 },
+  });
   const verified = await verifySnapshot(snapshot, { nowMs: NOW, sha256Hex: hash });
   assert.equal(verified.envelope.checksum, env.checksum);
 });

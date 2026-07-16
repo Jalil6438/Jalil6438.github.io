@@ -146,3 +146,68 @@ required to return to the accepted backup behavior.
   Android, and PWA storage.
 - Requires Production authorization: feature-flag enablement and any disclosure
   update associated with activating cloud recovery.
+
+## Preview integration gate
+
+The learner UI is independently gated by `VITE_PROGRESS_RECOVERY_ENABLED=true`.
+Both recovery flags are false by default. Preview must set both flags;
+Production must leave both absent or false. The API derives its environment
+exclusively from server-side `VERCEL_ENV`; request bodies cannot select a
+namespace.
+
+The browser keeps an unguessable recovery capability, backup id, and independent
+writer id in local storage. Those values are never included in the recovery
+payload or displayed in the restore preview. The capability is the approved
+anonymous authorization boundary: there are no accounts in this architecture.
+Consequently, an account or secure capability-transfer design is still required
+before a learner can discover the same record after a fresh install on another
+device. Preview multi-device tests reuse one synthetic capability explicitly and
+do not claim that product onboarding problem is solved.
+
+Restore planning returns a ten-minute proof bound to the capability-derived
+record, snapshot id, local payload checksum, and recovery-state revision. Any
+newer write, expired proof, or modified proof forces a fresh preview. A prepared
+operation remains idempotently resumable by its operation id.
+
+The client sequence is:
+
+`View recovery -> Preview changes -> Confirm -> Apply -> Reload -> Verify`
+
+The local write uses the existing all-or-nothing allowlisted restore helper.
+Only approved progress domains are applied; reminder preferences, push data,
+analytics identifiers, names, notes, and cosmetic settings remain untouched. A
+30-minute marker records only bounded operation metadata, permits one reload,
+and then verifies the restored payload checksum with the server.
+
+## Real Preview Redis smoke check
+
+Run only against a committed Vercel Preview deployment:
+
+```powershell
+$env:VERCEL_ENV = "preview"
+$env:RECOVERY_PREVIEW_CONFIRM = "preview"
+$env:RECOVERY_PREVIEW_URL = "https://<preview-deployment>.vercel.app"
+$env:PROGRESS_RECOVERY_PLATFORM_ENABLED = "true"
+$env:BACKUP_STORE_ADAPTER = "redis"
+# BACKUP_REDIS_REST_URL and BACKUP_REDIS_REST_TOKEN come from encrypted Preview env.
+npm run recovery:preview-check
+```
+
+The script refuses Production, verifies `/api/version` reports `preview`, uses a
+random synthetic capability, and checks snapshot creation, 400-day TTL, atomic
+CAS conflict handling, stale-plan rejection, restore preparation, rollback,
+confirmation, corruption quarantine, and complete record deletion. It never
+prints credentials, capabilities, Redis keys, or progress payloads and returns
+nonzero on any failed assertion. Cleanup also runs in `finally`.
+
+Required Preview environment names:
+
+- `PROGRESS_RECOVERY_PLATFORM_ENABLED=true`
+- `VITE_PROGRESS_RECOVERY_ENABLED=true`
+- `BACKUP_ENABLED=true`
+- `BACKUP_STORE_ADAPTER=redis`
+- `BACKUP_REDIS_REST_URL`
+- `BACKUP_REDIS_REST_TOKEN`
+- `BACKUP_IP_PEPPER`
+
+Production is not configured or enabled by this packet.

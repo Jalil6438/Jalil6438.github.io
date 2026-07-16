@@ -21,6 +21,7 @@ function recoveryStatus(error) {
     RECOVERY_REQUEST_INVALID: 400,
     SNAPSHOT_NOT_FOUND: 404,
     RESTORE_NOT_FOUND: 404,
+    RESTORE_PLAN_STALE: 409,
     RESTORE_CHOICE_REQUIRED: 409,
     RESTORE_CONFIRMATION_FAILED: 409,
     SNAPSHOT_INCOMPLETE: 409,
@@ -47,6 +48,7 @@ export default async function handler(req, res) {
         operationId: body.operationId,
         localEnvelope: body.localEnvelope,
         snapshotId: body.snapshotId,
+        planProof: body.planProof,
         decision: body.decision,
       })),
     });
@@ -59,6 +61,7 @@ export default async function handler(req, res) {
       ...(await platform.rollbackRestore(ref, body.operationId)),
     });
     if (body.action === "cleanup") return json(res, 200, { ok: true, cleanup: await platform.cleanup(ref) });
+    if (body.action === "delete-record") return json(res, 200, { ok: true, ...(await platform.deleteRecovery(ref)) });
     throw recoveryError("RECOVERY_REQUEST_INVALID", "bad request");
   } catch (error) {
     const status = recoveryStatus(error);
