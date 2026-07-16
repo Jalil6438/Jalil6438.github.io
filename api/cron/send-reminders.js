@@ -53,6 +53,8 @@ export default async function handler(req, res) {
         created: outcome.created,
         job: outcome.job,
         processedJob: outcome.processedJob,
+        workerPasses: outcome.workerPasses,
+        drainLimited: outcome.drainLimited,
       });
     } catch {
       console.error("[cron/send-reminders] control plane unavailable");

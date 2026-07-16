@@ -4,6 +4,8 @@ import { envNamespace, nsKey, PUSH_DELIVERY_RESULT } from "./_push-lib.js";
 export const REMINDER_JOB_SCHEMA_VERSION = 1;
 export const REMINDER_WINDOW_MS = 15 * 60 * 1000;
 export const REMINDER_BATCH_SIZE = 100;
+export const REMINDER_RUN_MAX_PASSES = 10;
+export const REMINDER_RUN_BUDGET_MS = 20 * 1000;
 export const REMINDER_MAX_ATTEMPTS = 5;
 export const REMINDER_LEASE_MS = 5 * 60 * 1000;
 export const REMINDER_JOB_TTL_SECONDS = 30 * 24 * 60 * 60;

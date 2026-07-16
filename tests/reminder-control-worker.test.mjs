@@ -160,6 +160,8 @@ function makeHarness({ hookFactory } = {}) {
     random: options.random || (() => 0.5),
     workerId: options.workerId || "worker_primary",
     hooks: options.hooks || hookFactory?.() || {},
+    maxRunPasses: options.maxRunPasses,
+    runBudgetMs: options.runBudgetMs,
   });
   return {
     clock, jobs, queue, leases, receipts, subscriptions, strings, sends,
@@ -180,7 +182,7 @@ test("successful job completes and duplicate trigger never resends", async () =>
   assert.equal(h.receipts.get(first.job.jobId).length, 1);
 });
 
-test("large subscription sets process in bounded batches without consuming retry attempts", async () => {
+test("one trigger drains a healthy multi-batch job without consuming retry attempts", async () => {
   const h = makeHarness();
   for (let index = 0; index < 105; index += 1) {
     h.addSubscription(
@@ -190,14 +192,35 @@ test("large subscription sets process in bounded batches without consuming retry
     );
   }
   const worker = h.worker();
+  const result = await worker.triggerAndProcess({ scheduledTime: h.scheduledTime, sourceTrigger: "qstash" });
+  assert.equal(result.job.state, REMINDER_JOB_STATES.COMPLETED);
+  assert.equal(result.job.attemptCount, 1);
+  assert.equal(result.workerPasses, 2);
+  assert.equal(result.drainLimited, false);
+  assert.equal(h.sends.length, 105);
+});
+
+test("per-invocation draining stops at its hard pass cap and leaves durable work queued", async () => {
+  const h = makeHarness();
+  for (let index = 0; index < 205; index += 1) {
+    h.addSubscription(
+      `target_${String(index).padStart(3, "0")}`,
+      `https://fcm.googleapis.com/fcm/send/UNIT_CAP_${index}`,
+      h.dueSessions(),
+    );
+  }
+  const worker = h.worker({ maxRunPasses: 2 });
   const first = await worker.triggerAndProcess({ scheduledTime: h.scheduledTime, sourceTrigger: "qstash" });
+  assert.equal(first.workerPasses, 2);
+  assert.equal(first.drainLimited, true);
   assert.equal(first.job.state, REMINDER_JOB_STATES.QUEUED);
   assert.equal(first.job.attemptCount, 1);
-  assert.equal(h.sends.length, 100);
-  const second = await worker.processNext();
-  assert.equal(second.state, REMINDER_JOB_STATES.COMPLETED);
-  assert.equal(second.attemptCount, 1);
-  assert.equal(h.sends.length, 105);
+  assert.equal(h.sends.length, 200);
+
+  const completed = await worker.processNext();
+  assert.equal(completed.state, REMINDER_JOB_STATES.COMPLETED);
+  assert.equal(completed.attemptCount, 1);
+  assert.equal(h.sends.length, 205);
 });
 
 test("404 and 410 remove only dead targets and produce a partial job", async () => {

@@ -17,6 +17,8 @@ import {
   REMINDER_BATCH_SIZE,
   REMINDER_JOB_STATES,
   REMINDER_MAX_ATTEMPTS,
+  REMINDER_RUN_BUDGET_MS,
+  REMINDER_RUN_MAX_PASSES,
   emptyReminderSummary,
   makeDeliveryReceipt,
   makeReminderJob,
@@ -50,7 +52,17 @@ export function createReminderWorker({
   random = Math.random,
   workerId = `rw_${randomBytes(12).toString("hex")}`,
   hooks = {},
+  maxRunPasses = REMINDER_RUN_MAX_PASSES,
+  runBudgetMs = REMINDER_RUN_BUDGET_MS,
 } = {}) {
+  const boundedRunPasses = Math.max(1, Math.min(
+    REMINDER_RUN_MAX_PASSES,
+    Number(maxRunPasses) || REMINDER_RUN_MAX_PASSES,
+  ));
+  const boundedRunBudgetMs = Math.max(1, Math.min(
+    REMINDER_RUN_BUDGET_MS,
+    Number(runBudgetMs) || REMINDER_RUN_BUDGET_MS,
+  ));
   async function createJob({ scheduledTime = now(), sourceTrigger = "cron" } = {}) {
     return store.createJob(makeReminderJob({ scheduledTime, sourceTrigger, createdAt: now() }));
   }
@@ -225,14 +237,28 @@ export function createReminderWorker({
 
   async function triggerAndProcess(options) {
     const created = await createJob(options);
-    const processed = await processNext();
-    const triggerJob = processed?.jobId === created.job.jobId
-      ? processed
-      : safeJobSummary(created.job);
+    const runStartedAt = now();
+    let processed = null;
+    let triggerJob = null;
+    let workerPasses = 0;
+    while (
+      workerPasses < boundedRunPasses &&
+      now() - runStartedAt < boundedRunBudgetMs
+    ) {
+      const next = await processNext();
+      if (!next) break;
+      processed = next;
+      workerPasses += 1;
+      if (next.jobId === created.job.jobId) triggerJob = next;
+    }
     return {
       created: created.created,
-      job: triggerJob,
+      job: triggerJob || safeJobSummary(created.job),
       processedJob: processed,
+      workerPasses,
+      drainLimited:
+        workerPasses >= boundedRunPasses ||
+        now() - runStartedAt >= boundedRunBudgetMs,
     };
   }
 

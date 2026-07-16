@@ -125,6 +125,8 @@ test("feature-flagged cron creates and completes a durable empty job", async () 
   assert.equal(result.statusCode, 200);
   assert.equal(result.body.controlPlane, true);
   assert.equal(result.body.created, true);
+  assert.equal(result.body.workerPasses, 1);
+  assert.equal(result.body.drainLimited, false);
   assert.equal(result.body.job.state, "COMPLETED");
   assert.ok(result.body.job.jobId.startsWith("rj_"));
 });

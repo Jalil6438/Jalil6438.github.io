@@ -43,10 +43,13 @@ expired `PROCESSING` lease consumes a retry attempt even after a batch cursor ha
 advanced, so a persistent mid-batch crash eventually reaches `DEAD_LETTER`;
 ordinary queued batch continuation does not consume an attempt.
 
-The worker reads subscriptions with `HSCAN COUNT 100`. Successful targets retain
-the existing per-subscription/session/day delivered marker. Permanent `404/410`
-targets are removed. Temporary failures preserve subscriptions and release the
-short delivery lock.
+The worker reads subscriptions with `HSCAN COUNT 100`. One cron invocation may
+drain at most 10 worker passes and 20 seconds of work; this lets ordinary
+multi-batch jobs finish without allowing an unbounded serverless run. Any
+remainder stays durably queued for the next invocation. Successful targets
+retain the existing per-subscription/session/day delivered marker. Permanent
+`404/410` targets are removed. Temporary failures preserve subscriptions and
+release the short delivery lock.
 
 ## Retry and dead letters
 
