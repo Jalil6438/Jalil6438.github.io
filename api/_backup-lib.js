@@ -6,8 +6,8 @@
 // are thin — they parse a request, call one function here, and map a code to a
 // status. All the rules live in one place.
 //
-// Storage is reached only through the adapter (api/_backup-store.js), which in
-// this packet is in-memory and cannot touch Production. See that file's header.
+// Storage is reached only through api/_backup-store.js. Hosted deployments are
+// explicit opt-in, Redis-only, environment-isolated, and fail closed.
 
 import { createHash, createHmac, randomBytes } from "node:crypto";
 import {
@@ -21,7 +21,14 @@ import {
   deriveBackupRef,
   isValidToken,
 } from "../src/backup/cloudContract.js";
-import { getStore, MAX_RESTORE_POINTS, RETENTION_DAYS } from "./_backup-store.js";
+import {
+  getStore,
+  storeError,
+  selectedAdapterName,
+  ADAPTER_REDIS,
+  MAX_RESTORE_POINTS,
+  RETENTION_DAYS,
+} from "./_backup-store.js";
 // The same `json` the push routes use: sets Cache-Control: no-store, which a
 // backup response needs even more than a reminder one does.
 import { json } from "./_push-lib.js";
@@ -63,24 +70,28 @@ const ipLimitKey = (ipHash) => `alhifz:backup:iplimit:${ipHash}`;
 // The pepper is what makes the digest unreproducible without server-side
 // knowledge, and it never leaves the server.
 //
-// The pepper is resolved lazily and is INJECTABLE (see `pseudonymizeIp`) so
-// tests can pin it. In this packet an unset pepper falls back to a random,
-// PROCESS-EPHEMERAL value — deliberately: it means limiter buckets do not
-// survive a restart, which is the correct, safe default for a foundation packet
-// with an in-memory store that does not survive one either. It also guarantees
-// this code cannot be shipped with a hardcoded secret.
-//
-// A durable deployment MUST set BACKUP_IP_PEPPER (see the architecture doc);
-// otherwise every cold start resets the limiter. That is a deploy-time task, and
-// this packet introduces no Production secret.
+// The pepper is resolved lazily and is injectable so tests can pin it. Local
+// memory tests may use a random process-ephemeral value. Redis, Preview, and
+// Production fail closed when it is absent or too short; otherwise cold starts
+// would reset durable rate-limit identities.
 let cachedPepper = null;
 
 export function ipPepper() {
   if (cachedPepper) return cachedPepper;
   const configured = process.env.BACKUP_IP_PEPPER;
-  cachedPepper = configured && configured.length >= 16
-    ? configured
-    : randomBytes(32).toString("hex");
+  if (configured) {
+    if (configured.length < 16) {
+      throw storeError("STORE_CONFIG_INVALID", "progress backup configuration is invalid");
+    }
+    cachedPepper = configured;
+    return cachedPepper;
+  }
+
+  const hosted = process.env.VERCEL_ENV === "preview" || process.env.VERCEL_ENV === "production";
+  if (hosted || selectedAdapterName() === ADAPTER_REDIS) {
+    throw storeError("STORE_CONFIG_INVALID", "progress backup configuration is invalid");
+  }
+  cachedPepper = randomBytes(32).toString("hex");
   return cachedPepper;
 }
 
@@ -124,8 +135,12 @@ const STATUS = Object.freeze({
   [ERR.BAD_TOKEN]: 401,
   NOT_FOUND: 404,
   RATE_LIMITED: 429,
-  PRODUCTION_LOCKED: 503,
+  BACKUP_DISABLED: 503,
   ADAPTER_NOT_ALLOWED: 503,
+  STORE_CONFIG_INVALID: 503,
+  STORE_REQUEST_INVALID: 503,
+  STORE_UNAVAILABLE: 503,
+  STORE_RESPONSE_INVALID: 503,
 });
 
 export function statusForCode(code) {

@@ -36,17 +36,18 @@ overwriting a year of memorization) is **structurally impossible**, not merely u
 It **is** the data contract, the persistence seam, the validation/conflict/concurrency rules,
 the API surface, and the compliance analysis.
 
-It is **not** shippable. Three things are deliberately missing:
+This slice now contains a durable Redis REST adapter, but it is still **not activated or
+shippable as a user feature**. Two things remain deliberately outside this packet:
 
-1. **A durable adapter.** The only adapter is in-memory. Data lives in one serverless
-   instance's heap and vanishes on cold start.
-2. **Any frontend.** Nothing in the app calls these endpoints.
-3. **A Production path.** `api/_backup-store.js` throws on `VERCEL_ENV=production`.
+1. **Any frontend.** Nothing in the app calls these endpoints.
+2. **Provisioning and deployment.** No Redis instance or credential is created here. Hosted
+   routes remain disabled unless `BACKUP_ENABLED=true`, `BACKUP_STORE_ADAPTER=redis`, the
+   backup-specific Redis credentials, `BACKUP_IP_PEPPER`, and a recognized `VERCEL_ENV` are all
+   present.
 
-Points 1 and 3 mean this branch can be reviewed and merged with zero deploy risk: even if it
-shipped to Production tomorrow, every route would answer `503 PRODUCTION_LOCKED` and no byte
-of user data would move. Asserted in `tests/cloud-backup-api.test.mjs`, including a test that
-fails if any handler so much as *attempts* a network call.
+Preview and Production prohibit the memory adapter. Missing, malformed, unreachable, or
+unexpected durable storage fails closed with a sanitized `503`; there is no fallback to process
+memory. Development may use memory for deterministic local tests only.
 
 ## 2. Why a backup feature is dangerous, and the two rules that make it safe
 
@@ -73,7 +74,8 @@ Everything else is defence in depth behind these two.
 | `src/hifz/connectionKeys.js` | **Connection-key builders + validator.** The module that BUILDS a key is the module that VALIDATES it — see §5.4a. Used by `buildConnectionPairs`, `buildClosers`, `MyHifzTab`, and the backup schema. |
 | `src/backup/progressSchema.js` | **The shared source of truth.** Which fields the app persists, how it serializes them, and what every backed-up value is allowed to *contain*. **Imported by `quran-hifz-tracker.jsx` itself** — see §5.5. |
 | `src/backup/cloudContract.js` | **The contract.** What leaves the device, what a valid envelope is, how two backups compare. Pure: hasher and clock injected. |
-| `api/_backup-store.js` | **The persistence seam.** In-memory adapter only. Fails closed on Production. Compare-and-set is the *only* write path. |
+| `api/_backup-store.js` | **The persistence seam and policy gate.** Local memory tests plus durable Redis selection; hosted deployments are opt-in, Redis-only, and fail closed. |
+| `api/_backup-redis.js` | **The durable Redis REST adapter.** Environment-namespaced opaque keys, validated responses, atomic Lua CAS, retention TTL, deletion, and expiring counters. |
 | `api/_backup-lib.js` | **The server core.** Record ops, rate limits, IP pseudonymization, HTTP mapping, shared `authorize` → `sendError` plumbing. |
 | `api/backup/index.js` | `PUT` / `GET` / `DELETE` — the record lifecycle. |
 | `api/backup/restore.js` | `GET ?index=N` — one full envelope, payload included. |
@@ -416,10 +418,11 @@ would you like us to discard?"* is not a question a backend gets to answer by it
    read, and refuses if the world moved. `casPutRecord` is the **only** write path — there is
    no unconditional `putRecord` to reach for by mistake.
 
-**A durable adapter MUST provide the same guarantee at the datastore level, not in JS:**
+**The durable adapter provides this guarantee at the datastore level, not in JS:**
 
-- **Redis** — Lua via `EVAL` (or `WATCH`/`MULTI`/`EXEC`): read the revision field, compare,
-  `HSET` only on match. One round trip, one atom.
+- **Redis** — one Lua `EVAL` reads and validates the stored record revision, compares it with
+  the revision the handler read, writes the complete replacement only on a match, and refreshes
+  the 400-day TTL in the same atom. A conflict returns the current revision without writing.
 - **Postgres** — `UPDATE backups SET … WHERE ref = $1 AND revision = $2`; zero rows affected
   means conflict. Or `SELECT … FOR UPDATE`.
 
@@ -456,11 +459,9 @@ persisted.
   backup record.
 - **Injectable** (hasher and pepper both) so it is testable without touching `process.env`. A
   test asserts the adapter never receives an address.
-- **Pepper source:** `BACKUP_IP_PEPPER`. **Unset ⇒ a random, process-ephemeral pepper** —
-  deliberately: limiter buckets then do not survive a restart, which is the correct default
-  for a foundation packet whose store does not survive one either, and it guarantees this code
-  cannot ship with a hardcoded secret. **A durable deployment must set it** (Decision D5).
-  This packet introduces no Production secret.
+- **Pepper source:** `BACKUP_IP_PEPPER`. Local memory tests may use a random,
+  process-ephemeral pepper. Redis, Preview, and Production require an explicit value of at
+  least 16 characters and fail closed otherwise. This packet introduces no real secret.
 
 > **Correction on the record:** an earlier comment in `_backup-lib.js` claimed the IP was
 > "never stored — only hashed into a counter key". It was not. The raw address was going
@@ -572,17 +573,18 @@ nothing; treating it as proof is how a stale device wins and eats a good backup.
 - **D3 — End-to-end encryption.** The envelope is already shaped for it (`encryption.alg`).
   Adopting it makes the server blind and largely moots D1's storage risk — at the cost of
   making D2 unforgiving.
-- **D4 — Durable adapter.** Which store, which region, which subprocessor, namespaced how —
-  and it **must** implement compare-and-set (§8). Note the existing Redis env-namespacing
-  incident: `alhifz:*` keys must be namespaced per environment *and migrated deliberately*.
-- **D5 — `BACKUP_IP_PEPPER` in a durable deployment.** Must be set, or every cold start resets
-  the limiter. A deploy-time secret; **not introduced in this packet.**
+- **D4 — Durable provider approval and provisioning.** The Redis REST adapter and separate
+  development/Preview/Production key namespaces now exist, including atomic compare-and-set.
+  Region, subprocessor approval, credentials, and any migration remain deploy-time decisions.
+- **D5 — `BACKUP_IP_PEPPER` provisioning.** Durable environments now require it and fail
+  closed when it is absent. The deploy-time secret itself is **not introduced in this packet.**
 
 ## 15. Next packet (recommended)
 
 1. **Decide D1 and D3 first.** They change the data model; everything else is cheaper after.
-2. **Durable adapter** behind the existing seam — no handler changes, but it **must** honour
-   the CAS contract (§8) and set `BACKUP_IP_PEPPER`.
+2. **Provider/legal approval and isolated Preview provisioning** — set the backup-specific
+   Redis credentials and `BACKUP_IP_PEPPER`, then verify failure and namespace behavior before
+   any client is connected.
 3. **Frontend, in this order:** mint + persist token → *manual* "Back up now" → status /
    restore-point list → restore gated on `compareBackups` + explicit confirmation → **local
    rollback snapshot written before any restore** → "Delete my cloud backup".

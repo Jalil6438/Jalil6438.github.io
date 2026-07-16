@@ -19,9 +19,11 @@ import exportRoute from "../api/backup/export.js";
 
 import {
   __unsafeStoreForTests,
+  __resetStoreForTests,
   RETENTION_MS,
   MAX_RESTORE_POINTS,
   ADAPTER_MEMORY,
+  ADAPTER_REDIS,
   selectedAdapterName,
 } from "../api/_backup-store.js";
 import {
@@ -159,10 +161,13 @@ async function sync(env, opts = {}) {
 }
 
 beforeEach(() => {
+  __resetStoreForTests();
   store = __unsafeStoreForTests();
-  store.reset();
   delete process.env.VERCEL_ENV;
+  delete process.env.BACKUP_ENABLED;
   delete process.env.BACKUP_STORE_ADAPTER;
+  delete process.env.BACKUP_REDIS_REST_URL;
+  delete process.env.BACKUP_REDIS_REST_TOKEN;
 
   __resetIpPepper();
   process.env.BACKUP_IP_PEPPER = "test-pepper-0123456789abcdef";
@@ -178,20 +183,26 @@ beforeEach(() => {
 afterEach(() => {
   globalThis.fetch = realFetch;
   delete process.env.BACKUP_IP_PEPPER;
+  delete process.env.BACKUP_ENABLED;
+  delete process.env.BACKUP_STORE_ADAPTER;
+  delete process.env.BACKUP_REDIS_REST_URL;
+  delete process.env.BACKUP_REDIS_REST_TOKEN;
+  delete process.env.VERCEL_ENV;
+  __resetStoreForTests();
   __resetIpPepper();
 });
 
 // ── CONTAINMENT ──────────────────────────────────────────────────────────
 
-test("the store REFUSES to run in production", async () => {
+test("Production is disabled until the durable adapter is explicitly enabled", async () => {
   process.env.VERCEL_ENV = "production";
   const r = await put(await envelope());
   assert.equal(r._s, 503);
-  assert.equal(r._b.error, "PRODUCTION_LOCKED");
+  assert.equal(r._b.error, "BACKUP_DISABLED");
   assert.equal(store.size(), 0);
 });
 
-test("every route is production-locked, not just the write path", async () => {
+test("every route honors the Production enablement gate", async () => {
   process.env.VERCEL_ENV = "production";
   for (const [name, r] of [
     ["GET", await get()],
@@ -200,16 +211,40 @@ test("every route is production-locked, not just the write path", async () => {
     ["export", await call(exportRoute, {})],
     ["validate", await call(validateRoute, { method: "POST", body: await envelope() })],
   ]) {
-    assert.equal(r._s, 503, `${name} must be locked in production`);
+    assert.equal(r._s, 503, `${name} must be disabled in production`);
+    assert.equal(r._b.error, "BACKUP_DISABLED");
   }
 });
 
-test("only the in-memory adapter is permitted", async () => {
+test("Redis requires an explicit environment and complete configuration", async () => {
   assert.equal(selectedAdapterName(), ADAPTER_MEMORY);
-  process.env.BACKUP_STORE_ADAPTER = "redis";
+  process.env.BACKUP_STORE_ADAPTER = ADAPTER_REDIS;
+  const r = await put(await envelope());
+  assert.equal(r._s, 503);
+  assert.equal(r._b.error, "STORE_CONFIG_INVALID");
+});
+
+test("Preview cannot silently fall back to memory", async () => {
+  process.env.VERCEL_ENV = "preview";
+  process.env.BACKUP_ENABLED = "true";
   const r = await put(await envelope());
   assert.equal(r._s, 503);
   assert.equal(r._b.error, "ADAPTER_NOT_ALLOWED");
+  assert.equal(store.size(), 0);
+});
+
+test("a Redis transport failure is a sanitized 503", async () => {
+  process.env.VERCEL_ENV = "preview";
+  process.env.BACKUP_ENABLED = "true";
+  process.env.BACKUP_STORE_ADAPTER = ADAPTER_REDIS;
+  process.env.BACKUP_REDIS_REST_URL = "https://redis.example";
+  process.env.BACKUP_REDIS_REST_TOKEN = "super-secret-redis-token";
+
+  const r = await put(await envelope());
+  assert.equal(r._s, 503);
+  assert.equal(r._b.error, "STORE_UNAVAILABLE");
+  assert.equal(JSON.stringify(r._b).includes("super-secret-redis-token"), false);
+  assert.equal(JSON.stringify(r._b).includes("redis.example"), false);
 });
 
 test("a full lifecycle makes no network call whatsoever", async () => {
