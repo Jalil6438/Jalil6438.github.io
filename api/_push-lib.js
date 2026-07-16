@@ -8,14 +8,15 @@
 //   alhifz:push:sent:<subId>:<sid>:<day> STRING dedupe marker (SET NX EX 48h)
 //   alhifz:push:proc:<subId>:<sid>:<day> STRING processing lock (SET NX EX 120s)
 //   alhifz:push:testlimit:<subId>        STRING manual-test rate limit (EX 60s)
-//   alhifz:push:sublimit:<ip>            STRING subscribe rate limit (INCR + EX)
+//   alhifz:push:sublimit:<requestId>     STRING mutation rate limit (EVAL + EX)
+//   alhifz:push:subdelete:<requestId>    STRING deletion rate limit (EVAL + EX)
 //   alhifz:push:log                      LIST  newest-first delivery log, capped
 
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 
 // ── Environment namespacing ──────────────────────────────────────────────
-// Vercel sets VERCEL_ENV to production|preview|development. Every Redis key is
-// prefixed with a short env token so a Preview (or local) deployment can never
+// Vercel sets VERCEL_ENV to production|preview|development; tests explicitly
+// use test. Every Redis key is prefixed so Preview, local, and test execution never
 // read or write Production data. Missing/invalid VERCEL_ENV FAILS CLOSED
 // (throws) rather than silently defaulting to a shared/production keyspace; each
 // handler turns that throw into a safe non-write response. Tests and
@@ -25,9 +26,10 @@ export function envNamespace() {
     case "production": return "prod";
     case "preview": return "preview";
     case "development": return "dev";
+    case "test": return "test";
     default:
       throw new Error(
-        `VERCEL_ENV must be production|preview|development (got ${
+        `VERCEL_ENV must be production|preview|development|test (got ${
           process.env.VERCEL_ENV === undefined ? "unset" : `"${process.env.VERCEL_ENV}"`
         })`
       );
@@ -47,7 +49,8 @@ export const logKey = () => nsKey("alhifz:push:log");
 export const sentKey = (subId, sid, dayKey) => nsKey(`alhifz:push:sent:${subId}:${sid}:${dayKey}`);
 export const procKey = (subId, sid, dayKey) => nsKey(`alhifz:push:proc:${subId}:${sid}:${dayKey}`);
 export const testLimitKey = (subId) => nsKey(`alhifz:push:testlimit:${subId}`);
-export const subLimitKey = (ip) => nsKey(`alhifz:push:sublimit:${ip}`);
+export const subLimitKey = (requestId) => nsKey(`alhifz:push:sublimit:${requestId}`);
+export const subDeleteLimitKey = (requestId) => nsKey(`alhifz:push:subdelete:${requestId}`);
 
 export const LOG_CAP = 500;
 // DELIVERED marker TTL: a reminder confirmed delivered is suppressed for the
@@ -64,15 +67,15 @@ export const PROC_TTL_SECONDS = 120;
 // configured time — wide enough for a */15 cron cadence plus jitter.
 export const GRACE_MINUTES = 30;
 
-// Subscribe rate limit: at most SUB_RATE_LIMIT create/update/replace/toggle
-// requests per client IP per SUB_RATE_WINDOW_SECONDS (fixed window via
-// INCR + EXPIRE NX). Sized to absorb normal multi-open / multi-device /
-// shared-NAT traffic — autoResync re-subscribes on every app open — while
-// bounding mass fake-subscription and rapid-retry abuse. `unsubscribe` is
-// exempt (it only deletes). Shared IPs behind carrier/office NAT are the
-// tradeoff; a per-endpoint or proof-of-work layer could tighten it later.
+// Subscription mutation limits. Create/update/replace/toggle and deletion use
+// separate fixed-window buckets so exhausting writes cannot prevent cleanup.
+// Each counter is atomically created with an expiry by the route's Lua script.
+// Limits absorb normal app-open resync and shared-NAT traffic while bounding
+// mass fake-subscription and deletion floods.
 export const SUB_RATE_LIMIT = 30;
+export const SUB_DELETE_RATE_LIMIT = 60;
 export const SUB_RATE_WINDOW_SECONDS = 60;
+export const SUB_BODY_MAX_BYTES = 16 * 1024;
 
 export const SESSION_LABELS = {
   fajr: "Fajr — memorize today's page",
@@ -84,6 +87,28 @@ export const SESSION_LABELS = {
 
 export function redisConfigured() {
   return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+}
+
+// Raw network data exists only long enough to derive this short-lived limiter
+// identity. HMAC prevents reversing an IPv4-sized input space, and including
+// the environment prevents a stable cross-environment identifier. The Redis
+// token is already required server-side for this route; rotating it simply
+// resets the one-minute counters.
+export function pushRateIdentity(req) {
+  const secret = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (typeof secret !== "string" || secret.length === 0) {
+    throw new Error("push rate-limit configuration unavailable");
+  }
+  const xff = req.headers?.["x-forwarded-for"];
+  const xri = req.headers?.["x-real-ip"];
+  const raw = typeof xff === "string" && xff.length
+    ? xff.split(",")[0].trim()
+    : (typeof xri === "string" && xri.length ? xri.trim() : "unknown");
+  const networkId = raw.slice(0, 128) || "unknown";
+  return createHmac("sha256", secret)
+    .update(`alhifz-push-limit-v1:${envNamespace()}:${networkId}`)
+    .digest("base64url")
+    .slice(0, 32);
 }
 
 export function vapidConfigured() {
@@ -127,7 +152,10 @@ export const ALLOWED_PUSH_HOSTS = Object.freeze([
 ]);
 
 export function isAllowedPushEndpoint(endpoint) {
-  if (typeof endpoint !== "string" || endpoint.length === 0 || endpoint.length > 1024) return false;
+  if (
+    typeof endpoint !== "string" || endpoint.length === 0 ||
+    endpoint.length > 1024 || endpoint !== endpoint.trim()
+  ) return false;
   let u;
   try { u = new URL(endpoint); } catch { return false; }
   if (u.protocol !== "https:" || !u.hostname) return false;
@@ -141,7 +169,12 @@ export function validateSubscription(sub) {
   const { endpoint, keys } = sub;
   if (!isAllowedPushEndpoint(endpoint)) return { error: "unsupported push service endpoint" };
   if (!keys || typeof keys.p256dh !== "string" || typeof keys.auth !== "string") return { error: "missing keys" };
-  if (keys.p256dh.length > 256 || keys.auth.length > 256) return { error: "bad keys" };
+  if (
+    keys.p256dh.length === 0 || keys.auth.length === 0 ||
+    keys.p256dh.length > 256 || keys.auth.length > 256 ||
+    keys.p256dh !== keys.p256dh.trim() || keys.auth !== keys.auth.trim() ||
+    !/^[A-Za-z0-9_-]+$/.test(keys.p256dh) || !/^[A-Za-z0-9_-]+$/.test(keys.auth)
+  ) return { error: "bad keys" };
   return { ok: true };
 }
 
@@ -163,10 +196,10 @@ export function sanitizePrefs(prefs) {
 
 // Canonical subscription record. Merge semantics: `prev` (an existing record,
 // e.g. when a push service rotates the endpoint and the SW re-subscribes)
-// donates prefs/tz/identity/lock for any field the new request omits.
+// donates prefs/tz/lock for any field the new request omits.
 // `enabled:false` keeps the record but the cron skips it (soft-disable);
 // a full unsubscribe deletes the record entirely.
-export function buildSubscriptionRecord({ subscription, prefs, tz, did, lockedUntil, enabled, prev }) {
+export function buildSubscriptionRecord({ subscription, prefs, tz, lockedUntil, enabled, prev }) {
   const tzNum = Number(tz);
   const lockNum = Number(lockedUntil);
   return {
@@ -176,8 +209,7 @@ export function buildSubscriptionRecord({ subscription, prefs, tz, did, lockedUn
     prefs: prefs !== undefined ? sanitizePrefs(prefs) : (prev?.prefs ?? { sessions: {} }),
     tz: Number.isFinite(tzNum) ? Math.max(-840, Math.min(840, tzNum)) : (prev?.tz ?? 0),
     // Anonymous install id (localStorage alhifz_did) when the client has one —
-    // the only identity the app possesses; no accounts exist.
-    did: typeof did === "string" && did.length > 0 && did.length <= 64 ? did : (prev?.did ?? null),
+    // is accepted for legacy compatibility but deliberately not retained.
     // Reminder-suppression window (ms timestamp): while now < lockedUntil the
     // cron sends nothing to this subscriber. Accepted from the client and
     // clamped to 36h so a buggy client can't silence itself forever. (The

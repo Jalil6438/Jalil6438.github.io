@@ -31,14 +31,15 @@ privacy disclosure fix; they harden the backend for the native release.
 
 > **Status update (Backend Hardening Phase 1 — WP-...-001-CLEANUP follow-up):**
 > Items **#1 (subscribe rate limit)** and **#2 (env namespacing)** are now
-> IMPLEMENTED — per-IP rate limiting on `api/push/subscribe.js` (unsubscribe
-> exempt) and `VERCEL_ENV` key namespacing across all reminder + stats keys with
-> fail-closed behavior. See `docs/REDIS_ENV_NAMESPACING.md` for the rollout /
+> IMPLEMENTED — HMAC-pseudonymized, short-lived mutation rate limiting on
+> `api/push/subscribe.js`, with a separate bounded deletion bucket, and
+> `VERCEL_ENV` key namespacing across reminder + stats keys with fail-closed
+> behavior. See `docs/REDIS_ENV_NAMESPACING.md` for the rollout /
 > migration condition. Items #3–#7 remain open for a later slice.
 
 | # | Issue | Severity | Evidence | Fix | Notes |
 |---|---|---|---|---|---|
-| 1 | `/api/push/subscribe` is unauthenticated with no rate limit or cap → mass fake subscriptions can grow Upstash unbounded | **High** | `subscribe.js` (no limiter) | Per-IP token bucket (reuse the `SET … EX NX` pattern from `test.js:46`) and/or an `HLEN` ceiling before `HSET` | Additive |
+| 1 | `/api/push/subscribe` is publicly callable | **Mitigated** | HMAC-derived mutation/delete buckets in `subscribe.js` | Keep short TTLs and exact namespace tests | Endpoint possession remains the only capability; no account system exists |
 | 2 | Preview/dev deployments sharing Upstash creds read/write **production** subscription + stats data | **Medium** | literal key prefixes, no `VERCEL_ENV` (`_push-lib.js:12-13`, `stats.js:15-18`) | Interim: scope distinct Upstash creds to Production only (already done per ops notes). Code: namespace keys by `VERCEL_ENV` | Key rename needs a data migration — do interim first |
 | 3 | `/api/stats` POST: open CORS `*` + unauth + no rate limit → count inflation | **Medium** | `stats.js:35-70` | Constrain CORS to the app origin and/or per-IP limiter | id length + monthly TTL already fixed this packet |
 | 4 | Dead subscriptions that are never *due* are never contacted, so a 404/410 never fires → they live forever | **Medium** | cleanup only on send (`send-reminders.js:100-104`); `updatedAt` stored but unused | Periodic sweep: `HDEL` records with `updatedAt` older than N days | Test the age threshold |
@@ -51,10 +52,10 @@ privacy disclosure fix; they harden the backend for the native release.
 Held because they modify the freshly device-validated reminder pipeline or need a
 data migration:
 
-1. **Drop `did` from the push subscription record** — de-links the push subsystem
+1. **Completed: drop `did` from the push subscription record.** This de-links the push subsystem
    (which holds the raw endpoint + crypto keys) from the analytics identity.
-   Nothing reads `record.did` for delivery, but it requires editing `_push-lib.js`
-   and updating the two dispatch tests that assert `did` capture/merge.
+   Nothing reads `record.did` for delivery. Legacy clients may still send the
+   field during rollout, but the backend validates and discards it.
 2. **All-time `alhifz:reciters` set → HyperLogLog (`PFADD`/`PFCOUNT`)** — keeps the
    unique-user count without retaining raw device ids. One-time migration.
 3. **TTL on `alhifz:push:log`** — the 500-entry LRU has no expiry; add an `EXPIRE`.

@@ -30,14 +30,14 @@ Retention "indefinite" = no TTL in code. HTTPS in transit throughout; at rest = 
 | Memorization progress (`jalil-quran-v9/v8`, `rihlat-session-log`, `rihlat-rep-counts`, …) | Core app | `utils.js`, `quran-hifz-tracker.jsx` | localStorage only | until Reset | Reset / not-exported stays local | none | — |
 | `rihlat-username` (self-entered name) | Greeting | `Onboarding/SettingsPage` | localStorage + backup file | until Reset | Reset / edit | none (not transmitted) | No |
 | `rihlat-reflections` (personal notes) | User content | `AyahDrawer.jsx` | localStorage + backup file | until Reset | Reset | none | No |
-| `alhifz_did` (random device UUID) | Count people not refreshes; push identity | `usageCounter.js` | localStorage + Upstash sets + push record | **monthly set now ~13mo TTL; all-time `reciters` set indefinite** | Reset (local) + disablePush (push copy). All-time reciters copy: none | Upstash | No |
+| `alhifz_did` (random device UUID) | Count people not refreshes | `usageCounter.js` | localStorage + Upstash analytics sets | **monthly set now ~13mo TTL; all-time `reciters` set indefinite** | Reset (local). All-time reciters copy: none | Upstash | No |
 | Usage events (open/user/install) | Aggregate counts | `usageCounter.js` → `api/stats.js` | Upstash counters | indefinite (counters) | n/a (aggregate) | Upstash | No |
 | Country (2-letter) | Aggregate geography | `api/stats.js` (`x-vercel-ip-country`) | Upstash set (aggregate) | indefinite | n/a | Upstash, Vercel edge | No |
 | IP address | Edge routing / country derivation | every request | **not stored by app** | transient | n/a | Vercel + every content host | inherent |
 | Push `endpoint` + `keys.p256dh/auth` | Deliver background push | `pushClient.js` → `api/_push-lib.js` | Upstash `push:subs` hash | indefinite until unsub/prune | disablePush → HDEL; 404/410 prune | Upstash + browser push service | only if reminders on |
 | `tz` (offset minutes) | Localize reminder times | `pushClient.js` | Upstash `push:subs` | indefinite | HDEL | Upstash | only if reminders on |
 | `prefs.sessions` (reminder times) | When to remind | `RemindersPage` + server | localStorage `rihlat-reminders` + Upstash | indefinite | HDEL / Reset | Upstash | only if reminders on |
-| `did` on push record | (links push↔analytics) | `_push-lib.js` | Upstash `push:subs` | indefinite | HDEL | Upstash | **No — deferred removal (see §5)** |
+| Legacy `did` push field | Backward-compatible request input only | `pushClient.js` → `_push-lib.js` | **not retained in push records** | request only | n/a | Vercel transport | No |
 | Delivery log (hashed subId, session, day, status) | Ops health | `send-reminders.js` | Upstash `push:log` LIST | 500-entry LRU, **no TTL** | none | Upstash | No |
 
 Full write-site evidence is in the packet audit; keys are centralized in `src/backup/localBackup.js:26-66`.
@@ -54,7 +54,7 @@ alhifz_did + open/install ───POST /api/stats──▶ counters + country +
                                                  device-id sets                            Vercel edge (IP→country)
 
 [if reminders ON]
-endpoint+keys+tz+times+did ─POST /api/push/subscribe─▶ alhifz:push:subs (keyed by         Upstash (store)
+endpoint+keys+tz+times ─────POST /api/push/subscribe─▶ alhifz:push:subs (keyed by         Upstash (store)
                                                  sha256(endpoint))
                                                         │
                               Vercel Cron / QStash ─────▶ /api/cron/send-reminders ──────▶ FCM / Mozilla /
@@ -65,7 +65,10 @@ content fetches (verse text, audio, fonts) ────────────�
                                                                                           archive.org, YouTube embeds
 ```
 
-Only `alhifz_did` links the analytics sets to a push record. IP is never persisted (only the derived country).
+Push records no longer retain `alhifz_did`, so analytics sets are not linked to
+push delivery records. Subscription rate-limit keys contain only an
+environment-scoped HMAC digest of transient network information and expire after
+60 seconds. Raw IP addresses and user-agent strings are not persisted by the app.
 
 ## 4. Third-party (sub)processors
 
@@ -87,12 +90,22 @@ None receives `rihlat-username`, reflections, or memorization progress.
 - Reset All Progress now also removes the server-side push subscription (was orphaned).
 - Build-time dependency advisories resolved (6 → 0).
 
-**Deferred (safe, but touch the device-validated reminder pipeline or need a data migration — do in a Hafsa-audited backend slice, see `docs/BACKEND_HARDENING.md`):**
-- Drop `did` from the push subscription record (de-link push ↔ analytics). Nothing reads it for delivery, but it requires updating `_push-lib.js` + the two dispatch tests, so it is deferred to keep v1.6.0 reminder behavior untouched.
+**Implemented in the push-subscription hardening slice:**
+- Push subscription records no longer retain `did`; legacy clients may send it,
+  but the server validates and discards it.
+- Subscription mutation counters use environment-separated, HMAC-derived keys
+  with a 60-second TTL. Raw IP and user-agent values are never stored.
+- Redis namespaces explicitly distinguish Production, Preview, development, and
+  tests; missing or ambiguous environments fail closed.
+
+**Deferred (safe, but need a data migration or separate packet — see `docs/BACKEND_HARDENING.md`):**
 - Move the all-time `alhifz:reciters` set to a HyperLogLog so the unique count is kept **without** retaining raw device ids (needs a one-time migration).
 - Add a TTL to the `alhifz:push:log` list.
 - `/api/push/test` error logging can, in rare cases, surface a target endpoint in the message — log only the status.
-- Namespace Redis keys by `VERCEL_ENV` (preview/prod isolation) — needs migration; interim mitigation (preview-scoped Upstash creds) is already in place.
 
 **Requires Jalil decision (changes analytics behavior — not done unilaterally):**
-- Whether to offer an in-app analytics opt-out and/or stop minting a persistent `alhifz_did` (e.g. rotate per month) — reduces the one cross-subsystem identifier. The current collection is anonymous/aggregate and now honestly disclosed, so this is an enhancement, not a blocker.
+- Whether to offer an in-app analytics opt-out and/or stop minting a persistent
+  `alhifz_did` (e.g. rotate per month). Push records are already de-linked; this
+  would further minimize the analytics identifier. The current collection is
+  anonymous/aggregate and honestly disclosed, so this is an enhancement, not a
+  blocker.

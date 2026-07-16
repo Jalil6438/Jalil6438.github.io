@@ -111,7 +111,7 @@ test("expired or garbage suppression windows do not suppress", () => {
 
 const SUB = { endpoint: "https://push.example/abc", keys: { p256dh: "P", auth: "A" } };
 
-test("buildSubscriptionRecord captures all required fields", () => {
+test("buildSubscriptionRecord captures required delivery fields but not legacy did", () => {
   const rec = buildSubscriptionRecord({
     subscription: SUB,
     prefs: { sessions: { fajr: { enabled: true, time: "06:00" } } },
@@ -121,13 +121,13 @@ test("buildSubscriptionRecord captures all required fields", () => {
   assert.deepEqual(rec.keys, { p256dh: "P", auth: "A" });
   assert.equal(rec.enabled, true);
   assert.equal(rec.tz, 180);
-  assert.equal(rec.did, "device-1");
+  assert.equal(Object.hasOwn(rec, "did"), false);
   assert.ok(Number.isFinite(rec.lockedUntil));
   assert.ok(Number.isFinite(rec.updatedAt));
   assert.deepEqual(Object.keys(rec.prefs.sessions), ["fajr"]);
 });
 
-test("record merge keeps prev prefs/tz/did/lock when the update omits them", () => {
+test("record merge keeps prev prefs/tz/lock and drops a legacy stored did", () => {
   const prev = buildSubscriptionRecord({
     subscription: SUB, prefs: { sessions: { isha: { enabled: true, time: "21:00" } } },
     tz: -300, did: "device-1", lockedUntil: 12345,
@@ -135,7 +135,7 @@ test("record merge keeps prev prefs/tz/did/lock when the update omits them", () 
   const updated = buildSubscriptionRecord({ subscription: SUB, prev });
   assert.deepEqual(Object.keys(updated.prefs.sessions), ["isha"]);
   assert.equal(updated.tz, -300);
-  assert.equal(updated.did, "device-1");
+  assert.equal(Object.hasOwn(updated, "did"), false);
   assert.equal(updated.lockedUntil, 12345);
   assert.equal(updated.enabled, true);
 });
@@ -154,11 +154,10 @@ test("lockedUntil is clamped to at most 36h in the future", () => {
   assert.ok(rec.lockedUntil <= Date.now() + 36 * 60 * 60 * 1000 + 1000);
 });
 
-test("oversize or non-string did is rejected, prev did retained", () => {
-  const prev = buildSubscriptionRecord({ subscription: SUB, did: "device-1" });
-  assert.equal(buildSubscriptionRecord({ subscription: SUB, did: "x".repeat(65), prev }).did, "device-1");
-  assert.equal(buildSubscriptionRecord({ subscription: SUB, did: 42, prev }).did, "device-1");
-  assert.equal(buildSubscriptionRecord({ subscription: SUB }).did, null);
+test("legacy did input and prior stored did are never serialized", () => {
+  const prev = { ...buildSubscriptionRecord({ subscription: SUB }), did: "legacy-device" };
+  assert.equal(Object.hasOwn(buildSubscriptionRecord({ subscription: SUB, did: "device-1" }), "did"), false);
+  assert.equal(Object.hasOwn(buildSubscriptionRecord({ subscription: SUB, prev }), "did"), false);
 });
 
 // ── Push payload + notification click route ──

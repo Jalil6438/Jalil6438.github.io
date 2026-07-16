@@ -7,13 +7,16 @@ Production data.
 ## What changed
 
 - `api/_push-lib.js` adds `envNamespace()` + `nsKey(base)` and key builders
-  (`subsKey`, `logKey`, `sentKey`, `procKey`, `testLimitKey`, `subLimitKey`).
+  (`subsKey`, `logKey`, `sentKey`, `procKey`, `testLimitKey`, `subLimitKey`,
+  `subDeleteLimitKey`).
 - `VERCEL_ENV` → prefix: `production → prod:`, `preview → preview:`,
   `development → dev:`. Example: `prod:alhifz:push:subs`, `preview:alhifz:opens`.
 - **Fail closed:** a missing or unrecognized `VERCEL_ENV` throws; each handler
   turns that into a safe non-write response (`subscribe`/`test`/`cron` → 503;
   `stats` → zeros `configured:false`). Nothing is ever written to a default or
   Production keyspace by accident.
+- Tests set `VERCEL_ENV=test`, which produces a separate `test:` prefix. Test
+  execution therefore cannot read or mutate Preview or Production records.
 - All handlers (`subscribe`, `test`, `cron/send-reminders`, `stats`) resolve keys
   through these builders at **call time**; tests import the same builders so key
   names can never drift.
@@ -71,7 +74,7 @@ data to copy and the `prod:` keys simply start fresh — no harm either way.)
 
 ## Tests
 
-`tests/subscribe-hardening.test.mjs` asserts Preview vs Production keys differ and
-that a missing/invalid namespace fails closed. Existing reminder tests
+`tests/subscribe-hardening.test.mjs` asserts Production, Preview, and test keys
+differ and that a missing/invalid namespace fails closed. Existing reminder tests
 (`tests/reminder-dispatch.test.mjs`) run under `VERCEL_ENV=development` and use the
 same builders, so they exercise the namespaced keys end-to-end.

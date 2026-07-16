@@ -106,7 +106,7 @@ state, and the foreground fallback keeps working where permitted.
   (`autoResync` re-asserts the subscription on every app open).
 - Server-side: in the Upstash console run `HLEN alhifz:push:subs` (count) or
   `HGETALL alhifz:push:subs`. Each record stores endpoint, p256dh/auth keys,
-  `enabled`, `did` (anonymous install id), `tz` (minutes east of UTC),
+  `enabled`, `tz` (minutes east of UTC),
   `prefs.sessions`, optional `lockedUntil`, and `updatedAt`.
 - DevTools: Application → Service Workers → Push — the subscription endpoint
   shown must match the stored record's endpoint.
