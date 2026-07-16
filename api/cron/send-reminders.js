@@ -4,6 +4,9 @@
 // labels, and optional numeric status codes only.
 import webpush from "web-push";
 import { validateCronRequest } from "../_cron-security.js";
+import { controlPlaneEnabled } from "../_reminder-control.js";
+import { createReminderStore } from "../_reminder-store.js";
+import { createReminderWorker } from "../_reminder-worker.js";
 import {
   subsKey, logKey, sentKey, procKey, LOG_CAP, DELIVERY_RUN_LOG_CAP,
   SENT_TTL_SECONDS, PROC_TTL_SECONDS, PUSH_DELIVERY_RESULT,
@@ -32,6 +35,30 @@ export default async function handler(req, res) {
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY,
   );
+
+  // Migration gate: unset/false preserves the accepted direct dispatcher
+  // below byte-for-byte. Preview can opt into durable jobs independently;
+  // Production remains direct until its environment flag is authorized.
+  if (controlPlaneEnabled()) {
+    try {
+      const worker = createReminderWorker({ store: createReminderStore() });
+      const outcome = await worker.triggerAndProcess({
+        scheduledTime: Date.now(),
+        sourceTrigger: req.method === "GET" ? "vercel-cron" : "qstash",
+      });
+      return json(res, 200, {
+        ok: true,
+        configured: true,
+        controlPlane: true,
+        created: outcome.created,
+        job: outcome.job,
+        processedJob: outcome.processedJob,
+      });
+    } catch {
+      console.error("[cron/send-reminders] control plane unavailable");
+      return json(res, 503, { error: "control plane unavailable" });
+    }
+  }
 
   const nowMs = Date.now();
   const counts = {
