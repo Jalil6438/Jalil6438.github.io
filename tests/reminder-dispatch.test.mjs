@@ -11,6 +11,9 @@ import assert from "node:assert/strict";
 import webpush from "web-push";
 import handler from "../api/cron/send-reminders.js";
 import {
+  CRON_BODY_MAX_BYTES, cronAuthorizationMatches, validateCronRequest,
+} from "../api/_cron-security.js";
+import {
   SENT_TTL_SECONDS, PROC_TTL_SECONDS, DELIVERY_RUN_LOG_CAP,
   PUSH_DELIVERY_RESULT,
   subsKey, logKey, sentKey, procKey, testLimitKey,
@@ -105,7 +108,11 @@ after(() => { global.fetch = origFetch; webpush.sendNotification = origSend; web
 
 // ── helpers ──
 const res = () => ({ _s: null, _b: null, setHeader() {}, status(s) { this._s = s; return this; }, json(b) { this._b = b; return this; } });
-const req = (auth) => ({ method: "POST", headers: auth === undefined ? {} : { authorization: auth }, body: {} });
+const req = (auth, { method = "POST", body = {}, headers = {} } = {}) => ({
+  method,
+  headers: auth === undefined ? { ...headers } : { authorization: auth, ...headers },
+  body,
+});
 
 // A session whose target is `minsAgo` minutes before now (UTC, tz 0) so it lands
 // inside / outside the 30-min grace window at the handler's real Date.now().
@@ -133,7 +140,7 @@ const oneInWindow = () => ({ fajr: { enabled: true, time: hhmmAgo(2) } });
 const sentKeyFor = (sid, minsAgo) => sentKey(SUB_ID, sid, dayKeyAgo(minsAgo));
 const procKeyFor = (sid, minsAgo) => procKey(SUB_ID, sid, dayKeyAgo(minsAgo));
 
-async function run(auth = AUTH) { const r = res(); await handler(req(auth), r); return r; }
+async function run(auth = AUTH, options) { const r = res(); await handler(req(auth, options), r); return r; }
 
 // ── 1. Successful send is deduped on the next run ──
 test("successful send is deduped on the next run", async () => {
@@ -257,6 +264,92 @@ test("unauthorized and unconfigured requests are rejected without any send", asy
   const unconf = await run(AUTH);
   assert.equal(unconf._s, 503);
   assert.equal(ctx.sends.count, 0);
+});
+
+test("cron authentication uses stable timing-safe comparison semantics", () => {
+  assert.equal(cronAuthorizationMatches(AUTH, SECRET), true);
+  assert.equal(cronAuthorizationMatches(`Bearer ${SECRET}x`, SECRET), false);
+  assert.equal(cronAuthorizationMatches(undefined, SECRET), false);
+  assert.deepEqual(validateCronRequest(req(AUTH), SECRET), { ok: true });
+});
+
+test("whitespace-only and whitespace-padded CRON_SECRET fail closed", async () => {
+  seedSub({ sessions: oneInWindow() });
+  for (const invalidSecret of ["", "   ", "\t\r\n", ` ${SECRET}`, `${SECRET} `]) {
+    process.env.CRON_SECRET = invalidSecret;
+    const result = await run(AUTH);
+    assert.equal(result._s, 503);
+    assert.deepEqual(result._b, { error: "cron not configured" });
+  }
+  assert.equal(ctx.sends.count, 0);
+  assert.equal(ctx.store.calls.length, 0);
+});
+
+test("only QStash POST and identified Vercel Cron GET are allowed", async () => {
+  seedSub({ sessions: oneInWindow() });
+  const put = await run(AUTH, { method: "PUT" });
+  const ordinaryGet = await run(AUTH, { method: "GET" });
+  assert.equal(put._s, 405);
+  assert.equal(ordinaryGet._s, 405);
+  assert.deepEqual(put._b, { error: "method not allowed" });
+  assert.equal(ctx.sends.count, 0);
+  assert.equal(ctx.store.calls.length, 0);
+
+  const vercelGet = await run(AUTH, {
+    method: "GET",
+    body: undefined,
+    headers: { "user-agent": "vercel-cron/1.0" },
+  });
+  assert.equal(vercelGet._s, 200);
+  assert.equal(vercelGet._b.sent, 1);
+});
+
+test("malformed and non-empty cron bodies fail before dispatch", async () => {
+  seedSub({ sessions: oneInWindow() });
+  const malformed = await run(AUTH, { body: "{not-json" });
+  const array = await run(AUTH, { body: "[]" });
+  const unexpected = await run(AUTH, { body: { dispatch: true } });
+  for (const result of [malformed, array, unexpected]) {
+    assert.equal(result._s, 400);
+    assert.deepEqual(result._b, { error: "bad request" });
+  }
+  assert.equal(ctx.sends.count, 0);
+  assert.equal(ctx.store.calls.length, 0);
+});
+
+test("oversized cron bodies and declared lengths fail before dispatch", async () => {
+  seedSub({ sessions: oneInWindow() });
+  const oversized = await run(AUTH, { body: "X".repeat(CRON_BODY_MAX_BYTES + 1) });
+  const declared = await run(AUTH, {
+    body: {},
+    headers: { "content-length": String(CRON_BODY_MAX_BYTES + 1) },
+  });
+  for (const result of [oversized, declared]) {
+    assert.equal(result._s, 413);
+    assert.deepEqual(result._b, { error: "payload too large" });
+  }
+  assert.equal(ctx.sends.count, 0);
+  assert.equal(ctx.store.calls.length, 0);
+});
+
+test("invalid authorization never exposes secret material in response or console", async () => {
+  seedSub({ sessions: oneInWindow() });
+  const consoleLines = [];
+  const originalError = console.error;
+  console.error = (...args) => consoleLines.push(args.join(" "));
+  try {
+    const supplied = `Bearer ${SECRET}-incorrect`;
+    const result = await run(supplied);
+    assert.equal(result._s, 401);
+    assert.deepEqual(result._b, { error: "unauthorized" });
+    const evidence = JSON.stringify({ response: result._b, consoleLines });
+    assert.equal(evidence.includes(SECRET), false);
+    assert.equal(evidence.includes(supplied), false);
+    assert.equal(ctx.sends.count, 0);
+    assert.equal(ctx.store.calls.length, 0);
+  } finally {
+    console.error = originalError;
+  }
 });
 
 // ── 10. Existing behavior intact: window, disabled, and 410 cleanup ──

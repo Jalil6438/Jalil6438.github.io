@@ -60,7 +60,9 @@ in its window are still deduped normally.
 Upstash console (QStash → Schedules):
 
 - Destination: `https://<domain>/api/cron/send-reminders`
-- Method: `POST` (the endpoint accepts GET or POST; auth is what matters)
+- Method: `POST`. Ordinary GET requests are rejected; the only GET exception
+  is Vercel's identified daily Cron request. Both paths still require the same
+  bearer authentication.
 - Cadence: `*/15 * * * *` (UTC — fine, because per-subscriber timezones are
   resolved inside the endpoint from each stored `tz` offset)
 - Header forwarding: set `Upstash-Forward-Authorization` to
@@ -138,7 +140,7 @@ The server-test notification opens the app home (`/`).
 
 1. Set a session reminder 1–2 minutes ahead; wait for it to arrive.
 2. Trigger the cron again manually within the same day:
-   `curl -H "Authorization: Bearer <CRON_SECRET>" https://<domain>/api/cron/send-reminders`
+   `curl -X POST -H "Authorization: Bearer <CRON_SECRET>" -H "Content-Type: application/json" -d "{}" https://<domain>/api/cron/send-reminders`
 3. The response counts the skip as `duplicates`; no second notification
    arrives. The dedupe marker (`alhifz:push:sent:<sub>:<session>:<localDay>`)
    expires after 48 h, so tomorrow's reminder fires normally.

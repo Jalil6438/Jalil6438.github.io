@@ -1,7 +1,9 @@
-// GET/POST /api/cron/send-reminders - scheduled background reminder delivery.
+// POST /api/cron/send-reminders - scheduled background reminder delivery.
+// Vercel's identified cron GET is the only GET exception.
 // Responses and logs contain counts, short subscription ids, fixed result
 // labels, and optional numeric status codes only.
 import webpush from "web-push";
+import { validateCronRequest } from "../_cron-security.js";
 import {
   subsKey, logKey, sentKey, procKey, LOG_CAP, DELIVERY_RUN_LOG_CAP,
   SENT_TTL_SECONDS, PROC_TTL_SECONDS, PUSH_DELIVERY_RESULT,
@@ -15,9 +17,8 @@ const safeSubId = (id) => (
 );
 
 export default async function handler(req, res) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return json(res, 503, { error: "cron not configured" });
-  if (req.headers.authorization !== `Bearer ${secret}`) return json(res, 401, { error: "unauthorized" });
+  const boundary = validateCronRequest(req, process.env.CRON_SECRET);
+  if (!boundary.ok) return json(res, boundary.status, boundary.body);
 
   try { envNamespace(); } catch {
     return json(res, 503, { error: "environment not configured" });
