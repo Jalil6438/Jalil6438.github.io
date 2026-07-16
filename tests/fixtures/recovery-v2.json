@@ -1,0 +1,31 @@
+{
+  "snapshotId": "rs_fixture_v2",
+  "backupReference": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "schemaVersion": 2,
+  "appVersion": "1.5.0",
+  "createdAt": 1784160000000,
+  "updatedAt": 1784160000000,
+  "deviceId": "synthetic_device_reference_0002",
+  "previousSnapshotId": null,
+  "payloadHash": "sha256:d3e747ed58a3bed72da8fb51edeac5857cfb6715a6ef3b3f290176a86c4d906a",
+  "summary": {
+    "payloadKeys": 1,
+    "totalRecords": 1,
+    "counts": { "jalil-quran-v9": 1 }
+  },
+  "completionState": "COMPLETE",
+  "envelope": {
+    "app": "rihlat-al-hifz",
+    "kind": "cloud-backup",
+    "schemaVersion": 1,
+    "backupId": "bkup_fixture_v2",
+    "writerId": "wrtr_fixture_v2",
+    "appVersion": "1.5.0",
+    "platform": "android",
+    "createdAt": "2026-07-01T00:00:00.000Z",
+    "updatedAt": "2026-07-14T12:00:00.000Z",
+    "encryption": { "alg": "none" },
+    "payload": { "jalil-quran-v9": "[\"2:1\"]" },
+    "checksum": "sha256:d3e747ed58a3bed72da8fb51edeac5857cfb6715a6ef3b3f290176a86c4d906a"
+  }
+}
