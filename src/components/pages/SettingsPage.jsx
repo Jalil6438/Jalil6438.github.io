@@ -3,21 +3,7 @@ import AppPage from "./AppPage";
 import { WarnGlyph } from "../glyphs";
 import { APP_NAME, APP_VERSION, RELEASE_YEAR } from "../../releaseInfo";
 import { disablePush } from "../../push/pushClient";
-
-// Wipe every local trace AND remove the server-side reminder subscription so a
-// reset device stops receiving pushes. disablePush is best-effort (it always
-// resolves and never throws); the race guard keeps a slow/stuck service worker
-// from blocking the wipe.
-async function resetAllData() {
-  try {
-    await Promise.race([
-      disablePush(),
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-    ]);
-  } catch { /* never let cleanup block the wipe */ }
-  try { localStorage.clear(); sessionStorage.clear(); } catch { /* ignore */ }
-  setTimeout(() => location.reload(), 50);
-}
+import { deleteRecoveryBeforeReset } from "../../recovery/recoveryClient";
 
 // Medallion row icon — shares the side-drawer icon family so Settings reads as
 // part of the same premium system. Decorative; the adjacent label names the row.
@@ -39,8 +25,31 @@ function RowMedallion({ img }) {
 export default function SettingsPage({ dark, T, onBack, setAppPage, setDark }) {
   const [showNameModal, setShowNameModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState("");
   const [editName, setEditName] = useState("");
   const username = (typeof localStorage !== "undefined" && localStorage.getItem("rihlat-username")) || "Abdul Jalil";
+
+  async function resetAllData() {
+    if (resetting) return;
+    setResetting(true);
+    setResetError("");
+    try {
+      await deleteRecoveryBeforeReset();
+    } catch {
+      setResetError("Your local progress was not reset because the encrypted recovery copy could not be removed. Check your connection and try again.");
+      setResetting(false);
+      return;
+    }
+    try {
+      await Promise.race([
+        disablePush(),
+        new Promise((resolve) => setTimeout(resolve, 2000)),
+      ]);
+    } catch { /* never let reminder cleanup block a verified recovery deletion */ }
+    try { localStorage.clear(); sessionStorage.clear(); } catch { /* ignore */ }
+    setTimeout(() => location.reload(), 50);
+  }
 
   const SectionLabel = ({ children }) => (
     <div style={{
@@ -137,16 +146,17 @@ export default function SettingsPage({ dark, T, onBack, setAppPage, setDark }) {
 
       {/* Reset confirmation inner modal */}
       {showResetConfirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.40)", zIndex: 1001, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setShowResetConfirm(false)}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.40)", zIndex: 1001, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => { if (!resetting) { setShowResetConfirm(false); setResetError(""); } }}>
           <div style={{ background: dark ? "linear-gradient(180deg,#0E1628 0%,#080E1A 100%)" : "#EADFC8", borderRadius: 20, maxWidth: 360, width: "100%", border: "1px solid rgba(229,83,75,0.30)", boxShadow: "0 20px 60px rgba(0,0,0,0.60), 0 0 30px rgba(229,83,75,0.15)", padding: "22px 20px", textAlign: "center" }} onClick={e => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "center", color: "#E5534B", marginBottom: 8 }}><WarnGlyph size={34} /></div>
             <div style={{ fontSize: 16, fontWeight: 700, color: dark ? "#F3E7C8" : "#3D2E0A", marginBottom: 8 }}>Reset All Progress?</div>
             <div style={{ fontSize: 12, color: dark ? "rgba(243,231,200,0.60)" : "#6B645A", lineHeight: 1.6, marginBottom: 18 }}>
               This will erase all your memorized juz, streaks, bookmarks, and settings, and turn off reminders on this device. This cannot be undone.
             </div>
+            {resetError && <div role="alert" style={{ fontSize: 11, color: "#E5534B", lineHeight: 1.5, marginBottom: 14 }}>{resetError}</div>}
             <div style={{ display: "flex", gap: 8 }}>
-              <div className="sbtn" onClick={() => setShowResetConfirm(false)} style={{ flex: 1, padding: "11px", borderRadius: 10, textAlign: "center", fontSize: 13, fontWeight: 600, color: T?.text || (dark ? "#F3E7C8" : "#2D2A26"), background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}` }}>Cancel</div>
-              <div className="sbtn" onClick={resetAllData} style={{ flex: 1, padding: "11px", borderRadius: 10, textAlign: "center", fontSize: 13, fontWeight: 700, color: "#fff", background: "#E5534B", border: "1px solid #E5534B" }}>Reset</div>
+              <div className="sbtn" aria-disabled={resetting} onClick={() => { if (!resetting) { setShowResetConfirm(false); setResetError(""); } }} style={{ flex: 1, padding: "11px", borderRadius: 10, textAlign: "center", fontSize: 13, fontWeight: 600, color: T?.text || (dark ? "#F3E7C8" : "#2D2A26"), background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", border: `1px solid ${dark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`, opacity: resetting ? 0.55 : 1 }}>Cancel</div>
+              <div className="sbtn" aria-disabled={resetting} onClick={resetAllData} style={{ flex: 1, padding: "11px", borderRadius: 10, textAlign: "center", fontSize: 13, fontWeight: 700, color: "#fff", background: "#E5534B", border: "1px solid #E5534B", opacity: resetting ? 0.72 : 1 }}>{resetting ? "Removing recovery..." : "Reset"}</div>
             </div>
           </div>
         </div>

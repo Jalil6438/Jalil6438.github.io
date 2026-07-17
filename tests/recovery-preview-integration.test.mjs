@@ -14,6 +14,7 @@ import {
   RECOVERY_TOKEN_KEY,
   RECOVERY_WRITER_ID_KEY,
   buildLocalRecoveryEnvelope,
+  deleteRecoveryBeforeReset,
   getOrCreateRecoveryIdentity,
 } from "../src/recovery/recoveryClient.js";
 import {
@@ -159,6 +160,57 @@ test("client envelope excludes reminders, capability, analytics, and unrelated s
   for (const key of [...CLOUD_EXCLUDED_KEYS, RECOVERY_TOKEN_KEY, RECOVERY_BACKUP_ID_KEY, RECOVERY_WRITER_ID_KEY]) {
     assert.equal(Object.hasOwn(result.payload, key), false);
   }
+});
+
+test("reset deletion accepts deleted, already absent, and empty 204 responses", async () => {
+  const token = `cap_${"a".repeat(48)}`;
+  const storage = new Storage({ [RECOVERY_TOKEN_KEY]: token });
+  const seen = [];
+  for (const response of [
+    new Response(JSON.stringify({ ok: true, deleted: true }), { status: 200, headers: { "Content-Type": "application/json" } }),
+    new Response(JSON.stringify({ ok: true, deleted: false }), { status: 200, headers: { "Content-Type": "application/json" } }),
+    new Response(null, { status: 204 }),
+  ]) {
+    const result = await deleteRecoveryBeforeReset({
+      storage,
+      fetchImpl: async (url, init) => {
+        seen.push({ url, method: init.method, authorization: init.headers.Authorization });
+        return response;
+      },
+    });
+    assert.equal(result.skipped, false);
+  }
+  assert.equal(seen.every(({ url, method }) => url === "/api/recovery" && method === "DELETE"), true);
+  assert.equal(seen.every(({ authorization }) => authorization === `Bearer ${token}`), true);
+});
+
+test("reset deletion fails closed without mutating capability or progress", async () => {
+  const token = `cap_${"b".repeat(48)}`;
+  for (const fetchImpl of [
+    async () => { throw new Error("network detail"); },
+    async () => new Response(JSON.stringify({ ok: false, error: "RECOVERY_STORE_UNAVAILABLE" }), { status: 503, headers: { "Content-Type": "application/json" } }),
+  ]) {
+    const storage = new Storage({ [RECOVERY_TOKEN_KEY]: token, "jalil-quran-v9": '["2:1"]' });
+    await assert.rejects(() => deleteRecoveryBeforeReset({ storage, fetchImpl }), (error) => {
+      assert.equal(JSON.stringify(error).includes(token), false);
+      assert.equal(String(error.message).includes("network detail"), false);
+      return true;
+    });
+    assert.equal(storage.getItem(RECOVERY_TOKEN_KEY), token);
+    assert.equal(storage.getItem("jalil-quran-v9"), '["2:1"]');
+  }
+});
+
+test("Settings reset deletes recovery before push cleanup and local wipe", () => {
+  const source = readFileSync("src/components/pages/SettingsPage.jsx", "utf8");
+  const start = source.indexOf("async function resetAllData");
+  const end = source.indexOf("const SectionLabel", start);
+  const reset = source.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.ok(reset.indexOf("await deleteRecoveryBeforeReset()") < reset.indexOf("disablePush()"));
+  assert.ok(reset.indexOf("disablePush()") < reset.indexOf("localStorage.clear()"));
+  assert.match(reset, /catch\s*\{[\s\S]*setResetError\([\s\S]*setResetting\(false\);[\s\S]*return;/);
+  assert.match(source, /Your local progress was not reset because the encrypted recovery copy could not be removed\./);
 });
 
 test("transactional recovery changes progress but preserves reminder preferences", () => {

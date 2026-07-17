@@ -139,10 +139,10 @@ test("client environment fields cannot override the server namespace", async () 
 
 test("authorized record deletion removes only the caller's recovery record and is idempotent", async () => {
   await call({ body: { action: "backup", envelope: await envelope() } });
-  const removed = await call({ body: { action: "delete-record" } });
+  const removed = await call({ method: "DELETE" });
   assert.equal(removed.statusCode, 200);
   assert.equal(removed.body.deleted, true);
-  const repeated = await call({ body: { action: "delete-record" } });
+  const repeated = await call({ method: "DELETE" });
   assert.equal(repeated.statusCode, 200);
   assert.equal(repeated.body.deleted, false);
   const health = await call({ method: "GET" });
@@ -176,7 +176,7 @@ test("malformed, unknown, oversized, and wrong-method requests are bounded", asy
   assert.equal(result.statusCode, 400);
   result = await call({ body: { action: "backup", padding: "x".repeat(3 * 1024 * 1024 + 10) } });
   assert.equal(result.statusCode, 413);
-  result = await call({ method: "DELETE" });
+  result = await call({ method: "PATCH" });
   assert.equal(result.statusCode, 405);
 });
 

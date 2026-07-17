@@ -51,6 +51,17 @@ export async function buildLocalRecoveryEnvelope(storage, identity, now = () => 
   });
 }
 
+export async function deleteRecoveryBeforeReset({
+  storage = globalThis.localStorage,
+  fetchImpl = globalThis.fetch,
+  baseUrl = "",
+} = {}) {
+  const token = storage?.getItem?.(RECOVERY_TOKEN_KEY);
+  if (!token) return { skipped: true, deleted: false };
+  const result = await createRecoveryApi({ token, fetchImpl, baseUrl }).deleteRecord();
+  return { skipped: false, deleted: result.deleted === true };
+}
+
 export function recoveryErrorMessage(code) {
   return {
     SNAPSHOT_NOT_FOUND: "No recovery snapshot is available.",
@@ -84,6 +95,7 @@ export function createRecoveryApi({ token, fetchImpl = globalThis.fetch, baseUrl
       error.code = "RECOVERY_NETWORK_ERROR";
       throw error;
     } finally { clearTimeout(timeout); }
+    if (response.ok && response.status === 204) return { ok: true, deleted: true };
     let result;
     try { result = await response.json(); } catch { result = null; }
     if (!response.ok || !result?.ok) {
@@ -105,5 +117,6 @@ export function createRecoveryApi({ token, fetchImpl = globalThis.fetch, baseUrl
       action: "restore-confirm", operationId, reloadedChecksum,
     }),
     rollback: (operationId) => request("POST", { action: "restore-rollback", operationId }),
+    deleteRecord: () => request("DELETE"),
   };
 }

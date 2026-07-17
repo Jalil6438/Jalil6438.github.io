@@ -160,7 +160,10 @@ for (const failure of [
 
 test("account reset still invokes push removal before clearing local data", () => {
   const settings = readFileSync(new URL("../src/components/pages/SettingsPage.jsx", import.meta.url), "utf8");
-  const resetBody = settings.slice(settings.indexOf("async function resetAllData"), settings.indexOf("function RowMedallion"));
+  const resetStart = settings.indexOf("async function resetAllData");
+  const resetBody = settings.slice(resetStart, settings.indexOf("const SectionLabel", resetStart));
+  assert.ok(resetBody.indexOf("deleteRecoveryBeforeReset()") >= 0);
+  assert.ok(resetBody.indexOf("deleteRecoveryBeforeReset()") < resetBody.indexOf("disablePush()"));
   assert.ok(resetBody.indexOf("disablePush()") >= 0);
   assert.ok(resetBody.indexOf("disablePush()") < resetBody.indexOf("localStorage.clear()"));
 

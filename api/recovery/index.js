@@ -30,7 +30,7 @@ function recoveryStatus(error) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "GET" && req.method !== "POST") return json(res, 405, { ok: false, error: "method not allowed" });
+  if (!["GET", "POST", "DELETE"].includes(req.method)) return json(res, 405, { ok: false, error: "method not allowed" });
   if (!recoveryEnabled()) return json(res, 503, { ok: false, error: "recovery platform unavailable" });
   if (req.method === "POST" && bodyBytes(req.body) > MAX_BODY_BYTES) {
     return json(res, 413, { ok: false, error: "payload too large" });
@@ -39,6 +39,7 @@ export default async function handler(req, res) {
     const { ref } = await authorize(req, { limit: req.method === "GET" ? "read" : "write" });
     const platform = createRecoveryPlatform();
     if (req.method === "GET") return json(res, 200, { ok: true, health: await platform.health(ref) });
+    if (req.method === "DELETE") return json(res, 200, { ok: true, ...(await platform.deleteRecovery(ref)) });
 
     const body = parseBody(req);
     if (!body || typeof body.action !== "string") throw recoveryError("RECOVERY_REQUEST_INVALID", "bad request");
