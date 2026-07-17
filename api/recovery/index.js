@@ -32,7 +32,9 @@ function recoveryStatus(error) {
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") return json(res, 405, { ok: false, error: "method not allowed" });
   if (!recoveryEnabled()) return json(res, 503, { ok: false, error: "recovery platform unavailable" });
-  if (bodyBytes(req.body) > MAX_BODY_BYTES) return json(res, 413, { ok: false, error: "payload too large" });
+  if (req.method === "POST" && bodyBytes(req.body) > MAX_BODY_BYTES) {
+    return json(res, 413, { ok: false, error: "payload too large" });
+  }
   try {
     const { ref } = await authorize(req, { limit: req.method === "GET" ? "read" : "write" });
     const platform = createRecoveryPlatform();

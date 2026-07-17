@@ -24,7 +24,7 @@ async function envelope(ayahs = ["2:1"]) {
   });
 }
 
-function call({ method = "POST", body = null, authorization = AUTH } = {}) {
+function call({ method = "POST", body, authorization = AUTH } = {}) {
   const result = { statusCode: null, body: null, headers: {} };
   const res = {
     setHeader(name, value) { result.headers[name] = value; },
@@ -82,6 +82,23 @@ test("restore planning is read-only and returns a safe empty-local plan", async 
   assert.ok(plan.body.plan.proof.planId);
   const health = await call({ method: "GET" });
   assert.equal(health.body.health.snapshotCount, 1);
+});
+
+test("GET bypasses POST body-size validation for hosted request-body shapes", async () => {
+  const noBody = await call({ method: "GET" });
+  assert.equal(noBody.statusCode, 200);
+
+  const undefinedBody = await call({ method: "GET", body: undefined });
+  assert.equal(undefinedBody.statusCode, 200);
+
+  const emptyBody = await call({ method: "GET", body: "" });
+  assert.equal(emptyBody.statusCode, 200);
+
+  const hostedBody = {};
+  hostedBody.request = hostedBody;
+  const nonSerializableBody = await call({ method: "GET", body: hostedBody });
+  assert.equal(nonSerializableBody.statusCode, 200);
+  assert.equal(nonSerializableBody.body.health.ready, true);
 });
 
 test("route requires the current plan proof and keeps duplicate restore idempotent", async () => {
