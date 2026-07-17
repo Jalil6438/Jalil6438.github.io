@@ -2,7 +2,6 @@ import { MAX_ENVELOPE_BYTES } from "../../src/backup/cloudContract.js";
 import { authorize, parseBody, sendError } from "../_backup-lib.js";
 import { json } from "../_push-lib.js";
 import { createRecoveryPlatform } from "../_recovery-platform.js";
-import { handlePreviewCleanup, isPreviewCleanupRequest } from "../_recovery-preview-cleanup.js";
 import { recoveryEnabled, recoveryError } from "../_recovery-model.js";
 
 const MAX_BODY_BYTES = MAX_ENVELOPE_BYTES * 3;
@@ -10,6 +9,15 @@ const MAX_BODY_BYTES = MAX_ENVELOPE_BYTES * 3;
 function bodyBytes(body) {
   try { return Buffer.byteLength(typeof body === "string" ? body : JSON.stringify(body), "utf8"); }
   catch { return Number.POSITIVE_INFINITY; }
+}
+
+function isRemovedPreviewCleanup(body) {
+  let value = body;
+  if (typeof value === "string") {
+    if (value.length > 128) return false;
+    try { value = JSON.parse(value); } catch { return false; }
+  }
+  return value && typeof value === "object" && value.action === "preview-synthetic-cleanup";
 }
 
 function recoveryStatus(error) {
@@ -33,11 +41,11 @@ function recoveryStatus(error) {
 export default async function handler(req, res) {
   if (!["GET", "POST", "DELETE"].includes(req.method)) return json(res, 405, { ok: false, error: "method not allowed" });
   if (!recoveryEnabled()) return json(res, 503, { ok: false, error: "recovery platform unavailable" });
-  if (req.method === "POST" && isPreviewCleanupRequest(req.body)) {
-    return handlePreviewCleanup(req, res);
-  }
   if (req.method === "POST" && bodyBytes(req.body) > MAX_BODY_BYTES) {
     return json(res, 413, { ok: false, error: "payload too large" });
+  }
+  if (req.method === "POST" && isRemovedPreviewCleanup(req.body)) {
+    return json(res, 404, { error: "not found" });
   }
   try {
     const { ref } = await authorize(req, { limit: req.method === "GET" ? "read" : "write" });

@@ -180,6 +180,18 @@ test("malformed, unknown, oversized, and wrong-method requests are bounded", asy
   assert.equal(result.statusCode, 405);
 });
 
+test("the retired Preview cleanup action is no longer reachable", async () => {
+  const result = await call({
+    body: { action: "preview-synthetic-cleanup" },
+    authorization: undefined,
+  });
+  assert.deepEqual(result, {
+    statusCode: 404,
+    body: { error: "not found" },
+    headers: { "Cache-Control": "no-store" },
+  });
+});
+
 test("responses and console never expose capabilities, IPs, or payloads", async () => {
   const lines = [];
   const original = console.error;
