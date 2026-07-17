@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import handler, { authorized, remediateSynthetic } from "../api/recovery/remediate-synthetic.js";
+import handler from "../api/recovery/index.js";
+import {
+  authorized,
+  handleSyntheticRemediation,
+  remediateSynthetic,
+} from "../api/_recovery-remediation.js";
 
 const PREFIX = "alhifz:recovery:v1:preview:record:";
 const KEY = `${PREFIX}${"a".repeat(64)}`;
@@ -41,19 +46,21 @@ function redisFetch(records = new Map([[KEY, JSON.stringify(syntheticState())]])
   return { fetchImpl, commands, records };
 }
 
-function call({ method = "POST", body = { action: "cleanup" }, authorization = `Bearer ${SECRET}` } = {}) {
+function call({ method = "POST", body = { action: "remediate-synthetic" }, authorization = `Bearer ${SECRET}`, direct = false } = {}) {
   const result = { statusCode: null, body: null };
   const res = {
     status(code) { result.statusCode = code; return this; },
     json(value) { result.body = value; return this; },
     setHeader() {},
   };
-  return handler({ method, body, headers: { authorization } }, res).then(() => result);
+  const route = direct ? handleSyntheticRemediation : handler;
+  return route({ method, body, headers: { authorization } }, res).then(() => result);
 }
 
 test.beforeEach(() => {
   process.env.VERCEL_ENV = "preview";
   process.env.VERCEL_GIT_COMMIT_REF = "work/al-hifz-progress-recovery-preview";
+  process.env.PROGRESS_RECOVERY_PLATFORM_ENABLED = "true";
   process.env.RECOVERY_REMEDIATION_SECRET = SECRET;
   process.env.BACKUP_REDIS_REST_URL = "https://redis.example";
   process.env.BACKUP_REDIS_REST_TOKEN = REDIS_TOKEN;
@@ -62,6 +69,7 @@ test.beforeEach(() => {
 test.afterEach(() => {
   delete process.env.VERCEL_ENV;
   delete process.env.VERCEL_GIT_COMMIT_REF;
+  delete process.env.PROGRESS_RECOVERY_PLATFORM_ENABLED;
   delete process.env.RECOVERY_REMEDIATION_SECRET;
   delete process.env.BACKUP_REDIS_REST_URL;
   delete process.env.BACKUP_REDIS_REST_TOKEN;
@@ -74,7 +82,7 @@ test("constant-time authorization accepts only the exact bearer", () => {
 });
 
 test("route is POST-only and hidden outside the exact Preview branch", async () => {
-  assert.equal((await call({ method: "GET" })).statusCode, 405);
+  assert.equal((await call({ method: "GET", direct: true })).statusCode, 405);
   process.env.VERCEL_ENV = "production";
   assert.deepEqual(await call(), { statusCode: 404, body: { ok: false, error: "not found" } });
   process.env.VERCEL_ENV = "preview";
@@ -93,8 +101,8 @@ test("route fails closed on missing configuration and invalid authorization", as
 });
 
 test("route bounds and fixes the request body contract", async () => {
-  assert.equal((await call({ body: { action: "cleanup", pattern: "*" } })).statusCode, 400);
-  assert.equal((await call({ body: { action: "cleanup", padding: "x".repeat(1100) } })).statusCode, 413);
+  assert.equal((await call({ body: { action: "remediate-synthetic", pattern: "*" } })).statusCode, 400);
+  assert.equal((await call({ body: { action: "remediate-synthetic", padding: "x".repeat(1100) } })).statusCode, 413);
 });
 
 test("exact synthetic record is deleted atomically and a second run is empty", async () => {

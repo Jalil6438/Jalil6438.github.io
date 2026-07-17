@@ -2,6 +2,7 @@ import { MAX_ENVELOPE_BYTES } from "../../src/backup/cloudContract.js";
 import { authorize, parseBody, sendError } from "../_backup-lib.js";
 import { json } from "../_push-lib.js";
 import { createRecoveryPlatform } from "../_recovery-platform.js";
+import { handleSyntheticRemediation, isSyntheticRemediationRequest } from "../_recovery-remediation.js";
 import { recoveryEnabled, recoveryError } from "../_recovery-model.js";
 
 const MAX_BODY_BYTES = MAX_ENVELOPE_BYTES * 3;
@@ -32,6 +33,9 @@ function recoveryStatus(error) {
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") return json(res, 405, { ok: false, error: "method not allowed" });
   if (!recoveryEnabled()) return json(res, 503, { ok: false, error: "recovery platform unavailable" });
+  if (req.method === "POST" && isSyntheticRemediationRequest(req.body)) {
+    return handleSyntheticRemediation(req, res);
+  }
   if (req.method === "POST" && bodyBytes(req.body) > MAX_BODY_BYTES) {
     return json(res, 413, { ok: false, error: "payload too large" });
   }

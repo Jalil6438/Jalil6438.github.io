@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { json } from "../_push-lib.js";
+import { json } from "./_push-lib.js";
 
 const EXPECTED_BRANCH = "work/al-hifz-progress-recovery-preview";
 const PREFIX = "alhifz:recovery:v1:preview:record:";
@@ -36,6 +36,10 @@ function parseBody(body) {
     try { return JSON.parse(body); } catch { return null; }
   }
   return body && typeof body === "object" && !Array.isArray(body) ? body : null;
+}
+
+export function isSyntheticRemediationRequest(body) {
+  return parseBody(body)?.action === "remediate-synthetic";
 }
 
 function redisConfig() {
@@ -116,7 +120,7 @@ export async function remediateSynthetic({ fetchImpl = globalThis.fetch } = {}) 
   return { scanned: 1, deleted: 1 };
 }
 
-export default async function handler(req, res) {
+export async function handleSyntheticRemediation(req, res) {
   if (req.method !== "POST") return json(res, 405, { ok: false, error: "method not allowed" });
   if (process.env.VERCEL_ENV !== "preview" || process.env.VERCEL_GIT_COMMIT_REF !== EXPECTED_BRANCH) {
     return json(res, 404, { ok: false, error: "not found" });
@@ -128,7 +132,7 @@ export default async function handler(req, res) {
   }
   if (!authorized(req.headers?.authorization, secret)) return json(res, 401, { ok: false, error: "unauthorized" });
   const body = parseBody(req.body);
-  if (!body || body.action !== "cleanup" || Object.keys(body).length !== 1) {
+  if (!body || body.action !== "remediate-synthetic" || Object.keys(body).length !== 1) {
     return json(res, 400, { ok: false, error: "bad request" });
   }
   try {
