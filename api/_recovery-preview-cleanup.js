@@ -37,6 +37,10 @@ function parseBody(body) {
   return body && typeof body === "object" && !Array.isArray(body) ? body : null;
 }
 
+export function isPreviewCleanupRequest(body) {
+  return parseBody(body)?.action === "preview-synthetic-cleanup";
+}
+
 function redisConfig() {
   let url;
   try { url = new URL(process.env.BACKUP_REDIS_REST_URL); } catch { return null; }
@@ -123,7 +127,7 @@ export async function remediatePreview({
   return { scanned: keys.size, deleted: 1 };
 }
 
-export default async function handler(req, res) {
+export async function handlePreviewCleanup(req, res) {
   if (req.method !== "POST") return json(res, 405, { error: "method not allowed" });
   let namespace;
   try { namespace = recoveryEnvironment(); } catch { namespace = null; }
@@ -138,7 +142,7 @@ export default async function handler(req, res) {
   }
   if (!authorized(req.headers?.authorization, secret)) return json(res, 401, { error: "unauthorized" });
   const body = parseBody(req.body);
-  if (!body || body.action !== "cleanup" || Object.keys(body).length !== 1) {
+  if (!body || body.action !== "preview-synthetic-cleanup" || Object.keys(body).length !== 1) {
     return json(res, 400, { error: "bad request" });
   }
   try {
